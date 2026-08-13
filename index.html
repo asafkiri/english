@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>מדריך צירופי אותיות באנגלית — קריאה עם ניקוד עברי</title>
+<title>לומדים לקרוא באנגלית — צירופי אותיות</title>
 <style>
   :root{
     --ink:#16233A;
@@ -164,21 +164,441 @@
     .grid{grid-template-columns:1fr 1fr 1fr}
   }
 </style>
+<style>
+  /* ---------- app experience ---------- */
+  :root{
+    --app-bg:#F7F6F2;
+    --app-surface:#FFFFFF;
+    --app-ink:#17213A;
+    --app-muted:#657086;
+    --app-primary:#4D5AC7;
+    --app-primary-dark:#38459F;
+    --app-primary-soft:#EEF0FF;
+    --app-coral:#F07A5A;
+    --app-yellow:#FFD767;
+    --app-green:#16866E;
+    --app-green-soft:#E8F7F1;
+    --app-red:#B84B50;
+    --app-red-soft:#FFF0F0;
+    --app-line:#E2E5EC;
+    --app-shadow:0 14px 40px rgba(30,39,73,.09);
+  }
+  [hidden]{display:none!important}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(circle at 100% 0, rgba(255,215,103,.22), transparent 31rem),
+      var(--app-bg);
+    color:var(--app-ink);
+    min-height:100vh;
+    padding-bottom:0;
+  }
+  button,input{font:inherit}
+  button{touch-action:manipulation}
+  button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{
+    outline:3px solid rgba(77,90,199,.34);
+    outline-offset:3px;
+  }
+  .app-header{
+    position:sticky;top:0;z-index:80;
+    height:68px;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(226,229,236,.85);
+  }
+  .app-header-in{
+    max-width:1120px;height:100%;margin:0 auto;padding:0 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+  }
+  .brand{
+    border:0;background:transparent;color:var(--app-ink);padding:5px;
+    display:flex;align-items:center;gap:11px;cursor:pointer;border-radius:13px;
+  }
+  .brand-mark{
+    width:42px;height:42px;border-radius:14px;
+    display:grid;place-items:center;background:var(--app-primary);color:#fff;
+    font-family:var(--latin);font-size:18px;font-weight:800;letter-spacing:-.04em;
+    box-shadow:0 7px 17px rgba(77,90,199,.24);
+  }
+  .brand-copy{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+  .brand-copy strong{font-size:16px}
+  .brand-copy small{font-size:12px;color:var(--app-muted);margin-top:4px}
+  .top-nav{display:flex;align-items:center;gap:6px}
+  .top-nav button{
+    min-height:42px;border:0;background:transparent;color:var(--app-muted);
+    border-radius:12px;padding:0 15px;font-weight:700;cursor:pointer;
+  }
+  .top-nav button.active{background:var(--app-primary-soft);color:var(--app-primary-dark)}
+  .view{min-height:calc(100vh - 68px)}
+
+  /* ---------- home ---------- */
+  .home-wrap{max-width:1080px;margin:0 auto;padding:42px 22px 90px}
+  .home-hero{
+    display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);
+    gap:34px;align-items:stretch;
+  }
+  .welcome-card{
+    position:relative;overflow:hidden;background:var(--app-ink);color:#fff;
+    border-radius:30px;padding:40px 42px;box-shadow:var(--app-shadow);
+  }
+  .welcome-card::after{
+    content:"Aa";position:absolute;left:-12px;bottom:-54px;
+    font-family:var(--latin);font-size:180px;font-weight:800;line-height:1;
+    color:rgba(255,255,255,.055);direction:ltr;pointer-events:none;
+  }
+  .today-pill{
+    display:inline-flex;align-items:center;gap:8px;margin-bottom:17px;
+    background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.15);
+    border-radius:999px;padding:7px 12px;color:#E8EBFF;font-size:14px;font-weight:700;
+  }
+  .today-pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--app-yellow)}
+  .welcome-card h1{font-size:clamp(32px,4vw,48px);line-height:1.16;margin:0 0 13px;max-width:14ch;letter-spacing:-.025em}
+  .welcome-card p{margin:0 0 27px;color:#CCD2E5;font-size:17px;max-width:48ch;line-height:1.65}
+  .primary-action,.secondary-action{
+    min-height:52px;border-radius:15px;padding:0 20px;font-weight:800;
+    border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  }
+  .primary-action{background:var(--app-yellow);color:var(--app-ink);box-shadow:0 8px 20px rgba(255,215,103,.2)}
+  .primary-action:hover{background:#FFE087;transform:translateY(-1px)}
+  .primary-action .arrow-icon{font-size:20px;transition:transform .2s}
+  .primary-action:hover .arrow-icon{transform:translateX(-3px)}
+  .secondary-action{background:#fff;color:var(--app-primary-dark);border:1px solid var(--app-line)}
+  .secondary-action:hover{background:var(--app-primary-soft)}
+  .progress-card{
+    background:var(--app-surface);border:1px solid var(--app-line);border-radius:30px;
+    padding:30px;box-shadow:var(--app-shadow);display:flex;flex-direction:column;
+  }
+  .progress-card h2{font-size:20px;margin:0;color:var(--app-ink)}
+  .progress-number{font-family:var(--latin);direction:ltr;font-size:55px;line-height:1;margin:23px 0 6px;font-weight:800;color:var(--app-primary)}
+  .progress-caption{color:var(--app-muted);font-size:14px;margin-bottom:19px}
+  .progress-track{height:12px;background:#EDF0F5;border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--app-primary),#7E8AF1);border-radius:inherit;transition:width .45s ease}
+  .progress-meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--app-muted);font-size:13px}
+  .review-action{
+    width:100%;min-height:48px;margin-top:auto;border:0;border-radius:14px;
+    background:var(--app-red-soft);color:var(--app-red);font-weight:800;cursor:pointer;
+  }
+  .review-action:disabled{background:#F3F4F7;color:#A0A7B5;cursor:default}
+  .path-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:42px 0 17px}
+  .path-heading h2{margin:0;font-size:25px}
+  .path-heading p{margin:4px 0 0;color:var(--app-muted);font-size:15px}
+  .guide-link{
+    min-height:44px;border:1px solid var(--app-line);background:#fff;border-radius:13px;
+    color:var(--app-primary-dark);padding:0 16px;font-weight:800;cursor:pointer;white-space:nowrap;
+  }
+  .lessons-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .lesson-tile{
+    position:relative;width:100%;min-height:156px;text-align:right;border:1px solid var(--app-line);
+    background:#fff;border-radius:22px;padding:22px;cursor:pointer;color:var(--app-ink);
+    display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:15px;align-items:start;
+    transition:transform .18s,box-shadow .18s,border-color .18s;
+  }
+  .lesson-tile:hover{transform:translateY(-2px);box-shadow:var(--app-shadow);border-color:#C9CEF1}
+  .lesson-index{
+    width:54px;height:54px;border-radius:17px;background:var(--app-primary-soft);
+    color:var(--app-primary);display:grid;place-items:center;font-family:var(--latin);
+    font-size:22px;font-weight:800;direction:ltr;
+  }
+  .lesson-tile.is-complete .lesson-index{background:var(--app-green-soft);color:var(--app-green)}
+  .lesson-tile h3{font-size:19px;margin:1px 0 5px;line-height:1.3}
+  .lesson-tile p{font-size:14px;color:var(--app-muted);margin:0;line-height:1.55}
+  .lesson-state{display:flex;align-items:center;gap:7px;margin-top:15px;font-size:13px;color:var(--app-muted);font-weight:700}
+  .mini-track{width:78px;height:6px;background:#EEF0F4;border-radius:999px;overflow:hidden}
+  .mini-fill{height:100%;background:var(--app-primary);border-radius:inherit}
+  .lesson-tile.is-complete .mini-fill{background:var(--app-green)}
+  .tile-arrow{font-size:25px;color:#A1A8B6;line-height:1;margin-top:12px}
+  .needs-badge{display:inline-flex;background:var(--app-red-soft);color:var(--app-red);border-radius:999px;padding:3px 8px;font-size:12px}
+  .home-foot{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:28px;color:var(--app-muted);font-size:14px}
+  .text-button{border:0;background:transparent;color:var(--app-muted);text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:10px}
+
+  /* ---------- focused lesson ---------- */
+  .lesson-wrap{max-width:760px;margin:0 auto;padding:28px 22px 100px}
+  .lesson-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:21px}
+  .back-button{
+    min-height:44px;border:1px solid var(--app-line);background:#fff;border-radius:13px;
+    padding:0 14px;color:var(--app-ink);font-weight:800;cursor:pointer;
+  }
+  .lesson-position{color:var(--app-muted);font-size:14px;font-weight:700;text-align:left}
+  .lesson-progress{height:8px;background:#E7E9EF;border-radius:999px;overflow:hidden;margin-bottom:23px}
+  .lesson-progress span{display:block;height:100%;background:linear-gradient(90deg,var(--app-coral),#F3A066);border-radius:inherit;transition:width .3s}
+  .lesson-title-row{display:flex;align-items:start;justify-content:space-between;gap:18px;margin-bottom:18px}
+  .lesson-title-row h1{font-size:29px;margin:0 0 4px;line-height:1.25}
+  .lesson-title-row p{margin:0;color:var(--app-muted);font-size:15px}
+  .mode-switch{display:flex;background:#EDEEF3;border-radius:13px;padding:4px;flex:0 0 auto}
+  .mode-switch button{min-height:40px;border:0;border-radius:10px;padding:0 15px;background:transparent;color:var(--app-muted);font-weight:800;cursor:pointer}
+  .mode-switch button.active{background:#fff;color:var(--app-primary-dark);box-shadow:0 2px 9px rgba(20,30,60,.08)}
+  .study-card{
+    background:#fff;border:1px solid var(--app-line);border-radius:28px;
+    box-shadow:var(--app-shadow);padding:31px;
+  }
+  .rule-head{display:flex;align-items:center;justify-content:center;gap:16px;padding:4px 0 25px;border-bottom:1px solid var(--app-line)}
+  .rule-head .combo{font-size:48px;color:var(--app-primary-dark)}
+  .rule-head .arrow{font-size:28px;color:#ABB1BF}
+  .rule-head .sound{font-size:31px}
+  .lesson-instruction{text-align:center;color:var(--app-muted);font-size:14px;margin:17px 0 12px}
+  .example-list{list-style:none;padding:0;margin:0;display:grid;gap:9px}
+  .example-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(125px,.7fr);gap:12px;align-items:center}
+  .speak-example{
+    min-height:58px;border:1px solid #E2E5EE;background:#FAFAFC;border-radius:16px;
+    padding:0 16px;color:var(--app-ink);cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;direction:ltr;
+  }
+  .speak-example:hover{border-color:#C1C7F0;background:var(--app-primary-soft)}
+  .speak-example .english{font-family:var(--latin);font-size:23px;font-weight:700}
+  .speaker-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#fff;color:var(--app-primary);font-size:17px;box-shadow:0 2px 7px rgba(30,40,70,.08)}
+  .speak-example.is-speaking .speaker-icon{background:var(--app-primary);color:#fff;animation:pulse .8s ease infinite alternate}
+  @keyframes pulse{to{transform:scale(1.08)}}
+  .answer-box{
+    min-height:58px;border-radius:16px;background:#FFF8DC;border:1px solid #F5E6A8;
+    color:var(--app-ink);display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:8px 12px;font-size:20px;font-weight:800;position:relative;overflow:hidden;
+  }
+  #lessonView.is-practice:not(.answers-revealed) .answer-text{visibility:hidden}
+  #lessonView.is-practice:not(.answers-revealed) .answer-box{background:#F1F2F5;border-color:#E4E6EB}
+  #lessonView.is-practice:not(.answers-revealed) .answer-box::after{content:"?";font-family:var(--latin);font-size:27px;color:#A9AFBB;position:absolute}
+  .reveal-button{
+    width:100%;min-height:50px;margin-top:16px;border:1px solid #C8CDF2;
+    background:var(--app-primary-soft);color:var(--app-primary-dark);border-radius:15px;
+    font-weight:800;cursor:pointer;
+  }
+  .study-note{margin-top:18px;border-top:1px solid var(--app-line);padding-top:15px}
+  .study-note summary{color:var(--app-primary-dark);font-weight:800;cursor:pointer;min-height:40px;display:flex;align-items:center;gap:7px;list-style:none}
+  .study-note summary::-webkit-details-marker{display:none}
+  .study-note summary::before{content:"+";width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--app-primary-soft)}
+  .study-note[open] summary::before{content:"−"}
+  .study-note p{margin:8px 0 0;color:var(--app-muted);font-size:15px;line-height:1.7}
+  .study-note.warning p{color:var(--app-red)}
+  .lesson-actions{display:grid;grid-template-columns:1fr 1.45fr;gap:12px;margin-top:17px}
+  .lesson-actions button{min-height:54px;border-radius:15px;font-weight:800;cursor:pointer;padding:0 14px}
+  .need-review-btn{border:1px solid #F0CCCC;background:var(--app-red-soft);color:var(--app-red)}
+  .got-it-btn{border:0;background:var(--app-primary);color:#fff;box-shadow:0 8px 18px rgba(77,90,199,.2)}
+  .got-it-btn:hover{background:var(--app-primary-dark)}
+  .previous-card{display:block;margin:14px auto 0;border:0;background:transparent;color:var(--app-muted);text-decoration:underline;text-underline-offset:4px;cursor:pointer;min-height:40px;padding:0 14px}
+  .completion-card{text-align:center;background:#fff;border:1px solid var(--app-line);border-radius:28px;padding:44px 28px;box-shadow:var(--app-shadow)}
+  .completion-icon{width:76px;height:76px;border-radius:26px;background:var(--app-green-soft);color:var(--app-green);display:grid;place-items:center;margin:0 auto 18px;font-size:38px;font-weight:900}
+  .completion-card h2{font-size:29px;margin:0 0 9px;display:block}
+  .completion-card p{color:var(--app-muted);margin:0 auto 25px;max-width:45ch}
+  .completion-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
+
+  /* ---------- full guide ---------- */
+  #guideView{padding-bottom:60px}
+  #guideView header.hero{padding:28px 16px 24px;background:var(--app-ink);border-bottom:0}
+  #guideView .hero-in{max-width:1000px}
+  #guideView h1{font-size:27px}
+  #guideView .warn{display:none}
+  #guideView .bar{top:68px;margin-bottom:24px;padding:10px 0;background:rgba(247,246,242,.96)}
+  #guideView .bar-in{display:grid;grid-template-columns:auto minmax(180px,1fr) auto;gap:9px;flex-wrap:wrap}
+  .guide-home-btn,.toggle{
+    min-height:44px;border-radius:13px;padding:0 14px;font-size:14px;font-weight:800;
+  }
+  .guide-home-btn{border:1px solid var(--app-line);background:#fff;color:var(--app-ink);cursor:pointer}
+  .guide-search{position:relative;min-width:0}
+  .guide-search::before{content:"⌕";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#8D95A4;font-size:22px;pointer-events:none}
+  .guide-search input{width:100%;height:44px;border:1px solid var(--app-line);border-radius:13px;background:#fff;color:var(--app-ink);padding:0 43px 0 14px}
+  .guide-search input::placeholder{color:#939AA8}
+  #guideView nav.jump{grid-column:1/-1;order:4;padding-top:1px}
+  #guideView nav.jump a{min-height:38px;display:flex;align-items:center}
+  .search-status{grid-column:1/-1;color:var(--app-muted);font-size:13px;min-height:0}
+  #guideView section{scroll-margin-top:205px}
+  #guideView .card{border-radius:17px;box-shadow:0 3px 14px rgba(30,39,73,.035)}
+  #guideView section.search-hidden,#guideView .card.search-hidden,#guideView .chips li.search-hidden{display:none!important}
+  .section-open-btn{
+    min-height:44px;margin:4px 0 15px;border:1px solid var(--app-line);background:#fff;
+    color:var(--app-primary-dark);border-radius:13px;padding:0 15px;font-weight:800;cursor:pointer;
+  }
+  .section-open-btn .count{color:var(--app-muted);font-weight:500;margin-inline-start:5px}
+  #guideView .heb.answer-toggle{
+    border:0;background:transparent;font-family:var(--heb);font-size:16px;color:var(--ink-soft);
+    padding:5px 7px;min-height:36px;border-radius:7px;text-align:right;cursor:default;
+    position:relative;direction:rtl;
+  }
+  #guideView .heb.answer-toggle:disabled{opacity:1}
+  body.test #guideView .heb.answer-toggle{cursor:pointer}
+  body.test #guideView .heb.answer-toggle:not(.shown){background:#E7EAF0;color:transparent;min-width:76px}
+  body.test #guideView .heb.answer-toggle:not(.shown)::after{content:"לגלות";color:#6E7788;position:absolute;transform:translateX(50%);font-size:12px;font-weight:700}
+  .guide-word-button{
+    border:0;background:transparent;color:var(--app-ink);padding:5px 4px;min-height:38px;
+    display:inline-flex;align-items:center;gap:6px;cursor:pointer;border-radius:8px;
+    font-family:var(--latin);font-weight:700;direction:ltr;text-align:left;
+  }
+  .guide-word-button:hover{background:var(--app-primary-soft);color:var(--app-primary-dark)}
+  .guide-word-button .tiny-speaker{font-family:var(--heb);font-size:13px;color:var(--app-primary)}
+  #guideView ul.ex .guide-word-button{min-width:7em;justify-content:space-between}
+  .audio-notice{position:fixed;right:50%;bottom:82px;transform:translateX(50%);z-index:120;background:var(--app-ink);color:#fff;border-radius:13px;padding:11px 16px;font-size:14px;box-shadow:var(--app-shadow)}
+  #guideView .plan{border-radius:15px}
+
+  /* ---------- mobile navigation ---------- */
+  .bottom-nav{display:none}
+  @media(max-width:760px){
+    body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+    .app-header{height:60px}
+    .app-header-in{padding:0 15px}
+    .brand-mark{width:38px;height:38px;border-radius:12px}
+    .brand-copy small,.top-nav{display:none}
+    .view{min-height:calc(100vh - 60px)}
+    .home-wrap{padding:20px 14px 45px}
+    .home-hero{grid-template-columns:1fr;gap:12px}
+    .welcome-card{border-radius:24px;padding:27px 22px}
+    .welcome-card h1{font-size:33px;max-width:13ch}
+    .welcome-card p{font-size:16px;margin-bottom:21px}
+    .primary-action{width:100%}
+    .progress-card{border-radius:22px;padding:22px}
+    .progress-number{font-size:45px;margin:16px 0 3px}
+    .review-action{margin-top:20px}
+    .path-heading{margin:31px 2px 14px;align-items:start}
+    .path-heading h2{font-size:22px}
+    .guide-link{display:none}
+    .lessons-grid{grid-template-columns:1fr;gap:10px}
+    .lesson-tile{min-height:139px;border-radius:19px;padding:18px;grid-template-columns:48px minmax(0,1fr) auto;gap:12px}
+    .lesson-index{width:48px;height:48px;border-radius:15px;font-size:19px}
+    .lesson-tile h3{font-size:18px}
+    .home-foot{justify-content:center;text-align:center;flex-wrap:wrap}
+    .lesson-wrap{padding:17px 14px 40px}
+    .lesson-toolbar{margin-bottom:14px}
+    .lesson-position{font-size:12px}
+    .lesson-progress{margin-bottom:17px}
+    .lesson-title-row{display:block;margin-bottom:14px}
+    .lesson-title-row h1{font-size:24px}
+    .mode-switch{margin-top:14px;width:100%}
+    .mode-switch button{flex:1}
+    .study-card{border-radius:22px;padding:21px 16px}
+    .rule-head{padding-bottom:19px;gap:12px}
+    .rule-head .combo{font-size:42px}
+    .rule-head .sound{font-size:27px}
+    .example-row{grid-template-columns:minmax(0,1fr) minmax(105px,.75fr);gap:8px}
+    .speak-example,.answer-box{min-height:55px;border-radius:14px;padding:7px 10px}
+    .speak-example .english{font-size:21px}
+    .speaker-icon{width:30px;height:30px;font-size:15px}
+    .answer-box{font-size:18px}
+    .lesson-actions{grid-template-columns:1fr;gap:9px}
+    .got-it-btn{order:-1}
+    .completion-card{padding:34px 20px;border-radius:23px}
+    .completion-card h2{font-size:25px}
+    #guideView{padding-bottom:20px}
+    #guideView header.hero{padding:23px 15px 20px}
+    #guideView h1{font-size:24px}
+    #guideView .sub{font-size:15px}
+    #guideView .bar{top:60px;padding:8px 0}
+    #guideView .bar-in{padding:0 12px;grid-template-columns:auto minmax(0,1fr) auto;gap:7px}
+    .guide-home-btn{font-size:0;width:44px;padding:0}
+    .guide-home-btn::before{content:"⌂";font-size:22px}
+    #guideView .toggle{padding:0 10px;font-size:13px}
+    #guideView nav.jump{margin-inline:-2px}
+    #guideView .wrap{padding:0 13px 35px}
+    #guideView section{scroll-margin-top:205px;margin-bottom:31px}
+    #guideView h2{font-size:21px;line-height:1.35}
+    #guideView .lede{font-size:15px}
+    #guideView .card{padding:13px}
+    #guideView .plan,#guideView .plan tbody,#guideView .plan tr,#guideView .plan td{display:block;width:100%}
+    #guideView .plan thead{display:none}
+    #guideView .plan{background:transparent;border:0;overflow:visible}
+    #guideView .plan tr{background:#fff;border:1px solid var(--app-line);border-radius:15px;margin-bottom:10px;overflow:hidden;padding:5px 12px}
+    #guideView .plan td{border:0;padding:7px 0;text-align:right}
+    #guideView .plan td::before{content:attr(data-label);display:block;color:var(--app-muted);font-size:12px;font-weight:700;margin-bottom:1px}
+    #guideView .plan .wk{width:100%;font-size:18px;color:var(--app-primary-dark)}
+    .bottom-nav{
+      position:fixed;display:grid;grid-template-columns:repeat(3,1fr);z-index:100;
+      right:0;left:0;bottom:0;height:calc(70px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);
+      backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
+      border-top:1px solid var(--app-line);padding-bottom:env(safe-area-inset-bottom);
+    }
+    .bottom-nav button{border:0;background:transparent;color:#7D8594;font-size:12px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+    .bottom-nav button .nav-icon{font-size:21px;line-height:1}
+    .bottom-nav button.active{color:var(--app-primary)}
+    .audio-notice{bottom:82px;max-width:calc(100vw - 28px);white-space:nowrap}
+  }
+  @media(max-width:390px){
+    .example-row{grid-template-columns:minmax(0,1fr) 105px}
+    .speak-example .english{font-size:19px}
+    .answer-box{font-size:17px}
+  }
+  @media(max-width:350px){
+    .example-row{grid-template-columns:1fr}
+  }
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+  @media print{
+    .app-header,.bottom-nav,#homeView,#lessonView,#guideView .bar,.section-open-btn{display:none!important}
+    #guideView{display:block!important}
+    #guideView .section-content{display:block!important}
+    body.test #guideView .heb.answer-toggle{color:var(--ink-soft)!important;background:transparent!important}
+  }
+</style>
 </head>
 <body>
+
+<header class="app-header">
+  <div class="app-header-in">
+    <button class="brand" type="button" data-view="home" aria-label="חזרה למסלול הלימוד">
+      <span class="brand-mark" aria-hidden="true">Aa</span>
+      <span class="brand-copy"><strong>לומדים לקרוא</strong><small>צירופי אותיות באנגלית</small></span>
+    </button>
+    <nav class="top-nav" aria-label="ניווט ראשי">
+      <button type="button" data-view="home" class="active">מסלול הלימוד</button>
+      <button type="button" data-view="guide">המדריך המלא</button>
+    </nav>
+  </div>
+</header>
+
+<main id="homeView" class="view">
+  <div class="home-wrap">
+    <div class="home-hero">
+      <section class="welcome-card" aria-labelledby="welcomeTitle">
+        <span class="today-pill">10 דקות של תרגול</span>
+        <h1 id="welcomeTitle">קוראים אנגלית, צירוף אחד בכל פעם</h1>
+        <p>לא צריך ללמוד הכול בבת אחת. מתקדמים לפי הסדר, שומעים כל מילה ומתרגלים בקצב שלך.</p>
+        <button id="continueBtn" class="primary-action" type="button"><span id="continueLabel">מתחילים בשיעור הראשון</span><span class="arrow-icon" aria-hidden="true">←</span></button>
+      </section>
+      <aside class="progress-card" aria-labelledby="progressTitle">
+        <h2 id="progressTitle">ההתקדמות שלך</h2>
+        <div id="progressNumber" class="progress-number">0%</div>
+        <div id="progressCaption" class="progress-caption">עוד לא התחלנו — וזה בדיוק הזמן</div>
+        <div class="progress-track" role="progressbar" aria-label="התקדמות כוללת" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progressFill" class="progress-fill"></div></div>
+        <div class="progress-meta"><span id="completedCount">0 כרטיסים הושלמו</span><span id="reviewCount">אין כרטיסים לחזרה</span></div>
+        <button id="reviewBtn" class="review-action" type="button" disabled>תרגול הכרטיסים שסימנתי לחזרה</button>
+      </aside>
+    </div>
+
+    <div class="path-heading">
+      <div><h2>מסלול הלימוד</h2><p>בוחרים שיעור ולומדים כרטיס אחד בכל פעם.</p></div>
+      <button class="guide-link" type="button" data-view="guide">חיפוש במדריך המלא</button>
+    </div>
+    <section id="lessonCards" class="lessons-grid" aria-label="שיעורים"></section>
+    <div class="home-foot">
+      <span>ההתקדמות נשמרת במכשיר הזה באופן אוטומטי.</span>
+      <button id="resetProgress" class="text-button" type="button">איפוס ההתקדמות</button>
+    </div>
+  </div>
+</main>
+
+<main id="lessonView" class="view" hidden>
+  <div class="lesson-wrap">
+    <div class="lesson-toolbar">
+      <button id="lessonBack" class="back-button" type="button">→ לכל השיעורים</button>
+      <div id="lessonPosition" class="lesson-position"></div>
+    </div>
+    <div class="lesson-progress" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="lessonProgressFill"></span></div>
+    <div id="lessonContent"></div>
+  </div>
+</main>
+
+<div id="guideView" class="view" hidden>
 
 <header class="hero">
   <div class="hero-in">
     <p class="eyebrow">קריאה באנגלית · צירופי אותיות</p>
     <h1>איך אומרים את זה? מדריך צירופי האותיות באנגלית</h1>
-    <p class="sub">כל צירוף אותיות נפוץ באנגלית, הצליל שלו בעברית מנוקדת, ומילים לדוגמה לתרגול בקול רם.</p>
-    <p class="warn"><b>חשוב לפני שמתחילים:</b> הניקוד העברי הוא קירוב בלבד. יש באנגלית צלילים שאין להם אות בעברית — במיוחד <b>th</b>, <b>w</b>, <b>r</b> והתנועה של cat. אל תסתמכי רק על הכתוב: לכל מילה חדשה לחצי על הרמקול בגוגל טרנסלייט ותשמעי אותה פעמיים לפני שאת חוזרת עליה.</p>
+    <p class="sub">כל צירוף אותיות נפוץ באנגלית, הצליל שלו בעברית מנוקדת, ומילים שאפשר ללחוץ עליהן כדי לשמוע ולתרגל בקול רם.</p>
+    <p class="warn"><b>חשוב לפני שמתחילים:</b> הניקוד העברי הוא קירוב בלבד. יש באנגלית צלילים שאין להם אות בעברית — במיוחד <b>th</b>, <b>w</b>, <b>r</b> והתנועה של cat. אל תסתמכי רק על הכתוב: לחצי על כל מילה, הקשיבי לה פעמיים ואז חזרי עליה בקול.</p>
   </div>
 </header>
 
 <div class="bar">
   <div class="bar-in">
-    <button class="toggle" id="tbtn" type="button">מצב מבחן: כבוי</button>
+    <button class="guide-home-btn" type="button" data-view="home">חזרה למסלול</button>
+    <label class="guide-search"><span class="sr-only" hidden>חיפוש במדריך</span><input id="guideSearch" type="search" placeholder="חיפוש צירוף או מילה…" autocomplete="off"></label>
+    <button class="toggle" id="tbtn" type="button" aria-pressed="false">תרגול: כבוי</button>
     <nav class="jump">
       <a href="#how">איך לומדים</a>
       <a href="#cons">עיצורים</a>
@@ -192,6 +612,7 @@
       <a href="#sight">מילים חריגות</a>
       <a href="#plan">תוכנית 8 שבועות</a>
     </nav>
+    <div id="searchStatus" class="search-status" aria-live="polite"></div>
   </div>
 </div>
 
@@ -204,11 +625,11 @@
     <li><b>לפי הסדר, לא הכול ביחד</b>עיצורים ← e אילם ← תנועות ← תנועות עם R ← סופי מילים. כל שלב נשען על הקודם, וקפיצה קדימה רק מבלבלת.</li>
     <li><b>10 דקות ביום, בקול רם</b>עדיף כל יום עשר דקות מאשר שעה פעם בשבוע. קריאה בשקט לא עובדת כאן — הפה צריך להתאמן, לא רק העיניים.</li>
     <li><b>לומדים משפחות מילים, לא אותיות בודדות</b><span class="word" style="min-width:0">cat, hat, bat, mat</span> — כשקוראים חבורה של מילים שמתחרזות, המוח קולט את התבנית ומפסיק לפענח אות‑אות.</li>
-    <li><b>קודם לשמוע, אחר כך לקרוא</b>גוגל טרנסלייט (כפתור הרמקול), האתר Forvo, או סרטוני "phonics" ביוטיוב. הצליל האמיתי מנצח כל ניקוד.</li>
+    <li><b>קודם לשמוע, אחר כך לקרוא</b>לחצי על המילה באנגלית כדי לשמוע אותה, ואז חזרי עליה בקול. הצליל האמיתי מנצח כל ניקוד.</li>
     <li><b>מבחן עם מילים מומצאות</b>נסי לקרוא <span class="word" style="min-width:0">blant, shepe, froid, tride</span>. אם הצלחת — את משתמשת בכללים. אם לא — פשוט שיננת מילים מוכרות.</li>
     <li><b>מיד לקריאה אמיתית</b>אחרי כל שלב, קראי טקסט קל בקול (ספרי ילדים באנגלית, כתוביות, שלטים). המדריך הוא כלי עזר — לא מקצוע בפני עצמו.</li>
   </ol>
-  <p class="note">טיפ לשימוש במדריך: הכפתור "מצב מבחן" למעלה מסתיר את הניקוד. קראי את המילה באנגלית לבד, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
+  <p class="note">טיפ לשימוש במדריך: הכפתור "תרגול" למעלה מסתיר את הניקוד. קראי את המילה באנגלית לבד, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
 </section>
 
 <section id="cons">
@@ -884,21 +1305,675 @@
 
 </div>
 
+</div>
+
+<nav class="bottom-nav" aria-label="ניווט תחתון">
+  <button type="button" data-view="home" class="active"><span class="nav-icon" aria-hidden="true">⌂</span><span>המסלול</span></button>
+  <button id="bottomContinue" type="button" data-view="lesson"><span class="nav-icon" aria-hidden="true">▶</span><span>לימוד</span></button>
+  <button type="button" data-view="guide"><span class="nav-icon" aria-hidden="true">⌕</span><span>מדריך</span></button>
+</nav>
+
+<div id="audioNotice" class="audio-notice" role="status" hidden></div>
+
 <script>
 (function(){
-  var btn = document.getElementById('tbtn');
-  btn.addEventListener('click', function(){
-    var on = document.body.classList.toggle('test');
-    btn.textContent = on ? 'מצב מבחן: פועל' : 'מצב מבחן: כבוי';
-    if(!on){
-      document.querySelectorAll('.heb.shown').forEach(function(el){ el.classList.remove('shown'); });
+  'use strict';
+
+  var STORAGE_KEY = 'english-combinations:v2:state';
+  var lessonDefinitions = [
+    {id:'cons', title:'צירופי עיצורים', description:'שתי אותיות שמייצרות צליל אחד. זה המקום הכי טוב להתחיל בו.'},
+    {id:'magic', title:'ה־e האילמת', description:'כלל פשוט שמשנה את הצליל של התנועה שלפניו.'},
+    {id:'vowels', title:'צירופי תנועות', description:'הצירופים שחוזרים בהמון מילים באנגלית.'},
+    {id:'r', title:'תנועות עם R', description:'חמישה צלילים שכדאי לזהות כיחידה אחת.'},
+    {id:'cg', title:'מתי c ו־g רכות', description:'כלל אחד שעוזר לדעת איך לקרוא את שתי האותיות.'},
+    {id:'end', title:'סופי מילים', description:'סיומות נפוצות שעוזרות לקרוא גם מילים ארוכות.'},
+    {id:'silent', title:'אותיות אילמות', description:'אותיות שרואים בכתב, אבל מדלגים עליהן בקריאה.'},
+    {id:'special', title:'מילים וצירופים חריגים', description:'הדברים שפשוט מזהים וזוכרים, בלי לנסות לנחש.'}
+  ];
+
+  var state = loadState();
+  var lessons = buildLessonData();
+  var currentLessonIndex = 0;
+  var currentCardIndex = 0;
+  var currentMode = state.mode === 'practice' ? 'practice' : 'learn';
+  var answersRevealed = currentMode === 'learn';
+  var reviewQueue = null;
+  var reviewPosition = 0;
+  var currentView = 'home';
+  var noticeTimer = null;
+
+  var homeView = document.getElementById('homeView');
+  var lessonView = document.getElementById('lessonView');
+  var guideView = document.getElementById('guideView');
+  var lessonContent = document.getElementById('lessonContent');
+  var lessonPosition = document.getElementById('lessonPosition');
+  var lessonProgressFill = document.getElementById('lessonProgressFill');
+  var lessonProgressBar = lessonProgressFill.parentElement;
+  var guideTestButton = document.getElementById('tbtn');
+
+  enhanceGuide();
+  bindNavigation();
+  renderHome();
+
+  var initialSection = null;
+  if(location.hash){
+    try{ initialSection = document.getElementById(decodeURIComponent(location.hash.slice(1))); }catch(error){}
+  }
+  if(initialSection && initialSection.closest('#guideView')){
+    showView('guide', false);
+    openGuideSection(initialSection);
+    setTimeout(function(){ initialSection.scrollIntoView({block:'start'}); }, 0);
+  }else{
+    showView('home', false);
+  }
+
+  function loadState(){
+    try{
+      var parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return {
+        seen: parsed.seen && typeof parsed.seen === 'object' ? parsed.seen : {},
+        review: parsed.review && typeof parsed.review === 'object' ? parsed.review : {},
+        last: parsed.last && typeof parsed.last === 'object' ? parsed.last : {lessonId:'cons',cardIndex:0},
+        mode: parsed.mode === 'practice' ? 'practice' : 'learn'
+      };
+    }catch(error){
+      return {seen:{},review:{},last:{lessonId:'cons',cardIndex:0},mode:'learn'};
     }
-  });
-  document.addEventListener('click', function(e){
-    if(!document.body.classList.contains('test')) return;
-    var t = e.target.closest('.heb');
-    if(t) t.classList.toggle('shown');
-  });
+  }
+
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(error){}
+  }
+
+  function buildLessonData(){
+    var built = lessonDefinitions.slice(0,7).map(function(definition){
+      var section = document.getElementById(definition.id);
+      var cards = Array.from(section.querySelectorAll('.card')).map(function(card){
+        var note = card.querySelector('.note');
+        return {
+          combo: cleanText(card.querySelector('.combo')),
+          sound: cleanText(card.querySelector('.sound')),
+          examples: Array.from(card.querySelectorAll('.ex li')).map(function(item){
+            return {word:cleanText(item.querySelector('.word')), hebrew:cleanText(item.querySelector('.heb'))};
+          }),
+          noteHtml: note ? note.innerHTML : '',
+          warning: !!(note && note.classList.contains('ex-note'))
+        };
+      });
+      return {
+        id:definition.id,
+        title:definition.title,
+        description:definition.description,
+        cards:cards
+      };
+    });
+
+    var special = lessonDefinitions[7];
+    var specialCards = [];
+    var roughExamples = readChipExamples(document.querySelectorAll('#ough .chips li'));
+    specialCards.push({
+      combo:'ough',
+      sound:'6 צלילים',
+      examples:roughExamples,
+      noteHtml:'לצירוף הזה אין כלל קבוע. שומעים כל מילה וזוכרים אותה כמו תמונה.',
+      warning:true
+    });
+
+    var sightExamples = readChipExamples(document.querySelectorAll('#sight .chips li'));
+    for(var i=0;i<sightExamples.length;i+=5){
+      var group = sightExamples.slice(i,i+5);
+      specialCards.push({
+        combo:'Sight ' + (Math.floor(i/5)+1),
+        sound:'מילים חריגות',
+        examples:group,
+        noteHtml:i === 0 ? 'אלה מילים נפוצות ששוברות את הכללים. אין צורך לפענח אותן — מזהים וזוכרים.' : '',
+        warning:false
+      });
+    }
+    built.push({
+      id:special.id,
+      title:special.title,
+      description:special.description,
+      cards:specialCards
+    });
+    return built;
+  }
+
+  function readChipExamples(nodeList){
+    return Array.from(nodeList).map(function(item){
+      var pronunciation = item.querySelector('span');
+      var hebrew = pronunciation ? pronunciation.textContent.trim() : '';
+      var clone = item.cloneNode(true);
+      var cloneSpan = clone.querySelector('span');
+      if(cloneSpan) cloneSpan.remove();
+      return {word:clone.textContent.trim(),hebrew:hebrew};
+    });
+  }
+
+  function cleanText(element){
+    return element ? element.textContent.trim() : '';
+  }
+
+  function itemKey(lessonIndex,cardIndex){
+    return lessons[lessonIndex].id + ':' + cardIndex;
+  }
+
+  function allTargets(){
+    var targets = [];
+    lessons.forEach(function(lesson,lessonIndex){
+      lesson.cards.forEach(function(card,cardIndex){
+        targets.push({lessonIndex:lessonIndex,cardIndex:cardIndex,key:itemKey(lessonIndex,cardIndex)});
+      });
+    });
+    return targets;
+  }
+
+  function getContinueTarget(){
+    var targets = allTargets();
+    var lastLessonIndex = lessons.findIndex(function(lesson){ return lesson.id === state.last.lessonId; });
+    var lastTargetIndex = targets.findIndex(function(target){
+      return target.lessonIndex === lastLessonIndex && target.cardIndex === Number(state.last.cardIndex || 0);
+    });
+    if(lastTargetIndex < 0) lastTargetIndex = 0;
+    for(var i=lastTargetIndex;i<targets.length;i++){
+      if(!state.seen[targets[i].key]) return targets[i];
+    }
+    for(var j=0;j<lastTargetIndex;j++){
+      if(!state.seen[targets[j].key]) return targets[j];
+    }
+    var reviewTargets = targets.filter(function(target){ return state.review[target.key]; });
+    return reviewTargets[0] || targets[0];
+  }
+
+  function renderHome(){
+    var targets = allTargets();
+    var seenCount = targets.filter(function(target){ return state.seen[target.key]; }).length;
+    var reviewCount = targets.filter(function(target){ return state.review[target.key]; }).length;
+    var percent = targets.length ? Math.round(seenCount / targets.length * 100) : 0;
+    var continueTarget = getContinueTarget();
+    var continueLesson = lessons[continueTarget.lessonIndex];
+
+    document.getElementById('progressNumber').textContent = percent + '%';
+    document.getElementById('progressFill').style.width = percent + '%';
+    var totalProgress = document.querySelector('.progress-track');
+    totalProgress.setAttribute('aria-valuenow', String(percent));
+    document.getElementById('completedCount').textContent = seenCount + ' מתוך ' + targets.length + ' כרטיסים';
+    document.getElementById('reviewCount').textContent = reviewCount ? reviewCount + ' לחזרה' : 'אין כרטיסים לחזרה';
+    document.getElementById('progressCaption').textContent =
+      percent === 0 ? 'עוד לא התחלנו — וזה בדיוק הזמן' :
+      percent === 100 ? 'עברת על כל המסלול. כל הכבוד!' :
+      'מתקדמים בקצב שלך, בלי לחץ';
+
+    var continueLabel = document.getElementById('continueLabel');
+    continueLabel.textContent = percent === 0 ? 'מתחילים בשיעור הראשון' :
+      percent === 100 && reviewCount > 0 ? 'מתרגלים את מה שסימנתי' :
+      percent === 100 ? 'חזרה על המסלול' :
+      'ממשיכים: ' + continueLesson.title;
+
+    var reviewButton = document.getElementById('reviewBtn');
+    reviewButton.disabled = reviewCount === 0;
+    reviewButton.textContent = reviewCount ? 'תרגול ' + reviewCount + ' כרטיסים שסימנתי לחזרה' : 'אין כרגע כרטיסים לחזרה';
+
+    var lessonCards = document.getElementById('lessonCards');
+    lessonCards.innerHTML = '';
+    lessons.forEach(function(lesson,lessonIndex){
+      var lessonSeen = lesson.cards.filter(function(card,cardIndex){ return state.seen[itemKey(lessonIndex,cardIndex)]; }).length;
+      var lessonReview = lesson.cards.filter(function(card,cardIndex){ return state.review[itemKey(lessonIndex,cardIndex)]; }).length;
+      var lessonPercent = lesson.cards.length ? Math.round(lessonSeen / lesson.cards.length * 100) : 0;
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'lesson-tile' + (lessonSeen === lesson.cards.length ? ' is-complete' : '');
+      button.setAttribute('aria-label', 'פתיחת שיעור ' + (lessonIndex+1) + ': ' + lesson.title);
+      button.innerHTML =
+        '<span class="lesson-index" aria-hidden="true">' + (lessonSeen === lesson.cards.length ? '✓' : padNumber(lessonIndex+1)) + '</span>' +
+        '<span><h3>' + escapeHtml(lesson.title) + '</h3><p>' + escapeHtml(lesson.description) + '</p>' +
+        '<span class="lesson-state"><span class="mini-track"><span class="mini-fill" style="display:block;width:' + lessonPercent + '%"></span></span>' +
+        '<span>' + lessonSeen + ' מתוך ' + lesson.cards.length + '</span>' +
+        (lessonReview ? '<span class="needs-badge">' + lessonReview + ' לחזרה</span>' : '') +
+        '</span></span><span class="tile-arrow" aria-hidden="true">←</span>';
+      button.addEventListener('click',function(){
+        var firstUnseen = lesson.cards.findIndex(function(card,cardIndex){ return !state.seen[itemKey(lessonIndex,cardIndex)]; });
+        var startIndex = firstUnseen >= 0 ? firstUnseen : 0;
+        openLesson(lessonIndex,startIndex);
+      });
+      lessonCards.appendChild(button);
+    });
+  }
+
+  function padNumber(number){
+    return number < 10 ? '0' + number : String(number);
+  }
+
+  function bindNavigation(){
+    document.querySelectorAll('[data-view]').forEach(function(button){
+      button.addEventListener('click',function(){
+        var requested = button.getAttribute('data-view');
+        if(requested === 'lesson'){
+          if(currentView !== 'lesson') openContinue();
+          return;
+        }
+        showView(requested);
+      });
+    });
+    document.getElementById('continueBtn').addEventListener('click',openContinue);
+    document.getElementById('reviewBtn').addEventListener('click',beginReview);
+    document.getElementById('lessonBack').addEventListener('click',function(){ showView('home'); });
+    document.getElementById('resetProgress').addEventListener('click',function(){
+      if(!window.confirm('לאפס את כל ההתקדמות והכרטיסים שסומנו לחזרה?')) return;
+      state = {seen:{},review:{},last:{lessonId:'cons',cardIndex:0},mode:'learn'};
+      currentMode = 'learn';
+      saveState();
+      renderHome();
+      showNotice('ההתקדמות אופסה');
+    });
+  }
+
+  function showView(name,scrollToTop){
+    if(name !== 'home' && name !== 'lesson' && name !== 'guide') name = 'home';
+    currentView = name;
+    homeView.hidden = name !== 'home';
+    lessonView.hidden = name !== 'lesson';
+    guideView.hidden = name !== 'guide';
+    document.querySelectorAll('[data-view]').forEach(function(button){
+      button.classList.toggle('active',button.getAttribute('data-view') === name);
+    });
+    if(name === 'home') renderHome();
+    if(scrollToTop !== false) window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function openContinue(){
+    var targets = allTargets();
+    var allSeen = targets.every(function(target){ return !!state.seen[target.key]; });
+    var hasReview = targets.some(function(target){ return !!state.review[target.key]; });
+    if(allSeen && hasReview){
+      beginReview();
+      return;
+    }
+    var target = getContinueTarget();
+    openLesson(target.lessonIndex,target.cardIndex);
+  }
+
+  function openLesson(lessonIndex,cardIndex){
+    reviewQueue = null;
+    reviewPosition = 0;
+    currentLessonIndex = Math.max(0,Math.min(lessonIndex,lessons.length-1));
+    currentCardIndex = Math.max(0,Math.min(cardIndex,lessons[currentLessonIndex].cards.length-1));
+    state.last = {lessonId:lessons[currentLessonIndex].id,cardIndex:currentCardIndex};
+    saveState();
+    answersRevealed = currentMode === 'learn';
+    renderLesson();
+    showView('lesson');
+  }
+
+  function beginReview(){
+    reviewQueue = allTargets().filter(function(target){ return state.review[target.key]; });
+    if(!reviewQueue.length){
+      showNotice('אין כרגע כרטיסים לחזרה');
+      return;
+    }
+    reviewPosition = 0;
+    currentMode = 'practice';
+    state.mode = 'practice';
+    saveState();
+    goToReviewTarget();
+    showView('lesson');
+  }
+
+  function goToReviewTarget(){
+    var target = reviewQueue[reviewPosition];
+    currentLessonIndex = target.lessonIndex;
+    currentCardIndex = target.cardIndex;
+    answersRevealed = false;
+    renderLesson();
+  }
+
+  function renderLesson(){
+    var lesson = lessons[currentLessonIndex];
+    var card = lesson.cards[currentCardIndex];
+    var cardNumber = reviewQueue ? reviewPosition + 1 : currentCardIndex + 1;
+    var cardTotal = reviewQueue ? reviewQueue.length : lesson.cards.length;
+    var progress = Math.round(cardNumber / cardTotal * 100);
+    var key = itemKey(currentLessonIndex,currentCardIndex);
+
+    lessonView.classList.toggle('is-practice',currentMode === 'practice');
+    lessonView.classList.toggle('answers-revealed',answersRevealed);
+    lessonPosition.textContent = reviewQueue ?
+      'חזרה · כרטיס ' + cardNumber + ' מתוך ' + cardTotal :
+      'שיעור ' + (currentLessonIndex+1) + ' מתוך ' + lessons.length + ' · כרטיס ' + cardNumber + ' מתוך ' + cardTotal;
+    lessonProgressFill.style.width = progress + '%';
+    lessonProgressBar.setAttribute('aria-valuenow',String(progress));
+
+    var examplesHtml = card.examples.map(function(example){
+      return '<li class="example-row">' +
+        '<button class="speak-example" type="button" data-speak="' + escapeAttribute(example.word) + '" aria-label="השמעת המילה ' + escapeAttribute(example.word) + '">' +
+        '<span class="english" lang="en" dir="ltr">' + escapeHtml(example.word) + '</span><span class="speaker-icon" aria-hidden="true">🔊</span></button>' +
+        '<span class="answer-box"><span class="answer-text"' + (currentMode === 'practice' && !answersRevealed ? ' aria-hidden="true"' : '') + '>' + escapeHtml(example.hebrew) + '</span></span>' +
+        '</li>';
+    }).join('');
+
+    var noteHtml = card.noteHtml ?
+      '<details class="study-note' + (card.warning ? ' warning' : '') + '"><summary>' + (card.warning ? 'חריגים שחשוב להכיר' : 'טיפ שיעזור לזכור') + '</summary><p>' + card.noteHtml + '</p></details>' : '';
+
+    lessonContent.innerHTML =
+      '<div class="lesson-title-row"><div><h1>' + escapeHtml(reviewQueue ? 'חזרה ממוקדת' : lesson.title) + '</h1><p>' + escapeHtml(reviewQueue ? lesson.title + ' · מתרגלים רק את מה שסימנת' : lesson.description) + '</p></div>' +
+      '<div class="mode-switch" role="group" aria-label="מצב לימוד"><button type="button" data-mode="learn" class="' + (currentMode === 'learn' ? 'active' : '') + '">לימוד</button><button type="button" data-mode="practice" class="' + (currentMode === 'practice' ? 'active' : '') + '">תרגול</button></div></div>' +
+      '<article class="study-card" aria-labelledby="currentRule"><div class="rule-head"><span id="currentRule" class="combo" lang="en" dir="ltr">' + escapeHtml(card.combo) + '</span><span class="arrow" aria-hidden="true">←</span><span class="sound">' + escapeHtml(card.sound) + '</span></div>' +
+      '<p class="lesson-instruction">' + (currentMode === 'practice' ? 'נסי לקרוא לבד. אפשר ללחוץ על המילה כדי לשמוע אותה.' : 'לחצי על כל מילה כדי לשמוע איך אומרים אותה.') + '</p>' +
+      '<ul class="example-list">' + examplesHtml + '</ul>' +
+      (currentMode === 'practice' && !answersRevealed ? '<button id="revealAnswers" class="reveal-button" type="button">בדיקת התשובות</button>' : '') +
+      noteHtml + '</article>' +
+      '<div class="lesson-actions"><button id="needsReview" class="need-review-btn" type="button">' + (currentMode === 'practice' ? 'צריך לתרגל שוב' : 'קשה לי — לשמור לחזרה') + '</button>' +
+      '<button id="gotIt" class="got-it-btn" type="button">' + (currentMode === 'practice' ? 'ידעתי!' : 'הבנתי, לכרטיס הבא') + '</button></div>' +
+      ((reviewQueue ? reviewPosition : currentCardIndex) > 0 ? '<button id="previousCard" class="previous-card" type="button">לכרטיס הקודם</button>' : '');
+
+    lessonContent.querySelectorAll('[data-mode]').forEach(function(button){
+      button.addEventListener('click',function(){ setLessonMode(button.getAttribute('data-mode')); });
+    });
+    lessonContent.querySelectorAll('[data-speak]').forEach(function(button){
+      button.addEventListener('click',function(){ speakWord(button.getAttribute('data-speak'),button); });
+    });
+    var revealButton = document.getElementById('revealAnswers');
+    if(revealButton) revealButton.addEventListener('click',revealAnswers);
+    document.getElementById('needsReview').addEventListener('click',function(){ finishCard(true); });
+    document.getElementById('gotIt').addEventListener('click',function(){ finishCard(false); });
+    var previousButton = document.getElementById('previousCard');
+    if(previousButton) previousButton.addEventListener('click',previousCard);
+
+    if(state.review[key]){
+      document.getElementById('needsReview').textContent = currentMode === 'practice' ? 'עדיין צריך לתרגל' : 'מסומן כרגע לחזרה';
+    }
+  }
+
+  function setLessonMode(mode){
+    currentMode = mode === 'practice' ? 'practice' : 'learn';
+    state.mode = currentMode;
+    saveState();
+    answersRevealed = currentMode === 'learn';
+    renderLesson();
+  }
+
+  function revealAnswers(){
+    answersRevealed = true;
+    lessonView.classList.add('answers-revealed');
+    lessonContent.querySelectorAll('.answer-text').forEach(function(answer){ answer.removeAttribute('aria-hidden'); });
+    var button = document.getElementById('revealAnswers');
+    if(button) button.remove();
+  }
+
+  function finishCard(needsReview){
+    var key = itemKey(currentLessonIndex,currentCardIndex);
+    state.seen[key] = true;
+    if(needsReview) state.review[key] = true;
+    else delete state.review[key];
+    state.last = {lessonId:lessons[currentLessonIndex].id,cardIndex:currentCardIndex};
+    saveState();
+
+    if(reviewQueue){
+      reviewPosition += 1;
+      if(reviewPosition < reviewQueue.length){
+        goToReviewTarget();
+        window.scrollTo({top:0,behavior:'smooth'});
+      }else{
+        renderCompletion(true);
+      }
+      return;
+    }
+
+    if(currentCardIndex < lessons[currentLessonIndex].cards.length - 1){
+      currentCardIndex += 1;
+      state.last = {lessonId:lessons[currentLessonIndex].id,cardIndex:currentCardIndex};
+      saveState();
+      answersRevealed = currentMode === 'learn';
+      renderLesson();
+      window.scrollTo({top:0,behavior:'smooth'});
+    }else{
+      renderCompletion(false);
+    }
+  }
+
+  function previousCard(){
+    if(reviewQueue && reviewPosition > 0){
+      reviewPosition -= 1;
+      goToReviewTarget();
+    }else if(!reviewQueue && currentCardIndex > 0){
+      currentCardIndex -= 1;
+      answersRevealed = currentMode === 'learn';
+      renderLesson();
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function renderCompletion(isReview){
+    var remaining = allTargets().filter(function(target){ return state.review[target.key]; }).length;
+    var lesson = lessons[currentLessonIndex];
+    lessonPosition.textContent = isReview ? 'החזרה הושלמה' : 'השיעור הושלם';
+    lessonProgressFill.style.width = '100%';
+    lessonProgressBar.setAttribute('aria-valuenow','100');
+    var nextExists = !isReview && currentLessonIndex < lessons.length-1;
+    lessonContent.innerHTML =
+      '<section class="completion-card"><div class="completion-icon" aria-hidden="true">✓</div>' +
+      '<h2>' + (isReview ? 'סיימת את החזרה!' : 'סיימת את “' + escapeHtml(lesson.title) + '”') + '</h2>' +
+      '<p>' + (isReview ?
+        (remaining ? 'נשארו ' + remaining + ' כרטיסים שסימנת לתרגול נוסף. אפשר לחזור אליהם מתי שתרצי.' : 'מעולה — אין כרגע כרטיסים שמחכים לתרגול נוסף.') :
+        (remaining ? 'כל הכבוד. ' + remaining + ' כרטיסים שסימנת מחכים לך באזור החזרה.' : 'כל הכבוד. אפשר להמשיך לשיעור הבא או לחזור למסלול.')) + '</p>' +
+      '<div class="completion-actions"><button id="completionHome" class="secondary-action" type="button">חזרה למסלול</button>' +
+      (nextExists ? '<button id="nextLesson" class="primary-action" type="button">לשיעור הבא <span aria-hidden="true">←</span></button>' : '') +
+      '</div></section>';
+    document.getElementById('completionHome').addEventListener('click',function(){
+      reviewQueue = null;
+      renderHome();
+      showView('home');
+    });
+    var nextLesson = document.getElementById('nextLesson');
+    if(nextLesson) nextLesson.addEventListener('click',function(){
+      reviewQueue = null;
+      openLesson(currentLessonIndex+1,0);
+    });
+  }
+
+  function speakWord(word,button){
+    if(!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)){
+      showNotice('השמעת מילים אינה זמינה בדפדפן הזה');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    document.querySelectorAll('.is-speaking').forEach(function(item){ item.classList.remove('is-speaking'); });
+    var utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.82;
+    var voices = window.speechSynthesis.getVoices();
+    var preferred = voices.find(function(voice){ return /^en-US/i.test(voice.lang); }) ||
+      voices.find(function(voice){ return /^en/i.test(voice.lang); });
+    if(preferred) utterance.voice = preferred;
+    if(button) button.classList.add('is-speaking');
+    utterance.onend = utterance.onerror = function(){ if(button) button.classList.remove('is-speaking'); };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function showNotice(message){
+    var notice = document.getElementById('audioNotice');
+    notice.textContent = message;
+    notice.hidden = false;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(function(){ notice.hidden = true; },2200);
+  }
+
+  function enhanceGuide(){
+    document.querySelectorAll('#guideView .combo,#guideView .word').forEach(function(element){
+      element.setAttribute('lang','en');
+      element.setAttribute('dir','ltr');
+    });
+
+    document.querySelectorAll('#guideView ul.ex li').forEach(function(item){
+      var word = item.querySelector('.word');
+      var answer = item.querySelector('.heb');
+      if(word){
+        var wordButton = document.createElement('button');
+        wordButton.type = 'button';
+        wordButton.className = 'guide-word-button';
+        wordButton.setAttribute('lang','en');
+        wordButton.setAttribute('dir','ltr');
+        wordButton.setAttribute('aria-label','השמעת המילה ' + word.textContent.trim());
+        wordButton.innerHTML = '<span>' + escapeHtml(word.textContent.trim()) + '</span><span class="tiny-speaker" aria-hidden="true">🔊</span>';
+        wordButton.addEventListener('click',function(){ speakWord(word.textContent.trim(),wordButton); });
+        word.replaceWith(wordButton);
+      }
+      if(answer) replaceGuideAnswer(answer);
+    });
+
+    document.querySelectorAll('#ough .chips li,#sight .chips li').forEach(function(item){
+      var pronunciation = item.querySelector('span');
+      if(!pronunciation) return;
+      var hebrew = pronunciation.textContent.trim();
+      var clone = item.cloneNode(true);
+      var clonePronunciation = clone.querySelector('span');
+      if(clonePronunciation) clonePronunciation.remove();
+      var word = clone.textContent.trim();
+      item.textContent = '';
+      var wordButton = document.createElement('button');
+      wordButton.type = 'button';
+      wordButton.className = 'guide-word-button';
+      wordButton.setAttribute('lang','en');
+      wordButton.setAttribute('dir','ltr');
+      wordButton.setAttribute('aria-label','השמעת המילה ' + word);
+      wordButton.innerHTML = '<span>' + escapeHtml(word) + '</span><span class="tiny-speaker" aria-hidden="true">🔊</span>';
+      wordButton.addEventListener('click',function(){ speakWord(word,wordButton); });
+      var answer = document.createElement('span');
+      answer.className = 'heb';
+      answer.textContent = hebrew;
+      item.appendChild(wordButton);
+      item.appendChild(answer);
+      replaceGuideAnswer(answer);
+    });
+
+    Array.from(document.querySelectorAll('#guideView section')).forEach(function(section){
+      if(section.id === 'how' || section.id === 'plan') return;
+      var lede = section.querySelector(':scope > .lede');
+      if(!lede) return;
+      var content = document.createElement('div');
+      content.className = 'section-content';
+      var children = Array.from(section.children);
+      var ledeIndex = children.indexOf(lede);
+      children.slice(ledeIndex+1).forEach(function(child){ content.appendChild(child); });
+      var count = content.querySelectorAll('.card,.chips li').length;
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'section-open-btn';
+      toggle.innerHTML = 'הצגת הכרטיסים <span class="count">(' + count + ')</span>';
+      toggle.setAttribute('aria-expanded','false');
+      content.hidden = true;
+      toggle.addEventListener('click',function(){ setGuideSectionOpen(section,content.hidden); });
+      lede.after(toggle);
+      toggle.after(content);
+      section._guideContent = content;
+      section._guideToggle = toggle;
+    });
+
+    document.querySelectorAll('#guideView nav.jump a').forEach(function(link){
+      link.addEventListener('click',function(){
+        var target = document.querySelector(link.getAttribute('href'));
+        if(target) openGuideSection(target);
+      });
+    });
+
+    guideTestButton.addEventListener('click',function(){
+      var on = document.body.classList.toggle('test');
+      guideTestButton.textContent = on ? 'תרגול: פועל' : 'תרגול: כבוי';
+      guideTestButton.setAttribute('aria-pressed',String(on));
+      document.querySelectorAll('#guideView .heb.answer-toggle').forEach(function(answer){
+        answer.classList.remove('shown');
+        updateGuideAnswerAccessibility(answer,on);
+      });
+    });
+
+    document.getElementById('guideSearch').addEventListener('input',filterGuide);
+
+    document.querySelectorAll('#guideView .plan tbody tr').forEach(function(row){
+      var cells = row.querySelectorAll('td');
+      if(cells[0]) cells[0].setAttribute('data-label','שבוע');
+      if(cells[1]) cells[1].setAttribute('data-label','מה לומדים');
+      if(cells[2]) cells[2].setAttribute('data-label','מבחן סוף שבוע');
+    });
+  }
+
+  function replaceGuideAnswer(answer){
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'heb answer-toggle';
+    button.textContent = answer.textContent.trim();
+    button.addEventListener('click',function(){
+      if(!document.body.classList.contains('test')) return;
+      button.classList.toggle('shown');
+      updateGuideAnswerAccessibility(button,true);
+    });
+    answer.replaceWith(button);
+    updateGuideAnswerAccessibility(button,false);
+  }
+
+  function updateGuideAnswerAccessibility(answer,testMode){
+    var shown = answer.classList.contains('shown');
+    answer.disabled = !testMode;
+    answer.tabIndex = testMode ? 0 : -1;
+    answer.setAttribute('aria-expanded',String(!testMode || shown));
+    answer.setAttribute('aria-label',testMode ? (shown ? 'הסתרת התשובה ' + answer.textContent : 'הצגת התשובה') : 'הגייה: ' + answer.textContent);
+  }
+
+  function setGuideSectionOpen(section,open){
+    if(!section || !section._guideContent) return;
+    section._guideContent.hidden = !open;
+    section._guideToggle.setAttribute('aria-expanded',String(open));
+    var count = section._guideContent.querySelectorAll('.card,.chips li').length;
+    section._guideToggle.innerHTML = (open ? 'הסתרת הכרטיסים' : 'הצגת הכרטיסים') + ' <span class="count">(' + count + ')</span>';
+  }
+
+  function openGuideSection(section){
+    if(section && section._guideContent) setGuideSectionOpen(section,true);
+  }
+
+  function filterGuide(){
+    var input = document.getElementById('guideSearch');
+    var query = input.value.trim().toLocaleLowerCase('he');
+    var resultCount = 0;
+    var sections = Array.from(document.querySelectorAll('#guideView .wrap > section'));
+    sections.forEach(function(section){
+      var items = Array.from(section.querySelectorAll('.card,.chips li'));
+      if(!query){
+        section.classList.remove('search-hidden');
+        items.forEach(function(item){ item.classList.remove('search-hidden'); });
+        return;
+      }
+      if(!items.length){
+        var plainMatch = section.textContent.toLocaleLowerCase('he').includes(query);
+        section.classList.toggle('search-hidden',!plainMatch);
+        if(plainMatch) resultCount += 1;
+        return;
+      }
+      var heading = section.querySelector('h2');
+      var lede = section.querySelector('.lede');
+      var sectionText = ((heading ? heading.textContent : '') + ' ' + (lede ? lede.textContent : '')).toLocaleLowerCase('he');
+      var sectionDirectMatch = sectionText.includes(query);
+      var visibleItems = 0;
+      items.forEach(function(item){
+        var match = sectionDirectMatch || item.textContent.toLocaleLowerCase('he').includes(query);
+        item.classList.toggle('search-hidden',!match);
+        if(match){ visibleItems += 1; resultCount += 1; }
+      });
+      section.classList.toggle('search-hidden',visibleItems === 0);
+      if(visibleItems) setGuideSectionOpen(section,true);
+    });
+    document.getElementById('searchStatus').textContent = query ?
+      (resultCount ? 'נמצאו ' + resultCount + ' תוצאות' : 'לא נמצאו תוצאות. נסי צירוף או מילה אחרים.') : '';
+  }
+
+  function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g,function(character){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character];
+    });
+  }
+
+  function escapeAttribute(value){
+    return escapeHtml(value);
+  }
 })();
 </script>
 
