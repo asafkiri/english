@@ -589,8 +589,8 @@
   <div class="hero-in">
     <p class="eyebrow">קריאה באנגלית · צירופי אותיות</p>
     <h1>איך אומרים את זה? מדריך צירופי האותיות באנגלית</h1>
-    <p class="sub">כל צירוף אותיות נפוץ באנגלית, הצליל שלו בעברית מנוקדת, ומילים שאפשר ללחוץ עליהן כדי לשמוע ולתרגל בקול רם.</p>
-    <p class="warn"><b>חשוב לפני שמתחילים:</b> הניקוד העברי הוא קירוב בלבד. יש באנגלית צלילים שאין להם אות בעברית — במיוחד <b>th</b>, <b>w</b>, <b>r</b> והתנועה של cat. אל תסתמכי רק על הכתוב: לחצי על כל מילה, הקשיבי לה פעמיים ואז חזרי עליה בקול.</p>
+    <p class="sub">כל צירוף אותיות נפוץ באנגלית, הצליל שלו, מילים לדוגמה והפירוש שלהן בעברית. לחצי על כל מילה כדי לשמוע ולתרגל בקול רם.</p>
+    <p class="warn"><b>חשוב לפני שמתחילים:</b> יש באנגלית צלילים שאין להם אות מקבילה בעברית — במיוחד <b>th</b>, <b>w</b>, <b>r</b> והתנועה של cat. לחצי על כל מילה, הקשיבי לה פעמיים ואז חזרי עליה בקול.</p>
   </div>
 </header>
 
@@ -625,11 +625,11 @@
     <li><b>לפי הסדר, לא הכול ביחד</b>עיצורים ← e אילם ← תנועות ← תנועות עם R ← סופי מילים. כל שלב נשען על הקודם, וקפיצה קדימה רק מבלבלת.</li>
     <li><b>10 דקות ביום, בקול רם</b>עדיף כל יום עשר דקות מאשר שעה פעם בשבוע. קריאה בשקט לא עובדת כאן — הפה צריך להתאמן, לא רק העיניים.</li>
     <li><b>לומדים משפחות מילים, לא אותיות בודדות</b><span class="word" style="min-width:0">cat, hat, bat, mat</span> — כשקוראים חבורה של מילים שמתחרזות, המוח קולט את התבנית ומפסיק לפענח אות‑אות.</li>
-    <li><b>קודם לשמוע, אחר כך לקרוא</b>לחצי על המילה באנגלית כדי לשמוע אותה, ואז חזרי עליה בקול. הצליל האמיתי מנצח כל ניקוד.</li>
+    <li><b>קודם לשמוע, אחר כך לקרוא</b>לחצי על המילה באנגלית כדי לשמוע אותה, ואז חזרי עליה בקול. הפירוש בעברית יעזור לך להבין מה קראת.</li>
     <li><b>מבחן עם מילים מומצאות</b>נסי לקרוא <span class="word" style="min-width:0">blant, shepe, froid, tride</span>. אם הצלחת — את משתמשת בכללים. אם לא — פשוט שיננת מילים מוכרות.</li>
     <li><b>מיד לקריאה אמיתית</b>אחרי כל שלב, קראי טקסט קל בקול (ספרי ילדים באנגלית, כתוביות, שלטים). המדריך הוא כלי עזר — לא מקצוע בפני עצמו.</li>
   </ol>
-  <p class="note">טיפ לשימוש במדריך: הכפתור "תרגול" למעלה מסתיר את הניקוד. קראי את המילה באנגלית לבד, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
+  <p class="note">טיפ לשימוש במדריך: הכפתור "תרגול" למעלה מסתיר את הפירוש. קראי את המילה באנגלית ונסי לזכור מה היא אומרת, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
 </section>
 
 <section id="cons">
@@ -1320,6 +1320,224 @@
   'use strict';
 
   var STORAGE_KEY = 'english-combinations:v2:state';
+  var wordMeanings = {
+    'ship':'ספינה',
+    'fish':'דג',
+    'wash':'לשטוף',
+    'chair':'כיסא',
+    'cheese':'גבינה',
+    'lunch':'ארוחת צהריים',
+    'think':'לחשוב',
+    'bath':'אמבטיה',
+    'this':'זה / זאת',
+    'mother':'אמא',
+    'phone':'טלפון',
+    'photo':'תמונה',
+    'graph':'גרף',
+    'what':'מה',
+    'when':'מתי',
+    'white':'לבן',
+    'duck':'ברווז',
+    'back':'גב',
+    'kick':'לבעוט',
+    'sing':'לשיר',
+    'king':'מלך',
+    'long':'ארוך',
+    'bank':'בנק',
+    'drink':'לשתות',
+    'thank':'להגיד תודה',
+    'queen':'מלכה',
+    'quick':'מהיר',
+    'question':'שאלה',
+    'watch':'שעון',
+    'catch':'לתפוס',
+    'kitchen':'מטבח',
+    'bridge':'גשר',
+    'judge':'שופט',
+    'fridge':'מקרר',
+    'night':'לילה',
+    'high':'גבוה',
+    'laugh':'לצחוק',
+    'enough':'מספיק',
+    'cake':'עוגה',
+    'name':'שם',
+    'tape':'סרט הדבקה',
+    'bike':'אופניים',
+    'time':'זמן',
+    'nine':'תשע',
+    'home':'בית',
+    'nose':'אף',
+    'stone':'אבן',
+    'cute':'חמוד',
+    'use':'להשתמש',
+    'rule':'כלל',
+    'these':'אלה',
+    'complete':'להשלים',
+    'chinese':'סיני / סינית',
+    'rain':'גשם',
+    'train':'רכבת',
+    'day':'יום',
+    'play':'לשחק',
+    'see':'לראות',
+    'tree':'עץ',
+    'green':'ירוק',
+    'eat':'לאכול',
+    'sea':'ים',
+    'bread':'לחם',
+    'great':'נהדר',
+    'boat':'סירה',
+    'road':'כביש',
+    'coat':'מעיל',
+    'snow':'שלג',
+    'window':'חלון',
+    'cow':'פרה',
+    'down':'למטה',
+    'moon':'ירח',
+    'food':'אוכל',
+    'book':'ספר',
+    'good':'טוב',
+    'house':'בית',
+    'out':'בחוץ',
+    'soup':'מרק',
+    'touch':'לגעת',
+    'coin':'מטבע',
+    'noise':'רעש',
+    'boy':'ילד',
+    'author':'סופר',
+    'because':'כי',
+    'saw':'ראה',
+    'draw':'לצייר',
+    'light':'אור',
+    'right':'נכון',
+    'pie':'פאי',
+    'tie':'עניבה',
+    'field':'שדה',
+    'chief':'מנהיג',
+    'new':'חדש',
+    'few':'מעט',
+    'blue':'כחול',
+    'true':'אמיתי',
+    'eight':'שמונה',
+    'weight':'משקל',
+    'receive':'לקבל',
+    'fruit':'פרי',
+    'juice':'מיץ',
+    'suit':'חליפה',
+    'car':'מכונית',
+    'star':'כוכב',
+    'park':'פארק',
+    'for':'בשביל',
+    'corn':'תירס',
+    'short':'קצר',
+    'her':'אותה / שלה',
+    'bird':'ציפור',
+    'turn':'לפנות',
+    'nurse':'אחות',
+    'hair':'שיער',
+    'care':'לדאוג',
+    'share':'לשתף',
+    'hear':'לשמוע',
+    'year':'שנה',
+    'learn':'ללמוד',
+    'earth':'כדור הארץ',
+    'city':'עיר',
+    'face':'פנים',
+    'cycle':'מחזור',
+    'cat':'חתול',
+    'cold':'קר',
+    'cup':'כוס',
+    'page':'עמוד',
+    'giant':'ענק',
+    'gym':'חדר כושר',
+    'go':'ללכת',
+    'game':'משחק',
+    'gum':'מסטיק',
+    'nation':'אומה',
+    'action':'פעולה',
+    'station':'תחנה',
+    'vision':'ראייה',
+    'decision':'החלטה',
+    'mission':'משימה',
+    'picture':'תמונה',
+    'nature':'טבע',
+    'future':'עתיד',
+    'table':'שולחן',
+    'little':'קטן',
+    'apple':'תפוח',
+    'famous':'מפורסם',
+    'nervous':'לחוץ',
+    'delicious':'טעים',
+    'walked':'הלך',
+    'played':'שיחק',
+    'wanted':'רצה',
+    'cats':'חתולים',
+    'dogs':'כלבים',
+    'boxes':'קופסאות',
+    'happy':'שמח',
+    'my':'שלי',
+    'fly':'לעוף',
+    'know':'לדעת',
+    'knife':'סכין',
+    'knee':'ברך',
+    'write':'לכתוב',
+    'wrong':'לא נכון',
+    'wrist':'פרק כף היד',
+    'thumb':'אגודל',
+    'climb':'לטפס',
+    'lamb':'טלה',
+    'sign':'סימן',
+    'design':'עיצוב',
+    'foreign':'זר',
+    'psychology':'פסיכולוגיה',
+    'pneumonia':'דלקת ריאות',
+    'walk':'ללכת',
+    'talk':'לדבר',
+    'half':'חצי',
+    'could':'היה יכול',
+    'through':'דרך',
+    'though':'למרות ש־',
+    'thought':'מחשבה',
+    'tough':'קשה',
+    'cough':'שיעול',
+    'bough':'ענף',
+    'the':'ה־',
+    'of':'של',
+    'said':'אמר',
+    'was':'היה / הייתה',
+    'are':'להיות בהווה',
+    'you':'את / אתה',
+    'one':'אחד / אחת',
+    'two':'שניים / שתיים',
+    'would':'היה / הייתה',
+    'should':'צריך / כדאי',
+    'come':'לבוא',
+    'some':'כמה',
+    'done':'גמור',
+    'love':'אהבה / לאהוב',
+    'move':'לזוז',
+    'who':'מי',
+    'there':'שם',
+    'they':'הם / הן',
+    'been':'היה / הייתה',
+    'does':'עושה',
+    'goes':'הולך / הולכת',
+    'put':'לשים',
+    'full':'מלא',
+    'work':'עבודה / לעבוד',
+    'word':'מילה',
+    'world':'עולם',
+    'people':'אנשים',
+    'friend':'חבר / חברה',
+    'eye':'עין',
+    'once':'פעם אחת',
+    'buy':'לקנות',
+    'heart':'לב',
+    'island':'אי',
+    'business':'עסק',
+    'sure':'בטוח / בטוחה',
+    'wednesday':'יום רביעי',
+    'february':'פברואר'
+  };
   var lessonDefinitions = [
     {id:'cons', title:'צירופי עיצורים', description:'שתי אותיות שמייצרות צליל אחד. זה המקום הכי טוב להתחיל בו.'},
     {id:'magic', title:'ה־e האילמת', description:'כלל פשוט שמשנה את הצליל של התנועה שלפניו.'},
@@ -1394,7 +1612,8 @@
           combo: cleanText(card.querySelector('.combo')),
           sound: cleanText(card.querySelector('.sound')),
           examples: Array.from(card.querySelectorAll('.ex li')).map(function(item){
-            return {word:cleanText(item.querySelector('.word')), hebrew:cleanText(item.querySelector('.heb'))};
+            var word = cleanText(item.querySelector('.word'));
+            return {word:word, meaning:getMeaning(word)};
           }),
           noteHtml: note ? note.innerHTML : '',
           warning: !!(note && note.classList.contains('ex-note'))
@@ -1442,16 +1661,20 @@
   function readChipExamples(nodeList){
     return Array.from(nodeList).map(function(item){
       var pronunciation = item.querySelector('span');
-      var hebrew = pronunciation ? pronunciation.textContent.trim() : '';
       var clone = item.cloneNode(true);
       var cloneSpan = clone.querySelector('span');
       if(cloneSpan) cloneSpan.remove();
-      return {word:clone.textContent.trim(),hebrew:hebrew};
+      var word = clone.textContent.trim();
+      return {word:word,meaning:getMeaning(word)};
     });
   }
 
   function cleanText(element){
     return element ? element.textContent.trim() : '';
+  }
+
+  function getMeaning(word){
+    return wordMeanings[String(word || '').trim().toLowerCase()] || 'פירוש לא זמין';
   }
 
   function itemKey(lessonIndex,cardIndex){
@@ -1647,7 +1870,7 @@
       return '<li class="example-row">' +
         '<button class="speak-example" type="button" data-speak="' + escapeAttribute(example.word) + '" aria-label="השמעת המילה ' + escapeAttribute(example.word) + '">' +
         '<span class="english" lang="en" dir="ltr">' + escapeHtml(example.word) + '</span><span class="speaker-icon" aria-hidden="true">🔊</span></button>' +
-        '<span class="answer-box"><span class="answer-text"' + (currentMode === 'practice' && !answersRevealed ? ' aria-hidden="true"' : '') + '>' + escapeHtml(example.hebrew) + '</span></span>' +
+        '<span class="answer-box"><span class="answer-text"' + (currentMode === 'practice' && !answersRevealed ? ' aria-hidden="true"' : '') + '>' + escapeHtml(example.meaning) + '</span></span>' +
         '</li>';
     }).join('');
 
@@ -1658,7 +1881,7 @@
       '<div class="lesson-title-row"><div><h1>' + escapeHtml(reviewQueue ? 'חזרה ממוקדת' : lesson.title) + '</h1><p>' + escapeHtml(reviewQueue ? lesson.title + ' · מתרגלים רק את מה שסימנת' : lesson.description) + '</p></div>' +
       '<div class="mode-switch" role="group" aria-label="מצב לימוד"><button type="button" data-mode="learn" class="' + (currentMode === 'learn' ? 'active' : '') + '">לימוד</button><button type="button" data-mode="practice" class="' + (currentMode === 'practice' ? 'active' : '') + '">תרגול</button></div></div>' +
       '<article class="study-card" aria-labelledby="currentRule"><div class="rule-head"><span id="currentRule" class="combo" lang="en" dir="ltr">' + escapeHtml(card.combo) + '</span><span class="arrow" aria-hidden="true">←</span><span class="sound">' + escapeHtml(card.sound) + '</span></div>' +
-      '<p class="lesson-instruction">' + (currentMode === 'practice' ? 'נסי לקרוא לבד. אפשר ללחוץ על המילה כדי לשמוע אותה.' : 'לחצי על כל מילה כדי לשמוע איך אומרים אותה.') + '</p>' +
+      '<p class="lesson-instruction">' + (currentMode === 'practice' ? 'נסי לקרוא ולזכור מה פירוש המילה. אפשר ללחוץ עליה כדי לשמוע אותה.' : 'לחצי על כל מילה כדי לשמוע אותה, ובצד תראי מה היא אומרת.') + '</p>' +
       '<ul class="example-list">' + examplesHtml + '</ul>' +
       (currentMode === 'practice' && !answersRevealed ? '<button id="revealAnswers" class="reveal-button" type="button">בדיקת התשובות</button>' : '') +
       noteHtml + '</article>' +
@@ -1807,6 +2030,7 @@
     document.querySelectorAll('#guideView ul.ex li').forEach(function(item){
       var word = item.querySelector('.word');
       var answer = item.querySelector('.heb');
+      var wordText = word ? word.textContent.trim() : '';
       if(word){
         var wordButton = document.createElement('button');
         wordButton.type = 'button';
@@ -1818,13 +2042,15 @@
         wordButton.addEventListener('click',function(){ speakWord(word.textContent.trim(),wordButton); });
         word.replaceWith(wordButton);
       }
-      if(answer) replaceGuideAnswer(answer);
+      if(answer){
+        answer.textContent = getMeaning(wordText);
+        replaceGuideAnswer(answer);
+      }
     });
 
     document.querySelectorAll('#ough .chips li,#sight .chips li').forEach(function(item){
       var pronunciation = item.querySelector('span');
       if(!pronunciation) return;
-      var hebrew = pronunciation.textContent.trim();
       var clone = item.cloneNode(true);
       var clonePronunciation = clone.querySelector('span');
       if(clonePronunciation) clonePronunciation.remove();
@@ -1840,7 +2066,7 @@
       wordButton.addEventListener('click',function(){ speakWord(word,wordButton); });
       var answer = document.createElement('span');
       answer.className = 'heb';
-      answer.textContent = hebrew;
+      answer.textContent = getMeaning(word);
       item.appendChild(wordButton);
       item.appendChild(answer);
       replaceGuideAnswer(answer);
@@ -1915,7 +2141,7 @@
     answer.disabled = !testMode;
     answer.tabIndex = testMode ? 0 : -1;
     answer.setAttribute('aria-expanded',String(!testMode || shown));
-    answer.setAttribute('aria-label',testMode ? (shown ? 'הסתרת התשובה ' + answer.textContent : 'הצגת התשובה') : 'הגייה: ' + answer.textContent);
+    answer.setAttribute('aria-label',testMode ? (shown ? 'הסתרת הפירוש ' + answer.textContent : 'הצגת הפירוש') : 'פירוש: ' + answer.textContent);
   }
 
   function setGuideSectionOpen(section,open){
