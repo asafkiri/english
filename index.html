@@ -330,10 +330,19 @@
     background:#fff;border:1px solid var(--app-line);border-radius:28px;
     box-shadow:var(--app-shadow);padding:31px;
   }
+  .card-topic{display:flex;justify-content:center;margin:0 0 16px}
+  .card-topic span{
+    display:inline-flex;align-items:center;min-height:34px;padding:5px 13px;border-radius:999px;
+    background:var(--app-primary-soft);color:var(--app-primary-dark);font-size:14px;font-weight:800;
+  }
   .rule-head{display:flex;align-items:center;justify-content:center;gap:16px;padding:4px 0 25px;border-bottom:1px solid var(--app-line)}
   .rule-head .combo{font-size:48px;color:var(--app-primary-dark)}
   .rule-head .arrow{font-size:28px;color:#ABB1BF}
   .rule-head .sound{font-size:31px}
+  .rule-explanation{
+    max-width:590px;margin:17px auto 0;text-align:center;color:var(--app-ink);
+    font-size:16px;font-weight:700;line-height:1.65;
+  }
   .lesson-instruction{text-align:center;color:var(--app-muted);font-size:14px;margin:17px 0 12px}
   .example-list{list-style:none;padding:0;margin:0;display:grid;gap:9px}
   .example-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(125px,.7fr);gap:12px;align-items:center}
@@ -1025,20 +1034,20 @@
 </section>
 
 <section id="cg">
-  <h2><span class="num">06</span> מתי c ו‑g רכות</h2>
-  <p class="lede">אותה אות, שני צלילים, וכלל אחד פשוט שמכסה כמעט הכול: מה שבא <em>אחרי</em> האות קובע.</p>
+  <h2><span class="num">06</span> שני הצלילים של c ושל g</h2>
+  <p class="lede">גם c וגם g יכולות להישמע בשתי דרכים. כדי לדעת איך לקרוא אותן, מסתכלים על האות שמיד אחריהן. קודם לומדים את c בשני כרטיסים, ואחר כך את g בשני כרטיסים.</p>
   <div class="grid">
 
-    <div class="card">
+    <div class="card" data-topic="האות c · כרטיס 1 מתוך 2" data-rule-explanation="אם מיד אחרי c מופיעה e, i או y, קוראים את ה־c בדרך כלל כמו ס.">
       <div class="head"><span class="combo">c + e, i, y</span><span class="arrow">←</span><span class="sound">ס</span></div>
       <ul class="ex">
         <li><span class="word">city</span><span class="heb">סִיטִי</span></li>
         <li><span class="word">face</span><span class="heb">פֵייס</span></li>
-        <li><span class="word">cycle</span><span class="heb">סַאיקֶל</span></li>
+        <li><span class="word">icy</span><span class="heb">אַייסִי</span></li>
       </ul>
     </div>
 
-    <div class="card">
+    <div class="card" data-topic="האות c · כרטיס 2 מתוך 2" data-rule-explanation="אם מיד אחרי c מופיעה a, o או u, קוראים את ה־c בדרך כלל כמו ק.">
       <div class="head"><span class="combo">c + a, o, u</span><span class="arrow">←</span><span class="sound">ק</span></div>
       <ul class="ex">
         <li><span class="word">cat</span><span class="heb">קַאט</span></li>
@@ -1047,7 +1056,7 @@
       </ul>
     </div>
 
-    <div class="card">
+    <div class="card" data-topic="האות g · כרטיס 1 מתוך 2" data-rule-explanation="אם מיד אחרי g מופיעה e, i או y, קוראים את ה־g בדרך כלל כמו ג׳.">
       <div class="head"><span class="combo">g + e, i, y</span><span class="arrow">←</span><span class="sound">ג׳</span></div>
       <ul class="ex">
         <li><span class="word">page</span><span class="heb">פֵּייג׳</span></li>
@@ -1057,7 +1066,7 @@
       <p class="note ex-note">חריגים נפוצים שנשארים ג קשה: get, give, girl, gift.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-topic="האות g · כרטיס 2 מתוך 2" data-rule-explanation="אם מיד אחרי g מופיעה a, o או u, קוראים את ה־g בדרך כלל כמו ג רגילה.">
       <div class="head"><span class="combo">g + a, o, u</span><span class="arrow">←</span><span class="sound">ג</span></div>
       <ul class="ex">
         <li><span class="word">go</span><span class="heb">גוֹ</span></li>
@@ -1442,7 +1451,7 @@
     'earth':'כדור הארץ',
     'city':'עיר',
     'face':'פנים',
-    'cycle':'מחזור',
+    'icy':'קפוא / קר כקרח',
     'cat':'חתול',
     'cold':'קר',
     'cup':'כוס',
@@ -1543,7 +1552,7 @@
     {id:'magic', title:'ה־e האילמת', description:'כלל פשוט שמשנה את הצליל של התנועה שלפניו.'},
     {id:'vowels', title:'צירופי תנועות', description:'הצירופים שחוזרים בהמון מילים באנגלית.'},
     {id:'r', title:'תנועות עם R', description:'חמישה צלילים שכדאי לזהות כיחידה אחת.'},
-    {id:'cg', title:'מתי c ו־g רכות', description:'כלל אחד שעוזר לדעת איך לקרוא את שתי האותיות.'},
+    {id:'cg', title:'שני הצלילים של c ושל g', description:'גם c וגם g יכולות להישמע בשתי דרכים. קודם לומדים את c בשני כרטיסים, ואחר כך את g בשני כרטיסים.'},
     {id:'end', title:'סופי מילים', description:'סיומות נפוצות שעוזרות לקרוא גם מילים ארוכות.'},
     {id:'silent', title:'אותיות אילמות', description:'אותיות שרואים בכתב, אבל מדלגים עליהן בקריאה.'},
     {id:'special', title:'מילים וצירופים חריגים', description:'הדברים שפשוט מזהים וזוכרים, בלי לנסות לנחש.'}
@@ -1611,6 +1620,8 @@
         return {
           combo: cleanText(card.querySelector('.combo')),
           sound: cleanText(card.querySelector('.sound')),
+          topic: card.getAttribute('data-topic') || '',
+          ruleExplanation: card.getAttribute('data-rule-explanation') || '',
           examples: Array.from(card.querySelectorAll('.ex li')).map(function(item){
             var word = cleanText(item.querySelector('.word'));
             return {word:word, meaning:getMeaning(word)};
@@ -1876,11 +1887,13 @@
 
     var noteHtml = card.noteHtml ?
       '<details class="study-note' + (card.warning ? ' warning' : '') + '"><summary>' + (card.warning ? 'חריגים שחשוב להכיר' : 'טיפ שיעזור לזכור') + '</summary><p>' + card.noteHtml + '</p></details>' : '';
+    var topicHtml = card.topic ? '<div class="card-topic"><span>' + escapeHtml(card.topic) + '</span></div>' : '';
+    var ruleExplanationHtml = card.ruleExplanation ? '<p class="rule-explanation">' + escapeHtml(card.ruleExplanation) + '</p>' : '';
 
     lessonContent.innerHTML =
       '<div class="lesson-title-row"><div><h1>' + escapeHtml(reviewQueue ? 'חזרה ממוקדת' : lesson.title) + '</h1><p>' + escapeHtml(reviewQueue ? lesson.title + ' · מתרגלים רק את מה שסימנת' : lesson.description) + '</p></div>' +
       '<div class="mode-switch" role="group" aria-label="מצב לימוד"><button type="button" data-mode="learn" class="' + (currentMode === 'learn' ? 'active' : '') + '">לימוד</button><button type="button" data-mode="practice" class="' + (currentMode === 'practice' ? 'active' : '') + '">תרגול</button></div></div>' +
-      '<article class="study-card" aria-labelledby="currentRule"><div class="rule-head"><span id="currentRule" class="combo" lang="en" dir="ltr">' + escapeHtml(card.combo) + '</span><span class="arrow" aria-hidden="true">←</span><span class="sound">' + escapeHtml(card.sound) + '</span></div>' +
+      '<article class="study-card" aria-labelledby="currentRule">' + topicHtml + '<div class="rule-head"><span id="currentRule" class="combo" lang="en" dir="ltr">' + escapeHtml(card.combo) + '</span><span class="arrow" aria-hidden="true">←</span><span class="sound">' + escapeHtml(card.sound) + '</span></div>' + ruleExplanationHtml +
       '<p class="lesson-instruction">' + (currentMode === 'practice' ? 'נסי לקרוא ולזכור מה פירוש המילה. אפשר ללחוץ עליה כדי לשמוע אותה.' : 'לחצי על כל מילה כדי לשמוע אותה, ובצד תראי מה היא אומרת.') + '</p>' +
       '<ul class="example-list">' + examplesHtml + '</ul>' +
       (currentMode === 'practice' && !answersRevealed ? '<button id="revealAnswers" class="reveal-button" type="button">בדיקת התשובות</button>' : '') +
