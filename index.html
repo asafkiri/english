@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מדריך צירופי אותיות באנגלית — קריאה עם ניקוד עברי</title>
+<style>
+  :root{
+    --ink:#16233A;
+    --ink-soft:#2C3E5C;
+    --paper:#F2F4F8;
+    --card:#FFFFFF;
+    --line:#D5DCE7;
+    --muted:#68758A;
+    --mark:#FFD84D;
+    --red:#C0392B;
+    --teal:#0E7C7B;
+    --latin: Georgia, "Times New Roman", serif;
+    --heb: "Assistant", "Heebo", "Segoe UI", "Arial Hebrew", Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--heb);
+    font-size:17px;
+    line-height:1.65;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:0 16px 64px}
+
+  /* ---------- hero ---------- */
+  header.hero{
+    background:var(--ink);
+    color:#fff;
+    padding:34px 16px 28px;
+    border-bottom:6px solid var(--mark);
+  }
+  .hero-in{max-width:1000px;margin:0 auto}
+  .eyebrow{
+    font-size:13px;letter-spacing:.14em;color:#9FB2CE;margin:0 0 8px;
+  }
+  h1{font-size:30px;line-height:1.25;margin:0 0 10px;font-weight:800}
+  .sub{margin:0;color:#C9D6EA;font-size:16px;max-width:62ch}
+  .warn{
+    margin:18px 0 0;padding:12px 14px;border-radius:10px;
+    background:rgba(255,216,77,.12);border:1px solid rgba(255,216,77,.45);
+    color:#FFE99A;font-size:15px;
+  }
+  .warn b{color:#fff}
+
+  /* ---------- sticky bar ---------- */
+  .bar{
+    position:sticky;top:0;z-index:20;background:rgba(242,244,248,.96);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+    padding:10px 0;margin-bottom:26px;
+  }
+  .bar-in{max-width:1000px;margin:0 auto;padding:0 16px;display:flex;gap:10px;align-items:center}
+  nav.jump{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none}
+  nav.jump::-webkit-scrollbar{display:none}
+  nav.jump a{
+    flex:0 0 auto;text-decoration:none;color:var(--ink-soft);
+    font-size:14px;padding:6px 11px;border:1px solid var(--line);
+    border-radius:999px;background:#fff;
+  }
+  nav.jump a:hover{border-color:var(--ink);}
+  .toggle{
+    flex:0 0 auto;display:flex;align-items:center;gap:8px;cursor:pointer;
+    background:var(--ink);color:#fff;border:0;border-radius:999px;
+    padding:8px 14px;font-family:var(--heb);font-size:14px;font-weight:700;
+  }
+  .toggle:focus-visible,nav.jump a:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+  body.test .toggle{background:var(--mark);color:var(--ink)}
+
+  /* ---------- sections ---------- */
+  section{margin:0 0 40px}
+  h2{
+    font-size:23px;margin:0 0 4px;display:flex;align-items:baseline;gap:10px;
+  }
+  h2 .num{
+    font-family:var(--latin);font-size:15px;color:#fff;background:var(--ink);
+    border-radius:6px;padding:2px 8px;font-weight:400;
+  }
+  .lede{margin:0 0 16px;color:var(--muted);font-size:16px;max-width:66ch}
+
+  /* ---------- sound cards ---------- */
+  .grid{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:620px){.grid{grid-template-columns:1fr 1fr}}
+  @media(min-width:900px){.grid{grid-template-columns:1fr 1fr 1fr}}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 14px 12px;
+  }
+  .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .combo{
+    font-family:var(--latin);direction:ltr;font-size:30px;line-height:1;
+    font-weight:700;color:var(--ink);letter-spacing:.02em;
+  }
+  .arrow{color:var(--muted);font-size:18px}
+  .sound{
+    font-size:24px;font-weight:800;
+    background:linear-gradient(transparent 58%, var(--mark) 58%);
+    padding:0 3px;
+  }
+  ul.ex{list-style:none;margin:0;padding:0;font-size:16px}
+  ul.ex li{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-top:1px dashed #E7ECF3}
+  ul.ex li:first-child{border-top:0}
+  .word{font-family:var(--latin);direction:ltr;font-weight:600;min-width:5.5em}
+  .heb{color:var(--ink-soft)}
+  .note{
+    margin:10px 0 0;font-size:14.5px;color:var(--teal);
+    border-right:3px solid var(--teal);padding-right:8px;
+  }
+  .note.ex-note{color:var(--red);border-color:var(--red)}
+
+  /* self-test mode */
+  body.test .heb{
+    background:#E7ECF3;color:transparent;border-radius:4px;cursor:pointer;
+    user-select:none;
+  }
+  body.test .heb.shown{background:transparent;color:var(--ink-soft)}
+
+  /* ---------- steps / plan ---------- */
+  ol.steps{margin:0;padding:0 0 0 0;list-style:none;counter-reset:s}
+  ol.steps li{
+    counter-increment:s;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:13px 15px 13px 15px;margin-bottom:10px;
+    position:relative;padding-right:52px;
+  }
+  ol.steps li::before{
+    content:counter(s);position:absolute;right:14px;top:12px;
+    font-family:var(--latin);font-size:15px;font-weight:700;color:#fff;
+    background:var(--ink);width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  ol.steps b{display:block;margin-bottom:2px}
+  .plan{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:16px}
+  .plan th,.plan td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);vertical-align:top}
+  .plan th{background:var(--ink);color:#fff;font-weight:700;font-size:15px}
+  .plan tr:last-child td{border-bottom:0}
+  .plan .wk{white-space:nowrap;font-weight:700;width:1%}
+  .plan code{font-family:var(--latin);direction:ltr;display:inline-block;background:#F2F4F8;border-radius:4px;padding:0 4px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:0;padding:0;list-style:none}
+  .chips li{
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:6px 10px;font-family:var(--latin);direction:ltr;font-size:16px;
+  }
+  .chips li span{font-family:var(--heb);color:var(--muted);font-size:14px;margin-inline-start:6px}
+
+  footer{
+    margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:15px;
+  }
+
+  @media print{
+    .bar{display:none}
+    header.hero{background:#fff;color:#000;border-bottom:3px solid #000}
+    .sub,.eyebrow{color:#333}
+    .warn{background:#fff;border:1px solid #000;color:#000}
+    body{background:#fff;font-size:12px}
+    .card,ol.steps li{break-inside:avoid}
+    .grid{grid-template-columns:1fr 1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">קריאה באנגלית · צירופי אותיות</p>
+    <h1>איך אומרים את זה? מדריך צירופי האותיות באנגלית</h1>
+    <p class="sub">כל צירוף אותיות נפוץ באנגלית, הצליל שלו בעברית מנוקדת, ומילים לדוגמה לתרגול בקול רם.</p>
+    <p class="warn"><b>חשוב לפני שמתחילים:</b> הניקוד העברי הוא קירוב בלבד. יש באנגלית צלילים שאין להם אות בעברית — במיוחד <b>th</b>, <b>w</b>, <b>r</b> והתנועה של cat. אל תסתמכי רק על הכתוב: לכל מילה חדשה לחצי על הרמקול בגוגל טרנסלייט ותשמעי אותה פעמיים לפני שאת חוזרת עליה.</p>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="bar-in">
+    <button class="toggle" id="tbtn" type="button">מצב מבחן: כבוי</button>
+    <nav class="jump">
+      <a href="#how">איך לומדים</a>
+      <a href="#cons">עיצורים</a>
+      <a href="#magic">e אילם</a>
+      <a href="#vowels">תנועות</a>
+      <a href="#r">תנועות עם R</a>
+      <a href="#cg">c ו‑g</a>
+      <a href="#end">סופי מילים</a>
+      <a href="#silent">אותיות אילמות</a>
+      <a href="#ough">ough</a>
+      <a href="#sight">מילים חריגות</a>
+      <a href="#plan">תוכנית 8 שבועות</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section id="how">
+  <h2><span class="num">01</span> איך לומדים את זה בלי להתייאש</h2>
+  <p class="lede">אנגלית לא נכתבת כמו שהיא נשמעת, אבל היא גם לא כאוס: בערך 85% מהמילים מצייתות לכללים שבמדריך הזה. השאר — לומדים בעל פה, ויש להם רשימה בסוף.</p>
+  <ol class="steps">
+    <li><b>לפי הסדר, לא הכול ביחד</b>עיצורים ← e אילם ← תנועות ← תנועות עם R ← סופי מילים. כל שלב נשען על הקודם, וקפיצה קדימה רק מבלבלת.</li>
+    <li><b>10 דקות ביום, בקול רם</b>עדיף כל יום עשר דקות מאשר שעה פעם בשבוע. קריאה בשקט לא עובדת כאן — הפה צריך להתאמן, לא רק העיניים.</li>
+    <li><b>לומדים משפחות מילים, לא אותיות בודדות</b><span class="word" style="min-width:0">cat, hat, bat, mat</span> — כשקוראים חבורה של מילים שמתחרזות, המוח קולט את התבנית ומפסיק לפענח אות‑אות.</li>
+    <li><b>קודם לשמוע, אחר כך לקרוא</b>גוגל טרנסלייט (כפתור הרמקול), האתר Forvo, או סרטוני "phonics" ביוטיוב. הצליל האמיתי מנצח כל ניקוד.</li>
+    <li><b>מבחן עם מילים מומצאות</b>נסי לקרוא <span class="word" style="min-width:0">blant, shepe, froid, tride</span>. אם הצלחת — את משתמשת בכללים. אם לא — פשוט שיננת מילים מוכרות.</li>
+    <li><b>מיד לקריאה אמיתית</b>אחרי כל שלב, קראי טקסט קל בקול (ספרי ילדים באנגלית, כתוביות, שלטים). המדריך הוא כלי עזר — לא מקצוע בפני עצמו.</li>
+  </ol>
+  <p class="note">טיפ לשימוש במדריך: הכפתור "מצב מבחן" למעלה מסתיר את הניקוד. קראי את המילה באנגלית לבד, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
+</section>
+
+<section id="cons">
+  <h2><span class="num">02</span> צירופי עיצורים</h2>
+  <p class="lede">שתי אותיות שמייצרות צליל אחד. זה השלב הראשון, והוא הכי קל — רוב הצירופים כאן קבועים.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">sh</span><span class="arrow">←</span><span class="sound">שׁ</span></div>
+      <ul class="ex">
+        <li><span class="word">ship</span><span class="heb">שִׁיפּ</span></li>
+        <li><span class="word">fish</span><span class="heb">פִישׁ</span></li>
+        <li><span class="word">wash</span><span class="heb">ווֹשׁ</span></li>
+      </ul>
+      <p class="note">הכי אמין שיש — תמיד ש.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ch</span><span class="arrow">←</span><span class="sound">צ׳</span></div>
+      <ul class="ex">
+        <li><span class="word">chair</span><span class="heb">צ׳ֶר</span></li>
+        <li><span class="word">cheese</span><span class="heb">צ׳ִיז</span></li>
+        <li><span class="word">lunch</span><span class="heb">לַאנְץ׳</span></li>
+      </ul>
+      <p class="note ex-note">חריגים: במילים ממקור יווני נשמע ק — <span class="word" style="min-width:0">school</span> סְקוּל, <span class="word" style="min-width:0">stomach</span> סְטַאמֶק. ממקור צרפתי נשמע שׁ — <span class="word" style="min-width:0">machine</span> מַשִׁין, <span class="word" style="min-width:0">chef</span> שֶׁף.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">th</span><span class="arrow">←</span><span class="sound">ת׳ / ד׳</span></div>
+      <ul class="ex">
+        <li><span class="word">think</span><span class="heb">ת׳ִינְק</span></li>
+        <li><span class="word">bath</span><span class="heb">בָּאת׳</span></li>
+        <li><span class="word">this</span><span class="heb">דִ׳יס</span></li>
+        <li><span class="word">mother</span><span class="heb">מַאדֶ׳ר</span></li>
+      </ul>
+      <p class="note ex-note">אין את הצליל הזה בעברית. הלשון יוצאת קלות בין השיניים. שני גוונים: לחישה (think) ורטט בגרון (this). חובה לשמוע, לא ללמוד מהכתב.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ph</span><span class="arrow">←</span><span class="sound">פ</span></div>
+      <ul class="ex">
+        <li><span class="word">phone</span><span class="heb">פוֹן</span></li>
+        <li><span class="word">photo</span><span class="heb">פוֹטוֹ</span></li>
+        <li><span class="word">graph</span><span class="heb">גְרַאף</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">wh</span><span class="arrow">←</span><span class="sound">ו</span></div>
+      <ul class="ex">
+        <li><span class="word">what</span><span class="heb">ווֹט</span></li>
+        <li><span class="word">when</span><span class="heb">וֶון</span></li>
+        <li><span class="word">white</span><span class="heb">וַואיט</span></li>
+      </ul>
+      <p class="note ex-note">אחרי wh שבאה לפני o נשמע ה: <span class="word" style="min-width:0">who</span> הוּ, <span class="word" style="min-width:0">whole</span> הוֹל.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ck</span><span class="arrow">←</span><span class="sound">ק</span></div>
+      <ul class="ex">
+        <li><span class="word">duck</span><span class="heb">דַאק</span></li>
+        <li><span class="word">back</span><span class="heb">בַּאק</span></li>
+        <li><span class="word">kick</span><span class="heb">קִיק</span></li>
+      </ul>
+      <p class="note">מופיע רק אחרי תנועה קצרה, אף פעם לא בתחילת מילה.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ng</span><span class="arrow">←</span><span class="sound">נְג</span></div>
+      <ul class="ex">
+        <li><span class="word">sing</span><span class="heb">סִינְג</span></li>
+        <li><span class="word">king</span><span class="heb">קִינְג</span></li>
+        <li><span class="word">long</span><span class="heb">לוֹנְג</span></li>
+      </ul>
+      <p class="note">הצליל יוצא באף וה‑ג בקושי נשמעת — לא "סינ‑גֶ".</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">nk</span><span class="arrow">←</span><span class="sound">נְק</span></div>
+      <ul class="ex">
+        <li><span class="word">bank</span><span class="heb">בַּאנְק</span></li>
+        <li><span class="word">drink</span><span class="heb">דְרִינְק</span></li>
+        <li><span class="word">thank</span><span class="heb">ת׳ַאנְק</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">qu</span><span class="arrow">←</span><span class="sound">קְוו</span></div>
+      <ul class="ex">
+        <li><span class="word">queen</span><span class="heb">קְווִין</span></li>
+        <li><span class="word">quick</span><span class="heb">קְווִיק</span></li>
+        <li><span class="word">question</span><span class="heb">קְווֶסְצ׳ֶן</span></li>
+      </ul>
+      <p class="note">באנגלית q כמעט לעולם לא באה בלי u אחריה.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">tch</span><span class="arrow">←</span><span class="sound">צ׳</span></div>
+      <ul class="ex">
+        <li><span class="word">watch</span><span class="heb">ווֹץ׳</span></li>
+        <li><span class="word">catch</span><span class="heb">קַאץ׳</span></li>
+        <li><span class="word">kitchen</span><span class="heb">קִיצ׳ֶן</span></li>
+      </ul>
+      <p class="note">אותו צליל של ch, בכתיב שמופיע אחרי תנועה קצרה.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">dge</span><span class="arrow">←</span><span class="sound">ג׳</span></div>
+      <ul class="ex">
+        <li><span class="word">bridge</span><span class="heb">בְּרִיג׳</span></li>
+        <li><span class="word">judge</span><span class="heb">ג׳ַאג׳</span></li>
+        <li><span class="word">fridge</span><span class="heb">פְרִיג׳</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">gh</span><span class="arrow">←</span><span class="sound">אילם / ף</span></div>
+      <ul class="ex">
+        <li><span class="word">night</span><span class="heb">נַאיט</span></li>
+        <li><span class="word">high</span><span class="heb">הַאי</span></li>
+        <li><span class="word">laugh</span><span class="heb">לַאף</span></li>
+        <li><span class="word">enough</span><span class="heb">אִינַאף</span></li>
+      </ul>
+      <p class="note ex-note">הצירוף הכי לא צפוי באנגלית. ברוב המילים פשוט לא נשמע, ובמיעוט נשמע כמו f.</p>
+    </div>
+
+  </div>
+</section>
+
+<section id="magic">
+  <h2><span class="num">03</span> ה‑e האילמת (Magic e)</h2>
+  <p class="lede">הכלל הכי משתלם ללמוד: e בסוף המילה לא נשמעת בעצמה, אבל היא הופכת את התנועה שלפניה לשם של האות באנגלית. זה מה שמבדיל בין <span class="word" style="min-width:0">hat</span> ל‑<span class="word" style="min-width:0">hate</span>.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">a_e</span><span class="arrow">←</span><span class="sound">ֵיי</span></div>
+      <ul class="ex">
+        <li><span class="word">cake</span><span class="heb">קֵייק</span></li>
+        <li><span class="word">name</span><span class="heb">נֵיים</span></li>
+        <li><span class="word">tape</span><span class="heb">טֵייפּ</span></li>
+      </ul>
+      <p class="note">בלי ה‑e: <span class="word" style="min-width:0">cap</span> קַאפּ / עם: <span class="word" style="min-width:0">cape</span> קֵייפּ.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">i_e</span><span class="arrow">←</span><span class="sound">ַאי</span></div>
+      <ul class="ex">
+        <li><span class="word">bike</span><span class="heb">בַּאיק</span></li>
+        <li><span class="word">time</span><span class="heb">טַאים</span></li>
+        <li><span class="word">nine</span><span class="heb">נַאין</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">o_e</span><span class="arrow">←</span><span class="sound">וֹ</span></div>
+      <ul class="ex">
+        <li><span class="word">home</span><span class="heb">הוֹם</span></li>
+        <li><span class="word">nose</span><span class="heb">נוֹז</span></li>
+        <li><span class="word">stone</span><span class="heb">סְטוֹן</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">u_e</span><span class="arrow">←</span><span class="sound">יוּ / וּ</span></div>
+      <ul class="ex">
+        <li><span class="word">cute</span><span class="heb">קְיוּט</span></li>
+        <li><span class="word">use</span><span class="heb">יוּז</span></li>
+        <li><span class="word">rule</span><span class="heb">רוּל</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">e_e</span><span class="arrow">←</span><span class="sound">ִי</span></div>
+      <ul class="ex">
+        <li><span class="word">these</span><span class="heb">ד׳ִיז</span></li>
+        <li><span class="word">complete</span><span class="heb">קוֹמְפְּלִיט</span></li>
+        <li><span class="word">Chinese</span><span class="heb">צ׳ַאיְנִיז</span></li>
+      </ul>
+      <p class="note">הכי נדיר מבין החמישה.</p>
+    </div>
+
+  </div>
+</section>
+
+<section id="vowels">
+  <h2><span class="num">04</span> צירופי תנועות</h2>
+  <p class="lede">כאן נמצא רוב הבלבול באנגלית, כי כמה צירופים נותנים יותר מצליל אחד. הכלל הישן "כשיש שתי תנועות, הראשונה מדברת" עובד בערך בחצי מהמקרים — אז לומדים כל צירוף עם הדוגמאות שלו.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">ai / ay</span><span class="arrow">←</span><span class="sound">ֵיי</span></div>
+      <ul class="ex">
+        <li><span class="word">rain</span><span class="heb">רֵיין</span></li>
+        <li><span class="word">train</span><span class="heb">טְרֵיין</span></li>
+        <li><span class="word">day</span><span class="heb">דֵיי</span></li>
+        <li><span class="word">play</span><span class="heb">פְּלֵיי</span></li>
+      </ul>
+      <p class="note">ai באמצע מילה, ay בסוף מילה. אותו צליל בדיוק.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ee</span><span class="arrow">←</span><span class="sound">ִי</span></div>
+      <ul class="ex">
+        <li><span class="word">see</span><span class="heb">סִי</span></li>
+        <li><span class="word">tree</span><span class="heb">טְרִי</span></li>
+        <li><span class="word">green</span><span class="heb">גְרִין</span></li>
+      </ul>
+      <p class="note">קבוע לחלוטין — אפשר לסמוך עליו.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ea</span><span class="arrow">←</span><span class="sound">ִי (בעיקר)</span></div>
+      <ul class="ex">
+        <li><span class="word">eat</span><span class="heb">אִיט</span></li>
+        <li><span class="word">sea</span><span class="heb">סִי</span></li>
+        <li><span class="word">bread</span><span class="heb">בְּרֶד</span></li>
+        <li><span class="word">great</span><span class="heb">גְרֵייט</span></li>
+      </ul>
+      <p class="note ex-note">שלושה צלילים: אִי (רוב), אֶ (bread, head, ready), אֵיי (great, break). את השני והשלישי לומדים בעל פה.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">oa</span><span class="arrow">←</span><span class="sound">וֹ</span></div>
+      <ul class="ex">
+        <li><span class="word">boat</span><span class="heb">בּוֹט</span></li>
+        <li><span class="word">road</span><span class="heb">רוֹד</span></li>
+        <li><span class="word">coat</span><span class="heb">קוֹט</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ow</span><span class="arrow">←</span><span class="sound">וֹ / ַאוּ</span></div>
+      <ul class="ex">
+        <li><span class="word">snow</span><span class="heb">סְנוֹ</span></li>
+        <li><span class="word">window</span><span class="heb">וִינְדוֹ</span></li>
+        <li><span class="word">cow</span><span class="heb">קַאוּ</span></li>
+        <li><span class="word">down</span><span class="heb">דַאוּן</span></li>
+      </ul>
+      <p class="note ex-note">שני צלילים בלי כלל ברור. בסוף מילה בדרך כלל וֹ, באמצע לרוב אַאוּ.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">oo</span><span class="arrow">←</span><span class="sound">וּ ארוכה / קצרה</span></div>
+      <ul class="ex">
+        <li><span class="word">moon</span><span class="heb">מוּן</span></li>
+        <li><span class="word">food</span><span class="heb">פוּד</span></li>
+        <li><span class="word">book</span><span class="heb">בּוּק</span></li>
+        <li><span class="word">good</span><span class="heb">גוּד</span></li>
+      </ul>
+      <p class="note">בעברית שתיהן וּ. באנגלית ההבדל הוא באורך — moon נמשכת, book נחתכת מהר.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ou</span><span class="arrow">←</span><span class="sound">ַאוּ</span></div>
+      <ul class="ex">
+        <li><span class="word">house</span><span class="heb">הַאוּס</span></li>
+        <li><span class="word">out</span><span class="heb">אַאוּט</span></li>
+        <li><span class="word">soup</span><span class="heb">סוּפּ</span></li>
+        <li><span class="word">touch</span><span class="heb">טַאץ׳</span></li>
+      </ul>
+      <p class="note ex-note">גם וּ (soup, group, you) וגם אַ (touch, young, country).</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">oi / oy</span><span class="arrow">←</span><span class="sound">וֹי</span></div>
+      <ul class="ex">
+        <li><span class="word">coin</span><span class="heb">קוֹין</span></li>
+        <li><span class="word">noise</span><span class="heb">נוֹיז</span></li>
+        <li><span class="word">boy</span><span class="heb">בּוֹי</span></li>
+      </ul>
+      <p class="note">כמו ai/ay: oi באמצע, oy בסוף.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">au / aw</span><span class="arrow">←</span><span class="sound">וֹ</span></div>
+      <ul class="ex">
+        <li><span class="word">author</span><span class="heb">אוֹת׳ֶר</span></li>
+        <li><span class="word">because</span><span class="heb">בִּיקוֹז</span></li>
+        <li><span class="word">saw</span><span class="heb">סוֹ</span></li>
+        <li><span class="word">draw</span><span class="heb">דְרוֹ</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">igh</span><span class="arrow">←</span><span class="sound">ַאי</span></div>
+      <ul class="ex">
+        <li><span class="word">night</span><span class="heb">נַאיט</span></li>
+        <li><span class="word">light</span><span class="heb">לַאיט</span></li>
+        <li><span class="word">right</span><span class="heb">רַאיט</span></li>
+      </ul>
+      <p class="note">שלוש אותיות, צליל אחד — ה‑gh אילמת.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ie</span><span class="arrow">←</span><span class="sound">ַאי / ִי</span></div>
+      <ul class="ex">
+        <li><span class="word">pie</span><span class="heb">פַּאי</span></li>
+        <li><span class="word">tie</span><span class="heb">טַאי</span></li>
+        <li><span class="word">field</span><span class="heb">פִילְד</span></li>
+        <li><span class="word">chief</span><span class="heb">צ׳ִיף</span></li>
+      </ul>
+      <p class="note">בסוף מילה בדרך כלל אַיי, באמצע בדרך כלל אִי.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ew / ue</span><span class="arrow">←</span><span class="sound">יוּ / וּ</span></div>
+      <ul class="ex">
+        <li><span class="word">new</span><span class="heb">נְיוּ</span></li>
+        <li><span class="word">few</span><span class="heb">פְיוּ</span></li>
+        <li><span class="word">blue</span><span class="heb">בְּלוּ</span></li>
+        <li><span class="word">true</span><span class="heb">טְרוּ</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ei / eigh</span><span class="arrow">←</span><span class="sound">ֵיי</span></div>
+      <ul class="ex">
+        <li><span class="word">eight</span><span class="heb">אֵייט</span></li>
+        <li><span class="word">weight</span><span class="heb">וֵייט</span></li>
+        <li><span class="word">receive</span><span class="heb">רִיסִיב</span></li>
+      </ul>
+      <p class="note ex-note">אחרי c נשמע אִי: receive, ceiling.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ui</span><span class="arrow">←</span><span class="sound">וּ</span></div>
+      <ul class="ex">
+        <li><span class="word">fruit</span><span class="heb">פְרוּט</span></li>
+        <li><span class="word">juice</span><span class="heb">ג׳וּס</span></li>
+        <li><span class="word">suit</span><span class="heb">סוּט</span></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section id="r">
+  <h2><span class="num">05</span> תנועות עם R</h2>
+  <p class="lede">כש‑r באה אחרי תנועה היא בולעת אותה ומשנה אותה לגמרי. אלה חמישה צלילים שכדאי לזהות כיחידה אחת.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">ar</span><span class="arrow">←</span><span class="sound">אַר</span></div>
+      <ul class="ex">
+        <li><span class="word">car</span><span class="heb">קַאר</span></li>
+        <li><span class="word">star</span><span class="heb">סְטַאר</span></li>
+        <li><span class="word">park</span><span class="heb">פַּארְק</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">or</span><span class="arrow">←</span><span class="sound">אוֹר</span></div>
+      <ul class="ex">
+        <li><span class="word">for</span><span class="heb">פוֹר</span></li>
+        <li><span class="word">corn</span><span class="heb">קוֹרְן</span></li>
+        <li><span class="word">short</span><span class="heb">שׁוֹרְט</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">er / ir / ur</span><span class="arrow">←</span><span class="sound">אֶר</span></div>
+      <ul class="ex">
+        <li><span class="word">her</span><span class="heb">הֶר</span></li>
+        <li><span class="word">bird</span><span class="heb">בֶּרְד</span></li>
+        <li><span class="word">turn</span><span class="heb">טֶרְן</span></li>
+        <li><span class="word">nurse</span><span class="heb">נֶרְס</span></li>
+      </ul>
+      <p class="note">שלושה כתיבים שונים, צליל אחד זהה. זו הסיבה שקשה לדעת איך לכתוב מילים כאלה.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">air / are</span><span class="arrow">←</span><span class="sound">אֶר</span></div>
+      <ul class="ex">
+        <li><span class="word">hair</span><span class="heb">הֶר</span></li>
+        <li><span class="word">care</span><span class="heb">קֶר</span></li>
+        <li><span class="word">share</span><span class="heb">שֶׁר</span></li>
+      </ul>
+      <p class="note">פתוח יותר מ‑er של her, אבל בעברית זה נכתב אותו דבר.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ear</span><span class="arrow">←</span><span class="sound">אִיר / אֶר</span></div>
+      <ul class="ex">
+        <li><span class="word">hear</span><span class="heb">הִיר</span></li>
+        <li><span class="word">year</span><span class="heb">יִיר</span></li>
+        <li><span class="word">learn</span><span class="heb">לֶרְן</span></li>
+        <li><span class="word">earth</span><span class="heb">אֶרְת׳</span></li>
+      </ul>
+      <p class="note ex-note">אין כלל — צריך לזכור לפי מילה.</p>
+    </div>
+
+  </div>
+</section>
+
+<section id="cg">
+  <h2><span class="num">06</span> מתי c ו‑g רכות</h2>
+  <p class="lede">אותה אות, שני צלילים, וכלל אחד פשוט שמכסה כמעט הכול: מה שבא <em>אחרי</em> האות קובע.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">c + e, i, y</span><span class="arrow">←</span><span class="sound">ס</span></div>
+      <ul class="ex">
+        <li><span class="word">city</span><span class="heb">סִיטִי</span></li>
+        <li><span class="word">face</span><span class="heb">פֵייס</span></li>
+        <li><span class="word">cycle</span><span class="heb">סַאיקֶל</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">c + a, o, u</span><span class="arrow">←</span><span class="sound">ק</span></div>
+      <ul class="ex">
+        <li><span class="word">cat</span><span class="heb">קַאט</span></li>
+        <li><span class="word">cold</span><span class="heb">קוֹלְד</span></li>
+        <li><span class="word">cup</span><span class="heb">קַאפּ</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">g + e, i, y</span><span class="arrow">←</span><span class="sound">ג׳</span></div>
+      <ul class="ex">
+        <li><span class="word">page</span><span class="heb">פֵּייג׳</span></li>
+        <li><span class="word">giant</span><span class="heb">ג׳ַאיאֶנְט</span></li>
+        <li><span class="word">gym</span><span class="heb">ג׳ִים</span></li>
+      </ul>
+      <p class="note ex-note">חריגים נפוצים שנשארים ג קשה: get, give, girl, gift.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">g + a, o, u</span><span class="arrow">←</span><span class="sound">ג</span></div>
+      <ul class="ex">
+        <li><span class="word">go</span><span class="heb">גוֹ</span></li>
+        <li><span class="word">game</span><span class="heb">גֵיים</span></li>
+        <li><span class="word">gum</span><span class="heb">גַאם</span></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section id="end">
+  <h2><span class="num">07</span> סופי מילים</h2>
+  <p class="lede">הסיומות חוזרות באלפי מילים, ולכן הן ההשקעה הכי משתלמת אחרי צירופי העיצורים. שימי לב שהן כמעט תמיד לא מוטעמות — הן נבלעות מהר.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">-tion</span><span class="arrow">←</span><span class="sound">שֶׁן</span></div>
+      <ul class="ex">
+        <li><span class="word">nation</span><span class="heb">נֵיישֶׁן</span></li>
+        <li><span class="word">action</span><span class="heb">אֵקְשֶׁן</span></li>
+        <li><span class="word">station</span><span class="heb">סְטֵיישֶׁן</span></li>
+      </ul>
+      <p class="note">לא "טִיוֹן". זו אולי הסיומת הנפוצה ביותר באנגלית.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-sion</span><span class="arrow">←</span><span class="sound">ז׳ֶן / שֶׁן</span></div>
+      <ul class="ex">
+        <li><span class="word">vision</span><span class="heb">וִיז׳ֶן</span></li>
+        <li><span class="word">decision</span><span class="heb">דִיסִיז׳ֶן</span></li>
+        <li><span class="word">mission</span><span class="heb">מִישֶׁן</span></li>
+      </ul>
+      <p class="note">אחרי תנועה — ז׳. אחרי עיצור או ss — שׁ.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-ture</span><span class="arrow">←</span><span class="sound">צ׳ֶר</span></div>
+      <ul class="ex">
+        <li><span class="word">picture</span><span class="heb">פִּיקְצ׳ֶר</span></li>
+        <li><span class="word">nature</span><span class="heb">נֵייצ׳ֶר</span></li>
+        <li><span class="word">future</span><span class="heb">פְיוּצ׳ֶר</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-le</span><span class="arrow">←</span><span class="sound">ֶל</span></div>
+      <ul class="ex">
+        <li><span class="word">table</span><span class="heb">טֵייבֶּל</span></li>
+        <li><span class="word">little</span><span class="heb">לִיטֶל</span></li>
+        <li><span class="word">apple</span><span class="heb">אֵפֶּל</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-ous</span><span class="arrow">←</span><span class="sound">ֶס</span></div>
+      <ul class="ex">
+        <li><span class="word">famous</span><span class="heb">פֵיימֶס</span></li>
+        <li><span class="word">nervous</span><span class="heb">נֶרְבֶס</span></li>
+        <li><span class="word">delicious</span><span class="heb">דִילִישֶׁס</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-ed</span><span class="arrow">←</span><span class="sound">ט / ד / אִיד</span></div>
+      <ul class="ex">
+        <li><span class="word">walked</span><span class="heb">ווֹקְט</span></li>
+        <li><span class="word">played</span><span class="heb">פְּלֵייד</span></li>
+        <li><span class="word">wanted</span><span class="heb">ווֹנְטִיד</span></li>
+      </ul>
+      <p class="note">שלושה צלילים לפי האות שלפניהם: אחרי צליל "לחוש" (k, p, s, ch, f) נשמע ט; אחרי צליל עם קול נשמע ד; ורק אחרי t או d נשמע אִיד.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-s</span><span class="arrow">←</span><span class="sound">ס / ז / אִיז</span></div>
+      <ul class="ex">
+        <li><span class="word">cats</span><span class="heb">קַאטְס</span></li>
+        <li><span class="word">dogs</span><span class="heb">דוֹגְז</span></li>
+        <li><span class="word">boxes</span><span class="heb">בּוֹקְסִיז</span></li>
+      </ul>
+      <p class="note">אותו היגיון כמו ‑ed. אחרי s, z, sh, ch, x נשמע אִיז.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">-y</span><span class="arrow">←</span><span class="sound">ִי / ַאי</span></div>
+      <ul class="ex">
+        <li><span class="word">happy</span><span class="heb">הֵאפִּי</span></li>
+        <li><span class="word">city</span><span class="heb">סִיטִי</span></li>
+        <li><span class="word">my</span><span class="heb">מַאי</span></li>
+        <li><span class="word">fly</span><span class="heb">פְלַאי</span></li>
+      </ul>
+      <p class="note">במילה בת הברה אחת — אַיי. במילה ארוכה — אִי.</p>
+    </div>
+
+  </div>
+</section>
+
+<section id="silent">
+  <h2><span class="num">08</span> אותיות אילמות</h2>
+  <p class="lede">אותיות שנכתבות ולא נשמעות. אין מה להבין כאן — רק לזהות את התבנית ולדלג.</p>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="combo">kn</span><span class="arrow">←</span><span class="sound">נ</span></div>
+      <ul class="ex">
+        <li><span class="word">know</span><span class="heb">נוֹ</span></li>
+        <li><span class="word">knife</span><span class="heb">נַאיף</span></li>
+        <li><span class="word">knee</span><span class="heb">נִי</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">wr</span><span class="arrow">←</span><span class="sound">ר</span></div>
+      <ul class="ex">
+        <li><span class="word">write</span><span class="heb">רַאיט</span></li>
+        <li><span class="word">wrong</span><span class="heb">רוֹנְג</span></li>
+        <li><span class="word">wrist</span><span class="heb">רִיסְט</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">mb</span><span class="arrow">←</span><span class="sound">מ</span></div>
+      <ul class="ex">
+        <li><span class="word">thumb</span><span class="heb">ת׳ַאם</span></li>
+        <li><span class="word">climb</span><span class="heb">קְלַאים</span></li>
+        <li><span class="word">lamb</span><span class="heb">לַאם</span></li>
+      </ul>
+      <p class="note">רק בסוף מילה.</p>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">gn</span><span class="arrow">←</span><span class="sound">נ</span></div>
+      <ul class="ex">
+        <li><span class="word">sign</span><span class="heb">סַאין</span></li>
+        <li><span class="word">design</span><span class="heb">דִיזַאין</span></li>
+        <li><span class="word">foreign</span><span class="heb">פוֹרֶן</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">ps / pn</span><span class="arrow">←</span><span class="sound">ס / נ</span></div>
+      <ul class="ex">
+        <li><span class="word">psychology</span><span class="heb">סַאיקוֹלוֹג׳י</span></li>
+        <li><span class="word">pneumonia</span><span class="heb">נוּמוֹנְיָה</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="combo">l אילמת</span><span class="arrow">←</span><span class="sound">—</span></div>
+      <ul class="ex">
+        <li><span class="word">walk</span><span class="heb">ווֹק</span></li>
+        <li><span class="word">talk</span><span class="heb">טוֹק</span></li>
+        <li><span class="word">half</span><span class="heb">הַאף</span></li>
+        <li><span class="word">could</span><span class="heb">קוּד</span></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section id="ough">
+  <h2><span class="num">09</span> ough — הצירוף שאין לו כלל</h2>
+  <p class="lede">שש אפשרויות לאותו כתיב. אין דרך להסיק אותן — פשוט לומדים את השש האלה בעל פה ומסיימים עם זה.</p>
+  <ul class="chips">
+    <li>through <span>ת׳רוּ</span></li>
+    <li>though <span>ד׳וֹ</span></li>
+    <li>thought <span>ת׳וֹט</span></li>
+    <li>tough <span>טַאף</span></li>
+    <li>cough <span>קוֹף</span></li>
+    <li>bough <span>בַּאוּ</span></li>
+  </ul>
+</section>
+
+<section id="sight">
+  <h2><span class="num">10</span> מילים ששוברות את הכללים</h2>
+  <p class="lede">כ‑100 מילים באנגלית לא מצייתות לשום כלל — ובדיוק הן החוזרות הכי הרבה בטקסט. את אלה לומדים כמו תמונה, בלי לפענח. שווה לשנן אותן במקביל לכל שאר המדריך.</p>
+  <ul class="chips">
+    <li>the <span>ד׳ֶה</span></li>
+    <li>of <span>אוֹב</span></li>
+    <li>said <span>סֶד</span></li>
+    <li>was <span>ווֹז</span></li>
+    <li>are <span>אַאר</span></li>
+    <li>you <span>יוּ</span></li>
+    <li>one <span>וואן</span></li>
+    <li>two <span>טוּ</span></li>
+    <li>could <span>קוּד</span></li>
+    <li>would <span>ווּד</span></li>
+    <li>should <span>שׁוּד</span></li>
+    <li>come <span>קַאם</span></li>
+    <li>some <span>סַאם</span></li>
+    <li>done <span>דַאן</span></li>
+    <li>love <span>לַאב</span></li>
+    <li>move <span>מוּב</span></li>
+    <li>who <span>הוּ</span></li>
+    <li>what <span>ווֹט</span></li>
+    <li>there <span>ד׳ֶר</span></li>
+    <li>they <span>ד׳ֵיי</span></li>
+    <li>been <span>בִּין</span></li>
+    <li>does <span>דַאז</span></li>
+    <li>goes <span>גוֹז</span></li>
+    <li>put <span>פּוּט</span></li>
+    <li>full <span>פוּל</span></li>
+    <li>work <span>ווֶרְק</span></li>
+    <li>word <span>ווֶרְד</span></li>
+    <li>world <span>ווֶרְלְד</span></li>
+    <li>people <span>פִּיפֶּל</span></li>
+    <li>friend <span>פְרֶנְד</span></li>
+    <li>laugh <span>לַאף</span></li>
+    <li>eye <span>אַיי</span></li>
+    <li>once <span>וואנְס</span></li>
+    <li>buy <span>בַּאי</span></li>
+    <li>heart <span>הַארְט</span></li>
+    <li>island <span>אַיילֶנְד</span></li>
+    <li>business <span>בִּיזְנֶס</span></li>
+    <li>sure <span>שׁוּר</span></li>
+    <li>Wednesday <span>וֶנְזְדֵיי</span></li>
+    <li>February <span>פֶבְּרוּאֶרִי</span></li>
+  </ul>
+</section>
+
+<section id="plan">
+  <h2><span class="num">11</span> תוכנית 8 שבועות</h2>
+  <p class="lede">10–15 דקות ביום. כל יום: קוראים בקול את הכרטיסים של השבוע, ואז כותבים 5 מילים שמכתיבים לך. בסוף כל שבוע — קוראים בקול פסקה קצרה כלשהי באנגלית ומסמנים כל צירוף מהשבוע שמזהים בה.</p>
+  <table class="plan">
+    <thead>
+      <tr><th class="wk">שבוע</th><th>מה לומדים</th><th>מבחן סוף שבוע</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="wk">1</td><td><code>sh ch th ph ck ng nk</code></td><td>לקרוא 20 מילים חדשות עם הצירופים האלה</td></tr>
+      <tr><td class="wk">2</td><td><code>wh qu tch dge gh</code> + אותיות אילמות</td><td>להכתיב 10 מילים ולכתוב אותן</td></tr>
+      <tr><td class="wk">3</td><td>e אילמת: <code>a_e i_e o_e u_e</code></td><td>זוגות: cap/cape, kit/kite, not/note</td></tr>
+      <tr><td class="wk">4</td><td><code>ai ay ee ea oa</code></td><td>לקרוא רשימת מילים מעורבת בלי לעצור</td></tr>
+      <tr><td class="wk">5</td><td><code>oo ou ow oi oy au aw</code></td><td>למיין 20 מילים לפי הצליל שלהן</td></tr>
+      <tr><td class="wk">6</td><td><code>ar or er ir ur air ear</code></td><td>לקרוא בקול טקסט קצר ולסמן כל r‑תנועה</td></tr>
+      <tr><td class="wk">7</td><td>סיומות: <code>-tion -sion -ture -le -ed -s -y</code></td><td>לקרוא 15 מילים ארוכות</td></tr>
+      <tr><td class="wk">8</td><td>מילים חריגות + חזרה על הכול</td><td>לקרוא עמוד שלם מספר ילדים באנגלית</td></tr>
+    </tbody>
+  </table>
+  <p class="note">אחרי 8 שבועות: אין עוד "שיעורים". פשוט לקרוא באנגלית כל יום ולחפש במדריך רק כשנתקעים.</p>
+</section>
+
+<footer>
+  <p>המדריך מכסה את הצירופים הנפוצים באנגלית אמריקאית. באנגלית בריטית חלק מהתנועות נשמעות אחרת (למשל can't, water, better) — אבל צירופי האותיות עצמם זהים.</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('tbtn');
+  btn.addEventListener('click', function(){
+    var on = document.body.classList.toggle('test');
+    btn.textContent = on ? 'מצב מבחן: פועל' : 'מצב מבחן: כבוי';
+    if(!on){
+      document.querySelectorAll('.heb.shown').forEach(function(el){ el.classList.remove('shown'); });
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!document.body.classList.contains('test')) return;
+    var t = e.target.closest('.heb');
+    if(t) t.classList.toggle('shown');
+  });
+})();
+</script>
+
+</body>
+</html>
