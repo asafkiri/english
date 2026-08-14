@@ -390,31 +390,64 @@
 
   /* ---------- full guide ---------- */
   #guideView{padding-bottom:60px}
-  #guideView header.hero{padding:28px 16px 24px;background:var(--app-ink);border-bottom:0}
+  #guideView header.hero{padding:27px 22px 22px;background:transparent;color:var(--app-ink);border-bottom:0}
   #guideView .hero-in{max-width:1000px}
-  #guideView h1{font-size:27px}
+  #guideView .eyebrow{color:var(--app-primary);font-weight:800;letter-spacing:.08em;margin-bottom:5px}
+  #guideView h1{font-size:29px;margin-bottom:6px}
+  #guideView .sub{color:var(--app-muted);max-width:58ch}
   #guideView .warn{display:none}
-  #guideView .bar{top:68px;margin-bottom:24px;padding:10px 0;background:rgba(247,246,242,.96)}
-  #guideView .bar-in{display:grid;grid-template-columns:auto minmax(180px,1fr) auto;gap:9px;flex-wrap:wrap}
+  #guideView .bar{top:68px;margin-bottom:0;padding:9px 0;background:rgba(247,246,242,.96)}
+  #guideView .bar-in{display:grid;grid-template-columns:auto minmax(180px,1fr) auto;gap:9px}
   .guide-home-btn,.toggle{
     min-height:44px;border-radius:13px;padding:0 14px;font-size:14px;font-weight:800;
   }
   .guide-home-btn{border:1px solid var(--app-line);background:#fff;color:var(--app-ink);cursor:pointer}
+  #guideView .toggle{border:1px solid var(--app-line);background:#fff;color:var(--app-muted)}
+  body.test #guideView .toggle{border-color:#C9CEF1;background:var(--app-primary-soft);color:var(--app-primary-dark)}
   .guide-search{position:relative;min-width:0}
   .guide-search::before{content:"⌕";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#8D95A4;font-size:22px;pointer-events:none}
   .guide-search input{width:100%;height:44px;border:1px solid var(--app-line);border-radius:13px;background:#fff;color:var(--app-ink);padding:0 43px 0 14px}
   .guide-search input::placeholder{color:#939AA8}
-  #guideView nav.jump{grid-column:1/-1;order:4;padding-top:1px}
-  #guideView nav.jump a{min-height:38px;display:flex;align-items:center}
-  .search-status{grid-column:1/-1;color:var(--app-muted);font-size:13px;min-height:0}
-  #guideView section{scroll-margin-top:205px}
+  .guide-top-area{max-width:1000px;margin:0 auto;padding:13px 16px 8px}
+  .search-status{color:var(--app-primary-dark);font-size:13px;font-weight:700;margin:0 2px 8px}
+  .search-status:empty{display:none}
+  .guide-topic-menu{background:#fff;border:1px solid var(--app-line);border-radius:15px;overflow:hidden}
+  .guide-topic-menu summary{
+    min-height:48px;padding:0 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    color:var(--app-ink);font-weight:800;cursor:pointer;list-style:none;
+  }
+  .guide-topic-menu summary::-webkit-details-marker{display:none}
+  .guide-topic-menu summary::after{content:"⌄";color:var(--app-primary);font-size:20px;line-height:1;transition:transform .18s}
+  .guide-topic-menu[open] summary::after{transform:rotate(180deg)}
+  .guide-topic-menu .topic-count{color:var(--app-muted);font-size:13px;font-weight:600;margin-inline-start:auto}
+  #guideView nav.jump{display:flex;flex-wrap:wrap;gap:7px;overflow:visible;padding:12px;border-top:1px solid var(--app-line)}
+  #guideView nav.jump a{min-height:38px;display:flex;align-items:center;justify-content:center;flex:1 1 calc(25% - 7px)}
+  #guideView section{scroll-margin-top:142px}
+  #guideView section.guide-section{
+    margin:0 0 12px;background:#fff;border:1px solid var(--app-line);border-radius:19px;
+    overflow:hidden;box-shadow:0 3px 14px rgba(30,39,73,.035);
+  }
+  .guide-section-heading{display:block!important;margin:0!important}
+  .section-open-btn{
+    width:100%;min-height:72px;margin:0;border:0;background:#fff;color:var(--app-ink);
+    padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:15px;
+    text-align:right;cursor:pointer;border-radius:0;font-weight:800;
+  }
+  .section-open-btn:hover{background:#FAFAFD}
+  .section-open-btn[aria-expanded="true"]{background:#FAFAFD}
+  .section-summary-main{display:flex;align-items:center;gap:11px;min-width:0}
+  .section-open-btn .num{
+    flex:0 0 auto;font-family:var(--latin);font-size:14px;color:#fff;background:var(--app-ink);
+    border-radius:7px;padding:3px 8px;font-weight:400;
+  }
+  .section-title{font-size:20px;line-height:1.35}
+  .section-summary-meta{display:flex;align-items:center;gap:11px;flex:0 0 auto;color:var(--app-muted);font-size:13px;font-weight:600}
+  .section-chevron{font-size:22px;line-height:1;color:var(--app-primary);transition:transform .18s}
+  .section-open-btn[aria-expanded="true"] .section-chevron{transform:rotate(180deg)}
+  .section-content{padding:18px 20px 20px;border-top:1px solid var(--app-line)}
+  .section-content > .lede{margin:0 0 16px}
   #guideView .card{border-radius:17px;box-shadow:0 3px 14px rgba(30,39,73,.035)}
   #guideView section.search-hidden,#guideView .card.search-hidden,#guideView .chips li.search-hidden{display:none!important}
-  .section-open-btn{
-    min-height:44px;margin:4px 0 15px;border:1px solid var(--app-line);background:#fff;
-    color:var(--app-primary-dark);border-radius:13px;padding:0 15px;font-weight:800;cursor:pointer;
-  }
-  .section-open-btn .count{color:var(--app-muted);font-weight:500;margin-inline-start:5px}
   #guideView .heb.answer-toggle{
     border:0;background:transparent;font-family:var(--heb);font-size:16px;color:var(--ink-soft);
     padding:5px 7px;min-height:36px;border-radius:7px;text-align:right;cursor:default;
@@ -483,19 +516,29 @@
     .completion-card{padding:34px 20px;border-radius:23px}
     .completion-card h2{font-size:25px}
     #guideView{padding-bottom:20px}
-    #guideView header.hero{padding:23px 15px 20px}
-    #guideView h1{font-size:24px}
-    #guideView .sub{font-size:15px}
+    #guideView header.hero{padding:18px 15px 15px}
+    #guideView .eyebrow{display:none}
+    #guideView h1{font-size:25px;margin-bottom:3px}
+    #guideView .sub{font-size:14px;line-height:1.5}
     #guideView .bar{top:60px;padding:8px 0}
-    #guideView .bar-in{padding:0 12px;grid-template-columns:auto minmax(0,1fr) auto;gap:7px}
-    .guide-home-btn{font-size:0;width:44px;padding:0}
-    .guide-home-btn::before{content:"⌂";font-size:22px}
-    #guideView .toggle{padding:0 10px;font-size:13px}
-    #guideView nav.jump{margin-inline:-2px}
-    #guideView .wrap{padding:0 13px 35px}
-    #guideView section{scroll-margin-top:205px;margin-bottom:31px}
-    #guideView h2{font-size:21px;line-height:1.35}
-    #guideView .lede{font-size:15px}
+    #guideView .bar-in{padding:0 12px;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+    #guideView .guide-home-btn{display:none}
+    #guideView .toggle{padding:0 11px;font-size:13px;white-space:nowrap}
+    .guide-top-area{padding:10px 12px 9px}
+    .guide-topic-menu summary{min-height:46px;padding:0 13px}
+    #guideView nav.jump{padding:10px;gap:6px}
+    #guideView nav.jump a{flex-basis:calc(50% - 6px);min-height:40px;text-align:center}
+    #guideView .wrap{padding:0 12px 35px}
+    #guideView section{scroll-margin-top:124px}
+    #guideView section.guide-section{margin-bottom:9px;border-radius:17px}
+    .section-open-btn{min-height:65px;padding:11px 13px;gap:10px}
+    .section-summary-main{gap:9px}
+    .section-open-btn .num{font-size:13px;padding:2px 7px}
+    .section-title{font-size:18px}
+    .section-summary-meta{gap:7px;font-size:12px}
+    .section-chevron{font-size:20px}
+    .section-content{padding:15px 13px 16px}
+    #guideView .lede{font-size:14px;line-height:1.6}
     #guideView .card{padding:13px}
     #guideView .plan,#guideView .plan tbody,#guideView .plan tr,#guideView .plan td{display:block;width:100%}
     #guideView .plan thead{display:none}
@@ -528,8 +571,11 @@
     *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
   @media print{
-    .app-header,.bottom-nav,#homeView,#lessonView,#guideView .bar,.section-open-btn{display:none!important}
+    .app-header,.bottom-nav,#homeView,#lessonView,#guideView .bar,.guide-top-area{display:none!important}
     #guideView{display:block!important}
+    #guideView section.guide-section{border:0;box-shadow:none;overflow:visible;margin-bottom:30px}
+    #guideView .section-open-btn{display:flex!important;min-height:0;padding:0 0 7px;cursor:default}
+    #guideView .section-summary-meta{display:none!important}
     #guideView .section-content{display:block!important}
     body.test #guideView .heb.answer-toggle{color:var(--ink-soft)!important;background:transparent!important}
   }
@@ -596,9 +642,9 @@
 
 <header class="hero">
   <div class="hero-in">
-    <p class="eyebrow">קריאה באנגלית · צירופי אותיות</p>
-    <h1>איך אומרים את זה? מדריך צירופי האותיות באנגלית</h1>
-    <p class="sub">כל צירוף אותיות נפוץ באנגלית, הצליל שלו, מילים לדוגמה והפירוש שלהן בעברית. לחצי על כל מילה כדי לשמוע ולתרגל בקול רם.</p>
+    <p class="eyebrow">כל הצירופים במקום אחד</p>
+    <h1>מדריך הצירופים</h1>
+    <p class="sub">חפשי מילה או צירוף, או בחרי נושא. לחצי על מילה באנגלית כדי לשמוע אותה.</p>
     <p class="warn"><b>חשוב לפני שמתחילים:</b> יש באנגלית צלילים שאין להם אות מקבילה בעברית — במיוחד <b>th</b>, <b>w</b>, <b>r</b> והתנועה של cat. לחצי על כל מילה, הקשיבי לה פעמיים ואז חזרי עליה בקול.</p>
   </div>
 </header>
@@ -606,8 +652,15 @@
 <div class="bar">
   <div class="bar-in">
     <button class="guide-home-btn" type="button" data-view="home">חזרה למסלול</button>
-    <label class="guide-search"><span class="sr-only" hidden>חיפוש במדריך</span><input id="guideSearch" type="search" placeholder="חיפוש צירוף או מילה…" autocomplete="off"></label>
-    <button class="toggle" id="tbtn" type="button" aria-pressed="false">תרגול: כבוי</button>
+    <label class="guide-search"><span class="sr-only" hidden>חיפוש במדריך</span><input id="guideSearch" type="search" aria-label="חיפוש במדריך" placeholder="חיפוש מילה או צירוף…" autocomplete="off"></label>
+    <button class="toggle" id="tbtn" type="button" aria-pressed="false" aria-label="הפעלת תרגול עצמי">תרגול עצמי</button>
+  </div>
+</div>
+
+<div class="guide-top-area">
+  <div id="searchStatus" class="search-status" aria-live="polite"></div>
+  <details id="guideTopicMenu" class="guide-topic-menu">
+    <summary><span>בחירת נושא</span><span class="topic-count">11 נושאים</span></summary>
     <nav class="jump">
       <a href="#how">איך לומדים</a>
       <a href="#cons">עיצורים</a>
@@ -621,8 +674,7 @@
       <a href="#sight">מילים חריגות</a>
       <a href="#plan">תוכנית 8 שבועות</a>
     </nav>
-    <div id="searchStatus" class="search-status" aria-live="polite"></div>
-  </div>
+  </details>
 </div>
 
 <div class="wrap">
@@ -638,7 +690,7 @@
     <li><b>מבחן עם מילים מומצאות</b>נסי לקרוא <span class="word" style="min-width:0">blant, shepe, froid, tride</span>. אם הצלחת — את משתמשת בכללים. אם לא — פשוט שיננת מילים מוכרות.</li>
     <li><b>מיד לקריאה אמיתית</b>אחרי כל שלב, קראי טקסט קל בקול (ספרי ילדים באנגלית, כתוביות, שלטים). המדריך הוא כלי עזר — לא מקצוע בפני עצמו.</li>
   </ol>
-  <p class="note">טיפ לשימוש במדריך: הכפתור "תרגול" למעלה מסתיר את הפירוש. קראי את המילה באנגלית ונסי לזכור מה היא אומרת, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
+  <p class="note">טיפ לשימוש במדריך: הכפתור "תרגול עצמי" למעלה מסתיר את הפירוש. קראי את המילה באנגלית ונסי לזכור מה היא אומרת, ואז לחצי על המלבן האפור כדי לבדוק את עצמך.</p>
 </section>
 
 <section id="cons">
@@ -2085,40 +2137,65 @@
       replaceGuideAnswer(answer);
     });
 
-    Array.from(document.querySelectorAll('#guideView section')).forEach(function(section){
-      if(section.id === 'how' || section.id === 'plan') return;
-      var lede = section.querySelector(':scope > .lede');
-      if(!lede) return;
+    Array.from(document.querySelectorAll('#guideView .wrap > section')).forEach(function(section){
+      var heading = section.querySelector(':scope > h2');
+      if(!heading) return;
+      var number = cleanText(heading.querySelector('.num'));
+      var headingClone = heading.cloneNode(true);
+      var clonedNumber = headingClone.querySelector('.num');
+      if(clonedNumber) clonedNumber.remove();
+      var title = headingClone.textContent.replace(/\s+/g,' ').trim();
       var content = document.createElement('div');
       content.className = 'section-content';
-      var children = Array.from(section.children);
-      var ledeIndex = children.indexOf(lede);
-      children.slice(ledeIndex+1).forEach(function(child){ content.appendChild(child); });
-      var count = content.querySelectorAll('.card,.chips li').length;
+      content.id = 'guideContent-' + section.id;
+      Array.from(section.children).filter(function(child){ return child !== heading; }).forEach(function(child){ content.appendChild(child); });
+
+      var cardCount = content.querySelectorAll('.card').length;
+      var chipCount = content.querySelectorAll('.chips li').length;
+      var meta = '';
+      if(section.id === 'how') meta = content.querySelectorAll('ol.steps > li').length + ' טיפים';
+      else if(section.id === 'plan') meta = content.querySelectorAll('.plan tbody tr').length + ' שבועות';
+      else if(cardCount) meta = cardCount + ' כרטיסים';
+      else if(chipCount) meta = chipCount + ' מילים';
+
       var toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'section-open-btn';
-      toggle.innerHTML = 'הצגת הכרטיסים <span class="count">(' + count + ')</span>';
+      toggle.id = 'guideSection-' + section.id;
+      toggle.innerHTML = '<span class="section-summary-main"><span class="num">' + escapeHtml(number) + '</span><span class="section-title">' + escapeHtml(title) + '</span></span>' +
+        '<span class="section-summary-meta"><span class="section-count">' + escapeHtml(meta) + '</span><span class="section-chevron" aria-hidden="true">⌄</span></span>';
       toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-controls',content.id);
       content.hidden = true;
-      toggle.addEventListener('click',function(){ setGuideSectionOpen(section,content.hidden); });
-      lede.after(toggle);
-      toggle.after(content);
+      toggle.addEventListener('click',function(){ setGuideSectionOpen(section,content.hidden,false); });
+      heading.textContent = '';
+      heading.className = 'guide-section-heading';
+      heading.appendChild(toggle);
+      heading.after(content);
+      section.classList.add('guide-section');
+      section.setAttribute('aria-labelledby',toggle.id);
       section._guideContent = content;
       section._guideToggle = toggle;
     });
 
     document.querySelectorAll('#guideView nav.jump a').forEach(function(link){
-      link.addEventListener('click',function(){
+      link.addEventListener('click',function(event){
+        event.preventDefault();
         var target = document.querySelector(link.getAttribute('href'));
-        if(target) openGuideSection(target);
+        if(!target) return;
+        openGuideSection(target);
+        var menu = document.getElementById('guideTopicMenu');
+        if(menu) menu.open = false;
+        try{ history.replaceState(null,'','#' + target.id); }catch(error){}
+        setTimeout(function(){ target.scrollIntoView({block:'start',behavior:'smooth'}); },0);
       });
     });
 
     guideTestButton.addEventListener('click',function(){
       var on = document.body.classList.toggle('test');
-      guideTestButton.textContent = on ? 'תרגול: פועל' : 'תרגול: כבוי';
+      guideTestButton.textContent = on ? 'תרגול פעיל' : 'תרגול עצמי';
       guideTestButton.setAttribute('aria-pressed',String(on));
+      guideTestButton.setAttribute('aria-label',on ? 'כיבוי תרגול עצמי' : 'הפעלת תרגול עצמי');
       document.querySelectorAll('#guideView .heb.answer-toggle').forEach(function(answer){
         answer.classList.remove('shown');
         updateGuideAnswerAccessibility(answer,on);
@@ -2157,16 +2234,23 @@
     answer.setAttribute('aria-label',testMode ? (shown ? 'הסתרת הפירוש ' + answer.textContent : 'הצגת הפירוש') : 'פירוש: ' + answer.textContent);
   }
 
-  function setGuideSectionOpen(section,open){
+  function setGuideSectionOpen(section,open,keepOthersOpen){
     if(!section || !section._guideContent) return;
+    if(open && !keepOthersOpen){
+      document.querySelectorAll('#guideView .wrap > section.guide-section').forEach(function(otherSection){
+        if(otherSection === section || !otherSection._guideContent) return;
+        otherSection._guideContent.hidden = true;
+        otherSection._guideToggle.setAttribute('aria-expanded','false');
+        otherSection.classList.remove('is-open');
+      });
+    }
     section._guideContent.hidden = !open;
     section._guideToggle.setAttribute('aria-expanded',String(open));
-    var count = section._guideContent.querySelectorAll('.card,.chips li').length;
-    section._guideToggle.innerHTML = (open ? 'הסתרת הכרטיסים' : 'הצגת הכרטיסים') + ' <span class="count">(' + count + ')</span>';
+    section.classList.toggle('is-open',open);
   }
 
   function openGuideSection(section){
-    if(section && section._guideContent) setGuideSectionOpen(section,true);
+    if(section && section._guideContent) setGuideSectionOpen(section,true,false);
   }
 
   function filterGuide(){
@@ -2179,15 +2263,23 @@
       if(!query){
         section.classList.remove('search-hidden');
         items.forEach(function(item){ item.classList.remove('search-hidden'); });
+        if(section._openedBySearch){
+          setGuideSectionOpen(section,false,true);
+          section._openedBySearch = false;
+        }
         return;
       }
       if(!items.length){
         var plainMatch = section.textContent.toLocaleLowerCase('he').includes(query);
         section.classList.toggle('search-hidden',!plainMatch);
-        if(plainMatch) resultCount += 1;
+        if(plainMatch){
+          resultCount += 1;
+          if(section._guideContent && section._guideContent.hidden) section._openedBySearch = true;
+          setGuideSectionOpen(section,true,true);
+        }
         return;
       }
-      var heading = section.querySelector('h2');
+      var heading = section.querySelector('.section-title');
       var lede = section.querySelector('.lede');
       var sectionText = ((heading ? heading.textContent : '') + ' ' + (lede ? lede.textContent : '')).toLocaleLowerCase('he');
       var sectionDirectMatch = sectionText.includes(query);
@@ -2198,7 +2290,10 @@
         if(match){ visibleItems += 1; resultCount += 1; }
       });
       section.classList.toggle('search-hidden',visibleItems === 0);
-      if(visibleItems) setGuideSectionOpen(section,true);
+      if(visibleItems){
+        if(section._guideContent && section._guideContent.hidden) section._openedBySearch = true;
+        setGuideSectionOpen(section,true,true);
+      }
     });
     document.getElementById('searchStatus').textContent = query ?
       (resultCount ? 'נמצאו ' + resultCount + ' תוצאות' : 'לא נמצאו תוצאות. נסי צירוף או מילה אחרים.') : '';
