@@ -1,11 +1,12 @@
-const CACHE_NAME = 'english-adventure-v1';
+const CACHE_NAME = 'english-adventure-v2';
 const APP_FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon.svg',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './map-adventure.webp'
 ];
 
 self.addEventListener('install', event => {

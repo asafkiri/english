@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>המסע שלי באנגלית</title>
 <meta name="theme-color" content="#6C5CE7">
-<meta name="description" content="מסלול קריאה באנגלית לילדים — תחנות קצרות, שמע ותרגול בקצב אישי.">
+<meta name="description" content="הרפתקת קריאה באנגלית לילדים עם מפה מאוירת, תחנות קצרות, שמע ומשחקים לשניים.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preload" href="map-adventure.webp" as="image" type="image/webp">
 <style>
   :root{
     --latin:"Trebuchet MS",Arial,sans-serif;
@@ -202,7 +203,7 @@
   button,input{font:inherit}
   button{touch-action:manipulation}
   button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{
-    outline:3px solid rgba(77,90,199,.34);
+    outline:3px solid #4938B8;
     outline-offset:3px;
   }
   .app-header{
@@ -652,14 +653,45 @@
   .map-heading p{margin:4px 0 0;color:var(--kid-muted);font-size:15px}
   .map-help{min-height:45px;border:1px solid var(--kid-line);background:#fff;border-radius:14px;padding:0 15px;color:var(--kid-purple-dark);font-weight:800;cursor:pointer}
 
-  .learning-map{display:grid;gap:18px}
+  .learning-map{display:grid;gap:22px}
+  .map-poster{
+    position:relative;width:min(100%,720px);aspect-ratio:2/3;margin:0 auto;
+    overflow:hidden;border:4px solid #fff;border-radius:34px;
+    background:#DFF3EA url('./map-adventure.webp') center/100% 100% no-repeat;
+    box-shadow:0 22px 55px rgba(49,42,90,.16);
+    isolation:isolate;
+  }
+  .map-poster::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(71,52,117,.05))}
+  .map-poster-title{position:absolute;z-index:2;top:13px;right:50%;transform:translateX(50%);margin:0;background:rgba(255,255,255,.92);border:2px solid rgba(108,92,231,.16);border-radius:999px;padding:8px 16px;color:var(--kid-purple-dark);font-size:15px;box-shadow:0 7px 17px rgba(43,34,84,.12);white-space:nowrap}
+  .map-world-marker{
+    --marker-color:var(--kid-purple);position:absolute;z-index:3;left:var(--map-x);top:var(--map-y);
+    transform:translate(-50%,-50%);width:clamp(118px,24vw,178px);min-height:49px;border:3px solid #fff;
+    border-radius:19px;padding:5px 8px;display:flex;align-items:center;gap:7px;text-align:right;
+    background:rgba(255,255,255,.94);color:var(--kid-ink);box-shadow:0 8px 19px rgba(45,37,83,.18);cursor:pointer;
+    transition:transform .18s,box-shadow .18s,opacity .18s;
+  }
+  .map-world-marker:not(:disabled):hover,.map-world-marker:not(:disabled):focus-visible{transform:translate(-50%,-50%) scale(1.055);box-shadow:0 11px 24px rgba(45,37,83,.24)}
+  .map-world-marker .marker-icon{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;background:var(--marker-color);color:#fff;font-size:20px}
+  .map-world-marker .marker-copy{min-width:0;line-height:1.15}
+  .map-world-marker strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .map-world-marker small{display:block;font-size:11px;font-weight:900;color:#4A5268;margin-top:3px;white-space:nowrap}
+  .map-world-marker.is-current{border-color:var(--marker-color);animation:currentWorld 1.4s ease-in-out infinite alternate}
+  .map-world-marker.is-complete .marker-icon{background:var(--kid-mint)}
+  .map-world-marker.is-selected{outline:4px solid rgba(255,255,255,.8);box-shadow:0 0 0 6px var(--marker-color),0 13px 27px rgba(45,37,83,.23)}
+  .map-world-marker:disabled{cursor:not-allowed;opacity:.86;filter:grayscale(.28)}
+  @keyframes currentWorld{to{box-shadow:0 0 0 7px rgba(255,255,255,.7),0 13px 29px rgba(45,37,83,.26)}}
+  .map-caption{width:min(100%,720px);margin:-10px auto 0;background:#fff;border:1px solid var(--kid-line);border-radius:17px;padding:11px 15px;text-align:center;color:var(--kid-muted);font-size:13px;font-weight:800}
+  .world-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:13px;margin:7px 4px -7px}
+  .world-detail-heading h3{margin:0;font-size:23px}
+  .world-detail-heading p{margin:3px 0 0;color:var(--kid-muted);font-size:13px}
+  .world-detail-badge{white-space:nowrap;background:#FFF4CB;color:#8E6200;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
   .world-section{--world-color:var(--kid-purple);--world-soft:var(--kid-purple-soft);background:rgba(255,255,255,.78);border:1px solid var(--kid-line);border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(48,39,91,.055)}
   .world-banner{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:18px 22px;background:linear-gradient(110deg,var(--world-soft),#fff)}
   .world-title-wrap{display:flex;align-items:center;gap:12px}
   .world-icon{width:49px;height:49px;border-radius:16px;background:#fff;display:grid;place-items:center;font-size:27px;box-shadow:0 5px 15px rgba(45,38,90,.08)}
   .world-banner h3{font-size:20px;margin:0 0 2px;line-height:1.25}
   .world-banner p{font-size:13px;color:var(--kid-muted);margin:0}
-  .world-count{white-space:nowrap;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:999px;padding:6px 10px;color:var(--world-color);font-size:13px;font-weight:900}
+  .world-count{white-space:nowrap;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:999px;padding:6px 10px;color:#4A5268;font-size:13px;font-weight:900}
   .world-replay{display:block;margin:0 auto 18px;min-height:43px;border:1px solid var(--world-color);background:#fff;color:var(--world-color);border-radius:14px;padding:0 15px;font-weight:900;cursor:pointer}
   .world-locked-note{text-align:center;color:var(--kid-muted);font-size:14px;margin:0;padding:2px 14px 18px}
   .is-world-locked{opacity:.82}
@@ -670,7 +702,7 @@
   .map-stage .stage-copy{grid-row:1;max-width:270px;background:#fff;border:2px solid transparent;border-radius:18px;padding:13px 15px;box-shadow:0 7px 20px rgba(47,39,84,.075);transition:transform .18s,border-color .18s}
   .map-stage.side-a .stage-copy{grid-column:1;justify-self:end;text-align:left;direction:rtl}
   .map-stage.side-b .stage-copy{grid-column:3;justify-self:start}
-  .stage-number{display:block;color:var(--world-color);font-size:12px;font-weight:900;margin-bottom:2px}
+  .stage-number{display:block;color:#4A5268;font-size:12px;font-weight:900;margin-bottom:2px}
   .stage-copy strong{display:block;font-size:17px;line-height:1.3}
   .stage-copy small{display:block;color:var(--kid-muted);font-size:13px;line-height:1.45;margin-top:3px}
   .map-stage:not(:disabled):hover .stage-orb,.map-stage:not(:disabled):focus-visible .stage-orb{transform:scale(1.07);box-shadow:0 11px 25px rgba(42,34,86,.18)}
@@ -682,7 +714,12 @@
   .map-stage.is-locked{cursor:not-allowed}
   .map-stage.is-locked .stage-orb{background:#F2F1F5;border-color:#D7D3DD;color:#A6A0B0;box-shadow:none}
   .map-stage.is-locked .stage-copy{background:#F8F7F9;color:#8D8797;box-shadow:none}
-  .map-stage.is-locked .stage-number,.map-stage.is-locked .stage-copy small{color:#AAA5B2}
+  .map-stage.is-locked .stage-number,.map-stage.is-locked .stage-copy small{color:#6F6A75}
+  .map-stage.game-stage .stage-orb{border-color:#E2A400;background:#FFF8D7;color:#9A6700}
+  .map-stage.game-stage .stage-copy{border:2px dashed #E2A400;background:linear-gradient(135deg,#FFFDF2,#FFF4CA)}
+  .map-stage.game-stage .stage-number{color:#5B4A18}
+  .map-stage.game-stage.is-complete .stage-orb{border-color:var(--kid-mint);background:#E9FAF3;color:#148567}
+  .map-stage.game-stage.is-game-ready .stage-orb{background:#E2A400;color:#fff;box-shadow:0 0 0 6px #FFF3B8,0 10px 22px rgba(146,101,0,.16)}
   @keyframes currentNode{to{box-shadow:0 0 0 8px var(--world-soft),0 13px 28px rgba(42,34,86,.2);transform:translateY(-2px)}}
 
   .map-finish{text-align:center;padding:26px 18px 8px}
@@ -750,6 +787,48 @@
   .quiz-feedback.is-correct span{font-size:14px}
   .quiz-feedback .got-it-btn{min-height:52px;border:0;border-radius:16px;color:#fff;font-weight:900;padding:0 19px;margin-top:7px}
 
+  .quiz-rounds{display:flex;justify-content:center;gap:7px;margin:11px 0 2px}
+  .quiz-round-dot{width:34px;height:9px;border-radius:999px;background:#E6E2EE}
+  .quiz-round-dot.is-done{background:var(--kid-mint)}
+  .quiz-round-dot.is-current{background:var(--kid-purple)}
+
+  .special-game-card{background:#fff;border:2px solid rgba(226,164,0,.22);border-radius:30px;padding:29px;box-shadow:0 16px 42px rgba(50,42,95,.09);text-align:center}
+  .game-hero-icon{width:84px;height:84px;margin:0 auto 12px;border-radius:28px;display:grid;place-items:center;background:linear-gradient(145deg,#FFF8D6,#FFE08A);font-size:44px;box-shadow:0 10px 24px rgba(157,111,0,.13)}
+  .special-game-card h1,.special-game-card h2{margin:8px 0 7px}
+  .special-game-card>p{color:var(--kid-muted);line-height:1.55;margin:0 auto 18px;max-width:45ch}
+  .game-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .game-mode-button{min-height:75px;border:2px solid var(--kid-line);border-radius:18px;background:#fff;color:var(--kid-ink);font:inherit;font-weight:900;cursor:pointer;padding:10px}
+  .game-mode-button span{display:block;font-size:25px;margin-bottom:4px}
+  .game-mode-button small{display:block;color:var(--kid-muted);font-size:12px;margin-top:3px}
+  .game-mode-button:hover,.game-mode-button:focus-visible{border-color:var(--kid-purple);background:var(--kid-purple-soft)}
+  .game-start-button{width:100%;min-height:57px;border:0;border-radius:18px;background:var(--kid-purple);color:#fff;font-size:17px;font-weight:900;cursor:pointer;margin-top:10px}
+  .game-hud{display:flex;align-items:center;justify-content:space-between;gap:9px;background:#F8F7FC;border-radius:17px;padding:9px 12px;margin-bottom:14px;font-size:13px;font-weight:900}
+  .game-hud-status{color:var(--kid-purple-dark)}
+  .player-scores{display:flex;gap:6px;flex-wrap:wrap}
+  .player-chip{border-radius:999px;padding:5px 8px;background:#fff;color:var(--kid-muted)}
+  .player-chip.is-turn{background:var(--kid-purple);color:#fff}
+  .memory-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;direction:ltr}
+  .memory-card{position:relative;min-height:82px;border:2px solid #DAD5EA;border-radius:16px;background:linear-gradient(145deg,#7A68E9,#5C4DD0);color:#fff;font:inherit;font-weight:900;cursor:pointer;padding:7px;overflow:hidden;word-break:break-word;box-shadow:0 6px 13px rgba(70,55,142,.13);transition:transform .15s,background .15s}
+  .memory-card::after{content:"?";font-size:29px}
+  .memory-card .memory-value{display:none;font-size:15px;line-height:1.25}
+  .memory-card.is-open,.memory-card.is-matched{background:#fff;color:var(--kid-purple-dark);border-color:var(--kid-purple);transform:translateY(-2px)}
+  .memory-card.is-open::after,.memory-card.is-matched::after{display:none}
+  .memory-card.is-open .memory-value,.memory-card.is-matched .memory-value{display:block}
+  .memory-card.is-matched{background:#E9FAF3;color:#13785E;border-color:var(--kid-mint);box-shadow:none}
+  .memory-card:disabled{cursor:default}
+  .game-instruction{min-height:43px;display:grid;place-items:center;margin:12px 0 0;border-radius:14px;background:#FFF8DC;color:#805900;font-weight:900;padding:8px}
+  .sound-prompt{width:100%;min-height:105px;border:0;border-radius:24px;background:linear-gradient(135deg,#EDE8FF,#FFF4C9);font-size:45px;cursor:pointer;margin:8px 0 15px}
+  .game-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .game-choice{min-height:61px;border:2px solid var(--kid-line);border-radius:17px;background:#fff;color:var(--kid-ink);font:inherit;font-size:18px;font-weight:900;cursor:pointer;padding:8px}
+  .game-choice:not(:disabled):hover{border-color:var(--kid-purple);background:var(--kid-purple-soft)}
+  .game-choice.is-wrong{border-color:#E67A80;background:#FFF1F1;color:#A13E45}
+  .game-choice.is-correct{border-color:var(--kid-mint);background:#EAF9F3;color:#13785E}
+  .treasure-meter{display:flex;justify-content:center;gap:7px;margin:10px 0 16px;font-size:24px}
+  .treasure-meter span{filter:grayscale(1);opacity:.35}
+  .treasure-meter span.is-found{filter:none;opacity:1}
+  .game-finish-reward{font-size:63px;line-height:1;margin:4px 0 10px}
+  .game-finish-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+
   #guideView header.hero{background:linear-gradient(180deg,#F2EFFF,transparent);padding-top:30px}
   #guideView h1{color:var(--kid-purple-dark)}
   #guideView .eyebrow{color:var(--kid-purple)}
@@ -776,6 +855,18 @@
     .map-help{width:44px;height:44px;padding:0;font-size:0;border-radius:14px}
     .map-help::after{content:"?";font-size:21px}
     .world-section{border-radius:23px}
+    .map-poster{border-radius:25px;border-width:3px}
+    .map-poster-title{display:none}
+    .map-world-marker{width:50px;height:50px;min-height:50px;border-width:2px;border-radius:50%;padding:3px;display:grid;place-items:center;gap:0;text-align:center}
+    .map-world-marker .marker-icon{width:27px;height:27px;border-radius:50%;font-size:16px}
+    .map-world-marker .marker-copy{line-height:1}
+    .map-world-marker strong{display:none}
+    .map-world-marker small{font-size:10px;margin-top:1px;color:#343B50}
+    .map-world-marker.is-selected{width:132px;border-radius:18px;display:flex;text-align:right;padding:4px 7px;gap:5px}
+    .map-world-marker.is-selected strong{display:block;font-size:11px}
+    .world-detail-heading h3{font-size:20px}
+    .world-detail-heading p{font-size:12px}
+    .world-detail-badge{font-size:10px;padding:6px 8px}
     .world-banner{padding:15px 14px}
     .world-title-wrap{gap:9px}
     .world-icon{width:42px;height:42px;border-radius:14px;font-size:23px}
@@ -807,6 +898,13 @@
     .quiz-word{min-height:82px;border-radius:18px}
     .quiz-word span:first-child{font-size:37px}
     .quiz-option{min-height:55px;font-size:17px}
+    .special-game-card{padding:21px 14px;border-radius:24px}
+    .game-mode-grid{grid-template-columns:1fr}
+    .memory-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .memory-card{min-height:84px;border-radius:14px}
+    .memory-card .memory-value{font-size:14px}
+    .game-choice{font-size:16px;min-height:57px}
+    .game-finish-actions{grid-template-columns:1fr}
     .parent-tools-content{align-items:flex-start;flex-direction:column}
   }
   @media(max-width:430px){
@@ -817,6 +915,12 @@
     .friend-emoji{font-size:61px}
     .journey-hero-copy{padding-left:56px}
     .journey-hero .primary-action{width:100%;font-size:15px;padding-inline:13px}
+  }
+  @media(max-width:350px){
+    .map-world-marker{width:44px;height:44px;min-height:44px}
+    .map-world-marker .marker-icon{width:23px;height:23px;font-size:14px}
+    .map-world-marker small{font-size:9px}
+    .map-world-marker.is-selected{width:118px;height:44px;min-height:44px}
   }
 </style>
 </head>
@@ -851,13 +955,13 @@
     </section>
 
     <section class="journey-stats" aria-label="ההתקדמות שלי">
-      <div class="stat-card"><span class="stat-icon" aria-hidden="true">🗺️</span><span class="stat-copy"><strong id="progressNumber">0%</strong><span id="completedCount">0 מתוך 63 תחנות</span></span></div>
+      <div class="stat-card"><span class="stat-icon" aria-hidden="true">🗺️</span><span class="stat-copy"><strong id="progressNumber">0%</strong><span id="completedCount">0 מתוך 86 תחנות</span></span></div>
       <div class="stat-card"><span class="stat-icon" aria-hidden="true">⭐</span><span class="stat-copy"><strong id="starCount">0</strong><span>כוכבים שאספת</span></span></div>
-      <button id="reviewBtn" class="stat-card review-stat" type="button" disabled><span class="stat-icon" aria-hidden="true">💛</span><span class="stat-copy"><strong id="reviewCount">0</strong><span>מילים שכדאי לחזור עליהן</span></span></button>
+      <button id="reviewBtn" class="stat-card review-stat" type="button" disabled><span class="stat-icon" aria-hidden="true">💛</span><span class="stat-copy"><strong id="reviewCount">0</strong><span>תחנות שכדאי לחזור עליהן</span></span></button>
     </section>
 
     <div class="map-heading">
-      <div><h2>מפת ההרפתקה שלי</h2><p>התחנה הסגולה היא התחנה הבאה שלך.</p></div>
+      <div><h2>מפת ההרפתקה שלי</h2><p>התחנה המנצנצת עם ▶ היא התחנה הבאה שלך.</p></div>
       <button class="map-help" type="button" data-view="guide">ספר הצלילים</button>
     </div>
     <section id="learningMap" class="learning-map" aria-label="מפת שיעורי האנגלית"></section>
@@ -924,10 +1028,10 @@
   <h2><span class="num">01</span> איך לומדים בקלות</h2>
   <p class="lede">לא צריך לזכור הכול ביום אחד. בכל תחנה לומדים צליל קטן אחד, משחקים קצת וממשיכים רק כשמוכנים.</p>
   <ol class="steps">
-    <li><b>מתחילות במפה</b>התחנה הסגולה היא תמיד התחנה הבאה. התחנות האפורות ייפתחו בהמשך.</li>
+    <li><b>מתחילות במפה</b>התחנה המנצנצת עם ▶ היא תמיד התחנה הבאה. התחנות האפורות ייפתחו בהמשך.</li>
     <li><b>לוחצות ושומעות</b>ליד כל מילה יש רמקול. אפשר לשמוע אותה כמה פעמים שרוצים.</li>
     <li><b>אומרות בקול</b>אחרי ששומעים מילה, מנסים להגיד אותה. לא חייב לצאת מושלם בפעם הראשונה.</li>
-    <li><b>משחק קטן בסוף</b>בוחרים פירוש אחד. אם טעינו, שומעים שוב ומנסים — אין כישלון ואין לחץ.</li>
+    <li><b>משחק קטן בסוף</b>עונות על כל שתיים או שלוש המילים של התחנה, אחת בכל פעם. אם טעינו, שומעים שוב ומנסים — אין כישלון ואין לחץ.</li>
     <li><b>כמה דקות בכל פעם</b>תחנה אחת ביום זה מצוין. עדיף קצת ובכיף מאשר הרבה בבת אחת.</li>
     <li><b>נתקענו? באים לכאן</b>בספר הצלילים אפשר לחפש כל צירוף או מילה ולשמוע אותה שוב.</li>
   </ol>
@@ -1503,6 +1607,7 @@
       <div class="head"><span class="combo">ps / pn</span><span class="arrow">←</span><span class="sound">ס / נ</span></div>
       <ul class="ex">
         <li><span class="word">psychology</span><span class="heb">סַאיקוֹלוֹג׳י</span></li>
+        <li><span class="word">psychologist</span><span class="heb">סַאיקוֹלוֹג׳יסְט</span></li>
         <li><span class="word">pneumonia</span><span class="heb">נוּמוֹנְיָה</span></li>
       </ul>
     </div>
@@ -1782,6 +1887,7 @@
     'design':'עיצוב',
     'foreign':'זר',
     'psychology':'פסיכולוגיה',
+    'psychologist':'פסיכולוג / פסיכולוגית',
     'pneumonia':'דלקת ריאות',
     'walk':'ללכת',
     'talk':'לדבר',
@@ -1843,26 +1949,29 @@
   ];
 
   var worldDefinitions = [
-    {id:'forest', title:'יער הצלילים', description:'הצלילים הראשונים והכי שימושיים', icon:'🌳', color:'#46A882', soft:'#EAF8F2', sources:[['cons',[0,1,3,4,5,8]]]},
-    {id:'bridge', title:'גשר הצירופים', description:'עוד צלילים שמחברים שתי אותיות', icon:'🌉', color:'#E78346', soft:'#FFF1E7', sources:[['cons',[6,7,9,10,2]]]},
-    {id:'magic-land', title:'ארץ ה־e הקסומה', description:'אות קטנה שמשנה את כל המילה', icon:'✨', color:'#8A6BE8', soft:'#F1EDFF', sources:[['magic',[0,1,2,3,4]]]},
-    {id:'vowel-lake', title:'אגם התנועות', description:'צלילים קלים שחוזרים בהרבה מילים', icon:'💧', color:'#4E9CEB', soft:'#EAF5FF', sources:[['vowels',[0,1,3,7,8,9,13]]]},
-    {id:'surprise-cave', title:'מערת הצלילים המפתיעים', description:'מילים שצריך להקשיב להן טוב', icon:'🔮', color:'#E46FA9', soft:'#FFF0F7', sources:[['vowels',[2,4,5,6,10,11,12]]]},
-    {id:'r-planet', title:'כוכב ה־R', description:'האות R משנה את הצליל שלידה', icon:'🚀', color:'#6C5CE7', soft:'#F0EDFF', sources:[['r',[0,1,2,3,4]]]},
-    {id:'cg-city', title:'העיר של c ו־g', description:'מסתכלים על האות הבאה ויודעים', icon:'🏙️', color:'#D85F68', soft:'#FFF0F1', sources:[['cg',[0,1,2,3]]]},
-    {id:'ending-mountain', title:'הר סופי המילים', description:'קוראים גם מילים ארוכות בלי פחד', icon:'⛰️', color:'#B57A35', soft:'#FFF5E8', sources:[['end',[0,1,2,3,4,5,6,7]]]},
-    {id:'silent-cave', title:'מערת האותיות השקטות', description:'רואים אות — אבל לא תמיד שומעים אותה', icon:'🤫', color:'#60769A', soft:'#EEF3F8', sources:[['silent',[0,1,2,3,4,5]],['cons',[11]]]},
-    {id:'special-island', title:'אי המילים המיוחדות', description:'מילים ששומעים וזוכרים כמו תמונה', icon:'🏝️', color:'#E2A400', soft:'#FFF8DC', sources:[['special',[0,1,2,3,4,5,6,7,8]]]}
+    {id:'forest', title:'יער הצלילים', description:'הצלילים הראשונים והכי שימושיים', icon:'🌳', color:'#46A882', soft:'#EAF8F2', mapX:53, mapY:5, game:{type:'memory',title:'מחנה הזיכרון',icon:'🃏',reward:'🦉'}, sources:[['cons',[0,1,3,4,5,8]]]},
+    {id:'bridge', title:'גשר הצירופים', description:'עוד צלילים שמחברים שתי אותיות', icon:'🌉', color:'#E78346', soft:'#FFF1E7', mapX:50, mapY:15, game:{type:'sound',title:'בלשית הצלילים',icon:'🔎',reward:'🎧'}, sources:[['cons',[6,7,9,10,2]]]},
+    {id:'magic-land', title:'ארץ ה־e הקסומה', mapTitle:'ארץ ה־e', description:'אות קטנה שמשנה את כל המילה', icon:'✨', color:'#8A6BE8', soft:'#F1EDFF', mapX:48, mapY:25, game:{type:'treasure',title:'מסע האוצר הקסום',icon:'💎',reward:'🪄'}, sources:[['magic',[0,1,2,3,4]]]},
+    {id:'vowel-lake', title:'אגם התנועות', description:'צלילים קלים שחוזרים בהרבה מילים', icon:'💧', color:'#4E9CEB', soft:'#EAF5FF', mapX:58, mapY:35, game:{type:'memory',title:'זיכרון ליד האגם',icon:'🃏',reward:'🐬'}, sources:[['vowels',[0,1,3,7,8,9,13]]]},
+    {id:'surprise-cave', title:'מערת הצלילים המפתיעים', mapTitle:'מערת ההפתעות', description:'מילים שצריך להקשיב להן טוב', icon:'🔮', color:'#E46FA9', soft:'#FFF0F7', mapX:50, mapY:45, game:{type:'sound',title:'מערת ההדים',icon:'🔊',reward:'🔮'}, sources:[['vowels',[2,4,5,6,10,11,12]]]},
+    {id:'r-planet', title:'כוכב ה־R', description:'האות R משנה את הצליל שלידה', icon:'🚀', color:'#6C5CE7', soft:'#F0EDFF', mapX:57, mapY:55, game:{type:'treasure',title:'אוצר הכוכבים',icon:'🌟',reward:'🚀'}, sources:[['r',[0,1,2,3,4]]]},
+    {id:'cg-city', title:'העיר של c ו־g', mapTitle:'עיר c ו־g', description:'מסתכלים על האות הבאה ויודעים', icon:'🏙️', color:'#D85F68', soft:'#FFF0F1', mapX:55, mapY:65, game:{type:'memory',title:'מועדון הזיכרון',icon:'🃏',reward:'🏙️'}, sources:[['cg',[0,1,2,3]]]},
+    {id:'ending-mountain', title:'הר סופי המילים', mapTitle:'הר הסיומות', description:'קוראים גם מילים ארוכות בלי פחד', icon:'⛰️', color:'#B57A35', soft:'#FFF5E8', mapX:49, mapY:75, game:{type:'sound',title:'קולות מהפסגה',icon:'📣',reward:'🦅'}, sources:[['end',[0,1,2,3,4,5,6,7]]]},
+    {id:'silent-cave', title:'מערת האותיות השקטות', mapTitle:'המערה השקטה', description:'רואים אות — אבל לא תמיד שומעים אותה', icon:'🤫', color:'#60769A', soft:'#EEF3F8', mapX:54, mapY:85, game:{type:'treasure',title:'האוצר השקט',icon:'🗝️',reward:'🤫'}, sources:[['silent',[0,1,2,3,4,5]],['cons',[11]]]},
+    {id:'special-island', title:'אי המילים המיוחדות', mapTitle:'אי המילים', description:'מילים ששומעים וזוכרים כמו תמונה', icon:'🏝️', color:'#E2A400', soft:'#FFF8DC', mapX:51, mapY:95, game:{type:'memory',title:'מסיבת הזיכרון',icon:'🃏',reward:'🏆'}, sources:[['special',[0,1,2,3,4,5,6,7,8]]]}
   ];
 
   var state = loadState();
   var lessons = buildLessonData();
+  migrateJourneyState();
   var currentLessonIndex = 0;
   var currentCardIndex = 0;
   var lessonPhase = 'learn';
   var quizHadMistake = false;
   var quizMistakes = 0;
   var currentQuiz = null;
+  var currentGameWorldIndex = null;
+  var gameSession = null;
   var reviewQueue = null;
   var reviewPosition = 0;
   var expandedWorldId = null;
@@ -1901,11 +2010,13 @@
         seen: parsed.seen && typeof parsed.seen === 'object' ? parsed.seen : {},
         review: parsed.review && typeof parsed.review === 'object' ? parsed.review : {},
         stars: parsed.stars && typeof parsed.stars === 'object' ? parsed.stars : {},
+        games: parsed.games && typeof parsed.games === 'object' ? parsed.games : {},
+        journeyVersion: Number(parsed.journeyVersion) || 0,
         last: parsed.last && typeof parsed.last === 'object' ? parsed.last : {lessonId:'cons',cardIndex:0},
         mode: parsed.mode === 'practice' ? 'practice' : 'learn'
       };
     }catch(error){
-      return {seen:{},review:{},stars:{},last:{lessonId:'cons',cardIndex:0},mode:'learn'};
+      return {seen:{},review:{},stars:{},games:{},journeyVersion:3,last:{lessonId:'cons',cardIndex:0},mode:'learn'};
     }
   }
 
@@ -1987,22 +2098,62 @@
         indexes.forEach(function(cardIndex){
           if(!sourceLesson || !sourceLesson.cards[cardIndex]) return;
           var card = sourceLesson.cards[cardIndex];
-          worldStageNumber += 1;
-          stages.push({
-            id:sourceId + '-' + cardIndex,
-            sourceId:sourceId,
-            sourceIndex:cardIndex,
-            worldId:world.id,
-            worldIndex:worldIndex,
-            worldStageNumber:worldStageNumber,
-            title:buildStageTitle(sourceId,card,cardIndex),
-            description:buildStageDescription(sourceId,card,cardIndex),
-            cards:[card]
+          var exampleGroups = splitExamplesIntoShortStages(card.examples);
+          exampleGroups.forEach(function(examples,partIndex){
+            var stageCard = Object.assign({},card,{
+              sourceKey:partIndex === 0 ? card.sourceKey : card.sourceKey + ':part' + (partIndex + 1),
+              baseSourceKey:card.sourceKey,
+              partIndex:partIndex,
+              partTotal:exampleGroups.length,
+              examples:examples
+            });
+            var partLabel = exampleGroups.length > 1 ? ' · חלק ' + (partIndex + 1) : '';
+            var partDescription = exampleGroups.length > 1 ? ' חלק ' + (partIndex + 1) + ' מתוך ' + exampleGroups.length + '.' : '';
+            worldStageNumber += 1;
+            stages.push({
+              id:sourceId + '-' + cardIndex + (partIndex ? '-part' + (partIndex + 1) : ''),
+              sourceId:sourceId,
+              sourceIndex:cardIndex,
+              partIndex:partIndex,
+              partTotal:exampleGroups.length,
+              worldId:world.id,
+              worldIndex:worldIndex,
+              worldStageNumber:worldStageNumber,
+              title:buildStageTitle(sourceId,card,cardIndex) + partLabel,
+              description:buildStageDescription(sourceId,card,cardIndex) + partDescription,
+              cards:[stageCard]
+            });
           });
         });
       });
     });
     return stages;
+  }
+
+  function splitExamplesIntoShortStages(examples){
+    var groups = [];
+    var cursor = 0;
+    while(cursor < examples.length){
+      var remaining = examples.length - cursor;
+      var size = remaining === 4 ? 2 : Math.min(3,remaining);
+      groups.push(examples.slice(cursor,cursor + size));
+      cursor += size;
+    }
+    return groups;
+  }
+
+  function migrateJourneyState(){
+    if(state.journeyVersion >= 3) return;
+    lessons.forEach(function(lesson){
+      var card = lesson.cards[0];
+      if(card.partIndex > 0 && state.seen[card.baseSourceKey]){
+        state.seen[card.sourceKey] = true;
+        state.stars[card.sourceKey] = Number(state.stars[card.baseSourceKey]) || 1;
+      }
+      if(card.partIndex > 0 && state.review[card.baseSourceKey]) state.review[card.sourceKey] = true;
+    });
+    state.journeyVersion = 3;
+    saveState();
   }
 
   function buildStageTitle(sourceId,card,cardIndex){
@@ -2016,8 +2167,8 @@
   }
 
   function buildStageDescription(sourceId,card,cardIndex){
-    if(sourceId === 'special' && cardIndex === 0) return 'שש מילים מפתיעות ששומעים וזוכרים.';
-    if(sourceId === 'special') return 'חמש מילים חשובות שמזהים בעיניים.';
+    if(sourceId === 'special' && cardIndex === 0) return 'מילים מפתיעות ששומעים וזוכרים.';
+    if(sourceId === 'special') return 'מילים חשובות שמזהים בעיניים.';
     if(sourceId === 'magic') return 'ה־e בסוף שקטה, אבל עושה קסם לצליל.';
     if(sourceId === 'silent') return 'מגלות איזו אות רואים אבל לא שומעים.';
     if(sourceId === 'end') return 'צליל קטן שעוזר לקרוא מילה ארוכה.';
@@ -2118,62 +2269,83 @@
     var currentIndex = firstIncompleteStageIndex();
     var currentWorldIndex = currentIndex >= 0 ? lessons[currentIndex].worldIndex : worldDefinitions.length - 1;
 
+    var selectedWorldIndex = worldDefinitions.findIndex(function(world){ return world.id === expandedWorldId; });
+    var selectedHasProgress = selectedWorldIndex >= 0 && getWorldStages(worldDefinitions[selectedWorldIndex].id).some(function(entry){ return isStageComplete(entry.index); });
+    if(selectedWorldIndex < 0 || (selectedWorldIndex > currentWorldIndex && !selectedHasProgress)) selectedWorldIndex = currentWorldIndex;
+    expandedWorldId = worldDefinitions[selectedWorldIndex].id;
+
+    var poster = document.createElement('section');
+    poster.className = 'map-poster';
+    poster.setAttribute('aria-label','מפת ההרפתקה המאוירת');
+    poster.innerHTML = '<h3 class="map-poster-title">עשרה עולמות בדרך לאנגלית ⭐</h3>';
+
     worldDefinitions.forEach(function(world,worldIndex){
-      var worldStages = lessons.map(function(stage,index){ return {stage:stage,index:index}; }).filter(function(entry){ return entry.stage.worldId === world.id; });
+      var worldStages = getWorldStages(world.id);
       var completed = worldStages.filter(function(entry){ return isStageComplete(entry.index); }).length;
       var worldComplete = completed === worldStages.length;
       var isCurrentWorld = worldIndex === currentWorldIndex && currentIndex >= 0;
       var isFutureWorld = currentIndex >= 0 && worldIndex > currentWorldIndex && completed === 0;
-      var showTrail = isCurrentWorld || expandedWorldId === world.id || (currentIndex < 0 && worldIndex === worldDefinitions.length - 1);
-      var section = document.createElement('section');
-      section.className = 'world-section' + (worldComplete ? ' is-world-complete' : '') + (isFutureWorld ? ' is-world-locked' : '');
-      section.style.setProperty('--world-color',world.color);
-      section.style.setProperty('--world-soft',world.soft);
-
-      var countText = worldComplete ? '✓ הושלם' : isFutureWorld ? '🔒 בהמשך' : completed + ' מתוך ' + worldStages.length;
-      section.innerHTML =
-        '<div class="world-banner"><div class="world-title-wrap"><span class="world-icon" aria-hidden="true">' + world.icon + '</span>' +
-        '<div><h3>' + escapeHtml(world.title) + '</h3><p>' + escapeHtml(world.description) + '</p></div></div>' +
-        '<span class="world-count">' + countText + '</span></div>';
-
-      if(showTrail){
-        var trail = document.createElement('div');
-        trail.className = 'world-trail';
-        worldStages.forEach(function(entry,position){
-          var stage = entry.stage;
-          var key = itemKey(entry.index,0);
-          var complete = isStageComplete(entry.index);
-          var current = entry.index === currentIndex;
-          var locked = !complete && currentIndex >= 0 && entry.index > currentIndex;
-          var button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'map-stage ' + (position % 2 ? 'side-b' : 'side-a') + (complete ? ' is-complete' : '') + (current ? ' is-current' : '') + (locked ? ' is-locked' : '');
-          button.disabled = locked;
-          if(current) button.setAttribute('aria-current','step');
-          if(locked) button.setAttribute('aria-disabled','true');
-          button.setAttribute('aria-label',(complete ? 'תחנה שהושלמה: ' : current ? 'התחנה הבאה: ' : locked ? 'תחנה נעולה: ' : 'פתיחת תחנה: ') + stage.title);
-          var orb = complete ? '✓' : current ? '▶' : locked ? '🔒' : '⭐';
-          var status = complete ? getStageStars(key) + ' כוכבים' : current ? 'התחנה הבאה · כ־4 דקות' : locked ? 'נפתחת בהמשך' : 'כ־4 דקות';
-          button.innerHTML = '<span class="stage-orb" aria-hidden="true">' + orb + '</span><span class="stage-copy"><span class="stage-number">תחנה ' + (entry.index+1) + '</span><strong>' + escapeHtml(stage.title) + '</strong><small>' + escapeHtml(status) + ' · ' + escapeHtml(stage.description) + '</small></span>';
-          if(!locked) button.addEventListener('click',function(){ openLesson(entry.index,0); });
-          trail.appendChild(button);
-        });
-        section.appendChild(trail);
-      }else if(worldComplete){
-        var replay = document.createElement('button');
-        replay.type = 'button';
-        replay.className = 'world-replay';
-        replay.textContent = 'לפתוח שוב את העולם';
-        replay.addEventListener('click',function(){ expandedWorldId = world.id; renderLearningMap(); });
-        section.appendChild(replay);
-      }else if(isFutureWorld){
-        var lockedNote = document.createElement('p');
-        lockedNote.className = 'world-locked-note';
-        lockedNote.textContent = 'העולם הזה ייפתח כשתסיימי את העולם שלפניו.';
-        section.appendChild(lockedNote);
-      }
-      map.appendChild(section);
+      var gameComplete = isWorldGameComplete(worldIndex);
+      var marker = document.createElement('button');
+      marker.type = 'button';
+      marker.className = 'map-world-marker' + (worldComplete ? ' is-complete' : '') + (isCurrentWorld ? ' is-current' : '') + (selectedWorldIndex === worldIndex ? ' is-selected' : '');
+      marker.style.setProperty('--map-x',world.mapX + '%');
+      marker.style.setProperty('--map-y',world.mapY + '%');
+      marker.style.setProperty('--marker-color',world.color);
+      marker.disabled = isFutureWorld;
+      if(isCurrentWorld) marker.setAttribute('aria-current','step');
+      marker.setAttribute('aria-controls','worldDetailPanel');
+      marker.setAttribute('aria-expanded',selectedWorldIndex === worldIndex ? 'true' : 'false');
+      marker.setAttribute('aria-label',(isFutureWorld ? 'עולם נעול: ' : 'פתיחת העולם: ') + world.title + '. ' + completed + ' מתוך ' + worldStages.length + ' שיעורים');
+      marker.innerHTML = '<span class="marker-icon" aria-hidden="true">' + (worldComplete ? '✓' : isFutureWorld ? '🔒' : world.icon) + '</span><span class="marker-copy"><strong>' + escapeHtml(world.mapTitle || world.title) + '</strong><small>' + (isFutureWorld ? 'ייפתח בהמשך' : completed + '/' + worldStages.length + (gameComplete ? ' · ' + world.game.reward : '')) + '</small></span>';
+      if(!isFutureWorld) marker.addEventListener('click',function(){
+        expandedWorldId = world.id;
+        renderLearningMap();
+        setTimeout(function(){
+          var heading = document.querySelector('.world-detail-heading');
+          if(heading){
+            heading.focus({preventScroll:true});
+            heading.scrollIntoView({behavior:preferredScrollBehavior(),block:'start'});
+          }
+        },0);
+      });
+      poster.appendChild(marker);
     });
+    map.appendChild(poster);
+
+    var caption = document.createElement('p');
+    caption.className = 'map-caption';
+    caption.textContent = 'לחצי על עולם פתוח כדי לראות את התחנות שלו. הסימון המנצנץ מראה איפה ממשיכים.';
+    map.appendChild(caption);
+
+    var selectedWorld = worldDefinitions[selectedWorldIndex];
+    var selectedStages = getWorldStages(selectedWorld.id);
+    var selectedCompleted = selectedStages.filter(function(entry){ return isStageComplete(entry.index); }).length;
+    var detailHeading = document.createElement('div');
+    detailHeading.className = 'world-detail-heading';
+    detailHeading.tabIndex = -1;
+    detailHeading.innerHTML = '<div><h3>' + selectedWorld.icon + ' ' + escapeHtml(selectedWorld.title) + '</h3><p>השיעורים קצרים, ותחנת הזהב היא משחק בונוס.</p></div><span class="world-detail-badge">' + selectedCompleted + ' מתוך ' + selectedStages.length + '</span>';
+    map.appendChild(detailHeading);
+
+    var section = document.createElement('section');
+    section.id = 'worldDetailPanel';
+    section.className = 'world-section';
+    section.style.setProperty('--world-color',selectedWorld.color);
+    section.style.setProperty('--world-soft',selectedWorld.soft);
+    section.innerHTML =
+      '<div class="world-banner"><div class="world-title-wrap"><span class="world-icon" aria-hidden="true">' + selectedWorld.icon + '</span>' +
+      '<div><h3>' + escapeHtml(selectedWorld.title) + '</h3><p>' + escapeHtml(selectedWorld.description) + '</p></div></div>' +
+      '<span class="world-count">' + (selectedCompleted === selectedStages.length ? '✓ כל השיעורים' : selectedCompleted + ' מתוך ' + selectedStages.length) + '</span></div>';
+
+    var trail = document.createElement('div');
+    trail.className = 'world-trail';
+    var gameAfter = getWorldGameUnlockCount(selectedStages.length);
+    selectedStages.forEach(function(entry,position){
+      appendLessonStageButton(trail,entry,position,currentIndex);
+      if(position + 1 === gameAfter) appendWorldGameButton(trail,selectedWorldIndex,position + 1);
+    });
+    section.appendChild(trail);
+    map.appendChild(section);
 
     if(currentIndex < 0){
       var finish = document.createElement('div');
@@ -2181,6 +2353,340 @@
       finish.innerHTML = '<div class="map-finish-icon" aria-hidden="true">🏆</div><h3>כבשת את כל המפה!</h3><p>עכשיו אפשר לחזור לכל תחנה ולשחק שוב.</p>';
       map.appendChild(finish);
     }
+  }
+
+  function getWorldStages(worldId){
+    return lessons.map(function(stage,index){ return {stage:stage,index:index}; }).filter(function(entry){ return entry.stage.worldId === worldId; });
+  }
+
+  function getWorldGameUnlockCount(stageCount){
+    return Math.max(2,Math.ceil(stageCount / 2));
+  }
+
+  function isWorldGameComplete(worldIndex){
+    var world = worldDefinitions[worldIndex];
+    return !!(world && state.games && state.games[world.id] && state.games[world.id].completed);
+  }
+
+  function isWorldGameUnlocked(worldIndex){
+    var world = worldDefinitions[worldIndex];
+    if(!world) return false;
+    var stages = getWorldStages(world.id);
+    var unlockCount = getWorldGameUnlockCount(stages.length);
+    return stages.slice(0,unlockCount).every(function(entry){ return isStageComplete(entry.index); });
+  }
+
+  function appendLessonStageButton(trail,entry,position,currentIndex){
+    var stage = entry.stage;
+    var key = itemKey(entry.index,0);
+    var complete = isStageComplete(entry.index);
+    var current = entry.index === currentIndex;
+    var locked = !complete && currentIndex >= 0 && entry.index > currentIndex;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'map-stage ' + (position % 2 ? 'side-b' : 'side-a') + (complete ? ' is-complete' : '') + (current ? ' is-current' : '') + (locked ? ' is-locked' : '');
+    button.disabled = locked;
+    if(current) button.setAttribute('aria-current','step');
+    if(locked) button.setAttribute('aria-disabled','true');
+    button.setAttribute('aria-label',(complete ? 'תחנה שהושלמה: ' : current ? 'התחנה הבאה: ' : locked ? 'תחנה נעולה: ' : 'פתיחת תחנה: ') + stage.title);
+    var orb = complete ? '✓' : current ? '▶' : locked ? '🔒' : '⭐';
+    var status = complete ? getStageStars(key) + ' כוכבים' : current ? 'התחנה הבאה · כ־4 דקות' : locked ? 'נפתחת בהמשך' : 'כ־4 דקות';
+    button.innerHTML = '<span class="stage-orb" aria-hidden="true">' + orb + '</span><span class="stage-copy"><span class="stage-number">תחנה ' + (entry.index+1) + '</span><strong>' + escapeHtml(stage.title) + '</strong><small>' + escapeHtml(status) + ' · ' + escapeHtml(stage.description) + '</small></span>';
+    if(!locked) button.addEventListener('click',function(){ openLesson(entry.index,0); });
+    trail.appendChild(button);
+  }
+
+  function appendWorldGameButton(trail,worldIndex,position){
+    var world = worldDefinitions[worldIndex];
+    var gameComplete = isWorldGameComplete(worldIndex);
+    var unlockCount = getWorldGameUnlockCount(getWorldStages(world.id).length);
+    var unlocked = isWorldGameUnlocked(worldIndex);
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'map-stage game-stage ' + (position % 2 ? 'side-b' : 'side-a') + (gameComplete ? ' is-complete' : '') + (unlocked && !gameComplete ? ' is-game-ready' : '') + (!unlocked ? ' is-locked' : '');
+    button.disabled = !unlocked;
+    if(!unlocked) button.setAttribute('aria-disabled','true');
+    button.setAttribute('aria-label',(gameComplete ? 'משחק בונוס שהושלם: ' : unlocked ? 'פתיחת משחק בונוס: ' : 'משחק בונוס נעול: ') + world.game.title);
+    var status = gameComplete ? 'המדבקה נאספה ' + world.game.reward + ' · אפשר לשחק שוב' : unlocked ? (world.game.type === 'memory' ? 'פתוח · משחק לשניים או ביחד' : 'פתוח · משחק קצר בלי לחץ') : 'נפתח אחרי ' + unlockCount + ' שיעורים בעולם הזה';
+    button.innerHTML = '<span class="stage-orb" aria-hidden="true">' + (gameComplete ? '✓' : unlocked ? world.game.icon : '🔒') + '</span><span class="stage-copy"><span class="stage-number">תחנת משחק מיוחדת</span><strong>' + escapeHtml(world.game.title) + '</strong><small>' + escapeHtml(status) + '</small></span>';
+    if(unlocked) button.addEventListener('click',function(){ openWorldGame(worldIndex); });
+    trail.appendChild(button);
+  }
+
+  function openWorldGame(worldIndex){
+    var world = worldDefinitions[worldIndex];
+    if(!isWorldGameUnlocked(worldIndex)){
+      showNotice('המשחק ייפתח אחרי עוד כמה שיעורים קצרים');
+      return;
+    }
+    currentGameWorldIndex = worldIndex;
+    reviewQueue = null;
+    currentQuiz = null;
+    gameSession = {phase:'intro',type:world.game.type,token:String(Date.now()) + Math.random()};
+    renderWorldGame();
+    showView('lesson');
+    focusAfterRender('.special-game-card h1');
+  }
+
+  function renderWorldGame(){
+    var world = worldDefinitions[currentGameWorldIndex];
+    if(!world || !gameSession){
+      currentGameWorldIndex = null;
+      showView('home');
+      return;
+    }
+    lessonView.classList.remove('is-practice');
+    lessonPosition.textContent = 'תחנת משחק · ' + world.title;
+    if(gameSession.phase === 'complete'){
+      lessonProgressFill.style.width = '100%';
+      lessonProgressBar.setAttribute('aria-valuenow','100');
+      renderWorldGameFinish(world);
+      return;
+    }
+    if(gameSession.phase === 'intro'){
+      lessonProgressFill.style.width = '14%';
+      lessonProgressBar.setAttribute('aria-valuenow','14');
+      renderWorldGameIntro(world);
+      return;
+    }
+    if(gameSession.type === 'memory') renderMemoryGame(world);
+    else renderSimpleWorldGame(world);
+  }
+
+  function renderWorldGameIntro(world){
+    var isMemory = world.game.type === 'memory';
+    var introText = isMemory ?
+      'מחפשות שישה זוגות: מילה באנגלית והפירוש שלה. אפשר לשחק ביחד או בתורות עם המבוגר שמלווה.' :
+      world.game.type === 'sound' ? 'שומעות מילה ומגלות איזה כרטיס מתאים לה. אפשר לחשוב ביחד ואין הגבלת זמן.' :
+      'אוספות חמישה אוצרות בעזרת מילים שכבר פגשת בדרך. טעות רק נותנת עוד הזדמנות.';
+    var controls = isMemory ?
+      '<div class="game-mode-grid"><button id="gameTogether" class="game-mode-button" type="button"><span aria-hidden="true">🤝</span>משחקות ביחד<small>מומלץ · אוספות את כל הזוגות כצוות</small></button><button id="gameTurns" class="game-mode-button" type="button"><span aria-hidden="true">👧🧑</span>משחק בתורות<small>הילדה והמבוגר משחקים בתורם</small></button></div>' :
+      '<button id="gameStart" class="game-start-button" type="button">מתחילות לשחק! ⭐</button>';
+    lessonContent.innerHTML = '<section class="special-game-card"><span class="stage-kicker">' + world.icon + ' ' + escapeHtml(world.title) + '</span><div class="game-hero-icon" aria-hidden="true">' + world.game.icon + '</div><h1>' + escapeHtml(world.game.title) + '</h1><p>' + escapeHtml(introText) + '</p>' + controls + '</section>';
+    if(isMemory){
+      document.getElementById('gameTogether').addEventListener('click',function(){ startMemoryGame('cooperative'); });
+      document.getElementById('gameTurns').addEventListener('click',function(){ startMemoryGame('turns'); });
+    }else{
+      document.getElementById('gameStart').addEventListener('click',startSimpleWorldGame);
+    }
+  }
+
+  function buildWorldGameWords(worldIndex){
+    var world = worldDefinitions[worldIndex];
+    var stages = getWorldStages(world.id).slice(0,getWorldGameUnlockCount(getWorldStages(world.id).length));
+    var words = [];
+    stages.forEach(function(entry){
+      entry.stage.cards[0].examples.forEach(function(example){
+        if(!words.some(function(item){ return item.word.toLowerCase() === example.word.toLowerCase(); })) words.push({word:example.word,meaning:example.meaning});
+      });
+    });
+    return words.slice(0,8);
+  }
+
+  function shuffled(items){
+    var copy = items.slice();
+    for(var i=copy.length-1;i>0;i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var swap = copy[i];
+      copy[i] = copy[j];
+      copy[j] = swap;
+    }
+    return copy;
+  }
+
+  function startMemoryGame(mode){
+    var pairs = buildWorldGameWords(currentGameWorldIndex).slice(0,6);
+    var deck = [];
+    pairs.forEach(function(pair,index){
+      deck.push({pairId:index,kind:'word',value:pair.word,word:pair.word,open:false,matched:false});
+      deck.push({pairId:index,kind:'meaning',value:pair.meaning,word:pair.word,open:false,matched:false});
+    });
+    gameSession = {
+      phase:'play',type:'memory',mode:mode,deck:shuffled(deck),selected:[],inputLocked:false,
+      matchedPairs:0,moves:0,currentPlayer:0,scores:[0,0],focusIndex:0,message:'',token:String(Date.now()) + Math.random()
+    };
+    renderWorldGame();
+  }
+
+  function renderMemoryGame(world){
+    var progress = 24 + Math.round((gameSession.matchedPairs / 6) * 66);
+    lessonProgressFill.style.width = progress + '%';
+    lessonProgressBar.setAttribute('aria-valuenow',String(progress));
+    var scoreHtml = gameSession.mode === 'turns' ?
+      '<div class="player-scores"><span class="player-chip' + (gameSession.currentPlayer === 0 ? ' is-turn' : '') + '">👧 הילדה · ' + gameSession.scores[0] + '</span><span class="player-chip' + (gameSession.currentPlayer === 1 ? ' is-turn' : '') + '">🧑 המבוגר · ' + gameSession.scores[1] + '</span></div>' :
+      '<span>🤝 ביחד מצאתן ' + gameSession.matchedPairs + ' מתוך 6</span>';
+    var cardsHtml = gameSession.deck.map(function(card,index){
+      var openClass = card.matched ? ' is-matched' : card.open ? ' is-open' : '';
+      var language = card.kind === 'word' ? ' lang="en" dir="ltr"' : ' lang="he" dir="rtl"';
+      var label = 'קלף ' + (index + 1) + ' מתוך ' + gameSession.deck.length + ', ' + (card.matched ? 'נמצא זוג: ' + card.value : card.open ? 'פתוח: ' + card.value : 'סגור');
+      return '<button class="memory-card' + openClass + '" type="button" data-memory-index="' + index + '" aria-label="' + escapeAttribute(label) + '"' + (card.matched ? ' disabled' : '') + '><span class="memory-value"' + language + '>' + escapeHtml(card.value) + '</span></button>';
+    }).join('');
+    var turnInstruction = gameSession.mode === 'turns' ?
+      (gameSession.currentPlayer === 0 ? 'התור של הילדה 👧' : 'התור של המבוגר 🧑') :
+      'פותחות שני קלפים ומחפשות זוג';
+    var instruction = gameSession.message || turnInstruction;
+    lessonContent.innerHTML = '<section class="special-game-card"><span class="stage-kicker">' + world.game.icon + ' ' + escapeHtml(world.game.title) + '</span><div class="game-hud"><span class="game-hud-status">מהלכים: ' + gameSession.moves + '</span>' + scoreHtml + '</div><div class="memory-board" role="group" aria-label="לוח משחק הזיכרון">' + cardsHtml + '</div><div class="game-instruction" tabindex="-1" role="status" aria-live="polite">' + instruction + '</div></section>';
+    lessonContent.querySelectorAll('[data-memory-index]').forEach(function(button){
+      button.addEventListener('click',function(){ flipMemoryCard(Number(button.getAttribute('data-memory-index')),button); });
+    });
+    if(Number.isInteger(gameSession.focusIndex)){
+      var focusCard = lessonContent.querySelector('[data-memory-index="' + gameSession.focusIndex + '"]');
+      if(focusCard && !focusCard.disabled) focusCard.focus({preventScroll:true});
+      else lessonContent.querySelector('.game-instruction').focus({preventScroll:true});
+    }
+  }
+
+  function flipMemoryCard(index,button){
+    if(!gameSession || gameSession.type !== 'memory' || gameSession.inputLocked) return;
+    var card = gameSession.deck[index];
+    if(!card || card.open || card.matched) return;
+    gameSession.message = '';
+    card.open = true;
+    gameSession.focusIndex = index;
+    gameSession.selected.push(index);
+    if(card.kind === 'word') speakWord(card.word,button);
+    if(gameSession.selected.length === 2){
+      gameSession.inputLocked = true;
+      gameSession.moves += 1;
+      gameSession.message = 'בודקות אם מצאנו זוג...';
+    }
+    renderWorldGame();
+    if(gameSession.selected.length < 2) return;
+    var token = gameSession.token;
+    var firstIndex = gameSession.selected[0];
+    var secondIndex = gameSession.selected[1];
+    var first = gameSession.deck[firstIndex];
+    var second = gameSession.deck[secondIndex];
+    var isMatch = first.pairId === second.pairId && first.kind !== second.kind;
+    setTimeout(function(){
+      if(!gameSession || gameSession.token !== token) return;
+      if(isMatch){
+        first.matched = true;
+        second.matched = true;
+        gameSession.matchedPairs += 1;
+        if(gameSession.mode === 'turns') gameSession.scores[gameSession.currentPlayer] += 1;
+        gameSession.message = gameSession.mode === 'turns' ? 'מצאתן זוג! אותו תור ממשיך 🎉' : 'מצאתן זוג! כל הכבוד 🎉';
+      }else{
+        first.open = false;
+        second.open = false;
+        if(gameSession.mode === 'turns') gameSession.currentPlayer = gameSession.currentPlayer === 0 ? 1 : 0;
+        gameSession.message = gameSession.mode === 'turns' ? (gameSession.currentPlayer === 0 ? 'לא זוג — עוברים לילדה.' : 'לא זוג — עוברים למבוגר.') : 'לא זוג — לא נורא, ממשיכות יחד.';
+      }
+      gameSession.selected = [];
+      gameSession.inputLocked = false;
+      gameSession.focusIndex = gameSession.deck.findIndex(function(item){ return !item.matched; });
+      if(gameSession.matchedPairs === 6) finishWorldGame();
+      else renderWorldGame();
+    },1250);
+  }
+
+  function startSimpleWorldGame(){
+    var type = worldDefinitions[currentGameWorldIndex].game.type;
+    var words = buildWorldGameWords(currentGameWorldIndex);
+    var questions = words.slice(0,5).map(function(correct,index){
+      var values = [type === 'sound' ? correct.word : correct.meaning];
+      words.forEach(function(item){
+        var value = type === 'sound' ? item.word : item.meaning;
+        if(values.length < 4 && values.indexOf(value) < 0) values.push(value);
+      });
+      var answer = values.shift();
+      values = shuffled(values);
+      values.splice(index % Math.min(4,values.length + 1),0,answer);
+      return {word:correct.word,meaning:correct.meaning,correct:answer,options:values,solved:false,wrong:[]};
+    });
+    gameSession = {phase:'play',type:type,questions:questions,index:0,errors:0,token:String(Date.now()) + Math.random()};
+    renderWorldGame();
+    focusAfterRender('.special-game-card h2');
+    if(type === 'sound') speakCurrentGameWord();
+  }
+
+  function renderSimpleWorldGame(world){
+    var question = gameSession.questions[gameSession.index];
+    var round = gameSession.index + 1;
+    var total = gameSession.questions.length;
+    var progress = 24 + Math.round((gameSession.index / total) * 66);
+    lessonProgressFill.style.width = progress + '%';
+    lessonProgressBar.setAttribute('aria-valuenow',String(progress));
+    var isSound = gameSession.type === 'sound';
+    var choicesHtml = question.options.map(function(option,index){
+      var wrong = question.wrong.indexOf(index) >= 0;
+      return '<button class="game-choice' + (wrong ? ' is-wrong' : '') + '" type="button" data-game-choice="' + index + '"' + (wrong || question.solved ? ' disabled' : '') + (isSound ? ' lang="en" dir="ltr"' : '') + '>' + escapeHtml(option) + '</button>';
+    }).join('');
+    var meterHtml = gameSession.questions.map(function(item,index){ return '<span class="' + (index < gameSession.index ? 'is-found' : '') + '" aria-hidden="true">💎</span>'; }).join('');
+    var promptHtml = isSound ?
+      '<button id="gameSpeak" class="sound-prompt" type="button" aria-label="השמעת המילה שוב">🔊</button><h2>איזו מילה שמעת?</h2>' :
+      '<div class="treasure-meter" aria-label="אוצר ' + round + ' מתוך ' + total + '">' + meterHtml + '</div><button id="gameSpeak" class="quiz-word" type="button" aria-label="השמעת המילה ' + escapeAttribute(question.word) + '"><span lang="en" dir="ltr">' + escapeHtml(question.word) + '</span><span aria-hidden="true">🔊</span></button><h2>איזה פירוש פותח את האוצר?</h2>';
+    lessonContent.innerHTML = '<section class="special-game-card"><span class="stage-kicker">' + world.game.icon + ' ' + escapeHtml(world.game.title) + '</span><div class="game-hud"><span class="game-hud-status">סיבוב ' + round + ' מתוך ' + total + '</span><span>אין פסילות ⭐</span></div>' + promptHtml + '<div class="game-choice-grid">' + choicesHtml + '</div><div id="gameFeedback" class="game-instruction" role="status" aria-live="polite">' + (isSound ? 'אפשר לשמוע שוב כמה פעמים שרוצים.' : 'בחרי את הפירוש שמתאים למילה.') + '</div></section>';
+    document.getElementById('gameSpeak').addEventListener('click',function(){ speakCurrentGameWord(); });
+    lessonContent.querySelectorAll('[data-game-choice]').forEach(function(button){
+      button.addEventListener('click',function(){ answerSimpleWorldGame(button,Number(button.getAttribute('data-game-choice'))); });
+    });
+  }
+
+  function speakCurrentGameWord(){
+    if(!gameSession || !gameSession.questions) return;
+    var question = gameSession.questions[gameSession.index];
+    speakWord(question.word,document.getElementById('gameSpeak'));
+  }
+
+  function answerSimpleWorldGame(button,optionIndex){
+    var question = gameSession.questions[gameSession.index];
+    if(question.solved) return;
+    var feedback = document.getElementById('gameFeedback');
+    if(question.options[optionIndex] !== question.correct){
+      question.wrong.push(optionIndex);
+      gameSession.errors += 1;
+      button.classList.add('is-wrong');
+      button.disabled = true;
+      feedback.textContent = 'כמעט! מקשיבות שוב ומנסות כרטיס אחר.';
+      speakCurrentGameWord();
+      return;
+    }
+    question.solved = true;
+    button.classList.add('is-correct');
+    lessonContent.querySelectorAll('.game-choice').forEach(function(option){ option.disabled = true; });
+    feedback.innerHTML = '<span>מצאת! כל הכבוד 🎉</span><button id="gameNextRound" class="got-it-btn" type="button">' + (gameSession.index < gameSession.questions.length - 1 ? 'לאתגר הבא ←' : 'לפתוח את הפרס 🎁') + '</button>';
+    document.getElementById('gameNextRound').addEventListener('click',function(){
+      if(gameSession.index < gameSession.questions.length - 1){
+        gameSession.index += 1;
+        renderWorldGame();
+        focusAfterRender('.special-game-card h2');
+        if(gameSession.type === 'sound') speakCurrentGameWord();
+      }else{
+        finishWorldGame();
+      }
+    });
+  }
+
+  function finishWorldGame(){
+    var world = worldDefinitions[currentGameWorldIndex];
+    var previous = state.games[world.id] || {};
+    var record = {completed:true,plays:(Number(previous.plays) || 0) + 1,type:world.game.type};
+    if(world.game.type === 'memory'){
+      record.bestMoves = previous.bestMoves ? Math.min(Number(previous.bestMoves),gameSession.moves) : gameSession.moves;
+    }
+    state.games[world.id] = record;
+    saveState();
+    gameSession.firstCompletion = !previous.completed;
+    gameSession.phase = 'complete';
+    renderWorldGame();
+  }
+
+  function renderWorldGameFinish(world){
+    var firstCompletion = gameSession.firstCompletion !== false;
+    lessonContent.innerHTML = '<section class="special-game-card"><span class="stage-kicker">משחק הבונוס הושלם</span><div class="game-finish-reward" aria-hidden="true">' + world.game.reward + '</div><h1>' + (firstCompletion ? 'אספת מדבקה חדשה!' : 'שיחקתן שוב — כל הכבוד!') + '</h1><p>איזה יופי — חזרת על מילים שכבר למדת ועבדתן יחד. אפשר לשחק שוב מתי שרוצות.</p><div class="game-finish-actions"><button id="gameFinishHome" class="secondary-action" type="button">' + (firstCompletion ? 'לראות את המדבקה במפה' : 'חזרה למפה') + '</button><button id="gameReplay" class="primary-action" type="button">לשחק שוב</button></div></section>';
+    focusAfterRender('.special-game-card h1');
+    document.getElementById('gameFinishHome').addEventListener('click',function(){
+      expandedWorldId = world.id;
+      currentGameWorldIndex = null;
+      gameSession = null;
+      renderHome();
+      showView('home');
+    });
+    document.getElementById('gameReplay').addEventListener('click',function(){
+      gameSession = {phase:'intro',type:world.game.type,token:String(Date.now()) + Math.random()};
+      renderWorldGame();
+    });
   }
 
   function bindNavigation(){
@@ -2198,8 +2704,8 @@
     document.getElementById('reviewBtn').addEventListener('click',beginReview);
     document.getElementById('lessonBack').addEventListener('click',function(){ showView('home'); });
     document.getElementById('resetProgress').addEventListener('click',function(){
-      if(!window.confirm('לאפס את כל התחנות, הכוכבים והחזרות?')) return;
-      state = {seen:{},review:{},stars:{},last:{lessonId:'cons',cardIndex:0},mode:'learn'};
+      if(!window.confirm('לאפס את כל התחנות, הכוכבים, החזרות ומדבקות המשחק?')) return;
+      state = {seen:{},review:{},stars:{},games:{},journeyVersion:3,last:{lessonId:'cons',cardIndex:0},mode:'learn'};
       expandedWorldId = null;
       saveState();
       renderHome();
@@ -2215,10 +2721,28 @@
     guideView.hidden = name !== 'guide';
     document.body.classList.toggle('lesson-active',name === 'lesson');
     document.querySelectorAll('[data-view]').forEach(function(button){
-      button.classList.toggle('active',button.getAttribute('data-view') === name);
+      var active = button.getAttribute('data-view') === name;
+      button.classList.toggle('active',active);
+      if(active) button.setAttribute('aria-current','page');
+      else button.removeAttribute('aria-current');
     });
     if(name === 'home') renderHome();
-    if(scrollToTop !== false) window.scrollTo({top:0,behavior:'smooth'});
+    if(scrollToTop !== false) window.scrollTo({top:0,behavior:preferredScrollBehavior()});
+  }
+
+  function preferredScrollBehavior(){
+    try{
+      return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    }catch(error){
+      return 'auto';
+    }
+  }
+
+  function focusAfterRender(selector){
+    var element = document.querySelector(selector);
+    if(!element) return;
+    if(!element.hasAttribute('tabindex')) element.setAttribute('tabindex','-1');
+    element.focus({preventScroll:true});
   }
 
   function openContinue(){
@@ -2241,6 +2765,8 @@
     }
     reviewQueue = null;
     reviewPosition = 0;
+    currentGameWorldIndex = null;
+    gameSession = null;
     currentLessonIndex = Math.max(0,Math.min(lessonIndex,lessons.length-1));
     currentCardIndex = Math.max(0,Math.min(cardIndex,lessons[currentLessonIndex].cards.length-1));
     state.last = {lessonId:lessons[currentLessonIndex].sourceId,cardIndex:lessons[currentLessonIndex].sourceIndex,stageId:lessons[currentLessonIndex].id};
@@ -2251,6 +2777,7 @@
     currentQuiz = null;
     renderLesson();
     showView('lesson');
+    focusAfterRender('.lesson-title-row h1');
   }
 
   function beginReview(){
@@ -2260,9 +2787,12 @@
       return;
     }
     reviewPosition = 0;
+    currentGameWorldIndex = null;
+    gameSession = null;
     lessonPhase = 'quiz';
     goToReviewTarget();
     showView('lesson');
+    focusAfterRender('#quizQuestion');
   }
 
   function goToReviewTarget(){
@@ -2277,6 +2807,10 @@
   }
 
   function renderLesson(){
+    if(currentGameWorldIndex !== null){
+      renderWorldGame();
+      return;
+    }
     var lesson = lessons[currentLessonIndex];
     var card = lesson.cards[currentCardIndex];
     var world = worldDefinitions[lesson.worldIndex];
@@ -2288,7 +2822,7 @@
     lessonView.classList.toggle('is-practice',lessonPhase === 'quiz');
     lessonView.classList.add('answers-revealed');
     lessonPosition.textContent = reviewQueue ?
-      'חזרה קצרה · מילה ' + cardNumber + ' מתוך ' + cardTotal :
+      'חזרה קצרה · תחנה ' + cardNumber + ' מתוך ' + cardTotal :
       'תחנה ' + cardNumber + ' מתוך ' + cardTotal;
     lessonProgressFill.style.width = progress + '%';
     lessonProgressBar.setAttribute('aria-valuenow',String(progress));
@@ -2324,11 +2858,10 @@
     });
     document.getElementById('readyForQuiz').addEventListener('click',function(){
       lessonPhase = 'quiz';
-      quizHadMistake = false;
-      quizMistakes = 0;
       currentQuiz = null;
       renderLesson();
-      window.scrollTo({top:0,behavior:'smooth'});
+      focusAfterRender('#quizQuestion');
+      window.scrollTo({top:0,behavior:preferredScrollBehavior()});
     });
   }
 
@@ -2344,19 +2877,32 @@
   }
 
   function renderQuiz(lesson,card,world,key){
-    currentQuiz = currentQuiz || buildQuizQuestion(card);
-    var optionsHtml = currentQuiz.options.map(function(option,index){
+    currentQuiz = currentQuiz || buildQuizSession(card);
+    var question = currentQuiz.questions[currentQuiz.index];
+    var roundNumber = currentQuiz.index + 1;
+    var roundTotal = currentQuiz.questions.length;
+    var optionsHtml = question.options.map(function(option,index){
       return '<button class="quiz-option" type="button" data-quiz-index="' + index + '">' + escapeHtml(option) + '</button>';
     }).join('');
+    var dotsHtml = currentQuiz.questions.map(function(item,index){
+      return '<span class="quiz-round-dot' + (index < currentQuiz.index ? ' is-done' : index === currentQuiz.index ? ' is-current' : '') + '" aria-hidden="true"></span>';
+    }).join('');
+    var quizProgress = 62 + Math.round((roundNumber / roundTotal) * 30);
+    var questionCountText = roundTotal === 2 ? 'שתי שאלות קצרות' : 'שלוש שאלות קצרות';
+    lessonProgressFill.style.width = quizProgress + '%';
+    lessonProgressBar.setAttribute('aria-valuenow',String(quizProgress));
+    lessonPosition.textContent = reviewQueue ?
+      'חזרה ' + (reviewPosition + 1) + ' מתוך ' + reviewQueue.length + ' · שאלה ' + roundNumber + ' מתוך ' + roundTotal :
+      'תחנה ' + (currentLessonIndex + 1) + ' מתוך ' + lessons.length + ' · שאלה ' + roundNumber + ' מתוך ' + roundTotal;
     lessonContent.innerHTML =
-      '<div class="lesson-title-row"><span class="stage-kicker">' + (reviewQueue ? '💛 חזרה קצרה' : world.icon + ' ' + escapeHtml(world.title)) + '</span><h1>משחק קטן</h1><p>רק שאלה אחת, בלי לחץ. תמיד אפשר לשמוע שוב.</p></div>' +
-      '<section class="quiz-card" aria-labelledby="quizQuestion"><span class="quiz-badge">🎧 מקשיבות וחושבות</span><h2 id="quizQuestion">מה פירוש המילה הזאת?</h2>' +
-      '<button id="quizSpeak" class="quiz-word" type="button" aria-label="השמעת המילה ' + escapeAttribute(currentQuiz.word) + '"><span lang="en" dir="ltr">' + escapeHtml(currentQuiz.word) + '</span><span aria-hidden="true">🔊</span></button>' +
+      '<div class="lesson-title-row"><span class="stage-kicker">' + (reviewQueue ? '💛 חזרה קצרה' : world.icon + ' ' + escapeHtml(world.title)) + '</span><h1>משחק המילים</h1><p>' + questionCountText + ', מילה אחת בכל פעם. תמיד אפשר לשמוע שוב.</p><div class="quiz-rounds" aria-label="שאלה ' + roundNumber + ' מתוך ' + roundTotal + '">' + dotsHtml + '</div></div>' +
+      '<section class="quiz-card" aria-labelledby="quizQuestion"><span class="quiz-badge">שאלה ' + roundNumber + ' מתוך ' + roundTotal + '</span><h2 id="quizQuestion" tabindex="-1">מה פירוש המילה הזאת?</h2>' +
+      '<button id="quizSpeak" class="quiz-word" type="button" aria-label="השמעת המילה ' + escapeAttribute(question.word) + '"><span lang="en" dir="ltr">' + escapeHtml(question.word) + '</span><span aria-hidden="true">🔊</span></button>' +
       '<div class="quiz-options" role="group" aria-label="אפשרויות תשובה">' + optionsHtml + '</div>' +
       '<div id="quizFeedback" class="quiz-feedback" role="status" aria-live="polite">בחרי את התשובה שנראית לך.</div>' +
       '<button id="quizBackToWords" class="previous-card" type="button">רוצה לראות שוב את המילים?</button></section>';
     var speakButton = document.getElementById('quizSpeak');
-    speakButton.addEventListener('click',function(){ speakWord(currentQuiz.word,speakButton); });
+    speakButton.addEventListener('click',function(){ speakWord(question.word,speakButton); });
     lessonContent.querySelectorAll('[data-quiz-index]').forEach(function(button){
       button.addEventListener('click',function(){ answerQuiz(button,Number(button.getAttribute('data-quiz-index')),key); });
     });
@@ -2364,12 +2910,25 @@
       lessonPhase = 'learn';
       currentQuiz = null;
       renderLesson();
-      window.scrollTo({top:0,behavior:'smooth'});
+      focusAfterRender('.lesson-title-row h1');
+      window.scrollTo({top:0,behavior:preferredScrollBehavior()});
     });
   }
 
-  function buildQuizQuestion(card){
-    var correctExample = card.examples[(currentLessonIndex + currentCardIndex) % card.examples.length];
+  function buildQuizSession(card){
+    var examples = [];
+    card.examples.forEach(function(example){
+      if(examples.length < 3 && !examples.some(function(item){ return item.word.toLowerCase() === example.word.toLowerCase(); })) examples.push(example);
+    });
+    return {
+      questions:examples.map(function(example,roundIndex){ return buildQuizRound(card,example,roundIndex); }),
+      index:0,
+      solved:false,
+      earnedStars:0
+    };
+  }
+
+  function buildQuizRound(card,correctExample,roundIndex){
     var choices = [correctExample.meaning];
     card.examples.forEach(function(example){
       if(choices.length < 3 && choices.indexOf(example.meaning) < 0) choices.push(example.meaning);
@@ -2380,17 +2939,19 @@
         if(choices.length < 3 && choices.indexOf(example.meaning) < 0) choices.push(example.meaning);
       });
     });
-    var correctPosition = currentLessonIndex % Math.min(3,choices.length);
+    var correctPosition = (currentLessonIndex + roundIndex) % Math.min(3,choices.length);
     var correct = choices.shift();
     choices.splice(correctPosition,0,correct);
-    return {word:correctExample.word,correct:correct,options:choices,solved:false,earnedStars:0};
+    return {word:correctExample.word,correct:correct,options:choices,solved:false};
   }
 
   function answerQuiz(button,optionIndex,key){
     if(currentQuiz.solved) return;
-    var answer = currentQuiz.options[optionIndex];
+    var question = currentQuiz.questions[currentQuiz.index];
+    if(question.solved) return;
+    var answer = question.options[optionIndex];
     var feedback = document.getElementById('quizFeedback');
-    if(answer !== currentQuiz.correct){
+    if(answer !== question.correct){
       button.classList.add('is-wrong');
       button.disabled = true;
       quizHadMistake = true;
@@ -2399,16 +2960,28 @@
       saveState();
       feedback.className = 'quiz-feedback is-wrong';
       feedback.textContent = 'כמעט! שומעות שוב ומנסות עוד פעם.';
-      speakWord(currentQuiz.word,document.getElementById('quizSpeak'));
+      speakWord(question.word,document.getElementById('quizSpeak'));
       return;
     }
 
-    currentQuiz.solved = true;
-    currentQuiz.earnedStars = quizMistakes === 0 ? 3 : quizMistakes === 1 ? 2 : 1;
+    question.solved = true;
     button.classList.add('is-correct');
     lessonContent.querySelectorAll('.quiz-option').forEach(function(option){ option.disabled = true; });
     feedback.className = 'quiz-feedback is-correct';
-    feedback.innerHTML = '<strong>בדיוק! כל הכבוד 🎉</strong><span>אספת ' + currentQuiz.earnedStars + ' ' + (currentQuiz.earnedStars === 1 ? 'כוכב' : 'כוכבים') + '</span><button id="quizContinue" class="got-it-btn" type="button">ממשיכות למפה</button>';
+    if(currentQuiz.index < currentQuiz.questions.length - 1){
+      var remainingWords = currentQuiz.questions.length - currentQuiz.index - 1;
+      feedback.innerHTML = '<strong>בדיוק! כל הכבוד 🎉</strong><span>' + (remainingWords === 1 ? 'נשארה עוד מילה אחת.' : 'נשארו עוד ' + remainingWords + ' מילים.') + '</span><button id="quizContinue" class="got-it-btn" type="button">למילה הבאה ←</button>';
+      document.getElementById('quizContinue').addEventListener('click',function(){
+        currentQuiz.index += 1;
+        renderLesson();
+        focusAfterRender('#quizQuestion');
+        window.scrollTo({top:0,behavior:preferredScrollBehavior()});
+      });
+      return;
+    }
+    currentQuiz.solved = true;
+    currentQuiz.earnedStars = quizMistakes === 0 ? 3 : quizMistakes === 1 ? 2 : 1;
+    feedback.innerHTML = '<strong>ענית על כל ' + (currentQuiz.questions.length === 2 ? 'שתי' : 'שלוש') + ' המילים! 🎉</strong><span>אספת ' + currentQuiz.earnedStars + ' ' + (currentQuiz.earnedStars === 1 ? 'כוכב' : 'כוכבים') + '</span><button id="quizContinue" class="got-it-btn" type="button">סיימנו! ממשיכות למפה</button>';
     document.getElementById('quizContinue').addEventListener('click',function(){ finishCard(quizHadMistake,currentQuiz.earnedStars); });
   }
 
@@ -2425,7 +2998,8 @@
       reviewPosition += 1;
       if(reviewPosition < reviewQueue.length){
         goToReviewTarget();
-        window.scrollTo({top:0,behavior:'smooth'});
+        focusAfterRender('#quizQuestion');
+        window.scrollTo({top:0,behavior:preferredScrollBehavior()});
       }else{
         renderCompletion(true);
       }
@@ -2439,6 +3013,7 @@
     var lesson = lessons[currentLessonIndex];
     var worldStages = lessons.filter(function(stage){ return stage.worldId === lesson.worldId; });
     var isLastInWorld = lesson.worldStageNumber === worldStages.length;
+    var gameJustUnlocked = !isReview && lesson.worldStageNumber === getWorldGameUnlockCount(worldStages.length) && !isWorldGameComplete(lesson.worldIndex);
     lessonPosition.textContent = isReview ? 'החזרה הושלמה' : 'התחנה הושלמה';
     lessonProgressFill.style.width = '100%';
     lessonProgressBar.setAttribute('aria-valuenow','100');
@@ -2448,17 +3023,24 @@
       (!isReview ? '<div class="reward-line">אספת ' + (Number(earnedStars) || 1) + ' ' + ((Number(earnedStars) || 1) === 1 ? 'כוכב' : 'כוכבים') + '</div>' : '') +
       '<h2>' + (isReview ? 'סיימת את החזרה!' : 'סיימת את “' + escapeHtml(lesson.title) + '”') + '</h2>' +
       '<p>' + (isReview ?
-        (remaining ? 'יש עוד ' + remaining + ' מילים שמחכות לעוד תרגול קטן.' : 'מעולה — אין כרגע מילים שמחכות לחזרה.') :
+        (remaining ? 'יש עוד ' + remaining + ' תחנות שמחכות לעוד תרגול קטן.' : 'מעולה — אין כרגע תחנות שמחכות לחזרה.') :
         'איזה יופי! כל הקשבה וכל ניסיון עוזרים למוח לזכור.') + '</p>' +
-      (!isReview && nextExists ? '<div class="new-unlock">' + (isLastInWorld ? '🎁 פתחת עולם חדש במפה!' : '🔓 התחנה הבאה נפתחה!') + '</div>' : '') +
+      (!isReview && nextExists ? '<div class="new-unlock">' + (gameJustUnlocked ? '🎮 פתחת משחק בונוס — אפשר לשחק עכשיו או להמשיך.' : isLastInWorld ? '🎁 פתחת עולם חדש במפה!' : '🔓 התחנה הבאה נפתחה!') + '</div>' : '') +
       '<div class="completion-actions"><button id="completionHome" class="secondary-action" type="button">לראות את המפה</button>' +
+      (gameJustUnlocked ? '<button id="bonusGame" class="secondary-action" type="button">משחק בונוס 🎮</button>' : '') +
       (nextExists ? '<button id="nextLesson" class="primary-action" type="button">לתחנה הבאה <span aria-hidden="true">←</span></button>' : '') +
       '</div></section>';
+    focusAfterRender('.completion-card h2');
     document.getElementById('completionHome').addEventListener('click',function(){
       reviewQueue = null;
       expandedWorldId = null;
       renderHome();
       showView('home');
+    });
+    var bonusGame = document.getElementById('bonusGame');
+    if(bonusGame) bonusGame.addEventListener('click',function(){
+      reviewQueue = null;
+      openWorldGame(lesson.worldIndex);
     });
     var nextLesson = document.getElementById('nextLesson');
     if(nextLesson) nextLesson.addEventListener('click',function(){
@@ -2595,7 +3177,7 @@
         var menu = document.getElementById('guideTopicMenu');
         if(menu) menu.open = false;
         try{ history.replaceState(null,'','#' + target.id); }catch(error){}
-        setTimeout(function(){ target.scrollIntoView({block:'start',behavior:'smooth'}); },0);
+        setTimeout(function(){ target.scrollIntoView({block:'start',behavior:preferredScrollBehavior()}); },0);
       });
     });
 
