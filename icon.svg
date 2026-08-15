@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="המסע שלי באנגלית">
+  <defs>
+    <linearGradient id="bg" x1="70" y1="40" x2="448" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B7AF4"/>
+      <stop offset="1" stop-color="#5745D0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="url(#bg)"/>
+  <path d="M112 136c57-19 106-7 144 30 38-37 87-49 144-30v246c-56-16-105-6-144 31-39-37-88-47-144-31V136Z" fill="#fff"/>
+  <path d="M256 166v247" fill="none" stroke="#E9E4FF" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="393" cy="112" r="48" fill="#FFD65A"/>
+  <path d="m393 82 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3 9-19Z" fill="#7B5B00"/>
+  <text x="184" y="310" fill="#5745D0" font-family="Arial, sans-serif" font-size="118" font-weight="800" text-anchor="middle">A</text>
+  <text x="330" y="310" fill="#FF8A5B" font-family="Arial, sans-serif" font-size="105" font-weight="800" text-anchor="middle">a</text>
+</svg>
