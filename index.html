@@ -945,7 +945,8 @@ function jsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").re
 /* ---- speak a phrase (mic or self-check) ---- */
 function renderSpeak(step){
   const p = step.p;
-  const label = step.isDlg ? '💬 עכשיו התור שלך בשיחה' : '🎤 עכשיו אתה';
+  L.curStep = step;
+  const label = step.requeued ? '🔁 סיבוב שני — הפעם זה ילך' : step.isDlg ? '💬 עכשיו התור שלך בשיחה' : '🎤 עכשיו אתה';
   const mic = micAvailable();
   playerShell(`
     <div class="step-label">${label}</div>
@@ -970,7 +971,7 @@ function renderSpeak(step){
   `);
 }
 function selfDone(){
-  showResult(true, pick(PRAISE));
+  showResult('pass', pick(PRAISE));
 }
 function startListening(target){
   const btn = document.getElementById('micBtn');
@@ -996,13 +997,20 @@ function startListening(target){
     }
     if(heardEl) heardEl.textContent = '🎧 "' + best + '"';
     L.tries++;
+    const step = L.curStep || {};
     if(bestScore >= 0.55){
-      showResult(true, pick(PRAISE));
-    } else if(L.tries >= 2){
-      // after two tries always move forward with a warm message
-      showResult(true, 'זה מספיק טוב — ממשיכים קדימה! 💪');
+      showResult('pass', pick(PRAISE));
+    } else if(L.tries >= 3){
+      // three honest tries — move on without faking success, and practice again later
+      if(step.requeued){
+        showResult('pass', 'התאמנת על זה חזק היום — עם עוד תרגול זה יישב. ממשיכים! 💪');
+      } else {
+        showResult('requeue', 'המשפט הזה עקשן 😄 נמשיך בינתיים — ונחזור אליו שוב בסוף השיעור');
+      }
+    } else if(bestScore >= 0.25){
+      showResult('retry', pick(ALMOST));
     } else {
-      showResult(false, pick(ALMOST));
+      showResult('retry', 'שמעתי מילים אחרות 🤔 לחץ 🔊, תקשיב שוב, ונסה לאט — יש לך את זה');
     }
   };
   rec.onerror = ()=>{
@@ -1018,19 +1026,28 @@ function startListening(target){
   };
   try{ rec.start(); }catch(e){ selfDone(); }
 }
-function showResult(pass, msg){
+function showResult(kind, msg){
   const area = document.getElementById('resultArea') || document.getElementById('speakZone');
   if(!area) return;
-  const cls = pass ? 'good' : 'almost';
-  const existing = area.querySelector ? area.querySelector('.result-msg') : null;
-  const htmlMsg = `<div class="result-msg ${cls}">${esc(msg)}</div>` +
-    (pass ? `<button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>` : '');
+  const cls = kind === 'pass' ? 'good' : 'almost';
+  let btn = '';
+  if(kind === 'pass') btn = `<button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>`;
+  if(kind === 'requeue') btn = `<button class="btn" style="margin-top:12px" onclick="requeueAndNext()">ממשיכים — נחזור לזה בסוף ⬅</button>`;
+  const htmlMsg = `<div class="result-msg ${cls}">${esc(msg)}</div>` + btn;
   if(document.getElementById('resultArea')){
     document.getElementById('resultArea').innerHTML = htmlMsg;
   } else {
     area.innerHTML = htmlMsg;
   }
-  if(pass && navigator.vibrate) navigator.vibrate(40);
+  if(kind === 'pass' && navigator.vibrate) navigator.vibrate(40);
+}
+function requeueAndNext(){
+  const step = L.curStep;
+  if(step && !step.requeued){
+    const doneIdx = L.steps.findIndex(s=>s.type === 'done');
+    L.steps.splice(doneIdx, 0, {type:'speak', p:step.p, isDlg:step.isDlg, requeued:true});
+  }
+  next();
 }
 
 /* ---- quiz ---- */
