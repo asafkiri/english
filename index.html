@@ -962,7 +962,7 @@ function renderSpeak(step){
         <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
         <div class="heard" id="heard"></div>
         <div id="resultArea"></div>
-        <button class="btn ghost" onclick="selfDone()">אמרתי בלי מיקרופון — המשך</button>
+        <button class="btn ghost" onclick="skipSpeak()">${step.requeued ? 'המיקרופון לא עובד לי — המשך' : 'קשה לי עכשיו — נחזור לזה בסוף 🔁'}</button>
       ` : `
         <p class="mic-hint" style="margin-bottom:14px">תגיד את המשפט <b>בקול רם</b> — אפשר להיעזר בכתוב בעברית 🗣️</p>
         <button class="btn" onclick="selfDone()">אמרתי בקול! ✔</button>
@@ -972,6 +972,12 @@ function renderSpeak(step){
 }
 function selfDone(){
   showResult('pass', pick(PRAISE));
+}
+// skipping with a mic available is not a free pass — the phrase comes back
+// at the end of the lesson (a requeued step can't requeue again)
+function skipSpeak(){
+  if(L.curStep && !L.curStep.requeued) toast('נחזור למשפט הזה בסוף השיעור 🔁');
+  requeueAndNext();
 }
 function startListening(target){
   const btn = document.getElementById('micBtn');
@@ -1016,7 +1022,7 @@ function startListening(target){
   rec.onerror = ()=>{
     if(got) return;
     btn.classList.remove('listening');
-    hint.innerHTML = 'המיקרופון לא הצליח לשמוע — לא נורא!<br>תגיד את המשפט בקול ולחץ על ההמשך למטה.';
+    hint.innerHTML = 'המיקרופון לא הצליח לשמוע — לא נורא!<br>נסה שוב, או תגיד את המשפט בקול והמשך עם הכפתור למטה.';
   };
   rec.onend = ()=>{
     btn.classList.remove('listening');
