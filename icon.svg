@@ -1,15 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="המסע שלי באנגלית">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="מדברים אנגלית">
   <defs>
-    <linearGradient id="bg" x1="70" y1="40" x2="448" y2="472" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8B7AF4"/>
-      <stop offset="1" stop-color="#5745D0"/>
+    <linearGradient id="bg" x1="60" y1="40" x2="452" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#16233f"/>
+      <stop offset="1" stop-color="#0e1524"/>
+    </linearGradient>
+    <linearGradient id="bubble" x1="120" y1="120" x2="400" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0e9f6e"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="118" fill="url(#bg)"/>
-  <path d="M112 136c57-19 106-7 144 30 38-37 87-49 144-30v246c-56-16-105-6-144 31-39-37-88-47-144-31V136Z" fill="#fff"/>
-  <path d="M256 166v247" fill="none" stroke="#E9E4FF" stroke-width="13" stroke-linecap="round"/>
-  <circle cx="393" cy="112" r="48" fill="#FFD65A"/>
-  <path d="m393 82 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3 9-19Z" fill="#7B5B00"/>
-  <text x="184" y="310" fill="#5745D0" font-family="Arial, sans-serif" font-size="118" font-weight="800" text-anchor="middle">A</text>
-  <text x="330" y="310" fill="#FF8A5B" font-family="Arial, sans-serif" font-size="105" font-weight="800" text-anchor="middle">a</text>
+  <path d="M256 108c-86 0-156 57-156 128 0 40 22 75 57 98l-14 58 66-34c15 4 31 6 47 6 86 0 156-57 156-128s-70-128-156-128Z" fill="url(#bubble)"/>
+  <text x="256" y="272" fill="#07281c" font-family="Arial, sans-serif" font-size="96" font-weight="800" text-anchor="middle">Hi!</text>
+  <circle cx="150" cy="416" r="14" fill="#34d399" opacity=".9"/>
+  <circle cx="196" cy="430" r="10" fill="#34d399" opacity=".55"/>
+  <circle cx="232" cy="440" r="7" fill="#34d399" opacity=".3"/>
 </svg>

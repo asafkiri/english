@@ -1,14 +1,14 @@
 {
-  "name": "המסע שלי באנגלית",
-  "short_name": "אנגלית",
-  "description": "הרפתקת קריאה באנגלית לילדים עם מפה מאוירת, תחנות קצרות, שמע ומשחקים לשניים.",
+  "name": "מדברים אנגלית — 15 דקות ביום",
+  "short_name": "מדברים אנגלית",
+  "description": "לומדים לדבר אנגלית בשיעור קצר של 15 דקות ביום: שומעים, אומרים בקול, ומתקדמים צעד צעד.",
   "lang": "he",
   "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#FFF9F1",
-  "theme_color": "#6C5CE7",
+  "background_color": "#0e1524",
+  "theme_color": "#0e1524",
   "icons": [
     {
       "src": "icon-192.png",
