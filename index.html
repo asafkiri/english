@@ -1128,6 +1128,16 @@ function renderDone(){
 }
 
 /* ================= boot ================= */
+// iOS Safari blocks speech synthesis until it runs inside a user gesture —
+// unlock it on the first tap so auto-play of phrases works afterwards.
+let speechUnlocked = false;
+document.addEventListener('pointerdown', ()=>{
+  if(speechUnlocked || !('speechSynthesis' in window)) return;
+  speechUnlocked = true;
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  speechSynthesis.speak(u);
+}, true);
 window.addEventListener('beforeunload', ()=>{ if('speechSynthesis' in window) speechSynthesis.cancel(); });
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{ navigator.serviceWorker.register('service-worker.js').catch(()=>{}); });
