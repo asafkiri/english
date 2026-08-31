@@ -228,6 +228,8 @@ body{
 .vdots i:nth-child(2){animation-delay:.2s}
 .vdots i:nth-child(3){animation-delay:.4s}
 @keyframes vblink{0%,100%{opacity:.2}50%{opacity:1}}
+.practice-cta{background:linear-gradient(135deg,#7c6cf0,#5b4bd6);color:#fff;text-align:center}
+.practice-cta small{display:block;font-size:12.5px;font-weight:600;opacity:.85;margin-top:3px}
 .scene{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:11px 14px;font-size:15.5px;font-weight:700;color:#b9d4fb;margin-bottom:14px}
 .chat-thread .dlg-line:last-child{margin-bottom:0}
 .conversation-screen{
@@ -1573,8 +1575,226 @@ const CONVERSATION_META_ROWS = [
 const CONVERSATION_META = CONVERSATION_META_ROWS.map((row,idx)=>({
   lessonIndex:idx,characterId:row[0],placeEmoji:row[1],place:row[2],mission:row[3],character:CHARACTERS[row[0]],
 }));
-function conversationMeta(idx){ return CONVERSATION_META[idx]||CONVERSATION_META[0]; }
+/* a practice session carries its own meta instead of a lesson's */
+function conversationMeta(idx){ return L?.practiceMeta || CONVERSATION_META[idx] || CONVERSATION_META[0]; }
 function learnerAvatar(){ return state?.profile?.gender==='female'?'👧':'🧒'; }
+
+/* ---------------- free conversation practice ----------------
+   A side practice mode with no ties to the curriculum. A session is
+   assembled rather than scripted: character × place × topic × which turns
+   × their order, so the same word pool yields dozens of distinct
+   conversations. Every turn declares the lesson count it needs, so the
+   learner is never asked to say something not yet taught. */
+const PRACTICE_TOPICS = [
+  {
+    id:'greet', min:1, emoji:'👋', place:'ברחוב', goal:'לברך ולשאול מה שלומך',
+    turns:[
+      {min:1, ask:{en:'Hi {name}! How are you?', he:'היי! מה שלומך?', tl:'הַיי! הַאוּ אַר יוּ?'}, options:[
+        {label:'אני בסדר, תודה', answer:{en:"I'm good, thanks", he:'אני בסדר, תודה', tl:'אַיְים גוּד, תֶ׳נְקְס'}, reply:{en:'Great! Me too.', he:'מעולה! גם אני.', tl:'גְרֵייט! מִי טוּ.'}},
+        {label:'אני בסדר. ואתה?', answer:{en:"I'm good. And you?", he:'אני בסדר. ואתה?', tl:'אַיְים גוּד. אֶנְד יוּ?'}, reply:{en:"I'm good too, thanks!", he:'גם אני בסדר, תודה!', tl:'אַיְים גוּד טוּ, תֶ׳נְקְס!'}},
+      ]},
+      {min:1, ask:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'}, options:[
+        {label:'בוקר טוב!', answer:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'}, reply:{en:'Have a nice day!', he:'שיהיה לך יום טוב!', tl:'הֶב אַ נַייס דֵיי!'}},
+        {label:'היי! מה שלומך?', answer:{en:'Hi! How are you?', he:'היי! מה שלומך?', tl:'הַיי! הַאוּ אַר יוּ?'}, reply:{en:"I'm good, thanks!", he:'אני בסדר, תודה!', tl:'אַיְים גוּד, תֶ׳נְקְס!'}},
+      ]},
+      {min:3, ask:{en:'Do you speak English?', he:'אתה מדבר אנגלית?', tl:'דוּ יוּ סְפִּיק אִינְגְלִיש?'}, options:[
+        {label:'כן! קצת', answer:{en:'Yes! A little', he:'כן! קצת', tl:'יֶס! אַ לִיטֶל'}, reply:{en:'Nice! You speak well.', he:'יפה! אתה מדבר טוב.', tl:'נַייס! יוּ סְפִּיק וֶול.'}},
+        {label:'אני לא מבין', answer:{en:"I don't understand", he:'אני לא [[מבין|מבינה]]', tl:'אַיי דוֹנְט אַנְדֶרְסְטֶנְד'}, reply:{en:'No problem! I can speak slowly.', he:'אין בעיה! אני יכול לדבר לאט.', tl:'נוֹ פְּרוֹבְּלֶם! אַיי קֶן סְפִּיק סְלוֹלִי.'}},
+      ]},
+      {min:5, ask:{en:'I have to go. Goodbye!', he:'אני צריך ללכת. להתראות!', tl:'אַיי הֶב טוּ גוֹ. גוּדְבַּיי!'}, options:[
+        {label:'נתראה אחר כך!', answer:{en:'See you later!', he:'נתראה אחר כך!', tl:'סִי יוּ לֵייטֶר!'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
+        {label:'שיהיה לך יום טוב!', answer:{en:'Have a nice day!', he:'שיהיה לך יום טוב!', tl:'הֶב אַ נַייס דֵיי!'}, reply:{en:'Thank you! Bye!', he:'תודה! ביי!', tl:'תֶ׳נְק יוּ! בַּיי!'}},
+      ]},
+      {min:3, ask:{en:'Thank you for your help!', he:'תודה על העזרה!', tl:'תֶ׳נְק יוּ פוֹר יוֹר הֶלְפּ!'}, options:[
+        {label:'על לא דבר!', answer:{en:"You're welcome!", he:'על לא דבר!', tl:'יוֹר וֶולְקַם!'}, reply:{en:'You are very nice!', he:'אתה נחמד מאוד!', tl:'יוּ אַר וֶורִי נַייס!'}},
+        {label:'אין בעיה!', answer:{en:'No problem!', he:'אין בעיה!', tl:'נוֹ פְּרוֹבְּלֶם!'}, reply:{en:'Thanks again!', he:'תודה שוב!', tl:'תֶ׳נְקְס אַגֵין!'}},
+      ]},
+    ],
+  },
+  {
+    id:'meet', min:2, emoji:'🤝', place:'בבית של חבר', goal:'להכיר מישהו חדש',
+    turns:[
+      {min:2, ask:{en:"Hello! What's your name?", he:'שלום! איך קוראים לך?', tl:'הֶלוֹ! וּוַאטְס יוֹר נֵיים?'}, options:[
+        {label:'קוראים לי {name}', answer:{en:'My name is {name}', he:'קוראים לי {name}', tl:'מַיי נֵיים אִיז {name}'}, reply:{en:'Nice to meet you, {name}!', he:'נעים להכיר, {name}!', tl:'נַייס טוּ מִיט יוּ!'}},
+        {label:'קוראים לי {name}. ואתה?', answer:{en:'My name is {name}. And you?', he:'קוראים לי {name}. ואתה?', tl:'מַיי נֵיים אִיז {name}. אֶנְד יוּ?'}, reply:{en:'Nice to meet you!', he:'נעים להכיר!', tl:'נַייס טוּ מִיט יוּ!'}},
+      ]},
+      {min:2, ask:{en:'How old are you?', he:'בן כמה אתה?', tl:'הַאוּ אוֹלְד אַר יוּ?'}, options:[
+        {label:'אני [[בן|בת]] {age}', answer:{en:'I am {age}', he:'אני [[בן|בת]] {age}', tl:'אַיי אַם {age}'}, reply:{en:'Cool! Me too.', he:'מגניב! גם אני.', tl:'קוּל! מִי טוּ.'}},
+        {label:'אני [[בן|בת]] {age}. ואתה?', answer:{en:'I am {age}. And you?', he:'אני [[בן|בת]] {age}. ואתה?', tl:'אַיי אַם {age}. אֶנְד יוּ?'}, reply:{en:'I am seventeen!', he:'אני בן שבע־עשרה!', tl:'אַיי אַם סֶבֶנְטִין!'}},
+      ]},
+      {min:2, ask:{en:'Where are you from?', he:'מאיפה אתה?', tl:'וֶּור אַר יוּ פְרוֹם?'}, options:[
+        {label:'אני מישראל', answer:{en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'}, reply:{en:'Wow! Nice to meet you!', he:'וואו! נעים להכיר!', tl:'וּוַאוּ! נַייס טוּ מִיט יוּ!'}},
+        {label:'אני מישראל. ואתה?', answer:{en:"I'm from Israel. And you?", he:'אני מישראל. ואתה?', tl:'אַיְים פְרוֹם יִשְׂרָאֵל. אֶנְד יוּ?'}, reply:{en:"I'm from London!", he:'אני מלונדון!', tl:'אַיְים פְרוֹם לוֹנְדוֹן!'}},
+      ]},
+      {min:6, ask:{en:'Do you have brothers or sisters?', he:'יש לך אחים או אחיות?', tl:'דוּ יוּ הֶב בְּרַאדֶרְז אוֹר סִיסְטֶרְז?'}, options:[
+        {label:'כן, יש לי אחות', answer:{en:'Yes, I have a sister', he:'כן, יש לי אחות', tl:'יֶס, אַיי הֶב אַ סִיסְטֶר'}, reply:{en:'Nice! I have a brother.', he:'יפה! לי יש אח.', tl:'נַייס! אַיי הֶב אַ בְּרַאדֶר.'}},
+        {label:'אני אוהב את המשפחה שלי', answer:{en:'I love my family', he:'אני [[אוהב|אוהבת]] את המשפחה שלי', tl:'אַיי לַאב מַיי פֶמִילִי'}, reply:{en:'Me too!', he:'גם אני!', tl:'מִי טוּ!'}},
+      ]},
+    ],
+  },
+  {
+    id:'feelings', min:9, emoji:'😊', place:'בהפסקה', goal:'לספר איך אתה מרגיש',
+    turns:[
+      {min:9, ask:{en:'How do you feel today, {name}?', he:'איך אתה מרגיש היום?', tl:'הַאוּ דוּ יוּ פִיל טוּדֵיי?'}, options:[
+        {label:'אני מרגיש מעולה!', answer:{en:'I feel great!', he:'אני [[מרגיש|מרגישה]] מעולה!', tl:'אַיי פִיל גְרֵייט!'}, reply:{en:'Awesome! Me too.', he:'מדהים! גם אני.', tl:'אוֹסוֹם! מִי טוּ.'}},
+        {label:'אני עייף', answer:{en:"I'm tired", he:'אני [[עייף|עייפה]]', tl:'אַיְים טַאיֶרְד'}, reply:{en:'Take care! Rest a little.', he:'שמור על עצמך! תנוח קצת.', tl:'טֵייק קֶר! רֶסְט אַ לִיטֶל.'}},
+        {label:'אני שמח', answer:{en:"I'm happy", he:'אני [[שמח|שמחה]]', tl:'אַיְים הֶפִּי'}, reply:{en:'That makes me happy too!', he:'זה משמח גם אותי!', tl:'דֶאט מֵייקְס מִי הֶפִּי טוּ!'}},
+      ]},
+      {min:9, ask:{en:'Are you hungry?', he:'אתה רעב?', tl:'אַר יוּ הַנְגְרִי?'}, options:[
+        {label:'כן, אני רעב!', answer:{en:"Yes, I'm hungry!", he:'כן, אני [[רעב|רעבה]]!', tl:'יֶס, אַיְים הַנְגְרִי!'}, reply:{en:'Me too! Let\'s eat.', he:'גם אני! בוא נאכל.', tl:'מִי טוּ! לֶטְס אִיט.'}},
+        {label:'לא, אבל אני צמא', answer:{en:"No, but I'm thirsty", he:'לא, אבל אני [[צמא|צמאה]]', tl:'נוֹ, בַּאט אַיְים תֶ׳רְסְטִי'}, reply:{en:'Here is water!', he:'הנה מים!', tl:'הִיר אִיז ווֹטֶר!'}},
+      ]},
+      {min:9, ask:{en:'Is everything OK?', he:'הכל בסדר?', tl:'אִיז אֶבְרִיתִ׳ינְג אוֹקֵיי?'}, options:[
+        {label:'כן, הכל בסדר', answer:{en:'Yes, everything is OK', he:'כן, הכל בסדר', tl:'יֶס, אֶבְרִיתִ׳ינְג אִיז אוֹקֵיי'}, reply:{en:'Good! I am happy to hear it.', he:'יופי! משמח אותי לשמוע.', tl:'גוּד! אַיי אַם הֶפִּי טוּ הִיר אִיט.'}},
+        {label:'משעמם לי', answer:{en:"I'm bored", he:'משעמם לי', tl:'אַיְים בּוֹרְד'}, reply:{en:"Let's do something fun!", he:'בוא נעשה משהו כיף!', tl:'לֶטְס דוּ סַאמְתִ׳ינְג פַאן!'}},
+      ]},
+    ],
+  },
+  {
+    id:'likes', min:7, emoji:'🎧', place:'בחדר המוזיקה', goal:'לספר מה אתה אוהב',
+    turns:[
+      {min:7, ask:{en:'What do you like, {name}?', he:'מה אתה אוהב?', tl:'וּוַאט דוּ יוּ לַייק?'}, options:[
+        {label:'אני אוהב {interest}', answer:{en:'I like {interest}', he:'אני [[אוהב|אוהבת]] {interest}', tl:'אַיי לַייק {interest}'}, reply:{en:'Me too! That is fun.', he:'גם אני! זה כיף.', tl:'מִי טוּ! דֶאט אִיז פַאן.'}},
+        {label:'אני אוהב מוזיקה', answer:{en:'I like music', he:'אני [[אוהב|אוהבת]] מוזיקה', tl:'אַיי לַייק מְיוּזִיק'}, reply:{en:'Cool! I love music too.', he:'מגניב! גם אני מת על מוזיקה.', tl:'קוּל! אַיי לַאב מְיוּזִיק טוּ.'}},
+      ]},
+      {min:7, ask:{en:'Do you like football?', he:'אתה אוהב כדורגל?', tl:'דוּ יוּ לַייק פוּטְבּוֹל?'}, options:[
+        {label:'כן! אני מת על כדורגל', answer:{en:'Yes! I love football', he:'כן! אני [[מת|מתה]] על כדורגל', tl:'יֶס! אַיי לַאב פוּטְבּוֹל'}, reply:{en:'Me too! Let\'s play.', he:'גם אני! בוא נשחק.', tl:'מִי טוּ! לֶטְס פְּלֵיי.'}},
+        {label:'גם אני!', answer:{en:'Me too!', he:'גם אני!', tl:'מִי טוּ!'}, reply:{en:'Awesome!', he:'מדהים!', tl:'אוֹסוֹם!'}},
+      ]},
+      {min:7, ask:{en:'Do you like homework?', he:'אתה אוהב שיעורי בית?', tl:'דוּ יוּ לַייק הוֹמְווֹרְק?'}, options:[
+        {label:'לא! אני לא אוהב שיעורי בית', answer:{en:"No! I don't like homework", he:'לא! אני לא [[אוהב|אוהבת]] שיעורי בית', tl:'נוֹ! אַיי דוֹנְט לַייק הוֹמְווֹרְק'}, reply:{en:"Me too! I don't like homework.", he:'גם אני! אני לא אוהב שיעורי בית.', tl:'מִי טוּ! אַיי דוֹנְט לַייק הוֹמְווֹרְק.'}},
+        {label:'אולי... קצת', answer:{en:'Maybe... a little', he:'אולי... קצת', tl:'מֵייבִּי... אַ לִיטֶל'}, reply:{en:'Wow! Well done!', he:'וואו! כל הכבוד!', tl:'וּוַאוּ! וֶול דַאן!'}},
+      ]},
+      {min:23, ask:{en:'What is your favorite color?', he:'מה הצבע האהוב עליך?', tl:'וּוַאט אִיז יוֹר פֵייבוֹרִיט קַאלֶר?'}, options:[
+        {label:'הצבע האהוב עליי הוא {color}', answer:{en:'My favorite color is {color}', he:'הצבע האהוב עליי הוא {color}', tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז {color}'}, reply:{en:'Nice! That is a good color.', he:'יפה! זה צבע טוב.', tl:'נַייס! דֶאט אִיז אַ גוּד קַאלֶר.'}},
+        {label:'אני אוהב שחור ואדום', answer:{en:'I like black and red', he:'אני [[אוהב|אוהבת]] שחור ואדום', tl:'אַיי לַייק בְּלֶק אֶנְד רֶד'}, reply:{en:'Cool colors!', he:'צבעים מגניבים!', tl:'קוּל קַאלֶרְז!'}},
+      ]},
+    ],
+  },
+  {
+    id:'afterschool', min:8, emoji:'🏀', place:'אחרי הלימודים', goal:'לספר מה עושים ביום',
+    turns:[
+      {min:8, ask:{en:'What do you do after school?', he:'מה אתה עושה אחרי בית הספר?', tl:'וּוַאט דוּ יוּ דוּ אַפְטֶר סְקוּל?'}, options:[
+        {label:'אני משחק משחקים', answer:{en:'I play games', he:'אני [[משחק|משחקת]] משחקים', tl:'אַיי פְּלֵיי גֵיימְס'}, reply:{en:'Cool! Me too.', he:'מגניב! גם אני.', tl:'קוּל! מִי טוּ.'}},
+        {label:'אני מבלה עם חברים', answer:{en:'I hang out with friends', he:'אני [[מבלה|מבלה]] עם חברים', tl:'אַיי הֶנְג אַאוּט וִית׳ פְרֶנְדְס'}, reply:{en:'Nice! Friends are the best.', he:'יפה! חברים זה הכי טוב.', tl:'נַייס! פְרֶנְדְס אַר דֶה בֶּסְט.'}},
+      ]},
+      {min:8, ask:{en:'Do you watch videos?', he:'אתה רואה סרטונים?', tl:'דוּ יוּ ווֹטְש וִידְיוֹז?'}, options:[
+        {label:'כן, אני רואה סרטונים', answer:{en:'Yes, I watch videos', he:'כן, אני [[רואה|רואה]] סרטונים', tl:'יֶס, אַיי ווֹטְש וִידְיוֹז'}, reply:{en:'Me too! Every day.', he:'גם אני! כל יום.', tl:'מִי טוּ! אֶבְרִי דֵיי.'}},
+        {label:'אני מקשיב למוזיקה', answer:{en:'I listen to music', he:'אני [[מקשיב|מקשיבה]] למוזיקה', tl:'אַיי לִיסֶן טוּ מְיוּזִיק'}, reply:{en:'Cool! What music?', he:'מגניב! איזו מוזיקה?', tl:'קוּל! וּוַאט מְיוּזִיק?'}},
+      ]},
+      {min:8, ask:{en:'How was your day?', he:'איך היה היום שלך?', tl:'הַאוּ ווֹז יוֹר דֵיי?'}, options:[
+        {label:'היה כיף!', answer:{en:'It was fun!', he:'היה כיף!', tl:'אִיט ווֹז פַאן!'}, reply:{en:'Great! Same here.', he:'מעולה! גם אצלי.', tl:'גְרֵייט! סֵיים הִיר.'}},
+        {label:'היה בסדר', answer:{en:'It was OK', he:'היה בסדר', tl:'אִיט ווֹז אוֹקֵיי'}, reply:{en:'OK! Tomorrow will be better.', he:'בסדר! מחר יהיה טוב יותר.', tl:'אוֹקֵיי! טוּמוֹרוֹ וִויל בִּי בֶּטֶר.'}},
+      ]},
+    ],
+  },
+  {
+    id:'food', min:11, emoji:'🍕', place:'במטבח', goal:'לבקש אוכל ושתייה',
+    turns:[
+      {min:11, ask:{en:'Are you hungry, {name}?', he:'אתה רעב?', tl:'אַר יוּ הַנְגְרִי?'}, options:[
+        {label:'כן! אני רוצה {food}', answer:{en:'Yes! I want {food}', he:'כן! אני [[רוצה|רוצה]] {food}', tl:'יֶס! אַיי ווֹנְט {food}'}, reply:{en:'Great choice! It is tasty.', he:'בחירה מעולה! זה טעים.', tl:'גְרֵייט צ׳וֹיס! אִיט אִיז טֵייסְטִי.'}},
+        {label:'מים, בבקשה', answer:{en:'Water, please', he:'מים, בבקשה', tl:'ווֹטֶר, פְּלִיז'}, reply:{en:'Here you go!', he:'בבקשה!', tl:'הִיר יוּ גוֹ!'}},
+      ]},
+      {min:11, ask:{en:'Do you want pizza?', he:'אתה רוצה פיצה?', tl:'דוּ יוּ ווֹנְט פִּיצָה?'}, options:[
+        {label:'כן, בבקשה!', answer:{en:'Yes, please!', he:'כן, בבקשה!', tl:'יֶס, פְּלִיז!'}, reply:{en:'Coming right up!', he:'מיד מגיע!', tl:'קַאמִינְג רַייט אַפּ!'}},
+        {label:'זה טעים!', answer:{en:"It's tasty!", he:'זה טעים!', tl:'אִיטְס טֵייסְטִי!'}, reply:{en:'I am glad you like it!', he:'שמח שאתה אוהב!', tl:'אַיי אַם גְלֶד יוּ לַייק אִיט!'}},
+      ]},
+      {min:12, ask:{en:'Hello! What would you like?', he:'שלום! מה תרצה?', tl:'הֶלוֹ! וּוַאט וּוּד יוּ לַייק?'}, options:[
+        {label:'אני אקח המבורגר, בבקשה', answer:{en:"I'll have a burger, please", he:'אני אקח המבורגר, בבקשה', tl:'אַיְיל הֶב אַ בֶּרְגֶר, פְּלִיז'}, reply:{en:'Anything else?', he:'עוד משהו?', tl:'אֶנִיתִ׳ינְג אֶלְס?'}},
+        {label:'את התפריט, בבקשה', answer:{en:'The menu, please', he:'את התפריט, בבקשה', tl:'דֶה מֶנְיוּ, פְּלִיז'}, reply:{en:'Here it is!', he:'הנה הוא!', tl:'הִיר אִיט אִיז!'}},
+      ]},
+      {min:12, ask:{en:'How was the food?', he:'איך היה האוכל?', tl:'הַאוּ ווֹז דֶה פוּד?'}, options:[
+        {label:'היה מעולה!', answer:{en:'It was great!', he:'היה מעולה!', tl:'אִיט ווֹז גְרֵייט!'}, reply:{en:'Thank you! Come again!', he:'תודה! בוא שוב!', tl:'תֶ׳נְק יוּ! קַאם אַגֵין!'}},
+        {label:'חשבון, בבקשה', answer:{en:'The check, please', he:'חשבון, בבקשה', tl:'דֶה צֶ׳ק, פְּלִיז'}, reply:{en:'Here you go. Have a nice day!', he:'בבקשה. שיהיה יום טוב!', tl:'הִיר יוּ גוֹ. הֶב אַ נַייס דֵיי!'}},
+      ]},
+    ],
+  },
+  {
+    id:'plans', min:17, emoji:'🎉', place:'בטלפון', goal:'לקבוע תוכניות',
+    turns:[
+      {min:17, ask:{en:'What are you doing today, {name}?', he:'מה אתה עושה היום?', tl:'וּוַאט אַר יוּ דוּאִינְג טוּדֵיי?'}, options:[
+        {label:'לא הרבה', answer:{en:'Not much', he:'לא הרבה', tl:'נוֹט מַאץ׳'}, reply:{en:"Let's go out then!", he:'אז בוא נצא!', tl:'לֶטְס גוֹ אַאוּט דֶן!'}},
+        {label:'אני מבלה עם חברים', answer:{en:'I hang out with friends', he:'אני [[מבלה|מבלה]] עם חברים', tl:'אַיי הֶנְג אַאוּט וִית׳ פְרֶנְדְס'}, reply:{en:'Sounds fun!', he:'נשמע כיף!', tl:'סַאוּנְדְס פַאן!'}},
+      ]},
+      {min:17, ask:{en:'Do you want to come?', he:'אתה רוצה לבוא?', tl:'דוּ יוּ ווֹנְט טוּ קַאם?'}, options:[
+        {label:'נשמע טוב!', answer:{en:'Sounds good!', he:'נשמע טוב!', tl:'סַאוּנְדְס גוּד!'}, reply:{en:'Great! See you soon.', he:'מעולה! נתראה בקרוב.', tl:'גְרֵייט! סִי יוּ סוּן.'}},
+        {label:'אני לא יכול היום', answer:{en:"I can't today", he:'אני לא [[יכול|יכולה]] היום', tl:'אַיי קֶאנְט טוּדֵיי'}, reply:{en:'No problem! Maybe tomorrow.', he:'אין בעיה! אולי מחר.', tl:'נוֹ פְּרוֹבְּלֶם! מֵייבִּי טוּמוֹרוֹ.'}},
+      ]},
+      {min:13, ask:{en:'See you at seven?', he:'נתראה בשבע?', tl:'סִי יוּ אֶט סֶבֶן?'}, options:[
+        {label:'כן! נתראה בשבע', answer:{en:'Yes! See you at seven', he:'כן! נתראה בשבע', tl:'יֶס! סִי יוּ אֶט סֶבֶן'}, reply:{en:'Perfect! Bye!', he:'מושלם! ביי!', tl:'פֶּרְפֶקְט! בַּיי!'}},
+        {label:'מה השעה?', answer:{en:'What time is it?', he:'מה השעה?', tl:'וּוַאט טַיים אִיז אִיט?'}, reply:{en:"It's five o'clock", he:'השעה חמש', tl:'אִיטְס פַייב אוֹקְלוֹק'}},
+      ]},
+      {min:24, ask:{en:'Do you want to come on Friday?', he:'רוצה לבוא ביום שישי?', tl:'דוּ יוּ ווֹנְט טוּ קַאם אוֹן פְרַיידֵיי?'}, options:[
+        {label:'נתראה ביום שישי!', answer:{en:'See you on Friday!', he:'נתראה ביום שישי!', tl:'סִי יוּ אוֹן פְרַיידֵיי!'}, reply:{en:'Great! Take care.', he:'מעולה! שמור על עצמך.', tl:'גְרֵייט! טֵייק קֶר.'}},
+        {label:'אני לא יכול בשבת', answer:{en:"I can't on Saturday", he:'אני לא [[יכול|יכולה]] בשבת', tl:'אַיי קֶאנְט אוֹן סָטֶרְדֵיי'}, reply:{en:'OK — Friday then!', he:'בסדר — אז שישי!', tl:'אוֹקֵיי — פְרַיידֵיי דֶן!'}},
+      ]},
+    ],
+  },
+  {
+    id:'shopping', min:14, emoji:'🛍️', place:'בחנות', goal:'לקנות ולשאול מחיר',
+    turns:[
+      {min:14, ask:{en:'Can I help you?', he:'אפשר לעזור לך?', tl:'קֶן אַיי הֶלְפּ יוּ?'}, options:[
+        {label:'כמה זה עולה?', answer:{en:'How much does it cost?', he:'כמה זה עולה?', tl:'הַאוּ מַאץ׳ דַאז אִיט קוֹסְט?'}, reply:{en:'Twenty shekels.', he:'עשרים שקל.', tl:'טְוֶונְטִי שֶקֶלְס.'}},
+        {label:'רק מסתכל, תודה', answer:{en:'Just looking, thanks', he:'רק [[מסתכל|מסתכלת]], תודה', tl:'גַ׳סְט לוּקִינְג, תֶ׳נְקְס'}, reply:{en:'No problem! Take your time.', he:'אין בעיה! קח את הזמן.', tl:'נוֹ פְּרוֹבְּלֶם! טֵייק יוֹר טַיים.'}},
+      ]},
+      {min:14, ask:{en:'It costs ninety shekels.', he:'זה עולה תשעים שקל.', tl:'אִיט קוֹסְטְס נַיינְטִי שֶקֶלְס.'}, options:[
+        {label:'זה יקר מדי', answer:{en:"It's too expensive", he:'זה יקר מדי', tl:'אִיטְס טוּ אֶקְסְפֶּנְסִיב'}, reply:{en:'OK — for you, fifty!', he:'טוב — בשבילך, חמישים!', tl:'אוֹקֵיי — פוֹר יוּ, פִיפְטִי!'}},
+        {label:'בסדר, אני לוקח את זה!', answer:{en:"OK, I'll take it!", he:'בסדר, אני [[לוקח|לוקחת]] את זה!', tl:'אוֹקֵיי, אַיְיל טֵייק אִיט!'}, reply:{en:'Great! Thank you!', he:'מעולה! תודה!', tl:'גְרֵייט! תֶ׳נְק יוּ!'}},
+      ]},
+      {min:27, ask:{en:'Do you like this shirt?', he:'אתה אוהב את החולצה הזאת?', tl:'דוּ יוּ לַייק דִיס שֶרְט?'}, options:[
+        {label:'אני רוצה את החולצה הזאת', answer:{en:'I want this shirt', he:'אני [[רוצה|רוצה]] את החולצה הזאת', tl:'אַיי ווֹנְט דִיס שֶרְט'}, reply:{en:'It looks good on you!', he:'זה נראה טוב עליך!', tl:'אִיט לוּקְס גוּד אוֹן יוּ!'}},
+        {label:'יש לכם את זה בשחור?', answer:{en:'Do you have this in black?', he:'יש לכם את זה בשחור?', tl:'דוּ יוּ הֶב דִיס אִין בְּלֶק?'}, reply:{en:'Yes! Here you go.', he:'כן! בבקשה.', tl:'יֶס! הִיר יוּ גוֹ.'}},
+      ]},
+    ],
+  },
+  {
+    id:'help', min:18, emoji:'🆘', place:'בתחנה', goal:'לעזור ולבקש עזרה',
+    turns:[
+      {min:18, ask:{en:'I need help, {name}!', he:'אני צריך עזרה!', tl:'אַיי נִיד הֶלְפּ!'}, options:[
+        {label:'אל תדאג, אני יכול לעזור', answer:{en:"Don't worry, I can help", he:'אל תדאג, אני [[יכול|יכולה]] לעזור', tl:'דוֹנְט ווֹרִי, אַיי קֶן הֶלְפּ'}, reply:{en:'Thank you so much!', he:'תודה רבה לך!', tl:'תֶ׳נְק יוּ סוֹ מַאץ׳!'}},
+        {label:'ברור! אין בעיה', answer:{en:'Of course! No problem', he:'ברור! אין בעיה', tl:'אוֹף קוֹרְס! נוֹ פְּרוֹבְּלֶם'}, reply:{en:'You are a great friend!', he:'אתה חבר מעולה!', tl:'יוּ אַר אַ גְרֵייט פְרֶנְד!'}},
+      ]},
+      {min:10, ask:{en:'Excuse me, where is the bus?', he:'סליחה, איפה האוטובוס?', tl:'אֶקְסְקְיוּז מִי, וֶּור אִיז דֶה בַּאס?'}, options:[
+        {label:'אני לא יודע, סליחה', answer:{en:"I don't know, sorry", he:'אני לא [[יודע|יודעת]], סליחה', tl:'אַיי דוֹנְט נוֹאוּ, סוֹרִי'}, reply:{en:'No problem. Thank you!', he:'אין בעיה. תודה!', tl:'נוֹ פְּרוֹבְּלֶם. תֶ׳נְק יוּ!'}},
+        {label:'אתה יכול לעזור לי?', answer:{en:'Can you help me?', he:'אתה יכול לעזור לי?', tl:'קֶן יוּ הֶלְפּ מִי?'}, reply:{en:'Yes, of course!', he:'כן, ברור!', tl:'יֶס, אוֹף קוֹרְס!'}},
+      ]},
+      {min:19, ask:{en:"I can't do it...", he:'אני לא מסוגל...', tl:'אַיי קֶאנְט דוּ אִיט...'}, options:[
+        {label:'אל תוותר!', answer:{en:"Don't give up!", he:'אל תוותר!', tl:'דוֹנְט גִיב אַפּ!'}, reply:{en:'OK... I will try!', he:'טוב... אני אנסה!', tl:'אוֹקֵיי... אַיי וִויל טְרַיי!'}},
+        {label:'אני מאמין בך!', answer:{en:'I believe in you!', he:'אני [[מאמין|מאמינה]] בך!', tl:'אַיי בִּילִיב אִין יוּ!'}, reply:{en:'Thank you! I did it!', he:'תודה! הצלחתי!', tl:'תֶ׳נְק יוּ! אַיי דִיד אִיט!'}},
+      ]},
+    ],
+  },
+  {
+    id:'animals', min:26, emoji:'🐶', place:'בפארק', goal:'לדבר על חיות',
+    turns:[
+      {min:26, ask:{en:'Do you have a dog, {name}?', he:'יש לך כלב?', tl:'דוּ יוּ הֶב אַ דוֹג?'}, options:[
+        {label:'כן, יש לי כלב', answer:{en:'Yes, I have a dog', he:'כן, יש לי כלב', tl:'יֶס, אַיי הֶב אַ דוֹג'}, reply:{en:'Is he big or small?', he:'הוא גדול או קטן?', tl:'אִיז הִי בִּיג אוֹר סְמוֹל?'}},
+        {label:'אני אוהב {animal}', answer:{en:'I like {animal}', he:'אני [[אוהב|אוהבת]] {animal}', tl:'אַיי לַייק {animal}'}, reply:{en:'Me too! They are great.', he:'גם אני! הם מעולים.', tl:'מִי טוּ! דֵיי אַר גְרֵייט.'}},
+      ]},
+      {min:26, ask:{en:'Is your dog big or small?', he:'הכלב שלך גדול או קטן?', tl:'אִיז יוֹר דוֹג בִּיג אוֹר סְמוֹל?'}, options:[
+        {label:'הכלב גדול', answer:{en:'The dog is big', he:'הכלב גדול', tl:'דֶה דוֹג אִיז בִּיג'}, reply:{en:'Wow! I want to see him.', he:'וואו! אני רוצה לראות אותו.', tl:'וּוַאוּ! אַיי ווֹנְט טוּ סִי הִים.'}},
+        {label:'החתול קטן', answer:{en:'The cat is small', he:'החתול קטן', tl:'דֶה קֶט אִיז סְמוֹל'}, reply:{en:'Cute! I love cats.', he:'חמוד! אני מת על חתולים.', tl:'קְיוּט! אַיי לַאב קֶטְס.'}},
+      ]},
+    ],
+  },
+  {
+    id:'weather', min:29, emoji:'🌤️', place:'ליד החלון', goal:'לדבר על מזג האוויר',
+    turns:[
+      {min:29, ask:{en:'How is the weather today?', he:'איך מזג האוויר היום?', tl:'הַאוּ אִיז דֶה וֶּודֶר טוּדֵיי?'}, options:[
+        {label:'חם היום', answer:{en:"It's hot today", he:'חם היום', tl:'אִיטְס הוֹט טוּדֵיי'}, reply:{en:"Let's go to the beach!", he:'בוא נלך לים!', tl:'לֶטְס גוֹ טוּ דֶה בִּיץ׳!'}},
+        {label:'יורד גשם!', answer:{en:"It's raining!", he:'יורד גשם!', tl:'אִיטְס רֵיינִינְג!'}, reply:{en:'No beach today...', he:'אין ים היום...', tl:'נוֹ בִּיץ׳ טוּדֵיי...'}},
+      ]},
+      {min:29, ask:{en:'The sun is out! What now?', he:'השמש בחוץ! מה עכשיו?', tl:'דֶה סַאן אִיז אַאוּט! וּוַאט נַאוּ?'}, options:[
+        {label:'בוא נלך לים!', answer:{en:"Let's go to the beach!", he:'בוא נלך לים!', tl:'לֶטְס גוֹ טוּ דֶה בִּיץ׳!'}, reply:{en:'Yes! What a beautiful day!', he:'כן! איזה יום יפה!', tl:'יֶס! וּוַאט אַ בְּיוּטִיפוּל דֵיי!'}},
+        {label:'קר בחוץ', answer:{en:"It's cold outside", he:'קר בחוץ', tl:'אִיטְס קוֹלְד אַאוּטְסַייד'}, reply:{en:'Then we stay inside!', he:'אז נישאר בפנים!', tl:'דֶן וִוי סְטֵיי אִינְסַייד!'}},
+      ]},
+    ],
+  },
+];
+const PRACTICE_PLACES = [
+  {emoji:'🛝', place:'בגינה'}, {emoji:'🚌', place:'בתחנה'}, {emoji:'☕', place:'בבית קפה'},
+  {emoji:'🏫', place:'בבית הספר'}, {emoji:'🏖️', place:'בים'}, {emoji:'🏬', place:'בקניון'},
+];
 
 const APP_VERSION = '2.2.0';
 const SESSION_VERSION = 2;
@@ -1718,6 +1938,9 @@ function load(){
       out.completed = Math.max(0, Math.min(LESSONS.length, Math.floor(Number(out.completed) || 0)));
       out.streak = Math.max(0, Number(out.streak) || 0);
       out.lessonsToday = Math.max(0, Math.floor(Number(out.lessonsToday) || 0));
+      out.practiceCount = Math.max(0, Math.floor(Number(out.practiceCount) || 0));
+      out.practiceRecent = Array.isArray(out.practiceRecent)
+        ? out.practiceRecent.filter(x=>typeof x === 'string').slice(-6) : [];
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -1742,6 +1965,7 @@ function defaults(){
     profile:defaultProfile(),
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
+    practiceCount:0, practiceRecent:[],
     profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
     progressUpdatedAt:0, sessionUpdatedAt:0, finishedRuns:[],
   };
@@ -1883,6 +2107,11 @@ function reconcileStoredProgress(){
     ]);
     state.reviewUpdatedAt=Math.max(localReviewTs,storedReviewTs);
 
+    state.practiceCount=Math.max(Number(state.practiceCount)||0,Number(stored.practiceCount)||0);
+    state.practiceRecent=[...new Set([
+      ...(Array.isArray(stored.practiceRecent)?stored.practiceRecent.filter(x=>typeof x==='string'):[]),
+      ...(Array.isArray(state.practiceRecent)?state.practiceRecent.filter(x=>typeof x==='string'):[]),
+    ])].slice(-6);
     state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
     state.replays=Math.max(Number(state.replays)||0,Number(stored.replays)||0);
     state.lastGraceTs=Math.max(Number(state.lastGraceTs)||0,Number(stored.lastGraceTs)||0);
@@ -2357,7 +2586,9 @@ function renderHome(){
       <div class="stat"><b>${words}</b><span>משפטים שלך</span></div>
       <div class="stat"><b>${state.streak}</b><span>ימים ברצף</span></div>
     </div>
-    ${state.completed > 0 ? `<button class="btn secondary" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
+    ${state.completed > 0 ? `
+      <button class="btn practice-cta" onclick="startPractice()">🗣️ תרגול שיחה חופשי<small>בלי הגבלה · שיחה אחרת בכל כניסה</small></button>
+      <button class="btn secondary" style="margin-top:8px" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
     <div class="section-title">🗺️ המסלול שלך</div>
     ${listHtml}
     <div style="text-align:center;color:var(--dim);font-size:12px;margin-top:18px">גרסה ${APP_VERSION}</div>
@@ -2745,7 +2976,8 @@ function pauseLessonClock(){
   if(L.timerId){ clearInterval(L.timerId); L.timerId = null; }
 }
 function saveLessonCheckpoint(){
-  if(!L || !L.steps || L.steps[L.i]?.type === 'done') return;
+  // practice sessions are disposable: they never occupy the lesson checkpoint
+  if(!L || L.isPractice || !L.steps || L.steps[L.i]?.type === 'done') return;
   const savedAt=Date.now();
   state.session = {
     version:SESSION_VERSION, idx:L.idx, isReplay:!!L.isReplay, i:L.i,
@@ -2792,6 +3024,10 @@ function restartSavedLesson(){
   state.session=null; touchState('sessionUpdatedAt'); save(); startLesson(idx,isReplay,true);
 }
 function exitLesson(){
+  if(L?.isPractice){
+    if(confirm('לצאת מתרגול השיחה?')){ stopLessonTimers(false); L=null; renderHome(); }
+    return;
+  }
   if(confirm('לצאת מהשיעור? המקום שלך יישמר ותוכל להמשיך מכאן כשתחזור.')){
     pauseLessonClock(); saveLessonCheckpoint(); stopLessonTimers(false); L=null; renderHome();
   }
@@ -2848,7 +3084,119 @@ function renderStep(){
   if(step.type === 'dlgIntro') return renderDlgIntro();
   if(step.type === 'listen') return renderListen(step);
   if(step.type === 'branchChoice') return renderBranchChoice(step);
+  if(step.type === 'practiceIntro') return renderPracticeIntro();
+  if(step.type === 'practiceDone') return renderPracticeDone();
   if(step.type === 'done') return renderDone();
+}
+
+/* ================= free conversation practice ================= */
+function practiceTurnsFor(completed){
+  // 3 turns early, growing to 6 as the course advances
+  return Math.max(3, Math.min(6, 3 + Math.floor(completed/8)));
+}
+function buildPracticeSession(){
+  const completed = state.completed;
+  const topics = PRACTICE_TOPICS.filter(t=>completed >= t.min &&
+    t.turns.some(turn=>completed >= turn.min));
+  if(!topics.length) return null;
+  const recent = new Set(state.practiceRecent || []);
+  const charIds = Object.keys(CHARACTERS);
+  // prefer a topic+character pairing that was not used in the last few sessions
+  const pairs = [];
+  topics.forEach(t=>charIds.forEach(c=>pairs.push({topic:t,charId:c})));
+  const fresh = pairs.filter(p=>!recent.has(p.topic.id+':'+p.charId));
+  const picked = pick(fresh.length ? fresh : pairs);
+  const place = pick(PRACTICE_PLACES);
+  const want = practiceTurnsFor(completed);
+  const turns = shuffled(picked.topic.turns.filter(turn=>completed >= turn.min)).slice(0, want);
+  // a single topic runs out of turns; later on the conversation drifts into
+  // other unlocked subjects, the way a real one does
+  if(turns.length < want){
+    const others = shuffled(topics.filter(t=>t!==picked.topic))
+      .flatMap(t=>shuffled(t.turns.filter(turn=>completed >= turn.min)));
+    for(const turn of others){
+      if(turns.length >= want) break;
+      if(!turns.includes(turn)) turns.push(turn);
+    }
+  }
+  return {
+    topic:picked.topic, charId:picked.charId, place, turns,
+    meta:{
+      characterId:picked.charId, character:CHARACTERS[picked.charId],
+      placeEmoji:place.emoji, place:place.place, mission:picked.topic.goal,
+    },
+  };
+}
+function rememberPracticeRun(topicId, charId){
+  const list = (state.practiceRecent || []).filter(x=>x !== topicId+':'+charId);
+  list.push(topicId+':'+charId);
+  state.practiceRecent = list.slice(-6);
+  state.practiceCount = (state.practiceCount || 0) + 1;
+  touchState('progressUpdatedAt');
+  save();
+}
+function startPractice(){
+  if(L){
+    if(!confirm('יש שיעור פתוח. לצאת ממנו ולעבור לתרגול שיחה?')) return;
+    stopLessonTimers(true); L=null;
+  }
+  const session = buildPracticeSession();
+  if(!session){ toast('צריך לסיים שיעור אחד לפני שנפתח תרגול שיחה 🙂'); return; }
+  const steps = [{type:'practiceIntro'}];
+  session.turns.forEach((turn,roundIndex)=>{
+    steps.push({type:'listen',line:turn.ask,isBranchAsk:true,roundIndex});
+    steps.push({type:'branchChoice',options:turn.options,roundIndex});
+    steps.push({type:'branchPending'});
+    steps.push({type:'branchPending'});
+  });
+  steps.push({type:'practiceDone'});
+  L = {
+    idx:Math.max(0,state.completed-1), lesson:LESSONS[Math.max(0,state.completed-1)],
+    steps, i:0, isReplay:true, isPractice:true, practiceMeta:session.meta,
+    practiceTopicId:session.topic.id, practiceCharId:session.charId,
+    tries:0, attempts:0, rec:null, timerId:null,
+    elapsedBeforeMs:0, activeSince:Date.now(), chat:[], warmupIds:[],
+    flowPaused:false, chatExpanded:false,
+    runId:'practice-'+Date.now().toString(36),
+  };
+  renderStep();
+  startLessonClock();
+}
+function renderPracticeIntro(){
+  const meta = conversationMeta(L.idx);
+  const turns = L.steps.filter(s=>s.type==='branchChoice').length;
+  playerShell(`
+    <div class="step-label">🗣️ תרגול שיחה חופשי</div>
+    <h2>שיחה עם ${esc(meta.character.name)}</h2>
+    <div class="conversation-person" style="margin:12px 0 16px">
+      <div class="portrait" style="border-color:${meta.character.color}88">${meta.character.avatar}</div>
+      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
+      <div class="mission">🎯 ${esc(meta.mission)}</div>
+    </div>
+    <p class="sub">${turns} תורות, רק ממה שכבר למדת. אין ציון ואין לחץ — פשוט שיחה.<br>בכל כניסה תקבל שיחה אחרת 🔀</p>
+    <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
+  `);
+}
+function renderPracticeDone(){
+  const durationMs = activeElapsedMs();
+  pauseLessonClock();
+  stopLessonTimers(false);
+  rememberPracticeRun(L.practiceTopicId, L.practiceCharId);
+  const said = (L.chat||[]).filter(x=>x.who==='you').length;
+  const mins = Math.max(1, Math.round(durationMs/60000));
+  confetti();
+  playerShell(`
+    <div class="finish">
+      <div class="emoji">🗣️</div>
+      <h2>שיחה מעולה!</h2>
+      <p>אמרת ${said} משפטים באנגלית ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} — בלי שיעור, בלי לחץ.</p>
+      <div class="chip" style="display:inline-flex;margin-top:4px">🗣️ ${state.practiceCount} שיחות שניהלת</div>
+      <div class="quote">💬 ${esc(pick(FINISH_QUOTES))}</div>
+      <button class="btn" onclick="startPractice()">עוד שיחה — אחרת 🔄</button>
+      <button class="btn secondary" style="margin-top:8px" onclick="renderHome()">חזרה הביתה</button>
+    </div>
+  `);
+  L = null;
 }
 
 /* ---- intro ---- */
