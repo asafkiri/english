@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'speak-english-';
-const CACHE_NAME = 'speak-english-v2';
+const CACHE_NAME = 'speak-english-v3';
 const APP_FILES = [
   './',
   './index.html',
@@ -10,7 +10,10 @@ const APP_FILES = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
+  // bypass the HTTP cache so a new version is picked up immediately
+  event.waitUntil(caches.open(CACHE_NAME).then(cache =>
+    cache.addAll(APP_FILES.map(file => new Request(file, {cache: 'no-cache'})))
+  ));
 });
 
 self.addEventListener('activate', event => {
@@ -35,7 +38,12 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     (async () => {
       try{
-        const response = await fetch(event.request);
+        // GitHub Pages serves pages with a 10-minute HTTP cache; page loads
+        // must revalidate with the server or updates lag behind every open
+        const request = event.request.mode === 'navigate'
+          ? new Request(event.request.url, {cache: 'no-cache'})
+          : event.request;
+        const response = await fetch(request);
         if(response && response.ok){
           try{
             const cache = await caches.open(CACHE_NAME);
