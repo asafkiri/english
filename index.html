@@ -2130,31 +2130,36 @@ function learnerAvatar(){ return state?.profile?.gender==='female'?'👧':'🧒'
 
 /* ---------------- free conversation practice ----------------
    A side practice mode with no ties to the curriculum. A session is
-   assembled rather than scripted: character × place × topic × which turns
-   × their order, so the same word pool yields dozens of distinct
-   conversations. Every turn declares the lesson count it needs, so the
-   learner is never asked to say something not yet taught. */
+   assembled rather than scripted: character × place × topic × which turns,
+   so the same word pool yields dozens of distinct conversations. Every turn
+   declares the lesson count it needs, so the learner is never asked to say
+   something not yet taught. A turn may declare a role — 'open' belongs at
+   the start of a conversation, 'close' at its end; everything else is a
+   middle. A turn marked stay depends on its topic's context (a price needs
+   a shop, 'how are you' belongs right after hello) and never drifts into
+   another topic's conversation. The builder respects both, so the talk
+   keeps a natural arc. */
 const PRACTICE_TOPICS = [
   {
     id:'greet', min:1, emoji:'👋', place:'ברחוב', goal:'לברך ולשאול מה שלומך',
     turns:[
-      {min:1, ask:{en:'Hi {name}! How are you?', he:'היי! מה שלומך?', tl:'הַיי! הַאוּ אַר יוּ?'}, options:[
+      {min:1, stay:true, ask:{en:'How are you, {name}?', he:'מה שלומך?', tl:'הַאוּ אַר יוּ?'}, options:[
         {label:'אני בסדר, תודה', answer:{en:"I'm good, thanks", he:'אני בסדר, תודה', tl:'אַיְים גוּד, תֶ׳נְקְס'}, reply:{en:'Great! Me too.', he:'מעולה! גם אני.', tl:'גְרֵייט! מִי טוּ.'}},
         {label:'אני בסדר. ואתה?', answer:{en:"I'm good. And you?", he:'אני בסדר. ואתה?', tl:'אַיְים גוּד. אֶנְד יוּ?'}, reply:{en:"I'm good too, thanks!", he:'גם אני בסדר, תודה!', tl:'אַיְים גוּד טוּ, תֶ׳נְקְס!'}},
       ]},
-      {min:1, ask:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'}, options:[
-        {label:'בוקר טוב!', answer:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'}, reply:{en:'Have a nice day!', he:'שיהיה לך יום טוב!', tl:'הֶב אַ נַייס דֵיי!'}},
+      {min:1, role:'open', ask:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'}, options:[
+        {label:'בוקר טוב!', answer:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'}, reply:{en:'What a nice morning!', he:'איזה בוקר נחמד!', tl:'וּוַאט אַ נַייס מוֹרְנִינְג!'}},
         {label:'היי! מה שלומך?', answer:{en:'Hi! How are you?', he:'היי! מה שלומך?', tl:'הַיי! הַאוּ אַר יוּ?'}, reply:{en:"I'm good, thanks!", he:'אני בסדר, תודה!', tl:'אַיְים גוּד, תֶ׳נְקְס!'}},
       ]},
       {min:3, ask:{en:'Do you speak English?', he:'אתה מדבר אנגלית?', tl:'דוּ יוּ סְפִּיק אִינְגְלִיש?'}, options:[
         {label:'כן! קצת', answer:{en:'Yes! A little', he:'כן! קצת', tl:'יֶס! אַ לִיטֶל'}, reply:{en:'Nice! You speak well.', he:'יפה! אתה מדבר טוב.', tl:'נַייס! יוּ סְפִּיק וֶול.'}},
         {label:'אני לא מבין', answer:{en:"I don't understand", he:'אני לא [[מבין|מבינה]]', tl:'אַיי דוֹנְט אַנְדֶרְסְטֶנְד'}, reply:{en:'No problem! I can speak slowly.', he:'אין בעיה! אני יכול לדבר לאט.', tl:'נוֹ פְּרוֹבְּלֶם! אַיי קֶן סְפִּיק סְלוֹלִי.'}},
       ]},
-      {min:5, ask:{en:'I have to go. Goodbye!', he:'אני צריך ללכת. להתראות!', tl:'אַיי הֶב טוּ גוֹ. גוּדְבַּיי!'}, options:[
+      {min:5, role:'close', ask:{en:'I have to go. Goodbye!', he:'אני צריך ללכת. להתראות!', tl:'אַיי הֶב טוּ גוֹ. גוּדְבַּיי!'}, options:[
         {label:'נתראה אחר כך!', answer:{en:'See you later!', he:'נתראה אחר כך!', tl:'סִי יוּ לֵייטֶר!'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
         {label:'שיהיה לך יום טוב!', answer:{en:'Have a nice day!', he:'שיהיה לך יום טוב!', tl:'הֶב אַ נַייס דֵיי!'}, reply:{en:'Thank you! Bye!', he:'תודה! ביי!', tl:'תֶ׳נְק יוּ! בַּיי!'}},
       ]},
-      {min:3, ask:{en:'Thank you for your help!', he:'תודה על העזרה!', tl:'תֶ׳נְק יוּ פוֹר יוֹר הֶלְפּ!'}, options:[
+      {min:3, stay:true, ask:{en:'Thank you for your help!', he:'תודה על העזרה!', tl:'תֶ׳נְק יוּ פוֹר יוֹר הֶלְפּ!'}, options:[
         {label:'על לא דבר!', answer:{en:"You're welcome!", he:'על לא דבר!', tl:'יוֹר וֶולְקַם!'}, reply:{en:'You are very nice!', he:'אתה נחמד מאוד!', tl:'יוּ אַר וֶורִי נַייס!'}},
         {label:'אין בעיה!', answer:{en:'No problem!', he:'אין בעיה!', tl:'נוֹ פְּרוֹבְּלֶם!'}, reply:{en:'Thanks again!', he:'תודה שוב!', tl:'תֶ׳נְקְס אַגֵין!'}},
       ]},
@@ -2163,7 +2168,7 @@ const PRACTICE_TOPICS = [
   {
     id:'meet', min:2, emoji:'🤝', place:'בבית של חבר', goal:'להכיר מישהו חדש',
     turns:[
-      {min:2, ask:{en:"Hello! What's your name?", he:'שלום! איך קוראים לך?', tl:'הֶלוֹ! וּוַאטְס יוֹר נֵיים?'}, options:[
+      {min:2, role:'open', ask:{en:"Hello! What's your name?", he:'שלום! איך קוראים לך?', tl:'הֶלוֹ! וּוַאטְס יוֹר נֵיים?'}, options:[
         {label:'קוראים לי {name}', answer:{en:'My name is {name}', he:'קוראים לי {name}', tl:'מַיי נֵיים אִיז {name}'}, reply:{en:'Nice to meet you, {name}!', he:'נעים להכיר, {name}!', tl:'נַייס טוּ מִיט יוּ!'}},
         {label:'קוראים לי {name}. ואתה?', answer:{en:'My name is {name}. And you?', he:'קוראים לי {name}. ואתה?', tl:'מַיי נֵיים אִיז {name}. אֶנְד יוּ?'}, reply:{en:'Nice to meet you!', he:'נעים להכיר!', tl:'נַייס טוּ מִיט יוּ!'}},
       ]},
@@ -2172,7 +2177,7 @@ const PRACTICE_TOPICS = [
         {label:'אני [[בן|בת]] {age}. ואתה?', answer:{en:'I am {age}. And you?', he:'אני [[בן|בת]] {age}. ואתה?', tl:'אַיי אַם {age}. אֶנְד יוּ?'}, reply:{en:'I am seventeen!', he:'אני בן שבע־עשרה!', tl:'אַיי אַם סֶבֶנְטִין!'}},
       ]},
       {min:2, ask:{en:'Where are you from?', he:'מאיפה אתה?', tl:'וֶּור אַר יוּ פְרוֹם?'}, options:[
-        {label:'אני מישראל', answer:{en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'}, reply:{en:'Wow! Nice to meet you!', he:'וואו! נעים להכיר!', tl:'וּוַאוּ! נַייס טוּ מִיט יוּ!'}},
+        {label:'אני מישראל', answer:{en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'}, reply:{en:'Wow! I love Israel!', he:'וואו! אני מת על ישראל!', tl:'וּוַאוּ! אַיי לַאב יִשְׂרָאֵל!'}},
         {label:'אני מישראל. ואתה?', answer:{en:"I'm from Israel. And you?", he:'אני מישראל. ואתה?', tl:'אַיְים פְרוֹם יִשְׂרָאֵל. אֶנְד יוּ?'}, reply:{en:"I'm from London!", he:'אני מלונדון!', tl:'אַיְים פְרוֹם לוֹנְדוֹן!'}},
       ]},
       {min:6, ask:{en:'Do you have brothers or sisters?', he:'יש לך אחים או אחיות?', tl:'דוּ יוּ הֶב בְּרַאדֶרְז אוֹר סִיסְטֶרְז?'}, options:[
@@ -2189,7 +2194,7 @@ const PRACTICE_TOPICS = [
         {label:'אני עייף', answer:{en:"I'm tired", he:'אני [[עייף|עייפה]]', tl:'אַיְים טַאיֶרְד'}, reply:{en:'Take care! Rest a little.', he:'שמור על עצמך! תנוח קצת.', tl:'טֵייק קֶר! רֶסְט אַ לִיטֶל.'}},
         {label:'אני שמח', answer:{en:"I'm happy", he:'אני [[שמח|שמחה]]', tl:'אַיְים הֶפִּי'}, reply:{en:'That makes me happy too!', he:'זה משמח גם אותי!', tl:'דֶאט מֵייקְס מִי הֶפִּי טוּ!'}},
       ]},
-      {min:9, ask:{en:'Are you hungry?', he:'אתה רעב?', tl:'אַר יוּ הַנְגְרִי?'}, options:[
+      {min:9, stay:true, ask:{en:'Are you hungry?', he:'אתה רעב?', tl:'אַר יוּ הַנְגְרִי?'}, options:[
         {label:'כן, אני רעב!', answer:{en:"Yes, I'm hungry!", he:'כן, אני [[רעב|רעבה]]!', tl:'יֶס, אַיְים הַנְגְרִי!'}, reply:{en:'Me too! Let\'s eat.', he:'גם אני! בוא נאכל.', tl:'מִי טוּ! לֶטְס אִיט.'}},
         {label:'לא, אבל אני צמא', answer:{en:"No, but I'm thirsty", he:'לא, אבל אני [[צמא|צמאה]]', tl:'נוֹ, בַּאט אַיְים תֶ׳רְסְטִי'}, reply:{en:'Here is water!', he:'הנה מים!', tl:'הִיר אִיז ווֹטֶר!'}},
       ]},
@@ -2240,7 +2245,7 @@ const PRACTICE_TOPICS = [
   {
     id:'food', min:11, emoji:'🍕', place:'במטבח', goal:'לבקש אוכל ושתייה',
     turns:[
-      {min:11, ask:{en:'Are you hungry, {name}?', he:'אתה רעב?', tl:'אַר יוּ הַנְגְרִי?'}, options:[
+      {min:11, stay:true, ask:{en:'Are you hungry, {name}?', he:'אתה רעב?', tl:'אַר יוּ הַנְגְרִי?'}, options:[
         {label:'כן! אני רוצה {food}', answer:{en:'Yes! I want {food}', he:'כן! אני [[רוצה|רוצה]] {food}', tl:'יֶס! אַיי ווֹנְט {food}'}, reply:{en:'Great choice! It is tasty.', he:'בחירה מעולה! זה טעים.', tl:'גְרֵייט צ׳וֹיס! אִיט אִיז טֵייסְטִי.'}},
         {label:'מים, בבקשה', answer:{en:'Water, please', he:'מים, בבקשה', tl:'ווֹטֶר, פְּלִיז'}, reply:{en:'Here you go!', he:'בבקשה!', tl:'הִיר יוּ גוֹ!'}},
       ]},
@@ -2248,11 +2253,11 @@ const PRACTICE_TOPICS = [
         {label:'כן, בבקשה!', answer:{en:'Yes, please!', he:'כן, בבקשה!', tl:'יֶס, פְּלִיז!'}, reply:{en:'Coming right up!', he:'מיד מגיע!', tl:'קַאמִינְג רַייט אַפּ!'}},
         {label:'זה טעים!', answer:{en:"It's tasty!", he:'זה טעים!', tl:'אִיטְס טֵייסְטִי!'}, reply:{en:'I am glad you like it!', he:'שמח שאתה אוהב!', tl:'אַיי אַם גְלֶד יוּ לַייק אִיט!'}},
       ]},
-      {min:12, ask:{en:'Hello! What would you like?', he:'שלום! מה תרצה?', tl:'הֶלוֹ! וּוַאט וּוּד יוּ לַייק?'}, options:[
+      {min:12, role:'open', ask:{en:'Hello! What would you like?', he:'שלום! מה תרצה?', tl:'הֶלוֹ! וּוַאט וּוּד יוּ לַייק?'}, options:[
         {label:'אני אקח המבורגר, בבקשה', answer:{en:"I'll have a burger, please", he:'אני אקח המבורגר, בבקשה', tl:'אַיְיל הֶב אַ בֶּרְגֶר, פְּלִיז'}, reply:{en:'Anything else?', he:'עוד משהו?', tl:'אֶנִיתִ׳ינְג אֶלְס?'}},
         {label:'את התפריט, בבקשה', answer:{en:'The menu, please', he:'את התפריט, בבקשה', tl:'דֶה מֶנְיוּ, פְּלִיז'}, reply:{en:'Here it is!', he:'הנה הוא!', tl:'הִיר אִיט אִיז!'}},
       ]},
-      {min:12, ask:{en:'How was the food?', he:'איך היה האוכל?', tl:'הַאוּ ווֹז דֶה פוּד?'}, options:[
+      {min:12, role:'close', ask:{en:'How was the food?', he:'איך היה האוכל?', tl:'הַאוּ ווֹז דֶה פוּד?'}, options:[
         {label:'היה מעולה!', answer:{en:'It was great!', he:'היה מעולה!', tl:'אִיט ווֹז גְרֵייט!'}, reply:{en:'Thank you! Come again!', he:'תודה! בוא שוב!', tl:'תֶ׳נְק יוּ! קַאם אַגֵין!'}},
         {label:'חשבון, בבקשה', answer:{en:'The check, please', he:'חשבון, בבקשה', tl:'דֶה צֶ׳ק, פְּלִיז'}, reply:{en:'Here you go. Have a nice day!', he:'בבקשה. שיהיה יום טוב!', tl:'הִיר יוּ גוֹ. הֶב אַ נַייס דֵיי!'}},
       ]},
@@ -2269,11 +2274,11 @@ const PRACTICE_TOPICS = [
         {label:'נשמע טוב!', answer:{en:'Sounds good!', he:'נשמע טוב!', tl:'סַאוּנְדְס גוּד!'}, reply:{en:'Great! See you soon.', he:'מעולה! נתראה בקרוב.', tl:'גְרֵייט! סִי יוּ סוּן.'}},
         {label:'אני לא יכול היום', answer:{en:"I can't today", he:'אני לא [[יכול|יכולה]] היום', tl:'אַיי קֶאנְט טוּדֵיי'}, reply:{en:'No problem! Maybe tomorrow.', he:'אין בעיה! אולי מחר.', tl:'נוֹ פְּרוֹבְּלֶם! מֵייבִּי טוּמוֹרוֹ.'}},
       ]},
-      {min:13, ask:{en:'See you at seven?', he:'נתראה בשבע?', tl:'סִי יוּ אֶט סֶבֶן?'}, options:[
+      {min:13, role:'close', ask:{en:'See you at seven?', he:'נתראה בשבע?', tl:'סִי יוּ אֶט סֶבֶן?'}, options:[
         {label:'כן! נתראה בשבע', answer:{en:'Yes! See you at seven', he:'כן! נתראה בשבע', tl:'יֶס! סִי יוּ אֶט סֶבֶן'}, reply:{en:'Perfect! Bye!', he:'מושלם! ביי!', tl:'פֶּרְפֶקְט! בַּיי!'}},
         {label:'מה השעה?', answer:{en:'What time is it?', he:'מה השעה?', tl:'וּוַאט טַיים אִיז אִיט?'}, reply:{en:"It's five o'clock", he:'השעה חמש', tl:'אִיטְס פַייב אוֹקְלוֹק'}},
       ]},
-      {min:24, ask:{en:'Do you want to come on Friday?', he:'רוצה לבוא ביום שישי?', tl:'דוּ יוּ ווֹנְט טוּ קַאם אוֹן פְרַיידֵיי?'}, options:[
+      {min:24, role:'close', ask:{en:'Do you want to come on Friday?', he:'רוצה לבוא ביום שישי?', tl:'דוּ יוּ ווֹנְט טוּ קַאם אוֹן פְרַיידֵיי?'}, options:[
         {label:'נתראה ביום שישי!', answer:{en:'See you on Friday!', he:'נתראה ביום שישי!', tl:'סִי יוּ אוֹן פְרַיידֵיי!'}, reply:{en:'Great! Take care.', he:'מעולה! שמור על עצמך.', tl:'גְרֵייט! טֵייק קֶר.'}},
         {label:'אני לא יכול בשבת', answer:{en:"I can't on Saturday", he:'אני לא [[יכול|יכולה]] בשבת', tl:'אַיי קֶאנְט אוֹן סָטֶרְדֵיי'}, reply:{en:'OK — Friday then!', he:'בסדר — אז שישי!', tl:'אוֹקֵיי — פְרַיידֵיי דֶן!'}},
       ]},
@@ -2282,11 +2287,11 @@ const PRACTICE_TOPICS = [
   {
     id:'shopping', min:14, emoji:'🛍️', place:'בחנות', goal:'לקנות ולשאול מחיר',
     turns:[
-      {min:14, ask:{en:'Can I help you?', he:'אפשר לעזור לך?', tl:'קֶן אַיי הֶלְפּ יוּ?'}, options:[
+      {min:14, role:'open', ask:{en:'Can I help you?', he:'אפשר לעזור לך?', tl:'קֶן אַיי הֶלְפּ יוּ?'}, options:[
         {label:'כמה זה עולה?', answer:{en:'How much does it cost?', he:'כמה זה עולה?', tl:'הַאוּ מַאץ׳ דַאז אִיט קוֹסְט?'}, reply:{en:'Twenty shekels.', he:'עשרים שקל.', tl:'טְוֶונְטִי שֶקֶלְס.'}},
         {label:'רק מסתכל, תודה', answer:{en:'Just looking, thanks', he:'רק [[מסתכל|מסתכלת]], תודה', tl:'גַ׳סְט לוּקִינְג, תֶ׳נְקְס'}, reply:{en:'No problem! Take your time.', he:'אין בעיה! קח את הזמן.', tl:'נוֹ פְּרוֹבְּלֶם! טֵייק יוֹר טַיים.'}},
       ]},
-      {min:14, ask:{en:'It costs ninety shekels.', he:'זה עולה תשעים שקל.', tl:'אִיט קוֹסְטְס נַיינְטִי שֶקֶלְס.'}, options:[
+      {min:14, stay:true, ask:{en:'It costs ninety shekels.', he:'זה עולה תשעים שקל.', tl:'אִיט קוֹסְטְס נַיינְטִי שֶקֶלְס.'}, options:[
         {label:'זה יקר מדי', answer:{en:"It's too expensive", he:'זה יקר מדי', tl:'אִיטְס טוּ אֶקְסְפֶּנְסִיב'}, reply:{en:'OK — for you, fifty!', he:'טוב — בשבילך, חמישים!', tl:'אוֹקֵיי — פוֹר יוּ, פִיפְטִי!'}},
         {label:'בסדר, אני לוקח את זה!', answer:{en:"OK, I'll take it!", he:'בסדר, אני [[לוקח|לוקחת]] את זה!', tl:'אוֹקֵיי, אַיְיל טֵייק אִיט!'}, reply:{en:'Great! Thank you!', he:'מעולה! תודה!', tl:'גְרֵייט! תֶ׳נְק יוּ!'}},
       ]},
@@ -2320,7 +2325,7 @@ const PRACTICE_TOPICS = [
         {label:'כן, יש לי כלב', answer:{en:'Yes, I have a dog', he:'כן, יש לי כלב', tl:'יֶס, אַיי הֶב אַ דוֹג'}, reply:{en:'Is he big or small?', he:'הוא גדול או קטן?', tl:'אִיז הִי בִּיג אוֹר סְמוֹל?'}},
         {label:'אני אוהב {animal}', answer:{en:'I like {animal}', he:'אני [[אוהב|אוהבת]] {animal}', tl:'אַיי לַייק {animal}'}, reply:{en:'Me too! They are great.', he:'גם אני! הם מעולים.', tl:'מִי טוּ! דֵיי אַר גְרֵייט.'}},
       ]},
-      {min:26, ask:{en:'Is your dog big or small?', he:'הכלב שלך גדול או קטן?', tl:'אִיז יוֹר דוֹג בִּיג אוֹר סְמוֹל?'}, options:[
+      {min:26, stay:true, ask:{en:'Is your dog big or small?', he:'הכלב שלך גדול או קטן?', tl:'אִיז יוֹר דוֹג בִּיג אוֹר סְמוֹל?'}, options:[
         {label:'הכלב גדול', answer:{en:'The dog is big', he:'הכלב גדול', tl:'דֶה דוֹג אִיז בִּיג'}, reply:{en:'Wow! I want to see him.', he:'וואו! אני רוצה לראות אותו.', tl:'וּוַאוּ! אַיי ווֹנְט טוּ סִי הִים.'}},
         {label:'החתול קטן', answer:{en:'The cat is small', he:'החתול קטן', tl:'דֶה קֶט אִיז סְמוֹל'}, reply:{en:'Cute! I love cats.', he:'חמוד! אני מת על חתולים.', tl:'קְיוּט! אַיי לַאב קֶטְס.'}},
       ]},
@@ -3668,6 +3673,12 @@ function shuffled(arr){
   }
   return out;
 }
+// a random subset that keeps the source order — variety without scrambling
+function someInOrder(arr, n){
+  if(arr.length <= n) return arr.slice();
+  const keep = new Set(shuffled(arr.map((_,i)=>i)).slice(0, Math.max(0,n)));
+  return arr.filter((_,i)=>keep.has(i));
+}
 function allLearnedPhrases(idx){
   const out = [];
   for(let li=0;li<idx;li++) LESSONS[li].phrases.forEach((p,pi)=>out.push({p,id:li+':'+pi,li,pi}));
@@ -3986,17 +3997,33 @@ function buildPracticeSession(){
   const picked = pick(fresh.length ? fresh : pairs);
   const scene = picked.scene;
   const want = practiceTurnsFor(completed);
-  const turns = shuffled(picked.topic.turns.filter(turn=>completed >= turn.min)).slice(0, want);
-  // a single topic runs out of turns; later on the conversation drifts into
-  // other unlocked subjects, the way a real one does
-  if(turns.length < want){
-    const others = shuffled(topics.filter(t=>t!==picked.topic))
-      .flatMap(t=>shuffled(t.turns.filter(turn=>completed >= turn.min)));
-    for(const turn of others){
-      if(turns.length >= want) break;
-      if(!turns.includes(turn)) turns.push(turn);
+  /* A conversation has a shape: a greeting may open it, a goodbye ends it,
+     and everything between is a middle. The turns used to be shuffled
+     outright, which put 'Have a nice day!' before 'How are you?' — variety
+     must come from which turns are picked and where the talk drifts, never
+     from scrambling the arc itself. */
+  const roleOf = turn=>turn.role||'mid';
+  const eligible = picked.topic.turns.filter(turn=>completed >= turn.min);
+  const openers = eligible.filter(turn=>roleOf(turn)==='open');
+  const closers = eligible.filter(turn=>roleOf(turn)==='close');
+  const opener = openers.length ? pick(openers) : null;
+  const closer = closers.length ? pick(closers) : null;
+  const middleWant = want - (opener?1:0) - (closer?1:0);
+  const middles = someInOrder(eligible.filter(turn=>roleOf(turn)==='mid'), middleWant);
+  // a single topic runs out of middles; the talk then drifts into other
+  // unlocked subjects the way a real conversation does — but only through
+  // middles that stand on their own: nobody greets or says goodbye halfway
+  // into a chat, and a context-bound turn stays with its topic
+  if(middles.length < middleWant){
+    for(const other of shuffled(topics.filter(t=>t!==picked.topic))){
+      if(middles.length >= middleWant) break;
+      for(const turn of other.turns){
+        if(middles.length >= middleWant) break;
+        if(roleOf(turn)==='mid' && !turn.stay && completed >= turn.min && !middles.includes(turn)) middles.push(turn);
+      }
     }
   }
+  const turns = [...(opener?[opener]:[]), ...middles, ...(closer?[closer]:[])];
   const character = PRACTICE_CAST[picked.charId] || CHARACTERS[picked.charId];
   return {
     topic:picked.topic, charId:picked.charId, sceneId:picked.sceneId, scene, turns,
