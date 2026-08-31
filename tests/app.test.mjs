@@ -435,7 +435,7 @@ test('a completed speaking result resumes without requiring the phrase again', (
 test('PWA update code is versioned and does not clear local progress', () => {
   const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
   assert.match(sw, /CACHE_PREFIX\s*=\s*'speak-english-'/);
-  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v2'/);
+  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v3'/);
   assert.match(sw, /SKIP_WAITING/);
   assert.match(html, /updateViaCache:'none'/);
   assert.doesNotMatch(sw, /localStorage/);
@@ -447,7 +447,7 @@ test('service worker preserves network success, offline fallback, and unrelated 
   const deleted = [];
   let offline = false;
   const context = vm.createContext({
-    URL, Response, Promise,
+    URL, Request, Response, Promise,
     fetch: async () => {
       if (offline) throw new Error('offline');
       return new Response('fresh', { status: 200 });
@@ -473,7 +473,7 @@ test('service worker preserves network success, offline fallback, and unrelated 
   let activation;
   handlers.activate({ waitUntil: promise => { activation = promise; } });
   await activation;
-  assert.deepEqual(deleted, ['speak-english-v1']);
+  assert.deepEqual(deleted, ['speak-english-v1', 'speak-english-v2']);
 
   const request = { method: 'GET', url: 'https://app.test/index.html', mode: 'navigate' };
   let responsePromise;
