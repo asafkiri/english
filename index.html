@@ -228,6 +228,40 @@ body{
 .vdots i:nth-child(2){animation-delay:.2s}
 .vdots i:nth-child(3){animation-delay:.4s}
 @keyframes vblink{0%,100%{opacity:.2}50%{opacity:1}}
+/* face-to-face stage */
+.stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
+.stage-place{font-size:13px;color:var(--dim);text-align:center}
+.stage-history{background:none;border:none;color:var(--blue);font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
+.stage-avatar{position:relative;width:132px;height:132px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin:4px 0 2px}
+.stage-avatar .face{font-size:78px;line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));transition:transform .2s ease}
+.stage-avatar::before{content:'';position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--who) 38%, transparent), transparent 70%);border:2px solid color-mix(in srgb, var(--who) 55%, transparent)}
+.stage-avatar .ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--who);opacity:0}
+.stage-avatar.speaking .face{animation:talkbob .42s ease-in-out infinite alternate}
+.stage-avatar.speaking .ring{animation:ringOut 1.8s ease-out infinite}
+.stage-avatar.speaking .r2{animation-delay:.6s}
+.stage-avatar.listening::before{border-color:var(--green);background:radial-gradient(circle at 50% 35%, rgba(52,211,153,.3), transparent 70%)}
+.stage-avatar.listening .face{animation:breathe 2.6s ease-in-out infinite}
+.stage-avatar.waiting .face{animation:breathe 3.6s ease-in-out infinite}
+@keyframes talkbob{from{transform:translateY(0) scale(1)}to{transform:translateY(-5px) scale(1.05)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes ringOut{0%{transform:scale(.85);opacity:.55}100%{transform:scale(1.45);opacity:0}}
+.stage-name{font-size:19px;font-weight:850;text-align:center}
+.stage-name span{font-size:13px;font-weight:600;color:var(--dim);font-style:italic}
+.stage-status{font-size:13px;color:var(--dim);text-align:center;margin-bottom:2px}
+.stage-caption{width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 14px;text-align:center}
+.cap-en{direction:ltr;font-size:25px;font-weight:800;line-height:1.35}
+.cap-aid{margin-top:8px;font-size:16px;color:var(--dim)}
+.cap-aid.tl{color:var(--amber);font-weight:700}
+.cap-aid[hidden]{display:none}
+.cap-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.cap-typing{font-size:16px;color:var(--dim);display:flex;align-items:center;justify-content:center;gap:6px}
+.cap-intent{font-size:23px;font-weight:800;line-height:1.35}
+.cap-intent-note{font-size:13.5px;color:var(--dim);margin-top:6px}
+.cap-sent{font-size:18px;font-weight:700;color:var(--green)}
+@media (max-height:700px){
+  .stage-avatar{width:104px;height:104px}.stage-avatar .face{font-size:60px}
+  .cap-en{font-size:22px}.cap-intent{font-size:20px}
+}
 .scene-note{background:rgba(148,163,184,.09);border-inline-start:3px solid rgba(148,163,184,.45);border-radius:10px;padding:10px 12px;font-size:14.5px;color:#c2cde3;font-style:italic;line-height:1.5;margin:10px 0}
 .scene-note.in-log{margin:0 0 14px}
 .person-role{font-size:12px;font-weight:600;color:var(--dim);font-style:italic}
@@ -3361,6 +3395,77 @@ function chatMessagesHtml(currentItem=null,currentClass=''){
     ${recent}${current}
   </div>`;
 }
+/* ---- face-to-face stage (free practice only) ----
+   Instead of a message thread, the person stands in front of the learner:
+   a large portrait that animates while speaking or listening, the line as a
+   caption, and the aids one tap away. The chat log still exists underneath
+   and is available on demand. */
+function stageShell(state_, caption, composer){
+  const pct=Math.round(L.i/(L.steps.length-1)*100);
+  const meta=conversationMeta(L.idx);
+  const history=(L.chat||[]).length;
+  h(`<div class="conversation-screen stage-screen">
+    <div class="conversation-top">
+      <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהתרגול">✕</button>
+      <div class="pbar" role="progressbar" aria-label="התקדמות בשיחה" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
+    </div>
+    <div class="stage" style="--who:${meta.character.color}">
+      <div class="stage-place">${meta.placeEmoji} ${esc(meta.place)}${history?` · <button class="stage-history" onclick="openChatHistory()">📜 מה נאמר עד עכשיו</button>`:''}</div>
+      <div class="stage-avatar ${state_}">
+        <span class="ring r1"></span><span class="ring r2"></span>
+        <span class="face" aria-hidden="true">${meta.character.avatar}</span>
+      </div>
+      <div class="stage-name">${esc(meta.character.name)}${meta.role?` <span>· ${esc(meta.role)}</span>`:''}</div>
+      <div class="stage-status" id="stageStatus">${state_==='speaking'?'מדבר אליך…':state_==='listening'?'מקשיב לך':'מחכה לתשובה שלך'}</div>
+      <div class="stage-caption" id="stageCaption">${caption}</div>
+    </div>
+    <div class="conversation-composer">${composer}</div>
+  </div>`);
+}
+function captionHtml(line, step, opts={}){
+  const en=ptext(line,'en'), he=ptext(line,'he'), tl=ptext(line,'tl');
+  return `
+    <div class="cap-en" dir="ltr" lang="en">${esc(en)}</div>
+    <div class="cap-aid" id="capHe" ${step?.showHe?'':'hidden'}>${esc(he)}</div>
+    <div class="cap-aid tl" id="capTl" ${step?.showTl?'':'hidden'}>${esc(tl)}</div>
+    <div class="cap-actions">
+      ${opts.replay!==false?`<button class="bubble-action" onclick="replayStageLine()" aria-label="השמע שוב">🔊</button>`:''}
+      <button class="bubble-action" aria-pressed="${!!step?.showHe}" onclick="toggleCaptionAid('he',this)">תרגום</button>
+      <button class="bubble-action" aria-pressed="${!!step?.showTl}" onclick="toggleCaptionAid('tl',this)">איך אומרים?</button>
+    </div>`;
+}
+function toggleCaptionAid(kind, button){
+  const step=L?.steps?.[L.i];
+  if(!step) return;
+  const field=kind==='tl'?'showTl':'showHe';
+  step[field]=!step[field];
+  const panel=document.getElementById(kind==='tl'?'capTl':'capHe');
+  if(panel) panel.hidden=!step[field];
+  if(button) button.setAttribute('aria-pressed',String(!!step[field]));
+  // reading takes time — hold the conversation while an aid is open
+  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+}
+function replayStageLine(){
+  const step=L?.steps?.[L.i];
+  const line=step?.type==='listen'?step.line:step?.p;
+  if(!line) return;
+  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+  speak(ptext(line,'en',true));
+}
+function openChatHistory(){
+  if(!L) return;
+  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+  const ov=document.createElement('div');
+  ov.className='overlay';
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+    <h3>📜 מה נאמר עד עכשיו</h3>
+    <div style="max-height:60vh;overflow:auto">${chatMessagesHtml()}</div>
+    <button class="btn secondary" style="margin-top:14px" onclick="this.closest('.overlay').remove()">סגור</button>
+  </div>`;
+  ov.onclick=()=>ov.remove();
+  document.body.appendChild(ov);
+}
 function dialogueShell(messages,composer){
   const pct=Math.round(L.i/(L.steps.length-1)*100);
   const meta=conversationMeta(L.idx);
@@ -3496,7 +3601,7 @@ function renderDialogueSpeak(step){
     <button class="btn ghost" style="padding:7px;margin-top:2px" onclick="next()">המשך עכשיו</button>
   `:`
     <div class="composer-head"><span class="composer-label">💬 עכשיו התור שלך</span><span style="font-size:12px;color:var(--dim)">תגיד באנגלית</span></div>
-    <div class="composer-intent">${esc(he)}</div>
+    ${L.isPractice?'':`<div class="composer-intent">${esc(he)}</div>`}
     <div id="englishHint" ${hintLevel<1?'hidden':''}><div class="hint-en" dir="ltr" lang="en" style="font-size:20px;text-align:center">${esc(en)}</div></div>
     <div id="translitHint" ${hintLevel<2?'hidden':''}><div class="hint-tl" style="text-align:center;font-size:16px">${esc(tl)}</div></div>
     <div class="composer-actions">
@@ -3511,7 +3616,14 @@ function renderDialogueSpeak(step){
     ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
     <button class="btn ghost" id="skipBtn" style="padding:7px" ${(step.attempts||0)>=3?'':'hidden'} onclick="skipDialogueSpeak()">קשה לי עכשיו — נמשיך בשיחה</button>
   `;
-  dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
+  if(L.isPractice){
+    const caption=terminal
+      ? `<div class="cap-sent">✔️ אמרת: <bdi dir="ltr">${esc(en)}</bdi></div>`
+      : `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">תגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)}</div>`;
+    stageShell(terminal?'waiting':'listening', caption, composer);
+  } else {
+    dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
+  }
   if(terminal||step.retryMessage) requestAnimationFrame(scrollComposerToEnd);
   if(terminal&&!L.flowPaused) scheduleDialogueFlow(()=>next(),1900);
 }
@@ -3945,7 +4057,15 @@ function renderListen(step){
       <button id="resumeFlow" ${paused?'':'hidden'} onclick="resumeDialogue()">▶ המשך</button>
       <button onclick="next()">דלג קדימה</button>
     </div>`;
-  dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
+  if(L.isPractice){
+    stageShell(step.arrived&&!paused?'speaking':'waiting',
+      step.arrived
+        ? captionHtml(line,step)
+        : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
+      composer);
+  } else {
+    dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
+  }
   if(paused) return;
   if(!step.arrived){
     scheduleDialogueFlow(()=>{ step.arrived=true;saveLessonCheckpoint();renderListen(step); },600);
@@ -3972,12 +4092,17 @@ function renderListen(step){
 }
 function renderBranchChoice(step){
   invalidateDialogueFlow(false);
-  dialogueShell(chatMessagesHtml(),`
+  const composer=`
     <div class="composer-head"><span class="composer-label">💬 מה מתאים לך לענות?</span><span style="font-size:12px;color:var(--dim)">אחר כך אומרים באנגלית</span></div>
     <div class="conversation-options">
       ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranch(${i})">${esc(fillProfileText(o.label,'he'))}</button>`).join('')}
-    </div>
-  `);
+    </div>`;
+  if(L.isPractice){
+    const prev=[...(L.chat||[])].reverse().find(x=>x.who==='app');
+    stageShell('waiting', prev?captionHtml(prev.line,step):'<div class="cap-typing">מה תרצה לענות?</div>', composer);
+  } else {
+    dialogueShell(chatMessagesHtml(), composer);
+  }
 }
 function chooseBranch(optionIndex){
   const step=L?.steps[L.i];
