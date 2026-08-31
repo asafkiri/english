@@ -3962,8 +3962,9 @@ function renderStep(){
 
 /* ================= free conversation practice ================= */
 function practiceTurnsFor(completed){
-  // 3 turns early, growing to 6 as the course advances
-  return Math.max(3, Math.min(6, 3 + Math.floor(completed/8)));
+  // 4 turns on the first day, growing to 10 as the course advances — free
+  // practice is the part the learner enjoys, and it costs no lesson time
+  return Math.max(4, Math.min(10, 4 + Math.floor(completed/4)));
 }
 function buildPracticeSession(){
   const completed = state.completed;
@@ -4874,6 +4875,12 @@ function renderDlgIntro(){
 function renderListen(step){
   invalidateDialogueFlow(true);
   const line=step.line,meta=conversationMeta(L.idx),spokenEn=ptext(line,'en',true);
+  // Two lines from the same character in a row are one turn, not two
+  // messages: no 'about to speak' announcement in between, and only a
+  // breath between the sentences instead of a full reading pause.
+  const continuing=L.steps[L.i-1]?.type==='listen';
+  const runsOn=L.steps[L.i+1]?.type==='listen';
+  if(continuing) step.arrived=true;
   const current=step.arrived?{who:'app',line,showHe:!!step.showHe,showTl:!!step.showTl}:null;
   const paused=!!L.flowPaused;
   const typing=`<div class="dlg-line typing-line"><div class="dlg-avatar" aria-hidden="true">${meta.character.avatar}</div><div class="dlg-bubble voice-note">${paused
@@ -4901,10 +4908,16 @@ function renderListen(step){
     scheduleDialogueFlow(()=>{ step.arrived=true;saveLessonCheckpoint();renderListen(step); },600);
     return;
   }
-  const readingDelay=Math.max(1900,Math.min(3400,spokenEn.length*38));
+  // when the same character keeps talking, a breath is enough — but without a
+  // voice the delay is the only time there is to read, so keep that readable
+  const voiced='speechSynthesis' in window;
+  const readingDelay=runsOn
+    ? (voiced?340:Math.max(1200,Math.min(2600,spokenEn.length*32)))
+    : Math.max(1900,Math.min(3400,spokenEn.length*38));
   const speechDeadline=Date.now()+20000;
   const afterSpeech=()=>{
-    const status=document.getElementById('flowStatus');if(status) status.textContent='ממשיך בעוד רגע…';
+    const status=document.getElementById('flowStatus');
+    if(status) status.textContent=runsOn?meta.character.name+' ממשיך…':'ממשיך בעוד רגע…';
     scheduleDialogueFlow(()=>next(),readingDelay);
   };
   const watchdog=()=>{
