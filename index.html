@@ -1990,8 +1990,8 @@ function renderSpeak(step){
         <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
         <div class="heard" id="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
-        <button class="btn ghost mic-fallback" id="manualMicBtn" onclick="manualMicDone()">אמרתי בקול — המשך בלי בדיקה</button>
-        ${!step.requeued&&!step.warmup?`<button class="btn ghost" onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`:''}
+        <button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך בלי בדיקה</button>
+        ${!step.requeued&&!step.warmup?`<button class="btn ghost" id="skipBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`:''}
       `:`
         <p class="mic-hint" style="margin:14px 0">תגיד את המשפט <b>בקול רם</b>. אם צריך, השתמש ברמז.</p>
         <button class="btn" onclick="manualMicDone()">אמרתי בקול! ✔</button>
@@ -2019,11 +2019,22 @@ function skipSpeak(){
 function wordFeedbackHtml(details){
   return `<div class="word-feedback">${details.words.map((w,i)=>`<span class="${details.matched[i]?'':'missing'}">${esc(w)}</span>`).join('')}</div>`;
 }
-function showMicFallback(msg){
-  const hint=document.getElementById('micHint');
-  if(hint) hint.innerHTML=msg;
+/* the escape buttons stay hidden until the third attempt ends, so the easy
+   way out never appears before a real effort was made. A genuinely broken
+   mic (force=true) reveals the manual path immediately. */
+function revealEscapes(force=false){
+  if(!force && (L?.attempts||0) < 3) return;
   const manual=document.getElementById('manualMicBtn');
   if(manual) manual.hidden=false;
+  if(!force){
+    const skip=document.getElementById('skipBtn');
+    if(skip) skip.hidden=false;
+  }
+}
+function showMicFallback(msg, forceManual=false){
+  const hint=document.getElementById('micHint');
+  if(hint) hint.innerHTML=msg;
+  revealEscapes(forceManual);
 }
 /* one tap starts listening; a tap while listening ends the recording early,
    so background noise can't keep an attempt hanging open */
@@ -2040,7 +2051,7 @@ function startListening(target){
   const btn=document.getElementById('micBtn');
   const hint=document.getElementById('micHint');
   const heardEl=document.getElementById('heard');
-  if(!SR){ showMicFallback('בדיקת הקול לא זמינה כאן. אמור את המשפט בקול והמשך ידנית.'); return; }
+  if(!SR){ showMicFallback('בדיקת הקול לא זמינה כאן. אמור את המשפט בקול והמשך ידנית.', true); return; }
   stopRecognition();
   if('speechSynthesis' in window) speechSynthesis.cancel();
   const rec=new SR();
@@ -2117,7 +2128,7 @@ function startListening(target){
         ? 'המיקרופון אינו זמין כרגע. אמור את המשפט בקול והמשך בלי בדיקה.'
         : code==='language-not-supported'
           ? 'בדיקת הקול באנגלית אינה זמינה במכשיר הזה. אמור את המשפט בקול והמשך בלי בדיקה.'
-          : 'אין הרשאה למיקרופון. אמור את המשפט בקול והמשך בלי בדיקה.');
+          : 'אין הרשאה למיקרופון. אמור את המשפט בקול והמשך בלי בדיקה.', true);
     }
     else if(code==='no-speech') showMicFallback('לא נקלט קול. אפשר לנסות שוב או להמשיך ידנית.');
     else if(code==='network') showMicFallback('בדיקת הקול אינה זמינה כרגע בגלל החיבור. אפשר להמשיך ידנית.');
@@ -2131,6 +2142,7 @@ function startListening(target){
     if(!got){
       const t=hint.textContent;
       if(t.indexOf('מקשיב')>-1||t.indexOf('בודק')>-1) hint.textContent='לא שמעתי כלום — נסה שוב, קרוב לטלפון 🎤';
+      revealEscapes();
       return;
     }
     // the attempt ended without a clear pass — one full try, judged on the
@@ -2158,7 +2170,7 @@ function startListening(target){
   catch(e){
     if(L&&L===session&&L.rec===rec) L.rec=null;
     restoreMicButton();
-    showMicFallback('בדיקת הקול לא נפתחה. אמור את המשפט בקול והמשך ידנית.');
+    showMicFallback('בדיקת הקול לא נפתחה. אמור את המשפט בקול והמשך ידנית.', true);
   }
 }
 function showResult(kind, msg){
