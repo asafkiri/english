@@ -2636,7 +2636,6 @@ function renderDlgIntro(){
 }
 function renderListen(step){
   const line = step.line;
-  const nextType=L.steps[L.i+1]?.type;
   const shownEn=fillName(line.en);
   const spokenEn=fillNameSpoken(line.en);
   playerShell(`
@@ -2655,21 +2654,43 @@ function renderListen(step){
           <div class="dlg-he">${esc(line.he)}</div>
         </div>
       </div>
-      <div style="text-align:center;margin:10px 0 18px">
-        <button class="play-big" onclick="speak('${jsEsc(spokenEn)}')" aria-label="השמע שוב">🔊</button>
+      <div style="text-align:center;margin:10px 0 6px">
+        <button class="play-big" id="listenReplay" aria-label="השמע שוב">🔊</button>
       </div>
-      <button class="btn" onclick="next()">${nextType==='branchChoice'?'לבחירת התשובה שלי ⬅':nextType==='done'?'סיימנו את השיחה ⬅':nextType==='listen'?'ממשיכים בשיחה ⬅':'הבנתי — תורי לענות ⬅'}</button>
+      <div style="text-align:center;color:var(--dim);font-size:13px;margin-bottom:12px">השיחה ממשיכה לבד · 🔊 משמיע שוב</div>
     </div>
   `);
-  // the voice-note indicator plays for a moment, then the message "arrives"
+  // the voice-note indicator plays for a moment, then the message "arrives",
+  // plays, and the conversation flows on by itself — no confirm button
   const epoch=uiEpoch;
+  let advTimer=null, advanced=false;
+  const scheduleAdvance=(ms)=>{
+    clearTimeout(advTimer);
+    advTimer=setTimeout(()=>{
+      if(advanced || uiEpoch!==epoch || !L) return;
+      advanced=true;
+      next();
+    }, ms);
+  };
+  const playThenAdvance=()=>{
+    clearTimeout(advTimer);
+    // safety net in case speech never reports its end
+    scheduleAdvance(Math.max(4000, spokenEn.length*110));
+    speak(spokenEn, ()=>{
+      if(uiEpoch!==epoch) return;
+      // a beat after the audio ends, or reading time when there is no audio
+      scheduleAdvance(Math.max(1300, spokenEn.length*25));
+    });
+  };
   setTimeout(()=>{
     if(uiEpoch!==epoch) return;
     const vn=document.getElementById('voiceNote');
     const bl=document.getElementById('botLine');
     if(vn) vn.hidden=true;
     if(bl) bl.hidden=false;
-    speak(spokenEn);
+    const rp=document.getElementById('listenReplay');
+    if(rp) rp.onclick=playThenAdvance;
+    playThenAdvance();
   }, 900);
 }
 function renderBranchChoice(step){
