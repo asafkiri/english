@@ -247,6 +247,8 @@ body{
 .seg{display:flex;background:var(--card);border-radius:12px;padding:3px;border:1px solid var(--line)}
 .seg button{border:none;background:transparent;color:var(--dim);font-family:inherit;font-weight:700;font-size:14px;padding:7px 14px;border-radius:9px;cursor:pointer;min-height:44px}
 .seg button.on{background:var(--green);color:#06281c}
+.name-edit{background:var(--card);border:1.5px solid var(--line);border-radius:12px;color:var(--text);padding:10px 12px;font-size:16px;font-family:inherit;width:140px;outline:none}
+.name-edit:focus{border-color:var(--green)}
 .toast{
   position:fixed;top:calc(18px + env(safe-area-inset-top));right:50%;transform:translateX(50%);background:var(--card2);
   border:1px solid var(--line);color:var(--text);padding:11px 20px;border-radius:99px;
@@ -1466,6 +1468,14 @@ function openSettings(){
   ov.innerHTML = `
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" onclick="event.stopPropagation()">
     <h3 id="settingsTitle">⚙️ הגדרות</h3>
+    <div class="set-row" style="flex-wrap:wrap;gap:8px">
+      <span>השם שלך</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="nameEdit" class="name-edit" type="text" maxlength="20" value="${esc(state.name)}" placeholder="השם שלך" autocomplete="off">
+        <button class="btn" style="width:auto;padding:10px 16px;font-size:15px" onclick="saveName()">שמור</button>
+      </div>
+      <div style="flex-basis:100%;color:var(--dim);font-size:12.5px">💡 שם באותיות אנגליות (למשל Dan) גם יישמע בקול בשיחות</div>
+    </div>
     <div class="set-row">
       <span>מהירות דיבור</span>
       <div class="seg">
@@ -1494,6 +1504,15 @@ function refreshSeg(btn){
   const seg = btn.parentElement;
   [...seg.children].forEach(b=>{ b.classList.remove('on'); b.setAttribute('aria-pressed','false'); });
   btn.classList.add('on'); btn.setAttribute('aria-pressed','true');
+}
+function saveName(){
+  const el = document.getElementById('nameEdit');
+  if(!el) return;
+  state.name = el.value.trim().slice(0, 20);
+  touchState('profileUpdatedAt');
+  save();
+  toast(state.name ? 'השם עודכן: ' + state.name + ' 👋' : 'השם נמחק');
+  if(state.name && /^[A-Za-z' .-]+$/.test(state.name)) speak('Hi ' + state.name + '!');
 }
 function setSpeed(slow, btn){ state.slowSpeech = slow; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); speak('Hello! How are you?'); }
 function setMic(on, btn){ state.micEnabled = on; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); }
