@@ -57,20 +57,22 @@ test('course content remains intact', () => {
   const { api } = runtime();
   assert.equal(api.UNITS.length, 4);
   assert.equal(api.LESSONS.length, 20);
-  for (const lesson of api.LESSONS) {
+  api.LESSONS.forEach((lesson, idx) => {
     assert.equal(lesson.phrases.length, 5);
-    assert.equal(lesson.dialogue.length, 4);
+    // branch lessons close with the choice conversation instead of the
+    // scripted dialogue, so their scripted dialogue stays at 4 lines
+    assert.equal(lesson.dialogue.length, api.BRANCH_DIALOGUES[idx] ? 4 : 8);
     for (const item of [...lesson.phrases, ...lesson.dialogue]) {
       assert.ok(item.en && item.he && item.tl);
     }
-  }
+  });
   const protectedContent = JSON.stringify({
     units: api.UNITS,
     lessons: api.LESSONS,
   });
   assert.equal(
     crypto.createHash('sha256').update(protectedContent).digest('hex'),
-    'dd538911abaa66920c94c166ef661ed0acf6991f61e76c6e04f81345573cd8b4',
+    'da07bb8a46691c4a738f9171f82105c0164e4e8726d788026c09992b4a56fc93',
   );
 });
 
@@ -167,10 +169,13 @@ test('there is one controlled branch conversation per unit', () => {
   const { api } = runtime();
   assert.deepEqual(Object.keys(api.BRANCH_DIALOGUES), ['4', '9', '14', '19']);
   for (const branch of Object.values(api.BRANCH_DIALOGUES)) {
-    assert.ok(branch.ask.en && branch.ask.he && branch.ask.tl);
-    assert.equal(branch.options.length, 3);
-    for (const option of branch.options) {
-      assert.ok(option.label && option.answer.en && option.reply.en);
+    assert.equal(branch.rounds.length, 2);
+    for (const round of branch.rounds) {
+      assert.ok(round.ask.en && round.ask.he && round.ask.tl);
+      assert.equal(round.options.length, 3);
+      for (const option of round.options) {
+        assert.ok(option.label && option.answer.en && option.reply.en);
+      }
     }
   }
 });
@@ -189,8 +194,8 @@ test('a branch choice keeps progress length stable and inserts its fixed continu
   api.chooseBranch(1);
   assert.equal(lesson.steps.length, originalLength);
   assert.equal(lesson.i, branchIndex + 1);
-  assert.equal(lesson.steps[lesson.i].p.en, api.BRANCH_DIALOGUES[4].options[1].answer.en);
-  assert.equal(lesson.steps[lesson.i + 1].line.en, api.BRANCH_DIALOGUES[4].options[1].reply.en);
+  assert.equal(lesson.steps[lesson.i].p.en, api.BRANCH_DIALOGUES[4].rounds[0].options[1].answer.en);
+  assert.equal(lesson.steps[lesson.i + 1].line.en, api.BRANCH_DIALOGUES[4].rounds[0].options[1].reply.en);
   api.stopLessonTimers(false);
 });
 
