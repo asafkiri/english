@@ -946,6 +946,7 @@ function jsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").re
 function renderSpeak(step){
   const p = step.p;
   L.curStep = step;
+  L.attempts = 0;
   const label = step.requeued ? '🔁 סיבוב שני — הפעם זה ילך' : step.isDlg ? '💬 עכשיו התור שלך בשיחה' : '🎤 עכשיו אתה';
   const mic = micAvailable();
   playerShell(`
@@ -962,7 +963,9 @@ function renderSpeak(step){
         <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
         <div class="heard" id="heard"></div>
         <div id="resultArea"></div>
-        <button class="btn ghost" onclick="skipSpeak()">${step.requeued ? 'המיקרופון לא עובד לי — המשך' : 'קשה לי עכשיו — נחזור לזה בסוף 🔁'}</button>
+        ${step.requeued
+          ? `<button class="btn ghost" id="escBtn" hidden onclick="skipSpeak()">המיקרופון לא עובד לי — המשך</button>`
+          : `<button class="btn ghost" onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`}
       ` : `
         <p class="mic-hint" style="margin-bottom:14px">תגיד את המשפט <b>בקול רם</b> — אפשר להיעזר בכתוב בעברית 🗣️</p>
         <button class="btn" onclick="selfDone()">אמרתי בקול! ✔</button>
@@ -972,6 +975,12 @@ function renderSpeak(step){
 }
 function selfDone(){
   showResult('pass', pick(PRAISE));
+}
+// the second-round escape hatch stays hidden until three mic attempts failed,
+// so it only surfaces when the mic is genuinely stuck
+function maybeShowEscape(){
+  const b = document.getElementById('escBtn');
+  if(b && (L.attempts || 0) >= 3) b.hidden = false;
 }
 // skipping with a mic available is not a free pass — the phrase comes back
 // at the end of the lesson (a requeued step can't requeue again)
@@ -988,6 +997,7 @@ function startListening(target){
   if('speechSynthesis' in window) speechSynthesis.cancel();
   const rec = new SR();
   L.rec = rec;
+  L.attempts = (L.attempts || 0) + 1;
   rec.lang = 'en-US';
   rec.interimResults = false;
   rec.maxAlternatives = 4;
@@ -1029,6 +1039,7 @@ function startListening(target){
     if(!got && hint.textContent.indexOf('מקשיב') > -1)
       hint.textContent = 'לא שמעתי כלום — נסה שוב, קרוב לטלפון 🎤';
     L.rec = null;
+    maybeShowEscape();
   };
   try{ rec.start(); }catch(e){ selfDone(); }
 }
