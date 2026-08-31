@@ -268,6 +268,15 @@ test('a lesson conversation reads as one coherent exchange', () => {
           `lesson ${idx} round ${n + 1}: "${option.reply.en}" asks a question, then the next line talks over it`);
       });
 
+      // Nobody says goodbye and then keeps talking: a farewell line belongs
+      // only to the final round — on either side of the conversation.
+      if (!last) round.options.forEach(option => {
+        for (const line of [option.answer.en, option.reply.en]) {
+          assert.ok(!/\bgoodbye\b|\bhave a nice day\b|(?:^|[^a-z])bye\b/i.test(line),
+            `lesson ${idx} round ${n + 1}: "${line}" says goodbye, then the conversation keeps going`);
+        }
+      });
+
       // The character must never introduce themselves as somebody else.
       Object.values(CAST).forEach(name => {
         if (name === speaker) return;
@@ -279,8 +288,10 @@ test('a lesson conversation reads as one coherent exchange', () => {
       // they actually give their name. Not four lines into a chat.
       const introduces = new RegExp(`my name is|\\b(I am|I'm) ${speaker}\\b`, 'i').test(round.ask.en);
       if (n > 1 && !introduces) round.options.forEach(option => {
-        assert.ok(!/\bnice to meet you\b/i.test(option.answer.en),
-          `lesson ${idx} round ${n + 1}: "${option.answer.en}" meets someone the learner has been talking to all along`);
+        for (const line of [option.answer.en, option.reply.en]) {
+          assert.ok(!/\bnice to meet you\b/i.test(line),
+            `lesson ${idx} round ${n + 1}: "${line}" meets someone the learner has been talking to all along`);
+        }
       });
     });
   }
