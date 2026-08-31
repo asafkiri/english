@@ -1194,10 +1194,10 @@ const BRANCH_DIALOGUES = {
 const LESSON_CHOICES = {
   0:{options:[
     {label:'אני בסדר, תודה', answer:{en:"I'm good, thanks", he:'אני בסדר, תודה', tl:'אַיְים גוּד, תֶ׳נְקְס'}, reply:{en:'Nice! Have a nice day!', he:'יפה! שיהיה לך יום טוב!', tl:'נַייס! הֶב אַ נַייס דֵיי!'}},
-    {label:'בוקר טוב! אני בסדר', answer:{en:"Good morning! I'm good", he:'בוקר טוב! אני בסדר', tl:'גוּד מוֹרְנִינְג! אַיְים גוּד'}, reply:{en:'Have a nice day!', he:'שיהיה לך יום טוב!', tl:'הֶב אַ נַייס דֵיי!'}},
+    {label:'אני בסדר. ואתה?', answer:{en:"I'm good. And you?", he:'אני בסדר. ואתה?', tl:'אַיְים גוּד. אֶנְד יוּ?'}, reply:{en:"I'm good too! Have a nice day!", he:'גם אני בסדר! שיהיה לך יום טוב!', tl:'אַיְים גוּד טוּ! הֶב אַ נַייס דֵיי!'}},
   ]},
   1:{options:[
-    {label:'אני מישראל', answer:{en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'}, reply:{en:'Wow, nice to meet you!', he:'וואו, נעים להכיר!', tl:'וּוַאוּ, נַייס טוּ מִיט יוּ!'}},
+    {label:'אני מישראל', answer:{en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'}, reply:{en:'Wow! I love Israel!', he:'וואו! אני מת על ישראל!', tl:'וּוַאוּ! אַיי לַאב יִשְׂרָאֵל!'}},
     {label:'אני מישראל. ואתה?', answer:{en:"I'm from Israel. And you?", he:'אני מישראל. ואתה?', tl:'אַיְים פְרוֹם יִשְׂרָאֵל. אֶנְד יוּ?'}, reply:{en:"I'm from London!", he:'אני מלונדון!', tl:'אַיְים פְרוֹם לוֹנְדוֹן!'}},
   ]},
   2:{options:[
@@ -1296,7 +1296,7 @@ const OPENING_ROUNDS = {
   0:{
     ask:{en:'Good morning, {name}!',he:'בוקר טוב!',tl:'גוּד מוֹרְנִינְג!'},
     options:[
-      {label:'בוקר טוב!',answer:{en:'Good morning!',he:'בוקר טוב!',tl:'גוּד מוֹרְנִינְג!'},reply:{en:'Good morning! The sun is out.',he:'בוקר טוב! השמש זורחת.',tl:'גוּד מוֹרְנִינְג! דֶה סַאן אִיז אַאוּט.'}},
+      {label:'בוקר טוב!',answer:{en:'Good morning!',he:'בוקר טוב!',tl:'גוּד מוֹרְנִינְג!'},reply:{en:'The sun is out. What a nice morning!',he:'השמש זורחת. איזה בוקר נחמד!',tl:'דֶה סַאן אִיז אַאוּט. וּוַאט אַ נַייס מוֹרְנִינְג!'}},
       {label:'היי!',answer:{en:'Hi!',he:'היי!',tl:'הַיי!'},reply:{en:'Hi! Nice to see you.',he:'היי! כיף לראות אותך.',tl:'הַיי! נַייס טוּ סִי יוּ.'}},
     ],
   },
@@ -1310,8 +1310,8 @@ const OPENING_ROUNDS = {
   2:{
     ask:{en:'Thank you for your help!',he:'תודה על העזרה!',tl:'תֶ׳נְק יוּ פוֹר יוֹר הֶלְפּ!'},
     options:[
-      {label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:'Have a nice day!',he:'שיהיה לך יום טוב!',tl:'הֶב אַ נַייס דֵיי!'}},
-      {label:'על לא דבר! להתראות',answer:{en:"You're welcome! Goodbye!",he:'על לא דבר! להתראות!',tl:'יוֹר וֶולְקַם! גוּדְבַּיי!'},reply:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'}},
+      {label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:'You are very nice!',he:'אתה נחמד מאוד!',tl:'יוּ אַר וֶורִי נַייס!'}},
+      {label:'אין בעיה!',answer:{en:'No problem!',he:'אין בעיה!',tl:'נוֹ פְּרוֹבְּלֶם!'},reply:{en:'Thanks again!',he:'תודה שוב!',tl:'תֶ׳נְקְס אַגֵין!'}},
     ],
   },
   3:{
@@ -1374,7 +1374,7 @@ const OPENING_ROUNDS = {
     ask:{en:'Can I help you?',he:'אפשר לעזור?',tl:'קֶן אַיי הֶלְפּ יוּ?'},
     options:[
       {label:'רק [[מסתכל|מסתכלת]], תודה',answer:{en:'Just looking, thanks',he:'רק [[מסתכל|מסתכלת]], תודה',tl:'גַ׳סְט לוּקִינְג, תֶ׳נְקְס'},reply:{en:'No problem!',he:'אין בעיה!',tl:'נוֹ פְּרוֹבְּלֶם!'}},
-      {label:'יש לכם את זה בשחור?',answer:{en:'Do you have this in black?',he:'יש לכם את זה בשחור?',tl:'דוּ יוּ הֶב דִיס אִין בְּלֶק?'},reply:{en:"Sorry, we don't.",he:'סליחה, אין לנו.',tl:'סוֹרִי, וִי דוֹנְט.'}},
+      {label:'יש לכם את זה בשחור?',answer:{en:'Do you have this in black?',he:'יש לכם את זה בשחור?',tl:'דוּ יוּ הֶב דִיס אִין בְּלֶק?'},reply:{en:'Let me look for you.',he:'תן לי לבדוק בשבילך.',tl:'לֶט מִי לוּק פוֹר יוּ.'}},
     ],
   },
   15:{
@@ -1387,8 +1387,8 @@ const OPENING_ROUNDS = {
   16:{
     ask:{en:'Do you want to go out today, {name}?',he:'רוצה לצאת היום?',tl:'דוּ יוּ וּוֹנְט טוּ גוֹ אַאוּט טוּדֵיי?'},
     options:[
-      {label:'נשמע טוב! בחמש?',answer:{en:'Sounds good! At five?',he:'נשמע טוב! בחמש?',tl:'סַאוּנְדְס גוּד! אֶט פַייב?'},reply:{en:'Yes, at five!',he:'כן, בחמש!',tl:'יֶס, אֶט פַייב!'}},
-      {label:'אני לא [[יכול|יכולה]] היום. בשבע?',answer:{en:"I can't today. At seven?",he:'אני לא [[יכול|יכולה]] היום. בשבע?',tl:'אַיי קֶאנְט טוּדֵיי. אֶט סֶבֶן?'},reply:{en:'Yes, at seven!',he:'כן, בשבע!',tl:'יֶס, אֶט סֶבֶן!'}},
+      {label:'נשמע טוב! בחמש?',answer:{en:'Sounds good! At five?',he:'נשמע טוב! בחמש?',tl:'סַאוּנְדְס גוּד! אֶט פַייב?'},reply:{en:'Five... or maybe seven! Let me think.',he:'חמש... או אולי שבע! תן לי לחשוב.',tl:'פַייב... אוֹר מֵייבִּי סֶבֶן! לֶט מִי תִ׳ינְק.'}},
+      {label:'אני לא [[יכול|יכולה]] היום. בשבע?',answer:{en:"I can't today. At seven?",he:'אני לא [[יכול|יכולה]] היום. בשבע?',tl:'אַיי קֶאנְט טוּדֵיי. אֶט סֶבֶן?'},reply:{en:'Maybe seven! Let me think.',he:'אולי שבע! תן לי לחשוב.',tl:'מֵייבִּי סֶבֶן! לֶט מִי תִ׳ינְק.'}},
     ],
   },
   17:{
@@ -1601,8 +1601,8 @@ const FINALE_ROUND_OVERRIDES = {
   24:{rounds:[
     {ask:{en:'Hello {name}! What would you like today?',he:'שלום! מה [[תרצה|תרצי]] היום?',tl:'הֶלוֹ! וּוַאט וּוּד יוּ לַייק טוּדֵיי?'},options:[
       {label:'אני רוצה את {color}',answer:{en:'I want the {color} one',he:'אני רוצה את ה{color}',tl:'אַיי וּוֹנְט דֶה {color} וַואן'},reply:{en:'Good choice! Forty shekels, please',he:'בחירה טובה! ארבעים שקל, בבקשה',tl:'גוּד צ׳וֹיס! פוֹרְטִי שֶקֶלְס, פְּלִיז'}},
-      {label:'כמה עולה החולצה השחורה?',answer:{en:'How much is the black shirt?',he:'כמה עולה החולצה השחורה?',tl:'הַאוּ מַאץ׳ אִיז דֶה בְּלֶק שֶרְט?'},reply:{en:'Fifty shekels',he:'חמישים שקל',tl:'פִיפְטִי שֶקֶלְס'}},
-      {label:'אני רוצה את החולצה השחורה',answer:{en:'I want the black shirt',he:'אני רוצה את החולצה השחורה',tl:'אַיי וּוֹנְט דֶה בְּלֶק שֶרְט'},reply:{en:'Good choice! Fifty shekels, please',he:'בחירה טובה! חמישים שקל, בבקשה',tl:'גוּד צ׳וֹיס! פִיפְטִי שֶקֶלְס, פְּלִיז'}},
+      {label:'כמה עולה החולצה השחורה?',answer:{en:'How much is the black shirt?',he:'כמה עולה החולצה השחורה?',tl:'הַאוּ מַאץ׳ אִיז דֶה בְּלֶק שֶרְט?'},reply:{en:'Forty shekels',he:'ארבעים שקל',tl:'פוֹרְטִי שֶקֶלְס'}},
+      {label:'אני רוצה את החולצה השחורה',answer:{en:'I want the black shirt',he:'אני רוצה את החולצה השחורה',tl:'אַיי וּוֹנְט דֶה בְּלֶק שֶרְט'},reply:{en:'Good choice! Forty shekels, please',he:'בחירה טובה! ארבעים שקל, בבקשה',tl:'גוּד צ׳וֹיס! פוֹרְטִי שֶקֶלְס, פְּלִיז'}},
     ]},
     {ask:{en:'We are open Monday, Tuesday and Friday. When do you want to come back?',he:'אנחנו פתוחים ביום שני, שלישי ושישי. מתי [[תרצה|תרצי]] לחזור?',tl:'וִי אַר אוֹפֶּן מַאנְדֵיי, טְיוּזְדֵיי אֶנְד פְרַיידֵיי. וֶון דוּ יוּ וּוֹנְט טוּ קַאם בֶּק?'},options:[
       {label:'אפשר לבוא ביום שני?',answer:{en:'Can I come on Monday?',he:'אפשר לבוא ביום שני?',tl:'קֶן אַיי קַאם אוֹן מַאנְדֵיי?'},reply:{en:'Of course! See you on Monday!',he:'ברור! נתראה ביום שני!',tl:'אוֹף קוֹרְס! סִי יוּ אוֹן מַאנְדֵיי!'}},
@@ -1633,7 +1633,7 @@ const MIDDLE_ROUNDS = {
     ask:{en:"I'm Tom.",he:'אני טום.',tl:'אַיְים טוֹם.'},
     options:[
       {label:'היי טום!',answer:{en:'Hi Tom!',he:'היי טום!',tl:'הַיי טוֹם!'},reply:{en:'It is a nice morning today.',he:'זה בוקר נחמד היום.',tl:'אִיט אִיז אַ נַייס מוֹרְנִינְג טוּדֵיי.'}},
-      {label:'שלום טום! בוקר טוב!',answer:{en:'Hello Tom! Good morning!',he:'שלום טום! בוקר טוב!',tl:'הֶלוֹ טוֹם! גוּד מוֹרְנִינְג!'},reply:{en:'Good morning! I like the way you say it.',he:'בוקר טוב! אני אוהב איך שאמרת את זה.',tl:'גוּד מוֹרְנִינְג! אַיי לַייק דֶה וֵּוי יוּ סֵיי אִיט.'}},
+      {label:'שלום טום! מה שלומך?',answer:{en:'Hello Tom! How are you?',he:'שלום טום! מה שלומך?',tl:'הֶלוֹ טוֹם! הַאוּ אַר יוּ?'},reply:{en:"I'm good, thanks!",he:'אני בסדר, תודה!',tl:'אַיְים גוּד, תֶ׳נְקְס!'}},
     ],
   },
   1:{
@@ -1694,11 +1694,11 @@ const MIDDLE_ROUNDS = {
     ],
   },
   9:{
-    ask:{en:'Look over there! Something is on the bench.',he:'תראה שם! משהו על הספסל.',tl:'לוּק אוֹבֶר דֶר! סַמְת׳ִינְג אִיז אוֹן דֶה בֶּנְץ׳.'},
+    ask:{en:'Do you know this street, {name}?',he:'אתה מכיר את הרחוב הזה?',tl:'דוּ יוּ נוֹאוּ דִיס סְטְרִיט?'},
     options:[
-      {label:'מה זה?',answer:{en:'What is this?',he:'מה זה?',tl:'וּוַאט אִיז דִיס?'},reply:{en:'I think it is a phone!',he:'אני חושב שזה טלפון!',tl:'אַיי ת׳ִינְק אִיט אִיז אַ פוֹן!'}},
-      {label:'איפה זה?',answer:{en:'Where is it?',he:'איפה זה?',tl:'וֶור אִיז אִיט?'},reply:{en:'It is right there, near the bench!',he:'זה בדיוק שם, ליד הספסל!',tl:'אִיט אִיז רַייט דֶר, נִיר דֶה בֶּנְץ׳!'}},
-      {label:'מי זה?',answer:{en:'Who is that?',he:'מי זה?',tl:'הוּ אִיז דֶאט?'},reply:{en:'That is my friend. He is looking too!',he:'זה החבר שלי. גם הוא מחפש!',tl:'דֶאט אִיז מַיי פְרֶנְד. הִי אִיז לוּקִינְג טוּ!'}},
+      {label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'That is OK. We will look together.',he:'זה בסדר. נחפש ביחד.',tl:'דֶאט אִיז אוֹקֵיי. וִוי וִויל לוּק טוּגֶדֶר.'}},
+      {label:'אתה יכול לעזור לי?',answer:{en:'Can you help me?',he:'אתה יכול לעזור לי?',tl:'קֶן יוּ הֶלְפּ מִי?'},reply:{en:'Of course! I know this street well.',he:'ברור! אני מכיר את הרחוב הזה טוב.',tl:'אוֹף קוֹרְס! אַיי נוֹאוּ דִיס סְטְרִיט וֶול.'}},
+      {label:'איפה זה?',answer:{en:'Where is it?',he:'איפה זה?',tl:'וֶור אִיז אִיט?'},reply:{en:'It is right behind us!',he:'זה ממש מאחורינו!',tl:'אִיט אִיז רַייט בִּיהַיינְד אַס!'}},
     ],
   },
   10:{
@@ -1781,7 +1781,7 @@ const MIDDLE_ROUNDS = {
     ],
   },
   21:{
-    ask:{en:'OK — forty shekels. Is that good?',he:'טוב — ארבעים שקל. זה בסדר?',tl:'אוֹקֵיי — פוֹרְטִי שֶׁקֶלְס. אִיז דֶאט גוּד?'},
+    ask:{en:'This one costs forty shekels. Is that good?',he:'זה עולה ארבעים שקל. זה בסדר?',tl:'דִיס וַואן קוֹסְטְס פוֹרְטִי שֶׁקֶלְס. אִיז דֶאט גוּד?'},
     options:[
       {label:'רק ארבעים? אני [[לוקח|לוקחת]]!',answer:{en:"Only forty? I'll take it!",he:'רק ארבעים? אני [[לוקח|לוקחת]]!',tl:'אוֹנְלִי פוֹרְטִי? אַיְיל טֵייק אִיט!'},reply:{en:'Deal! Here you go.',he:'סגרנו! בבקשה.',tl:'דִיל! הִיר יוּ גוֹ.'}},
       {label:'זה יותר מדי! שלושים?',answer:{en:'That is too much! Thirty?',he:'זה יותר מדי! שלושים?',tl:'דֶאט אִיז טוּ מַאץ׳! ת׳ֶרְטִי?'},reply:{en:'OK, OK — thirty shekels!',he:'טוב, טוב — שלושים שקל!',tl:'אוֹקֵיי, אוֹקֵיי — ת׳ֶרְטִי שֶׁקֶלְס!'}},
@@ -1831,7 +1831,7 @@ const MIDDLE_ROUNDS = {
     ],
   },
   28:{
-    ask:{en:'Is it hot or cold outside today?',he:'חם או קר בחוץ היום?',tl:'אִיז אִיט הוֹט אוֹר קוֹלְד אַאוּטְסַייד טוּדֵיי?'},
+    ask:{en:'My mom asks — is it hot or cold outside?',he:'אמא שלי שואלת — חם או קר בחוץ?',tl:'מַיי מוֹם אַסְקְס — אִיז אִיט הוֹט אוֹר קוֹלְד אַאוּטְסַייד?'},
     options:[
       {label:'חם היום',answer:{en:"It's hot today",he:'חם היום',tl:'אִיטְס הוֹט טוּדֵיי'},reply:{en:"Then let's go to the beach!",he:'אז בוא נלך לים!',tl:'דֶן לֶטְס גוֹ טוּ דֶה בִּיץ׳!'}},
       {label:'קר בחוץ',answer:{en:"It's cold outside",he:'קר בחוץ',tl:'אִיטְס קוֹלְד אַאוּטְסַייד'},reply:{en:'Then we stay inside today.',he:'אז נישאר בפנים היום.',tl:'דֶן וִוי סְטֵיי אִינְסַייד טוּדֵיי.'}},
@@ -1917,18 +1917,18 @@ const EXTRA_ROUNDS = {
     ],
   },
   9:{
-    ask:{en:'Do you know this street, {name}?',he:'אתה מכיר את הרחוב הזה?',tl:'דוּ יוּ נוֹאוּ דִיס סְטְרִיט?'},
+    ask:{en:'Look over there! Something is on the bench.',he:'תראה שם! משהו על הספסל.',tl:'לוּק אוֹבֶר דֶר! סַמְת׳ִינְג אִיז אוֹן דֶה בֶּנְץ׳.'},
     options:[
-      {label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'That is OK. We will look together.',he:'זה בסדר. נחפש ביחד.',tl:'דֶאט אִיז אוֹקֵיי. וִוי וִויל לוּק טוּגֶדֶר.'}},
-      {label:'אתה יכול לעזור לי?',answer:{en:'Can you help me?',he:'אתה יכול לעזור לי?',tl:'קֶן יוּ הֶלְפּ מִי?'},reply:{en:'Of course! I know this street well.',he:'ברור! אני מכיר את הרחוב הזה טוב.',tl:'אוֹף קוֹרְס! אַיי נוֹאוּ דִיס סְטְרִיט וֶול.'}},
-      {label:'איפה זה?',answer:{en:'Where is it?',he:'איפה זה?',tl:'וֶור אִיז אִיט?'},reply:{en:'It is right behind us!',he:'זה ממש מאחורינו!',tl:'אִיט אִיז רַייט בִּיהַיינְד אַס!'}},
+      {label:'מה זה?',answer:{en:'What is this?',he:'מה זה?',tl:'וּוַאט אִיז דִיס?'},reply:{en:"I can't see it well from here.",he:'אני לא רואה טוב מכאן.',tl:'אַיי קֶאנְט סִי אִיט וֶול פְרוֹם הִיר.'}},
+      {label:'איפה זה?',answer:{en:'Where is it?',he:'איפה זה?',tl:'וֶור אִיז אִיט?'},reply:{en:'It is right there, near the bench!',he:'זה בדיוק שם, ליד הספסל!',tl:'אִיט אִיז רַייט דֶר, נִיר דֶה בֶּנְץ׳!'}},
+      {label:'מי זה?',answer:{en:'Who is that?',he:'מי זה?',tl:'הוּ אִיז דֶאט?'},reply:{en:'That is my friend. He is looking too!',he:'זה החבר שלי. גם הוא מחפש!',tl:'דֶאט אִיז מַיי פְרֶנְד. הִי אִיז לוּקִינְג טוּ!'}},
     ],
   },
   10:{
-    ask:{en:'Are you hungry, {name}?',he:'אתה רעב?',tl:'אַר יוּ הַאנְגְרִי?'},
+    ask:{en:'The food is almost ready, {name}. Are you hungry?',he:'האוכל כמעט מוכן. אתה רעב?',tl:'דֶה פוּד אִיז אוֹלְמוֹסְט רֶדִי. אַר יוּ הַאנְגְרִי?'},
     options:[
       {label:'כן, אני [[רעב|רעבה]]',answer:{en:"Yes, I'm hungry",he:'כן, אני [[רעב|רעבה]]',tl:'יֶס, אַיְים הַאנְגְרִי'},reply:{en:'Then let us eat!',he:'אז בוא נאכל!',tl:'דֶן לֶט אַס אִיט!'}},
-      {label:'אפשר המבורגר?',answer:{en:'Can I have a burger?',he:'אפשר המבורגר?',tl:'קֶן אַיי הֶב אַ בֶּרְגֶר?'},reply:{en:'Of course! Coming up.',he:'ברור! מגיע.',tl:'אוֹף קוֹרְס! קַאמִינְג אַפּ.'}},
+      {label:'אפשר המבורגר?',answer:{en:'Can I have a burger?',he:'אפשר המבורגר?',tl:'קֶן אַיי הֶב אַ בֶּרְגֶר?'},reply:{en:'Of course! A burger is coming too.',he:'ברור! גם המבורגר בדרך.',tl:'אוֹף קוֹרְס! אַ בֶּרְגֶר אִיז קַאמִינְג טוּ.'}},
     ],
   },
   11:{
@@ -2047,14 +2047,14 @@ const EXTRA_ROUNDS = {
     ],
   },
   27:{
-    ask:{en:'While you rest — can you name what you learned?',he:'בזמן שאתה נח — אתה יכול להגיד מה למדת?',tl:'וַּוייל יוּ רֶסְט — קֶן יוּ נֵיים וּוַאט יוּ לֶרְנְד?'},
+    ask:{en:'While you rest — what parts of the body do you know?',he:'בזמן שאתה נח — אילו חלקי גוף אתה מכיר באנגלית?',tl:'וַּוייל יוּ רֶסְט — וּוַאט פַּארְטְס אוֹף דֶה בּוֹדִי דוּ יוּ נוֹאוּ?'},
     options:[
       {label:'ראש, ידיים ורגליים',answer:{en:'Head, hands and legs',he:'ראש, ידיים ורגליים',tl:'הֶד, הֶנְדְז אֶנְד לֶגְז'},reply:{en:'Very good! You know them.',he:'יפה מאוד! אתה יודע אותם.',tl:'וֶורִי גוּד! יוּ נוֹאוּ דֶם.'}},
       {label:'עיניים, אוזניים ופה',answer:{en:'Eyes, ears and mouth',he:'עיניים, אוזניים ופה',tl:'אַייז, אִירְז אֶנְד מַאוּת׳'},reply:{en:'Perfect! All of them.',he:'מושלם! כולם.',tl:'פֶּרְפֶקְט! אוֹל אוֹף דֶם.'}},
     ],
   },
   28:{
-    ask:{en:'Look outside — is the sun out?',he:'תסתכל בחוץ — השמש זורחת?',tl:'לוּק אַאוּטְסַייד — אִיז דֶה סַאן אַאוּט?'},
+    ask:{en:'Wait — look again! Is the sun out now?',he:'רגע — תסתכל שוב! השמש בחוץ עכשיו?',tl:'וֵּוייט — לוּק אַגֵין! אִיז דֶה סַאן אַאוּט נַאוּ?'},
     options:[
       {label:'השמש זורחת!',answer:{en:'The sun is out!',he:'השמש זורחת!',tl:'דֶה סַאן אִיז אַאוּט!'},reply:{en:'Beautiful! A good day for the beach.',he:'יפה! יום טוב לים.',tl:'בְּיוּטִיפוּל! אַ גוּד דֵיי פוֹר דֶה בִּיץ׳.'}},
       {label:'יורד גשם!',answer:{en:"It's raining!",he:'יורד גשם!',tl:'אִיטְס רֵיינִינְג!'},reply:{en:'Then we stay home today.',he:'אז נישאר בבית היום.',tl:'דֶן וִוי סְטֵיי הוֹם טוּדֵיי.'}},
