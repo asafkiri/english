@@ -3028,8 +3028,8 @@ function renderDialogueSpeak(step){
     <div class="mic-hint composer-note" id="micHint">${mic?'לחץ על המיקרופון, דבר ולחץ שוב לסיום':'אמור את המשפט בקול והמשך'}</div>
     <div class="heard" id="heard">${heardHtml}</div>
     <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
-    ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=1?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
-    <button class="btn ghost" id="skipBtn" style="padding:7px" onclick="skipDialogueSpeak()">קשה לי עכשיו — נמשיך בשיחה</button>
+    ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
+    <button class="btn ghost" id="skipBtn" style="padding:7px" ${(step.attempts||0)>=3?'':'hidden'} onclick="skipDialogueSpeak()">קשה לי עכשיו — נמשיך בשיחה</button>
   `;
   dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
   if(terminal||step.retryMessage) requestAnimationFrame(scrollComposerToEnd);
@@ -3113,8 +3113,7 @@ function wordFeedbackHtml(details){
    way out never appears before a real effort was made. A genuinely broken
    mic (force=true) reveals the manual path immediately. */
 function revealEscapes(force=false){
-  const needed=L?.curStep?.isDlg?1:3;
-  if(!force && (L?.attempts||0) < needed) return;
+  if(!force && (L?.attempts||0) < 3) return;
   const manual=document.getElementById('manualMicBtn');
   if(manual) manual.hidden=false;
   if(!force){

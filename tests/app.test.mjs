@@ -37,11 +37,13 @@ function runtime(seed = new Map()) {
     navigator: {}, location: { reload() {} },
     confirm: () => true,
     setTimeout, clearTimeout, setInterval, clearInterval,
+    requestAnimationFrame: fn => setTimeout(fn, 0),
+    cancelAnimationFrame: id => clearTimeout(id),
     Date, Math, JSON, Map, Set, String, Number, Array, Object, Promise,
   });
   const expose = `
     ;globalThis.__test = {
-      UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION,
+      UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
@@ -72,7 +74,7 @@ test('course content remains intact', () => {
   });
   assert.equal(
     crypto.createHash('sha256').update(protectedContent).digest('hex'),
-    '8f8ae32f8303a44c004044053f07479e19317d2fd38b36747f67a0894f52ae17',
+    '46793e10019e3cfd3c218a44e87f65f6213deb9845a126a1afc03964c19f2159',
   );
 });
 
@@ -194,8 +196,8 @@ test('a branch choice keeps progress length stable and inserts its fixed continu
   api.chooseBranch(1);
   assert.equal(lesson.steps.length, originalLength);
   assert.equal(lesson.i, branchIndex + 1);
-  assert.equal(lesson.steps[lesson.i].p.en, api.BRANCH_DIALOGUES[4].rounds[0].options[1].answer.en);
-  assert.equal(lesson.steps[lesson.i + 1].line.en, api.BRANCH_DIALOGUES[4].rounds[0].options[1].reply.en);
+  assert.equal(lesson.steps[lesson.i].p.en, api.conversationRounds(4)[0].options[1].answer.en);
+  assert.equal(lesson.steps[lesson.i + 1].line.en, api.conversationRounds(4)[0].options[1].reply.en);
   api.stopLessonTimers(false);
 });
 
@@ -435,7 +437,7 @@ test('a completed speaking result resumes without requiring the phrase again', (
 test('PWA update code is versioned and does not clear local progress', () => {
   const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
   assert.match(sw, /CACHE_PREFIX\s*=\s*'speak-english-'/);
-  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v3'/);
+  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v4'/);
   assert.match(sw, /SKIP_WAITING/);
   assert.match(html, /updateViaCache:'none'/);
   assert.doesNotMatch(sw, /localStorage/);
