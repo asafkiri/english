@@ -868,9 +868,9 @@ function startLesson(idx, isReplay){
   const steps = [{type:'intro'}];
   // warm-up from earlier lessons, hard phrases first, random otherwise.
   // it grows as the course advances — one more phrase per lesson (~half a
-  // minute), capped at 10 so a lesson stays around the 15-minute promise
+  // minute), capped at 20 (~10 minutes of review at the end of the course)
   if(!isReplay && idx > 0){
-    const target = Math.min(2 + idx, 10);
+    const target = Math.min(2 + idx, 20);
     const learned = [];
     for(let li = 0; li < idx; li++) LESSONS[li].phrases.forEach((p, pi)=>learned.push({p, id:li+':'+pi}));
     const hardSet = new Set(state.hard || []);
