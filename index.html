@@ -3651,19 +3651,42 @@ function resetAll(){
 let L = null; // current lesson session
 let dialogueTimer = null;
 let dialogueFlowToken = 0;
+let dialogueFlowNext = null;
 function invalidateDialogueFlow(cancelVoice=false){
   if(dialogueTimer){ clearTimeout(dialogueTimer); dialogueTimer=null; }
+  dialogueFlowNext=null;
   dialogueFlowToken++;
   if(cancelVoice) cancelSpeech();
 }
 function scheduleDialogueFlow(callback,delay){
   invalidateDialogueFlow(false);
+  dialogueFlowNext=callback;
   const token=dialogueFlowToken,session=L,stepIndex=L?.i;
   dialogueTimer=setTimeout(()=>{
-    dialogueTimer=null;
-    if(!L||L!==session||L.i!==stepIndex||dialogueFlowToken!==token||L.flowPaused||document.hidden) return;
+    dialogueTimer=null;dialogueFlowNext=null;
+    if(!L||L!==session||L.i!==stepIndex||dialogueFlowToken!==token||document.hidden) return;
     callback();
   },delay);
+}
+/* Opening a translation used to freeze the conversation behind a resume
+   button. Nobody wants to operate a tape deck mid-chat: the flow now simply
+   grants more time on its own — the pending advance is pushed back, and the
+   talk carries on by itself once the reader has had a moment. */
+function delayDialogueFlow(extraMs){
+  if(dialogueTimer&&dialogueFlowNext) scheduleDialogueFlow(dialogueFlowNext,extraMs);
+}
+/* A replay holds the automatic advance while the line plays again, then
+   re-arms it — across repeated replays too. */
+function replayHoldingFlow(text){
+  const session=L,stepIndex=L?.i;
+  const pending=dialogueTimer?dialogueFlowNext:(session?.replayHeldFlow||null);
+  if(dialogueTimer) invalidateDialogueFlow(false);
+  if(session) session.replayHeldFlow=pending;
+  speak(text,()=>{
+    if(!session||L!==session||L.i!==stepIndex) return;
+    session.replayHeldFlow=null;
+    if(pending) scheduleDialogueFlow(pending,1600);
+  });
 }
 function shuffled(arr){
   const out = arr.slice();
@@ -3834,7 +3857,7 @@ function startLesson(idx, isReplay, force=false){
   steps.push({type:'done'});
   L = {
     idx,lesson,steps,i:0,isReplay,tries:0,attempts:0,rec:null,timerId:null,
-    elapsedBeforeMs:0,activeSince:Date.now(),chat:[],warmupIds,flowPaused:false,chatExpanded:false,
+    elapsedBeforeMs:0,activeSince:Date.now(),chat:[],warmupIds,chatExpanded:false,
     runId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),
   };
   saveLessonCheckpoint();
@@ -3868,7 +3891,7 @@ function saveLessonCheckpoint(){
   state.session = {
     version:SESSION_VERSION, idx:L.idx, isReplay:!!L.isReplay, i:L.i,
     steps:L.steps, elapsedMs:activeElapsedMs(), chat:L.chat||[], warmupIds:L.warmupIds||[],
-    flowPaused:!!L.flowPaused,chatExpanded:!!L.chatExpanded,runId:L.runId, savedAt,
+    chatExpanded:!!L.chatExpanded,runId:L.runId, savedAt,
   };
   touchState('sessionUpdatedAt');
   save();
@@ -3896,7 +3919,7 @@ function resumeLesson(){
     idx:s.idx,lesson:LESSONS[s.idx],steps:s.steps,i:s.i,isReplay:!!s.isReplay,
     tries:0,attempts:0,rec:null,timerId:null,elapsedBeforeMs:Number(s.elapsedMs)||0,
     activeSince:Date.now(),chat:Array.isArray(s.chat)?s.chat:[],warmupIds:Array.isArray(s.warmupIds)?s.warmupIds:[],
-    flowPaused:!!s.flowPaused,chatExpanded:!!s.chatExpanded,
+    chatExpanded:!!s.chatExpanded,
     runId:typeof s.runId==='string'?s.runId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),
   };
   renderStep();
@@ -3939,7 +3962,7 @@ function next(){
     L.chat.push({who:'you',line:current.p,showHe:false,showTl:false}); current.chatAdded=true;
   }
   stopRecognition();
-  L.i++; L.tries = 0; L.flowPaused=false;
+  L.i++; L.tries = 0;
   saveLessonCheckpoint();
   renderStep();
   requestAnimationFrame(()=>{ if(L===session) L.stepTransitioning=false; });
@@ -4063,7 +4086,7 @@ function startPractice(){
     practiceTopicId:session.topic.id, practiceSceneId:session.sceneId,
     tries:0, attempts:0, rec:null, timerId:null,
     elapsedBeforeMs:0, activeSince:Date.now(), chat:[], warmupIds:[],
-    flowPaused:false, chatExpanded:false,
+    chatExpanded:false,
     runId:'practice-'+Date.now().toString(36),
   };
   renderStep();
@@ -4219,7 +4242,6 @@ const STAGE_CUES = {
   thinking:  (n,v)=>({icon:'💭', text:n+' '+v('חושב','חושבת')+'…'}),
   incoming:  (n,v)=>({icon:'💭', text:n+' '+v('עומד','עומדת')+' לדבר'}),
   choosing:  ()=>   ({icon:'👆', text:'בחר מה לענות'}),
-  paused:    ()=>   ({icon:'⏸️', text:'השיחה מושהית'}),
 };
 function stageCueHtml(cue, character){
   const verb=(m,f)=>character&&character.f?f:m;
@@ -4333,8 +4355,8 @@ function toggleCaptionAid(kind, button){
   const panel=document.getElementById(kind==='tl'?'capTl':'capHe');
   if(panel) panel.hidden=!step[field];
   if(button) button.setAttribute('aria-pressed',String(!!step[field]));
-  // reading takes time — hold the conversation while an aid is open
-  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+  // reading takes time — give the conversation a longer beat, on its own
+  delayDialogueFlow(4000);
 }
 function stageCaptionLine(){
   const step=L?.steps?.[L.i];
@@ -4348,20 +4370,24 @@ function stageCaptionLine(){
 function replayStageLine(){
   const line=stageCaptionLine();
   if(!line) return;
-  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
-  speak(ptext(line,'en',true));
+  replayHoldingFlow(ptext(line,'en',true));
 }
 function openChatHistory(){
   if(!L) return;
-  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+  // hold the flow while the history sheet is open; closing it resumes alone
+  const session=L,stepIndex=L.i;
+  const pending=dialogueTimer?dialogueFlowNext:null;
+  if(pending) invalidateDialogueFlow(false);
+  const closeAnd=()=>{ if(pending&&L===session&&L.i===stepIndex) scheduleDialogueFlow(pending,900); };
   const ov=document.createElement('div');
   ov.className='overlay';
   ov.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
     <h3>📜 מה נאמר עד עכשיו</h3>
     <div style="max-height:60vh;overflow:auto">${chatMessagesHtml()}</div>
-    <button class="btn secondary" style="margin-top:14px" onclick="this.closest('.overlay').remove()">סגור</button>
+    <button class="btn secondary" style="margin-top:14px">סגור</button>
   </div>`;
-  ov.onclick=()=>ov.remove();
+  ov.querySelector('.btn').onclick=()=>{ ov.remove(); closeAnd(); };
+  ov.onclick=()=>{ ov.remove(); closeAnd(); };
   document.body.appendChild(ov);
 }
 function dialogueShell(messages,composer){
@@ -4404,7 +4430,7 @@ function toggleBubbleAid(source,index,kind,button){
   const panel=document.getElementById(`bubble-${kind}-${source}-${index}`);
   if(panel) panel.hidden=!target[field];
   if(button) button.setAttribute('aria-pressed',String(!!target[field]));
-  if((L?.steps?.[L.i]?.type==='listen'||source==='current')&&!L.flowPaused&&dialogueTimer) pauseDialogue();
+  if(L?.steps?.[L.i]?.type==='listen'||source==='current') delayDialogueFlow(4000);
   saveLessonCheckpoint();
   requestAnimationFrame(()=>source==='history'?scrollChatItemIntoView(source,index):scrollConversationToEnd());
 }
@@ -4415,7 +4441,7 @@ function toggleChatHistory(){
   const btn=document.getElementById('historyToggle');
   if(older) older.hidden=!L.chatExpanded;
   if(btn) btn.textContent=L.chatExpanded?'הסתר הודעות קודמות':'הצג הודעות קודמות';
-  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+  if(L.chatExpanded) delayDialogueFlow(6000);
   saveLessonCheckpoint();
   requestAnimationFrame(()=>{
     if(L.chatExpanded&&btn?.scrollIntoView) btn.scrollIntoView({block:'start',behavior:'smooth'});
@@ -4425,22 +4451,9 @@ function toggleChatHistory(){
 function replayChatMessage(source,index){
   const item=chatItem(source,index);
   if(!item) return;
-  if(!L?.flowPaused&&dialogueTimer) pauseDialogue();
   // Always use the speech-safe form. A Hebrew learner name remains visible
   // in the bubble, but is omitted from the English TTS voice.
-  speak(ptext(item.line,'en',true));
-}
-function pauseDialogue(){
-  if(!L) return;
-  L.flowPaused=true;invalidateDialogueFlow(true);saveLessonCheckpoint();
-  const status=document.getElementById('flowStatus');
-  if(status) status.textContent='השיחה מושהית — אפשר לקרוא או לשמוע שוב';
-  const pause=document.getElementById('pauseFlow');if(pause) pause.hidden=true;
-  const resume=document.getElementById('resumeFlow');if(resume) resume.hidden=false;
-}
-function resumeDialogue(){
-  if(!L) return;
-  L.flowPaused=false;saveLessonCheckpoint();renderStep();
+  replayHoldingFlow(ptext(item.line,'en',true));
 }
 function noteHint(step){
   if(!step || !step.hid) return;
@@ -4523,7 +4536,7 @@ function renderDialogueSpeak(step){
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
   }
   if(terminal||step.retryMessage) requestAnimationFrame(scrollComposerToEnd);
-  if(terminal&&!L.flowPaused){
+  if(terminal){
     // The same 1.9s as before, but read as a person rather than as a wait:
     // heard you -> a beat where they take it in -> they answer.
     if(L.isPractice){
@@ -4962,28 +4975,24 @@ function renderListen(step){
   const runsOn=L.steps[L.i+1]?.type==='listen';
   if(continuing) step.arrived=true;
   const current=step.arrived?{who:'app',line,showHe:!!step.showHe,showTl:!!step.showTl}:null;
-  const paused=!!L.flowPaused;
-  const typing=`<div class="dlg-line typing-line"><div class="dlg-avatar" aria-hidden="true">${meta.character.avatar}</div><div class="dlg-bubble voice-note">${paused
-    ? `⏸️ ההודעה של ${esc(meta.character.name)} מושהית`
-    : `🎙️ ${esc(meta.character.name)} שולח הודעה<span class="vdots"><i></i><i></i><i></i></span>`}</div></div>`;
+  const typing=`<div class="dlg-line typing-line"><div class="dlg-avatar" aria-hidden="true">${meta.character.avatar}</div><div class="dlg-bubble voice-note">🎙️ ${esc(meta.character.name)} שולח הודעה<span class="vdots"><i></i><i></i><i></i></span></div></div>`;
+  // No pause and no skip: the conversation just flows, like a real one.
+  // Whoever needs a moment gets it by opening an aid or replaying a line —
+  // the flow waits a little longer on its own and then carries on.
   const composer=`
     <div class="flow-controls">
-      <span id="flowStatus">${paused?'השיחה מושהית — אפשר לקרוא או לשמוע שוב':step.arrived?meta.character.name+' מדבר…':'הודעה חדשה בדרך…'}</span>
-      <button id="pauseFlow" ${paused?'hidden':''} onclick="pauseDialogue()">⏸ השהה</button>
-      <button id="resumeFlow" ${paused?'':'hidden'} onclick="resumeDialogue()">▶ המשך</button>
-      <button onclick="next()">דלג קדימה</button>
+      <span id="flowStatus">${step.arrived?meta.character.name+' מדבר…':'הודעה חדשה בדרך…'}</span>
     </div>`;
   if(L.isPractice){
-    stageShell(step.arrived&&!paused?'speaking':'waiting',
+    stageShell(step.arrived?'speaking':'waiting',
       step.arrived
         ? captionHtml(line,step)
         : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
       composer,
-      paused?'paused':step.arrived?'speaking':'incoming');
+      step.arrived?'speaking':'incoming');
   } else {
     dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
   }
-  if(paused) return;
   if(!step.arrived){
     scheduleDialogueFlow(()=>{ step.arrived=true;saveLessonCheckpoint();renderListen(step); },600);
     return;
@@ -4998,14 +5007,15 @@ function renderListen(step){
   const afterSpeech=()=>{
     const status=document.getElementById('flowStatus');
     if(status) status.textContent=runsOn?meta.character.name+' ממשיך…':'ממשיך בעוד רגע…';
-    scheduleDialogueFlow(()=>next(),readingDelay);
+    // an open translation means someone is reading — grant the extra beat
+    scheduleDialogueFlow(()=>next(),readingDelay+((step.showHe||step.showTl)?1800:0));
   };
   const watchdog=()=>{
     if('speechSynthesis' in window&&speechSynthesis.speaking){
       if(Date.now()<speechDeadline){ scheduleDialogueFlow(watchdog,900); return; }
-      pauseDialogue();
-      const status=document.getElementById('flowStatus');
-      if(status) status.textContent='ההשמעה נעצרה — אפשר לשמוע שוב או להמשיך';
+      // a stuck speech engine must not stall the conversation: cut it loose
+      cancelSpeech();
+      afterSpeech();
       return;
     }
     afterSpeech();
@@ -5038,7 +5048,7 @@ function chooseBranch(optionIndex){
     {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true,roundIndex:step.roundIndex},
     {type:'listen',line:option.reply,isBranchReply:true,roundIndex:step.roundIndex}
   );
-  L.i++;L.flowPaused=false;
+  L.i++;
   saveLessonCheckpoint();
   renderStep();
 }
@@ -5130,7 +5140,7 @@ document.addEventListener('visibilitychange',()=>{
     // Both incoming messages and a successfully sent learner message can be
     // waiting on an automatic transition. Preserve that transition instead
     // of letting its timer expire silently while the tab is in the background.
-    L.resumeFlowOnVisible=!!dialogueTimer&&!L.flowPaused;
+    L.resumeFlowOnVisible=!!dialogueTimer;
     L.rerenderOnVisible=L.resumeFlowOnVisible||!!L.rec;
     L.stepTransitioning=false;
     cancelAutoSpeak();
@@ -5149,7 +5159,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pagehide',()=>{
   if(L){
-    L.resumeFlowOnPageShow=(!!dialogueTimer||!!L.resumeFlowOnVisible)&&!L.flowPaused;
+    L.resumeFlowOnPageShow=!!dialogueTimer||!!L.resumeFlowOnVisible;
     L.rerenderOnPageShow=L.resumeFlowOnPageShow||!!L.rec;
     L.stepTransitioning=false;
     pauseLessonClock(); saveLessonCheckpoint();
@@ -5162,7 +5172,7 @@ window.addEventListener('pageshow',()=>{
   L.stepTransitioning=false;
   if(document.hidden) return;
   startLessonClock();
-  if(L.rerenderOnPageShow||(L.resumeFlowOnPageShow&&!L.flowPaused)){
+  if(L.rerenderOnPageShow||L.resumeFlowOnPageShow){
     L.rerenderOnPageShow=false;L.resumeFlowOnPageShow=false;L.resumeFlowOnVisible=false;L.rerenderOnVisible=false;
     renderStep();
   }
