@@ -240,10 +240,13 @@ body{
 .stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
 .stage-place{font-size:13px;color:var(--dim);text-align:center}
 .stage-history{background:none;border:none;color:var(--blue);font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
-.stage-avatar{position:relative;width:210px;height:210px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;margin:2px 0}
-.stage-avatar .face{font-size:78px;line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
-.stage-avatar::before{content:'';position:absolute;left:50%;bottom:0;width:196px;height:196px;transform:translateX(-50%);border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--who) 30%, transparent), transparent 68%);border:2px solid color-mix(in srgb, var(--who) 48%, transparent);border-bottom:none}
-.stage-avatar .ring{position:absolute;left:50%;bottom:0;width:196px;height:196px;transform:translateX(-50%);border-radius:50%;border:2px solid var(--who);opacity:0}
+/* The figure scales with the screen instead of dropping off a cliff: full
+   size on a roomy phone, gently smaller on a short one, never tiny. */
+.stage-screen .stage{--avatar:clamp(140px, 30vh, 210px)}
+.stage-avatar{position:relative;width:var(--avatar);height:var(--avatar);flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;margin:2px 0}
+.stage-avatar .face{font-size:calc(var(--avatar)*.37);line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.stage-avatar::before{content:'';position:absolute;left:50%;bottom:0;width:calc(var(--avatar) - 14px);height:calc(var(--avatar) - 14px);transform:translateX(-50%);border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--who) 30%, transparent), transparent 68%);border:2px solid color-mix(in srgb, var(--who) 48%, transparent);border-bottom:none}
+.stage-avatar .ring{position:absolute;left:50%;bottom:0;width:calc(var(--avatar) - 14px);height:calc(var(--avatar) - 14px);transform:translateX(-50%);border-radius:50%;border:2px solid var(--who);opacity:0}
 .stage-avatar.speaking .ring{animation:ringOut 1.9s ease-out infinite}
 .stage-avatar.speaking .r2{animation-delay:.65s}
 .stage-avatar.listening::before{border-color:rgba(52,211,153,.6);background:radial-gradient(circle at 50% 32%, rgba(52,211,153,.24), transparent 68%)}
@@ -269,6 +272,10 @@ body{
 @keyframes armTalkL{0%,100%{transform:rotate(-1deg) translateY(0)}35%{transform:rotate(5deg) translateY(-4px)}70%{transform:rotate(1deg) translateY(-1px)}}
 @keyframes armTalkR{0%,100%{transform:rotate(1deg) translateY(0)}40%{transform:rotate(-6deg) translateY(-5px)}75%{transform:rotate(-1deg) translateY(-1px)}}
 .person-art.listening .head{animation:headNod 3s ease-in-out infinite}
+/* the short beat after an answer lands: taking it in before replying */
+.person-art.thinking .head{animation:headThink 1.6s ease-in-out infinite}
+.person-art.thinking .eyes{animation:blink 2.2s infinite}
+@keyframes headThink{0%,100%{transform:rotate(0) translateY(0)}45%{transform:rotate(3.2deg) translateY(-2px)}}
 .person-art.waiting .head,.person-art.speaking .head{animation:headIdle 6s ease-in-out infinite}
 /* The mouth and the talking head move only while a voice is actually
    playing (.voicing) — never merely because the scene says 'speaking',
@@ -288,7 +295,18 @@ body{
 @media (prefers-reduced-motion:reduce){.person-art *{animation:none!important}}
 .stage-name{font-size:19px;font-weight:850;text-align:center}
 .stage-name span{font-size:13px;font-weight:600;color:var(--dim);font-style:italic}
-.stage-status{font-size:13px;color:var(--dim);text-align:center;margin-bottom:2px}
+/* whose turn it is, readable at a glance rather than as fine print */
+.stage-status{display:inline-flex;align-items:center;gap:7px;align-self:center;font-size:15px;font-weight:800;line-height:1;
+  padding:8px 15px;border-radius:999px;margin-bottom:2px;white-space:nowrap;
+  background:rgba(148,163,184,.14);border:1.5px solid rgba(148,163,184,.3);color:var(--fg);
+  transition:background .18s ease,border-color .18s ease,color .18s ease}
+.stage-status .cue-icon{font-size:16px;line-height:1}
+.stage-status.cue-listening{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.65);color:#6ee7b7}
+.stage-status.cue-heard{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.45);color:#6ee7b7}
+.stage-status.cue-speaking{background:color-mix(in srgb, var(--who) 20%, transparent);border-color:color-mix(in srgb, var(--who) 60%, transparent)}
+.stage-status.cue-thinking,.stage-status.cue-incoming{color:var(--dim)}
+.stage-status.cue-thinking .cue-icon{animation:cuePulse 1.1s ease-in-out infinite}
+@keyframes cuePulse{0%,100%{opacity:.45}50%{opacity:1}}
 .stage-caption{width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 14px;text-align:center}
 .cap-en{direction:ltr;font-size:25px;font-weight:800;line-height:1.35}
 .cap-aid{margin-top:8px;font-size:16px;color:var(--dim)}
@@ -300,7 +318,6 @@ body{
 .cap-intent-note{font-size:13.5px;color:var(--dim);margin-top:6px}
 .cap-sent{font-size:18px;font-weight:700;color:var(--green)}
 @media (max-height:700px){
-  .stage-avatar{width:104px;height:104px}.stage-avatar .face{font-size:60px}
   .cap-en{font-size:22px}.cap-intent{font-size:20px}
 }
 .scene-note{background:rgba(148,163,184,.09);border-inline-start:3px solid rgba(148,163,184,.45);border-radius:10px;padding:10px 12px;font-size:14.5px;color:#c2cde3;font-style:italic;line-height:1.5;margin:10px 0}
@@ -1614,7 +1631,7 @@ function conversationRounds(idx){
 
 const CHARACTERS = {
   tom:{name:'טום',avatar:'👦',color:'#60a5fa'},
-  maya:{name:'מאיה',avatar:'👧',color:'#f472b6'},
+  maya:{f:true, name:'מאיה',avatar:'👧',color:'#f472b6'},
   sam:{name:'סם',avatar:'🧑‍🦱',color:'#34d399'},
   alex:{name:'אלכס',avatar:'🧑‍🍳',color:'#fbbf24'},
 };
@@ -1944,17 +1961,17 @@ const PRACTICE_BACKDROPS = {
 const PRACTICE_CAST = {
   tom:{name:'טום', avatar:'👦', color:'#60a5fa', role:'חבר מבית הספר',
     look:{skin:'#f2c9a0', hairStyle:'short', hairColor:'#4a3122', clothes:'#3f6fd8', accent:'#2b52a8'}},
-  maya:{name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה',
+  maya:{f:true, name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה',
     look:{skin:'#f6d3ad', hairStyle:'long', hairColor:'#2f2320', clothes:'#e0559a', accent:'#b83c7b'}},
   sam:{name:'סם', avatar:'🧑‍🦱', color:'#34d399', role:'שכן',
     look:{skin:'#d9a878', hairStyle:'curly', hairColor:'#231a15', clothes:'#2fa87a', accent:'#1f7f5c'}},
   alex:{name:'אלכס', avatar:'🧑‍🍳', color:'#fbbf24', role:'מלצר',
     look:{skin:'#f0c39a', hairStyle:'chefhat', hairColor:'#3a2a1e', clothes:'#eef1f6', accent:'#c9d0dd', apron:true}},
-  nina:{name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות',
+  nina:{f:true, name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות',
     look:{skin:'#e8bb8f', hairStyle:'bun', hairColor:'#5a3320', clothes:'#e08b2c', accent:'#b56b18'}},
   ben:{name:'בן', avatar:'🧑‍🦰', color:'#a78bfa', role:'תייר מלונדון',
     look:{skin:'#f5d0b0', hairStyle:'cap', hairColor:'#a84b25', clothes:'#8b7ae8', accent:'#6a58c9'}},
-  dana:{name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג',
+  dana:{f:true, name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג',
     look:{skin:'#e3b58c', hairStyle:'bun', hairColor:'#2b2320', clothes:'#3aa6d8', accent:'#2483ae', glasses:true}},
 };
 /* The cast is drawn, not photographed: one parametric SVG figure — head,
@@ -3711,7 +3728,32 @@ function chatMessagesHtml(currentItem=null,currentClass=''){
    a large portrait that animates while speaking or listening, the line as a
    caption, and the aids one tap away. The chat log still exists underneath
    and is available on demand. */
-function stageShell(state_, caption, composer){
+/* Whose turn it is has to be readable at a glance — it is the one thing the
+   learner must never have to work out for themselves. */
+const STAGE_CUES = {
+  speaking:  (n,v)=>({icon:'🔊', text:n+' '+v('מדבר','מדברת')}),
+  listening: ()=>   ({icon:'🎤', text:'עכשיו תורך — דבר'}),
+  heard:     ()=>   ({icon:'✓',  text:'שמעתי אותך'}),
+  thinking:  (n,v)=>({icon:'💭', text:n+' '+v('חושב','חושבת')+'…'}),
+  incoming:  (n,v)=>({icon:'💭', text:n+' '+v('עומד','עומדת')+' לדבר'}),
+  choosing:  ()=>   ({icon:'👆', text:'בחר מה לענות'}),
+  paused:    ()=>   ({icon:'⏸️', text:'השיחה מושהית'}),
+};
+function stageCueHtml(cue, character){
+  const verb=(m,f)=>character&&character.f?f:m;
+  const made=(STAGE_CUES[cue]||STAGE_CUES.incoming)((character&&character.name)||'', verb);
+  return `<span class="cue-icon" aria-hidden="true">${made.icon}</span>${esc(made.text)}`;
+}
+function setStageThinking(on){
+  document.querySelectorAll('.stage-avatar,.person-art').forEach(el=>el.classList.toggle('thinking',!!on));
+}
+function setStageCue(cue){
+  const el=document.getElementById('stageStatus');
+  if(!el||!L) return;
+  el.className='stage-status cue-'+cue;
+  el.innerHTML=stageCueHtml(cue, conversationMeta(L.idx).character);
+}
+function stageShell(state_, caption, composer, cue){
   const pct=Math.round(L.i/(L.steps.length-1)*100);
   const meta=conversationMeta(L.idx);
   const history=(L.chat||[]).length;
@@ -3734,7 +3776,7 @@ function stageShell(state_, caption, composer){
           : `<span class="face" aria-hidden="true">${meta.character.avatar}</span>`}
       </div>
       <div class="stage-name">${esc(meta.character.name)}${meta.role?` <span>· ${esc(meta.role)}</span>`:''}</div>
-      <div class="stage-status" id="stageStatus">${state_==='speaking'?'מדבר אליך…':state_==='listening'?'מקשיב לך':'מחכה לתשובה שלך'}</div>
+      <div class="stage-status cue-${cue||state_}" id="stageStatus">${stageCueHtml(cue||state_, meta.character)}</div>
       <div class="stage-caption" id="stageCaption">${caption}</div>
     </div>
     <div class="conversation-composer">${composer}</div>
@@ -3945,12 +3987,24 @@ function renderDialogueSpeak(step){
     const caption=terminal
       ? `<div class="cap-sent">✔️ אמרת: <bdi dir="ltr">${esc(en)}</bdi></div>`
       : `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">תגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)}</div>`;
-    stageShell(terminal?'waiting':'listening', caption, composer);
+    stageShell(terminal?'waiting':'listening', caption, composer, terminal?'heard':'listening');
   } else {
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
   }
   if(terminal||step.retryMessage) requestAnimationFrame(scrollComposerToEnd);
-  if(terminal&&!L.flowPaused) scheduleDialogueFlow(()=>next(),1900);
+  if(terminal&&!L.flowPaused){
+    // The same 1.9s as before, but read as a person rather than as a wait:
+    // heard you -> a beat where they take it in -> they answer.
+    if(L.isPractice){
+      scheduleDialogueFlow(()=>{
+        setStageCue('thinking');
+        setStageThinking(true);
+        scheduleDialogueFlow(()=>next(),1080);
+      },820);
+    } else {
+      scheduleDialogueFlow(()=>next(),1900);
+    }
+  }
 }
 function skipDialogueSpeak(){
   const step=L?.curStep;if(!step) return;
@@ -4387,7 +4441,8 @@ function renderListen(step){
       step.arrived
         ? captionHtml(line,step)
         : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
-      composer);
+      composer,
+      paused?'paused':step.arrived?'speaking':'incoming');
   } else {
     dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
   }
@@ -4418,13 +4473,13 @@ function renderListen(step){
 function renderBranchChoice(step){
   invalidateDialogueFlow(false);
   const composer=`
-    <div class="composer-head"><span class="composer-label">💬 מה מתאים לך לענות?</span><span style="font-size:12px;color:var(--dim)">אחר כך אומרים באנגלית</span></div>
+    <div class="composer-head"><span class="composer-label">💡 רעיונות למה אפשר לענות</span><span style="font-size:12px;color:var(--dim)">בחר אחד — ואומרים אותו באנגלית</span></div>
     <div class="conversation-options">
       ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranch(${i})">${esc(fillProfileText(o.label,'he'))}</button>`).join('')}
     </div>`;
   if(L.isPractice){
     const prev=[...(L.chat||[])].reverse().find(x=>x.who==='app');
-    stageShell('waiting', prev?captionHtml(prev.line,step):'<div class="cap-typing">מה תרצה לענות?</div>', composer);
+    stageShell('waiting', prev?captionHtml(prev.line,step):'<div class="cap-typing">מה תרצה לענות?</div>', composer, 'choosing');
   } else {
     dialogueShell(chatMessagesHtml(), composer);
   }
