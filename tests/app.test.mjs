@@ -45,7 +45,7 @@ function runtime(seed = new Map()) {
   const expose = `
     ;globalThis.__test = {
       UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
-      OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES,
+      OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
@@ -246,6 +246,42 @@ test('every lesson conversation runs four rounds, all sayable from what was taug
     if (closing) assert.equal(rounds[3].ask.en, closing.ask.en, `lesson ${idx} must still close on its original line`);
     const asks = rounds.map(r => r.ask.en);
     assert.equal(new Set(asks).size, asks.length, `lesson ${idx}: every round must ask something different`);
+  }
+});
+
+test('a lesson conversation reads as one coherent exchange', () => {
+  const { api } = runtime();
+  const CAST = { tom: 'Tom', maya: 'Maya', sam: 'Sam', alex: 'Alex', nina: 'Nina', ben: 'Ben', dana: 'Dana' };
+
+  for (let idx = 0; idx < api.LESSONS.length; idx++) {
+    const rounds = api.conversationRounds(idx);
+    const speaker = CAST[(api.CONVERSATION_META_ROWS[idx] || [])[0]];
+
+    rounds.forEach((round, n) => {
+      const last = n === rounds.length - 1;
+
+      // A character who ends on a question and then keeps talking is asking
+      // something nobody ever answers — exactly how it reads on screen.
+      if (!last) round.options.forEach(option => {
+        assert.ok(!/\?\s*$/.test(option.reply.en),
+          `lesson ${idx} round ${n + 1}: "${option.reply.en}" asks a question, then the next line talks over it`);
+      });
+
+      // The character must never introduce themselves as somebody else.
+      Object.values(CAST).forEach(name => {
+        if (name === speaker) return;
+        assert.ok(!new RegExp(`\\b(I am|I'm) ${name}\\b`, 'i').test(round.ask.en),
+          `lesson ${idx} round ${n + 1}: ${speaker} says "${round.ask.en}"`);
+      });
+
+      // Meeting someone happens once — either at the start, or the moment
+      // they actually give their name. Not four lines into a chat.
+      const introduces = new RegExp(`my name is|\\b(I am|I'm) ${speaker}\\b`, 'i').test(round.ask.en);
+      if (n > 1 && !introduces) round.options.forEach(option => {
+        assert.ok(!/\bnice to meet you\b/i.test(option.answer.en),
+          `lesson ${idx} round ${n + 1}: "${option.answer.en}" meets someone the learner has been talking to all along`);
+      });
+    });
   }
 });
 

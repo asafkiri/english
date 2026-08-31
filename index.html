@@ -1626,10 +1626,10 @@ const FINALE_ROUND_OVERRIDES = {
    only listened to. */
 const MIDDLE_ROUNDS = {
   0:{
-    ask:{en:"I'm Tom. I'm good today!",he:'אני טום. אני בסדר היום!',tl:'אַיְים טוֹם. אַיְים גוּד טוּדֵיי!'},
+    ask:{en:"I'm Tom.",he:'אני טום.',tl:'אַיְים טוֹם.'},
     options:[
-      {label:'שלום טום!',answer:{en:'Hello, Tom!',he:'שלום, טום!',tl:'הֶלוֹ, טוֹם!'},reply:{en:'Hello! It is a nice morning.',he:'שלום! זה בוקר נחמד.',tl:'הֶלוֹ! אִיט אִיז אַ נַייס מוֹרְנִינְג.'}},
-      {label:'היי טום! מה שלומך?',answer:{en:'Hi Tom! How are you?',he:'היי טום! מה שלומך?',tl:'הַיי טוֹם! הַאוּ אַר יוּ?'},reply:{en:"I'm good, thanks! And you?",he:'אני בסדר, תודה! ואתה?',tl:'אַיְים גוּד, תֶ׳נְקְס! אֶנְד יוּ?'}},
+      {label:'היי טום!',answer:{en:'Hi Tom!',he:'היי טום!',tl:'הַיי טוֹם!'},reply:{en:'It is a nice morning today.',he:'זה בוקר נחמד היום.',tl:'אִיט אִיז אַ נַייס מוֹרְנִינְג טוּדֵיי.'}},
+      {label:'שלום טום! בוקר טוב!',answer:{en:'Hello Tom! Good morning!',he:'שלום טום! בוקר טוב!',tl:'הֶלוֹ טוֹם! גוּד מוֹרְנִינְג!'},reply:{en:'Good morning! I like the way you say it.',he:'בוקר טוב! אני אוהב איך שאמרת את זה.',tl:'גוּד מוֹרְנִינְג! אַיי לַייק דֶה וֵּוי יוּ סֵיי אִיט.'}},
     ],
   },
   1:{
@@ -1654,11 +1654,11 @@ const MIDDLE_ROUNDS = {
     ],
   },
   4:{
-    ask:{en:'It was a nice day today. And for you, {name}?',he:'היה יום נחמד היום. ואצלך?',tl:'אִיט וּוֹז אַ נַייס דֵיי טוּדֵיי. אֶנְד פוֹר יוּ?'},
+    ask:{en:'It is getting late, {name}. How are you now?',he:'מתאחר, מה שלומך עכשיו?',tl:'אִיט אִיז גֶטִינְג לֵייט. הַאוּ אַר יוּ נַאוּ?'},
     options:[
-      {label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:'I am happy to hear that!',he:'משמח אותי לשמוע!',tl:'אַיי אַם הֶפִּי טוּ הִיר דֶאט!'}},
-      {label:'כן! שיהיה לך יום טוב',answer:{en:'Yes! Have a nice day',he:'כן! שיהיה לך יום טוב',tl:'יֶס! הֶב אַ נַייס דֵיי'},reply:{en:'Thank you! You too.',he:'תודה! גם לך.',tl:'תֶ׳נְק יוּ! יוּ טוּ.'}},
-      {label:'כן, תודה!',answer:{en:'Yes, thank you!',he:'כן, תודה!',tl:'יֶס, תֶ׳נְק יוּ!'},reply:{en:"You're welcome! Good night.",he:'על לא דבר! לילה טוב.',tl:'יוֹר וֶולְקַם! גוּד נַייט.'}},
+      {label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:'Good! It was a long day.',he:'יופי! זה היה יום ארוך.',tl:'גוּד! אִיט וּוֹז אַ לוֹנְג דֵיי.'}},
+      {label:'אני בסדר. ואתה?',answer:{en:"I'm good, thanks. And you?",he:'אני בסדר, תודה. ואתה?',tl:'אַיְים גוּד, תֶ׳נְקְס. אֶנְד יוּ?'},reply:{en:"I'm good too, thanks!",he:'גם אני בסדר, תודה!',tl:'אַיְים גוּד טוּ, תֶ׳נְקְס!'}},
+      {label:'קצת עייף, תודה',answer:{en:'Good, thank you',he:'טוב, תודה',tl:'גוּד, תֶ׳נְק יוּ'},reply:{en:'I am happy to hear that.',he:'משמח אותי לשמוע.',tl:'אַיי אַם הֶפִּי טוּ הִיר דֶאט.'}},
     ],
   },
   5:{
@@ -1816,7 +1816,7 @@ const MIDDLE_ROUNDS = {
     ask:{en:'What color shirt do you want, {name}?',he:'איזה צבע חולצה אתה רוצה?',tl:'וּוַאט קַאלֶר שֶׁרְט דוּ יוּ וּוֹנְט?'},
     options:[
       {label:'אני רוצה את הכחולה',answer:{en:'I want the blue one',he:'אני [[רוצה|רוצה]] את הכחולה',tl:'אַיי וּוֹנְט דֶה בְּלוּ וַואן'},reply:{en:'Nice choice! Blue is great.',he:'בחירה יפה! כחול זה מעולה.',tl:'נַייס צ׳וֹיס! בְּלוּ אִיז גְרֵייט.'}},
-      {label:'אני רוצה את החולצה הזאת',answer:{en:'I want this shirt',he:'אני [[רוצה|רוצה]] את החולצה הזאת',tl:'אַיי וּוֹנְט דִיס שֶׁרְט'},reply:{en:'Good! Do you want shoes too?',he:'טוב! רוצה גם נעליים?',tl:'גוּד! דוּ יוּ וּוֹנְט שוּז טוּ?'}},
+      {label:'אני רוצה את החולצה הזאת',answer:{en:'I want this shirt',he:'אני [[רוצה|רוצה]] את החולצה הזאת',tl:'אַיי וּוֹנְט דִיס שֶׁרְט'},reply:{en:'Good choice! It is a nice shirt.',he:'בחירה טובה! זו חולצה יפה.',tl:'גוּד צ׳וֹיס! אִיט אִיז אַ נַייס שֶׁרְט.'}},
     ],
   },
   27:{
@@ -1849,17 +1849,17 @@ const MIDDLE_ROUNDS = {
    taught by that lesson. */
 const EXTRA_ROUNDS = {
   0:{
-    ask:{en:'I am going to school now.',he:'אני הולך לבית הספר עכשיו.',tl:'אַיי אַם גוֹאִינְג טוּ סְקוּל נַאוּ.'},
+    ask:{en:'My friend is here too. Say good morning to her!',he:'גם החברה שלי כאן. תגיד לה בוקר טוב!',tl:'מַיי פְרֶנְד אִיז הִיר טוּ. סֵיי גוּד מוֹרְנִינְג טוּ הֶר!'},
     options:[
-      {label:'שלום! מה שלומך?',answer:{en:'Hello! How are you?',he:'שלום! מה שלומך?',tl:'הֶלוֹ! הַאוּ אַר יוּ?'},reply:{en:"I'm good, thanks! And you?",he:'אני בסדר, תודה! ואתה?',tl:'אַיְים גוּד, תֶ׳נְקְס! אֶנְד יוּ?'}},
-      {label:'היי טום!',answer:{en:'Hi Tom!',he:'היי טום!',tl:'הַיי טוֹם!'},reply:{en:'Hi! I will see you at school.',he:'היי! נתראה בבית הספר.',tl:'הַיי! אַיי וִויל סִי יוּ אַט סְקוּל.'}},
+      {label:'בוקר טוב!',answer:{en:'Good morning!',he:'בוקר טוב!',tl:'גוּד מוֹרְנִינְג!'},reply:{en:'She says good morning to you too!',he:'גם היא אומרת לך בוקר טוב!',tl:'שִׁי סֶז גוּד מוֹרְנִינְג טוּ יוּ טוּ!'}},
+      {label:'שלום! בוקר טוב!',answer:{en:'Hello! Good morning!',he:'שלום! בוקר טוב!',tl:'הֶלוֹ! גוּד מוֹרְנִינְג!'},reply:{en:'She likes that. She says hello!',he:'היא אוהבת את זה. היא אומרת שלום!',tl:'שִׁי לַייקְס דֶאט. שִׁי סֶז הֶלוֹ!'}},
     ],
   },
   1:{
-    ask:{en:'I am Maya. Nice to meet you!',he:'אני מאיה. נעים להכיר!',tl:'אַיי אַם מַאיָה. נַייס טוּ מִיט יוּ!'},
+    ask:{en:'My name is Tom. Nice to meet you, {name}!',he:'קוראים לי טום. נעים להכיר!',tl:'מַיי נֵיים אִיז טוֹם. נַייס טוּ מִיט יוּ!'},
     options:[
-      {label:'נעים להכיר!',answer:{en:'Nice to meet you!',he:'נעים להכיר!',tl:'נַייס טוּ מִיט יוּ!'},reply:{en:'Are you new here?',he:'אתה חדש כאן?',tl:'אַר יוּ נְיוּ הִיר?'}},
-      {label:'נעים להכיר גם! קוראים לי {name}',answer:{en:'Nice to meet you too! My name is {name}',he:'נעים להכיר גם! קוראים לי {name}',tl:'נַייס טוּ מִיט יוּ טוּ! מַיי נֵיים אִיז {name}'},reply:{en:'I like your name!',he:'אני אוהבת את השם שלך!',tl:'אַיי לַייק יוֹר נֵיים!'}},
+      {label:'נעים להכיר גם!',answer:{en:'Nice to meet you too!',he:'נעים להכיר גם!',tl:'נַייס טוּ מִיט יוּ טוּ!'},reply:{en:'I am happy we met today.',he:'אני שמח שנפגשנו היום.',tl:'אַיי אַם הֶפִּי וִוי מֶט טוּדֵיי.'}},
+      {label:'נעים להכיר, טום!',answer:{en:'Nice to meet you, Tom!',he:'נעים להכיר, טום!',tl:'נַייס טוּ מִיט יוּ, טוֹם!'},reply:{en:'You remembered my name!',he:'זכרת את השם שלי!',tl:'יוּ רִימֶמְבֶּרְד מַיי נֵיים!'}},
     ],
   },
   2:{
@@ -1881,7 +1881,7 @@ const EXTRA_ROUNDS = {
     options:[
       {label:'תודה!',answer:{en:'Thank you!',he:'תודה!',tl:'תֶ׳נְק יוּ!'},reply:{en:'It was fun to talk with you.',he:'היה כיף לדבר איתך.',tl:'אִיט וּוֹז פַאן טוּ טוֹק וִוית׳ יוּ.'}},
       {label:'כן! תודה',answer:{en:'Yes! Thank you',he:'כן! תודה',tl:'יֶס! תֶ׳נְק יוּ'},reply:{en:'I like talking with you.',he:'אני אוהב לדבר איתך.',tl:'אַיי לַייק טוֹקִינְג וִוית׳ יוּ.'}},
-      {label:'נעים להכיר!',answer:{en:'Nice to meet you!',he:'נעים להכיר!',tl:'נַייס טוּ מִיט יוּ!'},reply:{en:'Nice to meet you too!',he:'נעים להכיר גם!',tl:'נַייס טוּ מִיט יוּ טוּ!'}},
+      {label:'לילה טוב!',answer:{en:'Good night!',he:'לילה טוב!',tl:'גוּד נַייט!'},reply:{en:'Good night! Sleep well.',he:'לילה טוב! שינה טובה.',tl:'גוּד נַייט! סְלִיפּ וֶול.'}},
     ],
   },
   5:{
@@ -1952,7 +1952,7 @@ const EXTRA_ROUNDS = {
     ask:{en:'The game was great today, {name}!',he:'המשחק היה מעולה היום!',tl:'דֶה גֵיים וּוֹז גְרֵייט טוּדֵיי!'},
     options:[
       {label:'זה היה מעולה!',answer:{en:'It was great!',he:'זה היה מעולה!',tl:'אִיט וּוֹז גְרֵייט!'},reply:{en:'Let us play again soon!',he:'בוא נשחק שוב בקרוב!',tl:'לֶט אַס פְּלֵיי אַגֵיין סוּן!'}},
-      {label:'אני [[אוהב|אוהבת]] כדורגל',answer:{en:'I love football',he:'אני [[אוהב|אוהבת]] כדורגל',tl:'אַיי לַאב פוּטְבּוֹל'},reply:{en:'Me too! Same time next week?',he:'גם אני! אותה שעה בשבוע הבא?',tl:'מִי טוּ! סֵיים טַיים נֶקְסְט וִויק?'}},
+      {label:'אני [[אוהב|אוהבת]] כדורגל',answer:{en:'I love football',he:'אני [[אוהב|אוהבת]] כדורגל',tl:'אַיי לַאב פוּטְבּוֹל'},reply:{en:'Me too! Let us play again next week.',he:'גם אני! בוא נשחק שוב בשבוע הבא.',tl:'מִי טוּ! לֶט אַס פְּלֵיי אַגֵיין נֶקְסְט וִויק.'}},
       {label:'שנייה — תשלח לי הודעה!',answer:{en:'One second — text me!',he:'שנייה — תשלח לי הודעה!',tl:'וַואן סֶקַנְד — טֶקְסְט מִי!'},reply:{en:'Sure! I will text you tonight.',he:'בטח! אשלח לך הודעה הערב.',tl:'שׁוּר! אַיי וִויל טֶקְסְט יוּ טוּנַייט.'}},
     ],
   },
@@ -2031,7 +2031,7 @@ const EXTRA_ROUNDS = {
   25:{
     ask:{en:'Do you have an animal at home, {name}?',he:'יש לך חיה בבית?',tl:'דוּ יוּ הֶב אֶן אֶנִימַל אַט הוֹם?'},
     options:[
-      {label:'יש לי כלב',answer:{en:'I have a dog',he:'יש לי כלב',tl:'אַיי הֶב אַ דוֹג'},reply:{en:'Nice! What is his name?',he:'יפה! איך קוראים לו?',tl:'נַייס! וּוַאט אִיז הִיז נֵיים?'}},
+      {label:'יש לי כלב',answer:{en:'I have a dog',he:'יש לי כלב',tl:'אַיי הֶב אַ דוֹג'},reply:{en:'Nice! Dogs are the best.',he:'יפה! כלבים הם הכי טובים.',tl:'נַייס! דוֹגְז אַר דֶה בֶּסְט.'}},
       {label:'אני [[אוהב|אוהבת]] חתולים',answer:{en:'I like cats',he:'אני [[אוהב|אוהבת]] חתולים',tl:'אַיי לַייק קֶאטְס'},reply:{en:'Cats are great too!',he:'חתולים זה גם מעולה!',tl:'קֶאטְס אַר גְרֵייט טוּ!'}},
     ],
   },
