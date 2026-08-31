@@ -3314,9 +3314,6 @@ function startListening(target){
     if(!bestDetails.criticalMismatch&&!missed.length){
       recordStepResult(step,'pass');
       showResult('pass',pick(PRAISE));
-    } else if(step.isDlg&&bestDetails.score>=.65&&!bestDetails.criticalMismatch){
-      recordStepResult(step,'pass');
-      showResult('pass','הבנתי אותך! ממשיכים בשיחה 👏');
     } else if(bestDetails.score>=.70&&!bestDetails.criticalMismatch&&L.tries<3){
       // almost there — a word went missing, so the practice repeats it
       showResult('retry','כמעט! 👏 לא שמעתי את: ' + missed.join(', ') + ' — עוד פעם, והפעם תדגיש אותה 💪');
