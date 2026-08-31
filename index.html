@@ -3105,6 +3105,8 @@ function load(){
       out.practiceCount = Math.max(0, Math.floor(Number(out.practiceCount) || 0));
       out.practiceRecent = Array.isArray(out.practiceRecent)
         ? out.practiceRecent.filter(x=>typeof x === 'string').slice(-6) : [];
+      out.practiceRecentChars = Array.isArray(out.practiceRecentChars)
+        ? out.practiceRecentChars.filter(x=>typeof x === 'string').slice(-6) : [];
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -3129,7 +3131,7 @@ function defaults(){
     profile:defaultProfile(),
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
-    practiceCount:0, practiceRecent:[],
+    practiceCount:0, practiceRecent:[], practiceRecentChars:[],
     profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
     progressUpdatedAt:0, sessionUpdatedAt:0, finishedRuns:[],
   };
@@ -3272,10 +3274,8 @@ function reconcileStoredProgress(){
     state.reviewUpdatedAt=Math.max(localReviewTs,storedReviewTs);
 
     state.practiceCount=Math.max(Number(state.practiceCount)||0,Number(stored.practiceCount)||0);
-    state.practiceRecent=[...new Set([
-      ...(Array.isArray(stored.practiceRecent)?stored.practiceRecent.filter(x=>typeof x==='string'):[]),
-      ...(Array.isArray(state.practiceRecent)?state.practiceRecent.filter(x=>typeof x==='string'):[]),
-    ])].slice(-6);
+    state.practiceRecent=mergeRecent(stored.practiceRecent, state.practiceRecent);
+    state.practiceRecentChars=mergeRecent(stored.practiceRecentChars, state.practiceRecentChars);
     state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
     state.replays=Math.max(Number(state.replays)||0,Number(stored.replays)||0);
     state.lastGraceTs=Math.max(Number(state.lastGraceTs)||0,Number(stored.lastGraceTs)||0);
@@ -4404,15 +4404,36 @@ function buildPracticeSession(){
   const topics = PRACTICE_TOPICS.filter(t=>completed >= t.min &&
     t.turns.some(turn=>completed >= turn.min));
   if(!topics.length) return null;
-  const recent = new Set(state.practiceRecent || []);
   // every candidate is a whole scene: a person with a role, in a place that
-  // fits the topic. Prefer scenes not used in the last few sessions.
+  // fits the topic.
   const pairs = [];
   topics.forEach(t=>(PRACTICE_SCENES[t.id]||[]).forEach((scene,si)=>
     pairs.push({topic:t, scene, sceneId:t.id+'#'+si, charId:scene.who})));
   if(!pairs.length) return null;
-  const fresh = pairs.filter(p=>!recent.has(p.sceneId));
-  const picked = pick(fresh.length ? fresh : pairs);
+  /* Who you talk to matters more than where you talk to them: a new face in a
+     place you have already been still feels like a new conversation, while the
+     same neighbour in a new place does not. The old choice only remembered
+     scenes, so Sam in the lift and Sam in the car park read as two different
+     picks — and Sam turned up again and again. Now the person is remembered
+     too, and the preferences run from best to last resort; the final ones
+     guarantee that at the very least the face changes. */
+  const recentScenes = recentlySeen(state.practiceRecent, pairs.length);
+  const recentChars = recentlySeen(state.practiceRecentChars, new Set(pairs.map(p=>p.charId)).size);
+  const lastScene = (state.practiceRecent||[]).slice(-1)[0];
+  const lastChar = (state.practiceRecentChars||[]).slice(-1)[0];
+  const preferences = [
+    p=>!recentScenes.has(p.sceneId) && !recentChars.has(p.charId),
+    p=>!recentChars.has(p.charId),
+    p=>!recentScenes.has(p.sceneId),
+    p=>p.charId!==lastChar,
+    p=>p.sceneId!==lastScene,
+    ()=>true,
+  ];
+  let picked = null;
+  for(const wanted of preferences){
+    const options = pairs.filter(wanted);
+    if(options.length){ picked = pick(options); break; }
+  }
   const scene = picked.scene;
   const want = practiceTurnsFor(completed);
   /* A conversation has a shape: a greeting may open it, a goodbye ends it,
@@ -4452,10 +4473,37 @@ function buildPracticeSession(){
     },
   };
 }
-function rememberPracticeRun(sceneId){
-  const list = (state.practiceRecent || []).filter(x=>x !== sceneId);
-  list.push(sceneId);
-  state.practiceRecent = list.slice(-6);
+/* The 'seen lately' window has to fit the pool it filters. Remembering six
+   scenes when only three exist marks every one of them recent, and the choice
+   collapses back to pure chance — which is how the same person came round
+   three times running. Keep at most one short of the pool, so something is
+   always genuinely fresh. */
+function recentlySeen(list, poolSize){
+  const keep = Math.max(0, Math.min(6, poolSize-1));
+  return new Set((Array.isArray(list)?list:[]).slice(-keep));
+}
+function pushRecent(list, value){
+  return [...(Array.isArray(list)?list:[]).filter(x=>x!==value), value].slice(-6);
+}
+/* These lists mean recency, so merging two tabs' copies has to keep the LAST
+   occurrence of each entry, not the first: deduping from the front pins an
+   entry at its oldest position, which freezes the rotation and hands back the
+   same person every time. */
+function mergeRecent(stored, local){
+  const clean=v=>(Array.isArray(v)?v:[]).filter(x=>typeof x==='string');
+  const list=[...clean(stored), ...clean(local)];
+  return list.filter((x,i)=>list.lastIndexOf(x)===i).slice(-6);
+}
+/* Recorded when the conversation starts rather than when it ends: one you
+   walked out of is still one you have just seen, and 'another conversation'
+   must not hand it straight back. */
+function rememberPracticeRun(sceneId, charId){
+  state.practiceRecent = pushRecent(state.practiceRecent, sceneId);
+  state.practiceRecentChars = pushRecent(state.practiceRecentChars, charId);
+  touchState('progressUpdatedAt');
+  save();
+}
+function countPracticeRun(){
   state.practiceCount = (state.practiceCount || 0) + 1;
   touchState('progressUpdatedAt');
   save();
@@ -4484,6 +4532,7 @@ function startPractice(){
     chatExpanded:false,
     runId:'practice-'+Date.now().toString(36),
   };
+  rememberPracticeRun(session.sceneId, session.charId);
   renderStep();
   startLessonClock();
 }
@@ -4507,7 +4556,7 @@ function renderPracticeDone(){
   const durationMs = activeElapsedMs();
   pauseLessonClock();
   stopLessonTimers(false);
-  rememberPracticeRun(L.practiceSceneId);
+  countPracticeRun();
   const said = (L.chat||[]).filter(x=>x.who==='you').length;
   const mins = Math.max(1, Math.round(durationMs/60000));
   const meta = L.practiceMeta || {};
