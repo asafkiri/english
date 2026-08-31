@@ -228,6 +228,9 @@ body{
 .vdots i:nth-child(2){animation-delay:.2s}
 .vdots i:nth-child(3){animation-delay:.4s}
 @keyframes vblink{0%,100%{opacity:.2}50%{opacity:1}}
+.scene-note{background:rgba(148,163,184,.09);border-inline-start:3px solid rgba(148,163,184,.45);border-radius:10px;padding:10px 12px;font-size:14.5px;color:#c2cde3;font-style:italic;line-height:1.5;margin:10px 0}
+.scene-note.in-log{margin:0 0 14px}
+.person-role{font-size:12px;font-weight:600;color:var(--dim);font-style:italic}
 .practice-cta{background:linear-gradient(135deg,#7c6cf0,#5b4bd6);color:#fff;text-align:center}
 .practice-cta small{display:block;font-size:12.5px;font-weight:600;opacity:.85;margin-top:3px}
 .scene{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:11px 14px;font-size:15.5px;font-weight:700;color:#b9d4fb;margin-bottom:14px}
@@ -1791,10 +1794,66 @@ const PRACTICE_TOPICS = [
     ],
   },
 ];
-const PRACTICE_PLACES = [
-  {emoji:'🛝', place:'בגינה'}, {emoji:'🚌', place:'בתחנה'}, {emoji:'☕', place:'בבית קפה'},
-  {emoji:'🏫', place:'בבית הספר'}, {emoji:'🏖️', place:'בים'}, {emoji:'🏬', place:'בקניון'},
-];
+/* Practice conversations happen to somebody, somewhere. Each scene binds a
+   person with a role to a place that fits the topic — a waiter belongs in a
+   restaurant, not in a park — and opens and closes with a line of narration
+   so it reads as a moment rather than a drill. */
+const PRACTICE_CAST = {
+  tom:{name:'טום', avatar:'👦', color:'#60a5fa', role:'חבר מבית הספר'},
+  maya:{name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה'},
+  sam:{name:'סם', avatar:'🧑‍🦱', color:'#34d399', role:'שכן'},
+  alex:{name:'אלכס', avatar:'🧑‍🍳', color:'#fbbf24', role:'מלצר'},
+  nina:{name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות'},
+  ben:{name:'בן', avatar:'🧑‍🦰', color:'#a78bfa', role:'תייר מלונדון'},
+  dana:{name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג'},
+};
+const PRACTICE_SCENES = {
+  greet:[
+    {who:'tom', emoji:'🚸', place:'ברחוב, בדרך לבית הספר', open:'אתה יוצא מהבית בבוקר. טום עומד בפינת הרחוב ומנופף לך.', close:'טום ממשיך בדרכו ומנופף לשלום.'},
+    {who:'sam', emoji:'🚪', place:'במעלית של הבניין', open:'הדלת נפתחת. סם, השכן שלך, נכנס למעלית איתך.', close:'המעלית נעצרת, סם יוצא ומחייך אליך.'},
+    {who:'ben', emoji:'🗺️', place:'בכיכר בעיר', open:'תייר עם מפה ביד מסתובב בכיכר, ופונה אליך באנגלית.', close:'בן מודה לך ופונה לכיוון המוזיאון.'},
+  ],
+  meet:[
+    {who:'ben', emoji:'🛝', place:'על ספסל בגינה', open:'אתה יושב בגינה. בחור בגילך מתיישב לידך ומתחיל לדבר איתך.', close:'בן קם, לוחץ לך יד ואומר שהיה נעים.'},
+    {who:'dana', emoji:'🎨', place:'בשיעור ראשון בחוג', open:'זה השיעור הראשון שלך בחוג. דנה, המדריכה, ניגשת להכיר אותך.', close:'דנה רושמת את השם שלך ומחייכת: "נתראה בשבוע הבא".'},
+  ],
+  feelings:[
+    {who:'tom', emoji:'🏫', place:'בהפסקה בבית הספר', open:'ההפסקה התחילה. טום מתיישב לידך על המדרגות.', close:'הפעמון מצלצל. טום קם וטופח לך על הכתף.'},
+    {who:'maya', emoji:'🛋️', place:'אצל מאיה בסלון', open:'אתה מגיע לבקר. מאיה פותחת את הדלת ומסתכלת עליך.', close:'מאיה אומרת "תשמור על עצמך" ומלווה אותך לדלת.'},
+  ],
+  likes:[
+    {who:'maya', emoji:'🎧', place:'בחדר המוזיקה', open:'מאיה מורידה את האוזניות ומסתובבת אליך.', close:'מאיה מחזירה את האוזניות: "נדבר עוד על זה מחר".'},
+    {who:'tom', emoji:'🏀', place:'במגרש הכדורסל', open:'טום זורק כדור לסל, תופס אותו וניגש אליך.', close:'טום זורק לך את הכדור: "יאללה, אחד על אחד".'},
+  ],
+  afterschool:[
+    {who:'tom', emoji:'🎒', place:'בשער בית הספר', open:'הלימודים נגמרו. טום מחכה לך בשער עם התיק על הכתף.', close:'טום מנופף ופונה הביתה.'},
+    {who:'maya', emoji:'🌳', place:'על ספסל בשכונה', open:'מאיה יושבת על הספסל עם הטלפון, ומרימה מבט כשאתה מגיע.', close:'מאיה חוזרת לטלפון: "נתראה מחר".'},
+  ],
+  food:[
+    {who:'alex', emoji:'🍔', place:'במסעדה', open:'אתה מתיישב ליד השולחן. אלכס, המלצר, ניגש עם התפריט.', close:'אלכס אוסף את התפריט: "תודה שבאת, בתיאבון!".'},
+    {who:'maya', emoji:'🍕', place:'במטבח של מאיה', open:'אתם בבית של מאיה. היא פותחת את המקרר ומסתכלת עליך.', close:'מאיה שמה את הצלחות בכיור: "היה טעים, נכון?".'},
+  ],
+  plans:[
+    {who:'tom', emoji:'📱', place:'בשיחת טלפון', open:'הטלפון מצלצל. טום בקו.', close:'טום מנתק: "סגור, נתראה!".'},
+    {who:'maya', emoji:'🛝', place:'בגינה מתחת לבית', open:'מאיה מחכה לך למטה ורוצה לתכנן משהו.', close:'מאיה עולה במדרגות: "אל תשכח!".'},
+  ],
+  shopping:[
+    {who:'nina', emoji:'🏬', place:'בחנות בגדים', open:'אתה נכנס לחנות. נינה, המוכרת, מסדרת חולצות וניגשת אליך.', close:'נינה נותנת לך את השקית: "שיהיה בהצלחה!".'},
+    {who:'nina', emoji:'🧺', place:'בדוכן בשוק', open:'אתה עוצר ליד הדוכן. המוכרת מרימה מבט מהסחורה.', close:'נינה מחייכת: "תחזור אליי בפעם הבאה".'},
+  ],
+  help:[
+    {who:'ben', emoji:'🚌', place:'בתחנת האוטובוס', open:'תייר מבולבל עומד בתחנה ומחפש מישהו שיעזור לו.', close:'בן עולה לאוטובוס ומודה לך דרך החלון.'},
+    {who:'sam', emoji:'📦', place:'בחניית הבניין', open:'סם עומד עם ארגזים כבדים ולא מצליח לפתוח את הדלת.', close:'סם נושם לרווחה: "תודה, הצלת אותי".'},
+  ],
+  animals:[
+    {who:'maya', emoji:'🐕', place:'בפארק הכלבים', open:'מאיה מגיעה לפארק עם הכלב שלה, שמיד רץ אליך.', close:'מאיה מחזיקה את הרצועה: "הוא ממש אהב אותך!".'},
+    {who:'tom', emoji:'🐈', place:'ליד הבית של טום', open:'חתול קטן מתחכך ברגליים שלך. טום יוצא מהבית.', close:'טום מרים את החתול: "נתראה, חבר".'},
+  ],
+  weather:[
+    {who:'tom', emoji:'🪟', place:'ליד החלון בבית', open:'אתם מסתכלים החוצה מהחלון ובודקים מה מזג האוויר.', close:'טום סוגר את החלון: "נחליט מחר בבוקר".'},
+    {who:'maya', emoji:'🏖️', place:'בדרך לים', open:'מאיה מגיעה עם מגבת על הכתף ומסתכלת על השמיים.', close:'מאיה מרימה את המגבת: "יאללה, לים!".'},
+  ],
+};
 
 const APP_VERSION = '2.2.0';
 const SESSION_VERSION = 2;
@@ -3100,13 +3159,15 @@ function buildPracticeSession(){
     t.turns.some(turn=>completed >= turn.min));
   if(!topics.length) return null;
   const recent = new Set(state.practiceRecent || []);
-  const charIds = Object.keys(CHARACTERS);
-  // prefer a topic+character pairing that was not used in the last few sessions
+  // every candidate is a whole scene: a person with a role, in a place that
+  // fits the topic. Prefer scenes not used in the last few sessions.
   const pairs = [];
-  topics.forEach(t=>charIds.forEach(c=>pairs.push({topic:t,charId:c})));
-  const fresh = pairs.filter(p=>!recent.has(p.topic.id+':'+p.charId));
+  topics.forEach(t=>(PRACTICE_SCENES[t.id]||[]).forEach((scene,si)=>
+    pairs.push({topic:t, scene, sceneId:t.id+'#'+si, charId:scene.who})));
+  if(!pairs.length) return null;
+  const fresh = pairs.filter(p=>!recent.has(p.sceneId));
   const picked = pick(fresh.length ? fresh : pairs);
-  const place = pick(PRACTICE_PLACES);
+  const scene = picked.scene;
   const want = practiceTurnsFor(completed);
   const turns = shuffled(picked.topic.turns.filter(turn=>completed >= turn.min)).slice(0, want);
   // a single topic runs out of turns; later on the conversation drifts into
@@ -3119,17 +3180,19 @@ function buildPracticeSession(){
       if(!turns.includes(turn)) turns.push(turn);
     }
   }
+  const character = PRACTICE_CAST[picked.charId] || CHARACTERS[picked.charId];
   return {
-    topic:picked.topic, charId:picked.charId, place, turns,
+    topic:picked.topic, charId:picked.charId, sceneId:picked.sceneId, scene, turns,
     meta:{
-      characterId:picked.charId, character:CHARACTERS[picked.charId],
-      placeEmoji:place.emoji, place:place.place, mission:picked.topic.goal,
+      characterId:picked.charId, character,
+      placeEmoji:scene.emoji, place:scene.place, mission:picked.topic.goal,
+      role:character.role, sceneOpen:scene.open, sceneClose:scene.close,
     },
   };
 }
-function rememberPracticeRun(topicId, charId){
-  const list = (state.practiceRecent || []).filter(x=>x !== topicId+':'+charId);
-  list.push(topicId+':'+charId);
+function rememberPracticeRun(sceneId){
+  const list = (state.practiceRecent || []).filter(x=>x !== sceneId);
+  list.push(sceneId);
   state.practiceRecent = list.slice(-6);
   state.practiceCount = (state.practiceCount || 0) + 1;
   touchState('progressUpdatedAt');
@@ -3153,7 +3216,7 @@ function startPractice(){
   L = {
     idx:Math.max(0,state.completed-1), lesson:LESSONS[Math.max(0,state.completed-1)],
     steps, i:0, isReplay:true, isPractice:true, practiceMeta:session.meta,
-    practiceTopicId:session.topic.id, practiceCharId:session.charId,
+    practiceTopicId:session.topic.id, practiceSceneId:session.sceneId,
     tries:0, attempts:0, rec:null, timerId:null,
     elapsedBeforeMs:0, activeSince:Date.now(), chat:[], warmupIds:[],
     flowPaused:false, chatExpanded:false,
@@ -3167,13 +3230,14 @@ function renderPracticeIntro(){
   const turns = L.steps.filter(s=>s.type==='branchChoice').length;
   playerShell(`
     <div class="step-label">🗣️ תרגול שיחה חופשי</div>
-    <h2>שיחה עם ${esc(meta.character.name)}</h2>
-    <div class="conversation-person" style="margin:12px 0 16px">
+    <h2>${esc(meta.placeEmoji)} ${esc(meta.place)}</h2>
+    <div class="conversation-person" style="margin:12px 0 14px">
       <div class="portrait" style="border-color:${meta.character.color}88">${meta.character.avatar}</div>
-      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
+      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${esc(meta.role||'')}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
-    <p class="sub">${turns} תורות, רק ממה שכבר למדת. אין ציון ואין לחץ — פשוט שיחה.<br>בכל כניסה תקבל שיחה אחרת 🔀</p>
+    ${meta.sceneOpen?`<div class="scene-note">${esc(meta.sceneOpen)}</div>`:''}
+    <p class="sub">${turns} תורות, רק ממה שכבר למדת. אין ציון ואין לחץ — פשוט שיחה.<br>בכל כניסה מחכה לך סיטואציה אחרת 🔀</p>
     <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
   `);
 }
@@ -3181,13 +3245,15 @@ function renderPracticeDone(){
   const durationMs = activeElapsedMs();
   pauseLessonClock();
   stopLessonTimers(false);
-  rememberPracticeRun(L.practiceTopicId, L.practiceCharId);
+  rememberPracticeRun(L.practiceSceneId);
   const said = (L.chat||[]).filter(x=>x.who==='you').length;
   const mins = Math.max(1, Math.round(durationMs/60000));
+  const meta = L.practiceMeta || {};
   confetti();
   playerShell(`
     <div class="finish">
-      <div class="emoji">🗣️</div>
+      <div class="emoji">${meta.character?.avatar || '🗣️'}</div>
+      ${meta.sceneClose?`<div class="scene-note">${esc(meta.sceneClose)}</div>`:''}
       <h2>שיחה מעולה!</h2>
       <p>אמרת ${said} משפטים באנגלית ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} — בלי שיעור, בלי לחץ.</p>
       <div class="chip" style="display:inline-flex;margin-top:4px">🗣️ ${state.practiceCount} שיחות שניהלת</div>
@@ -3286,7 +3352,11 @@ function chatMessagesHtml(currentItem=null,currentClass=''){
   const older=history.slice(0,split).map((item,i)=>chatBubbleHtml(item,'history',i)).join('');
   const recent=history.slice(split).map((item,i)=>chatBubbleHtml(item,'history',split+i)).join('');
   const current=currentItem?chatBubbleHtml(currentItem,'current',L.i,currentClass):'';
+  // a practice conversation opens with its scene, so the log reads as a moment
+  const sceneOpen = L?.isPractice && L.practiceMeta?.sceneOpen
+    ? `<div class="scene-note in-log">${esc(L.practiceMeta.sceneOpen)}</div>` : '';
   return `<div class="chat-thread">
+    ${sceneOpen}
     ${older?`<button class="history-toggle" id="historyToggle" onclick="toggleChatHistory()">${L.chatExpanded?'הסתר הודעות קודמות':'הצג '+split+' הודעות קודמות'}</button><div id="olderMessages" ${L.chatExpanded?'':'hidden'}>${older}</div>`:''}
     ${recent}${current}
   </div>`;
@@ -3302,7 +3372,7 @@ function dialogueShell(messages,composer){
     </div>
     <div class="conversation-person">
       <div class="portrait" style="border-color:${meta.character.color}88" aria-hidden="true">${meta.character.avatar}</div>
-      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
+      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}${meta.role?` <span class="person-role">· ${esc(meta.role)}</span>`:''}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
     <div class="conversation-log" id="conversationLog" role="log" aria-live="polite">${messages}</div>
