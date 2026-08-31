@@ -48,6 +48,7 @@ function runtime(seed = new Map()) {
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
+      PRACTICE_TOPICS, buildPracticeSession,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
       manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -282,6 +283,57 @@ test('a lesson conversation reads as one coherent exchange', () => {
           `lesson ${idx} round ${n + 1}: "${option.answer.en}" meets someone the learner has been talking to all along`);
       });
     });
+  }
+});
+
+test('a free practice conversation keeps a natural arc', () => {
+  const { api } = runtime();
+  const roleOf = turn => turn.role || 'mid';
+
+  // A farewell line belongs only to a closing turn — anywhere else the
+  // character says goodbye and then keeps talking, which is exactly the
+  // 'Have a nice day!' followed by 'How are you?' bug this guards against.
+  for (const topic of api.PRACTICE_TOPICS) {
+    for (const turn of topic.turns) {
+      if (roleOf(turn) === 'close') continue;
+      for (const option of turn.options) {
+        assert.doesNotMatch(option.reply.en, /\b(goodbye|bye|have a nice day)\b/i,
+          `topic ${topic.id}: "${option.reply.en}" says goodbye mid-conversation`);
+      }
+    }
+  }
+
+  for (const completed of [1, 2, 5, 9, 14, 20, 30]) {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const state = api.defaults();
+      state.onboarded = true;
+      state.completed = completed;
+      api.setState(state);
+      const session = api.buildPracticeSession();
+      if (!session) continue;
+      assert.ok(session.turns.length >= 1);
+      assert.equal(new Set(session.turns).size, session.turns.length);
+      const roles = session.turns.map(roleOf);
+      roles.forEach((role, n) => {
+        if (role === 'open') assert.equal(n, 0,
+          `${session.topic.id} (completed ${completed}): a greeting ${n} turns into the conversation`);
+        if (role === 'close') assert.equal(n, roles.length - 1,
+          `${session.topic.id} (completed ${completed}): a goodbye before the conversation is over`);
+      });
+      // the chosen topic's middles keep their authored order, so a turn
+      // never presupposes one that has not happened yet
+      const ownOrder = [...session.turns]
+        .filter(turn => session.topic.turns.includes(turn) && roleOf(turn) === 'mid')
+        .map(turn => session.topic.turns.indexOf(turn));
+      assert.deepEqual(ownOrder, [...ownOrder].sort((a, b) => a - b));
+      // a context-bound turn never drifts into another topic's conversation
+      session.turns.forEach(turn => {
+        if (!session.topic.turns.includes(turn)) assert.ok(!turn.stay,
+          `"${turn.ask.en}" needs its own topic's context but drifted into ${session.topic.id}`);
+      });
+      // and nothing not yet taught is ever asked for
+      session.turns.forEach(turn => assert.ok(completed >= turn.min));
+    }
   }
 });
 
