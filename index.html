@@ -2088,25 +2088,87 @@ function normalize(s){
     .replace(/don't/g,'do not').replace(/can't/g,'can not').replace(/you're/g,'you are')
     .replace(/i'll/g,'i will').replace(/let's/g,'let us').replace(/that's/g,'that is')
     .replace(/\bo\s*'?\s*clock\b/g,'oclock').replace(/\bokay\b/g,'ok')
+    .replace(/\bwon't\b/g,'will not').replace(/\bthank you\b/g,'thanks')
     .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+/* Accent-tolerant word matching. The recognition engine is Apple's and can't
+   be swapped, but its near-misses can be credited fairly:
+   - synonym groups accept equally correct answers (fine ≈ good)
+   - a canonical form absorbs classic Hebrew-accent confusions (th→t, w↔v)
+   - a small edit distance forgives one mangled letter in longer words
+   Critical words (not/no/never) always require an exact match. */
+const WORD_EQUIVALENTS = [
+  ['good','fine','great','ok'],
+  ['hi','hello','hey'],
+  ['goodbye','bye'],
+  ['mom','mum','mother'],
+  ['dad','father'],
+  ['yes','yeah','yep'],
+  ['football','soccer'],
+  ['four','for'],
+  ['two','to','too'],
+  ['one','won'],
+  ['eight','ate'],
+];
+const EQUIV_GROUP = new Map();
+WORD_EQUIVALENTS.forEach((group,gi)=>group.forEach(w=>EQUIV_GROUP.set(w,gi)));
+const EXACT_ONLY = new Set(['not','no','never','without']);
+function accentCanon(w){
+  return String(w).replace(/th/g,'t').replace(/w/g,'v').replace(/(.)\1+/g,'$1');
+}
+function editDistance(a,b){
+  if(Math.abs(a.length-b.length)>2) return 3;
+  const dp=Array.from({length:a.length+1},(_,i)=>[i,...Array(b.length).fill(0)]);
+  for(let j=0;j<=b.length;j++) dp[0][j]=j;
+  for(let i=1;i<=a.length;i++)
+    for(let j=1;j<=b.length;j++){
+      dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+      // an adjacent swap ("isreal" for "israel") counts as one mistake
+      if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) dp[i][j]=Math.min(dp[i][j],dp[i-2][j-2]+1);
+    }
+  return dp[a.length][b.length];
+}
+function wordsMatch(a,b){
+  if(a===b) return true;
+  if(EXACT_ONLY.has(a)||EXACT_ONLY.has(b)) return false;
+  const ga=EQUIV_GROUP.get(a);
+  if(ga!==undefined&&ga===EQUIV_GROUP.get(b)) return true;
+  const ca=accentCanon(a),cb=accentCanon(b);
+  if(ca===cb) return true;
+  const len=Math.max(ca.length,cb.length);
+  const maxEd=len>=8?2:len>=4?1:0;
+  return maxEd>0&&editDistance(ca,cb)<=maxEd;
+}
+/* the engine often splits one word into two ("is real" for "israel") —
+   fuse adjacent heard words when the pair matches a missing target word */
+function fuseHeard(t,h){
+  const out=h.slice();
+  for(const tw of t){
+    if(out.some(w=>wordsMatch(tw,w))) continue;
+    for(let j=0;j<out.length-1;j++){
+      if(wordsMatch(tw,out[j]+out[j+1])){ out.splice(j,2,tw); break; }
+    }
+  }
+  return out;
 }
 function matchDetails(target, heard){
   const t = normalize(target).split(' ').filter(Boolean);
-  const h = normalize(heard).split(' ').filter(Boolean);
+  let h = normalize(heard).split(' ').filter(Boolean);
   if(!t.length) return {score:1, words:[], matched:[], criticalMismatch:false};
+  h = fuseHeard(t,h);
 
   // Longest common subsequence: word order matters, while a dropped short word
   // does not automatically fail an otherwise clear beginner sentence.
   const dp = Array.from({length:t.length+1}, ()=>Array(h.length+1).fill(0));
   for(let i=1;i<=t.length;i++){
     for(let j=1;j<=h.length;j++){
-      dp[i][j] = t[i-1] === h[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+      dp[i][j] = wordsMatch(t[i-1], h[j-1]) ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
     }
   }
   const matched = Array(t.length).fill(false);
   let i=t.length, j=h.length;
   while(i>0 && j>0){
-    if(t[i-1] === h[j-1]){ matched[i-1]=true; i--; j--; }
+    if(wordsMatch(t[i-1], h[j-1])){ matched[i-1]=true; i--; j--; }
     else if(dp[i-1][j] >= dp[i][j-1]) i--;
     else j--;
   }

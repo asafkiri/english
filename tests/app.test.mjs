@@ -108,12 +108,25 @@ test('speech matching respects order and negation', () => {
   assert.ok(api.matchScore("It's five o'clock", "it's 5:00") >= 0.70);
   assert.ok(api.matchScore('Can I have a burger?', 'can i have burger') >= 0.70);
 
+  // equally correct answers and Hebrew-accent near-misses are credited
+  assert.ok(api.matchScore("I'm good, thanks", 'I am fine thanks') >= 0.99);
+  assert.ok(api.matchScore("I'm good, thanks", 'I am fine thank you') >= 0.99);
+  assert.ok(api.matchScore('Thank you', 'tanks') >= 0.99);
+  assert.ok(api.matchScore("I'm from Israel", 'I am from is real') >= 0.99);
+  assert.ok(api.matchScore('I want to drink water', 'I want to drink vater') >= 0.99);
+  assert.ok(api.matchScore('I think so', 'I sink so') >= 0.99);
+  assert.ok(api.matchScore('Goodbye!', 'bye') >= 0.99);
+  assert.ok(api.matchScore('My dad is great', 'my father is great') >= 0.99);
+
   const missingNot = api.matchDetails("I don't know", 'I do know');
   assert.equal(missingNot.criticalMismatch, true);
   assert.ok(missingNot.score < 0.70);
   assert.ok(api.matchScore('I like homework', "I don't like homework") < 0.70);
   assert.ok(api.matchScore('I like music', 'music I like') < 0.70);
   assert.ok(api.matchScore('Can you help me', 'you can me help') < 0.70);
+  // fuzziness must not cross critical words or short unrelated words
+  assert.ok(api.matchScore('No', 'know') < 0.99);
+  assert.ok(api.matchScore('She is fifteen', 'he is fifteen') < 0.99);
 });
 
 test('warm-up grows to 20 and keeps hard, recent and older material', () => {
