@@ -259,21 +259,25 @@ body{
 .person-art .arm{transform-box:fill-box;transform-origin:50% 0}
 .person-art .arm-l{animation:armIdleL 5.2s ease-in-out infinite}
 .person-art .arm-r{animation:armIdleR 5.8s ease-in-out infinite}
-.person-art.speaking .arm-l{animation:armTalkL 2.3s ease-in-out infinite}
-.person-art.speaking .arm-r{animation:armTalkR 2.9s ease-in-out infinite}
 .person-art.listening .arm-l{animation:armIdleL 4s ease-in-out infinite}
 .person-art.listening .arm-r{animation:armIdleR 4.4s ease-in-out infinite}
+/* gestures belong to the voice, not to the scene state */
+.person-art.voicing .arm-l{animation:armTalkL 2.3s ease-in-out infinite}
+.person-art.voicing .arm-r{animation:armTalkR 2.9s ease-in-out infinite}
 @keyframes armIdleL{0%,100%{transform:rotate(0)}50%{transform:rotate(1.6deg)}}
 @keyframes armIdleR{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.6deg)}}
 @keyframes armTalkL{0%,100%{transform:rotate(-1deg) translateY(0)}35%{transform:rotate(5deg) translateY(-4px)}70%{transform:rotate(1deg) translateY(-1px)}}
 @keyframes armTalkR{0%,100%{transform:rotate(1deg) translateY(0)}40%{transform:rotate(-6deg) translateY(-5px)}75%{transform:rotate(-1deg) translateY(-1px)}}
-.person-art.speaking .head{animation:headTalk 1.1s ease-in-out infinite}
-/* fixed-rate mouth is the fallback; the syllable driver takes over on play */
-.person-art.speaking .mouth{animation:mouthTalk .3s ease-in-out infinite}
-.person-art.speaking .tongue{animation:tongueTalk .3s ease-in-out infinite}
-.person-art.mouth-js .mouth,.person-art.mouth-js .tongue{animation:none!important;transition:transform .07s linear,opacity .07s linear}
 .person-art.listening .head{animation:headNod 3s ease-in-out infinite}
-.person-art.waiting .head{animation:headIdle 6s ease-in-out infinite}
+.person-art.waiting .head,.person-art.speaking .head{animation:headIdle 6s ease-in-out infinite}
+/* The mouth and the talking head move only while a voice is actually
+   playing (.voicing) — never merely because the scene says 'speaking',
+   or the face keeps chattering after the sentence is over. */
+.person-art.voicing .head{animation:headTalk 1.1s ease-in-out infinite}
+/* fixed-rate mouth is the fallback; the syllable driver takes over on play */
+.person-art.voicing .mouth{animation:mouthTalk .3s ease-in-out infinite}
+.person-art.voicing .tongue{animation:tongueTalk .3s ease-in-out infinite}
+.person-art.mouth-js .mouth,.person-art.mouth-js .tongue{animation:none!important;transition:transform .07s linear,opacity .07s linear}
 @keyframes figBreathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-3px) scaleY(1.012)}}
 @keyframes blink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}97%{transform:scaleY(1)}}
 @keyframes mouthTalk{0%{transform:scale(1,.5)}20%{transform:scale(.86,3.1)}45%{transform:scale(1.05,1.5)}70%{transform:scale(.8,3.6)}100%{transform:scale(1,.6)}}
@@ -1990,7 +1994,7 @@ function personArt(look, state='idle', cls=''){
   const accent = l.accent || '#2f5bbf';
   const backHair = l.hairStyle==='long'
     ? `<path fill="${hairColor}" d="M52 100c0-38 20-64 48-64s48 26 48 64c0 30-6 54-12 78H64c-6-24-12-48-12-78z" opacity=".95"/>` : '';
-  return `<svg class="person-art ${state} ${cls}" viewBox="0 0 200 250" role="img" aria-hidden="true">
+  return `<svg class="person-art ${state} ${cls}${voiceActive?' voicing':''}" viewBox="0 0 200 250" role="img" aria-hidden="true">
     <g class="figure">
       <!-- torso -->
       <path class="torso" fill="${clothes}" d="M100 156c-32 0-56 16-66 42-6 16-9 34-10 52h152c-1-18-4-36-10-52-10-26-34-42-66-42z"/>
@@ -2551,7 +2555,20 @@ function pickVoice(){
 }
 function cancelSpeech(){
   speechToken++;
+  stopVoiceAnimation();
   if('speechSynthesis' in window) speechSynthesis.cancel();
+}
+/* The face animates while a voice is actually playing, never merely because
+   the scene state is 'speaking' — the flag lives here so a re-render during
+   speech keeps the mouth moving, and silence always stills it. */
+let voiceActive = false;
+function setVoicing(on){
+  voiceActive = !!on;
+  document.querySelectorAll('.person-art').forEach(art=>art.classList.toggle('voicing', voiceActive));
+}
+function stopVoiceAnimation(){
+  stopMouthSync();
+  setVoicing(false);
 }
 function speak(text, cb){
   if(!('speechSynthesis' in window)){ if(cb) cb(); return; }
@@ -2570,13 +2587,18 @@ function speak(text, cb){
   u.rate = state.slowSpeech ? 0.8 : 1.0;
   u.pitch = 1;
   const finish=()=>{
-    stopMouthSync();
+    if(token===speechToken) stopVoiceAnimation();
     if(cb && token===speechToken) cb();
   };
   u.onend = finish; u.onerror = finish;
   u.onstart = ()=>{ if(token===speechToken) startMouthSync(u.text, u.rate); };
   // word boundaries let the mouth re-sync to where the voice actually is
   u.onboundary = e=>{ if(token===speechToken) syncMouthToChar(e.charIndex); };
+  setVoicing(true);
+  // some engines never report the end of an utterance; the face must not be
+  // left talking to itself, so stop the animation on a generous deadline too
+  setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) stopVoiceAnimation(); },
+    Math.max(6000, u.text.length*220));
   speechSynthesis.speak(u);
 }
 
@@ -2620,7 +2642,7 @@ function buildMouthTimeline(text, rate){
   return tl.sort((a,b)=>a.t-b.t);
 }
 function mouthEls(){
-  const art=document.querySelector('.person-art.speaking');
+  const art=document.querySelector('.person-art.voicing')||document.querySelector('.person-art');
   return art ? {art, mouth:art.querySelector('.mouth'), tongue:art.querySelector('.tongue')} : null;
 }
 function startMouthSync(text, rate){
@@ -3741,9 +3763,17 @@ function toggleCaptionAid(kind, button){
   // reading takes time — hold the conversation while an aid is open
   if(!L.flowPaused&&dialogueTimer) pauseDialogue();
 }
-function replayStageLine(){
+function stageCaptionLine(){
   const step=L?.steps?.[L.i];
-  const line=step?.type==='listen'?step.line:step?.p;
+  if(!step) return null;
+  if(step.type==='listen') return step.line;
+  // while choosing an answer the caption still shows the last thing the
+  // character said — that is the line the replay button must repeat
+  if(step.type==='branchChoice') return [...(L.chat||[])].reverse().find(x=>x.who==='app')?.line || null;
+  return step.p || null;
+}
+function replayStageLine(){
+  const line=stageCaptionLine();
   if(!line) return;
   if(!L.flowPaused&&dialogueTimer) pauseDialogue();
   speak(ptext(line,'en',true));

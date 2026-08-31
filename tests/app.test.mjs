@@ -25,6 +25,7 @@ function runtime(seed = new Map()) {
     }),
     body: { appendChild() {} },
     querySelector: () => null,
+    querySelectorAll: () => [],
   };
   const window = {
     SpeechRecognition: null,
@@ -47,7 +48,7 @@ function runtime(seed = new Map()) {
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
-      manualMicDone, answerListenQuiz, chooseBranch, notePractice,
+      manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -211,6 +212,32 @@ test('a branch choice keeps progress length stable and inserts its fixed continu
   assert.equal(lesson.i, branchIndex + 1);
   assert.equal(lesson.steps[lesson.i].p.en, api.conversationRounds(4)[0].options[1].answer.en);
   assert.equal(lesson.steps[lesson.i + 1].line.en, api.conversationRounds(4)[0].options[1].reply.en);
+  api.stopLessonTimers(false);
+});
+
+test('the replay button repeats the line the caption is showing, on every step', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 4;
+  api.setState(state);
+  api.startLesson(4, false, true);
+  const lesson = api.getLesson();
+
+  const listenIndex = lesson.steps.findIndex(step => step.type === 'listen');
+  lesson.i = listenIndex;
+  assert.equal(api.stageCaptionLine(), lesson.steps[listenIndex].line);
+
+  // On the answer-choice screen the caption still shows what the character
+  // just said, so replay must find that line rather than come up empty.
+  const branchIndex = lesson.steps.findIndex(step => step.type === 'branchChoice');
+  const said = lesson.steps.slice(0, branchIndex).reverse().find(step => step.type === 'listen').line;
+  lesson.chat = [{ who: 'app', line: said }];
+  lesson.i = branchIndex;
+  const replayed = api.stageCaptionLine();
+  assert.ok(replayed, 'the replay button must not be a dead button while choosing an answer');
+  assert.equal(replayed.en, said.en);
+
   api.stopLessonTimers(false);
 });
 
