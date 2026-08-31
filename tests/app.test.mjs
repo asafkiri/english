@@ -48,7 +48,7 @@ function runtime(seed = new Map()) {
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
-      PRACTICE_TOPICS, buildPracticeSession,
+      PRACTICE_TOPICS, PRACTICE_SCENES, buildPracticeSession, rememberPracticeRun,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
       manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -348,6 +348,46 @@ test('a free practice conversation keeps a natural arc', () => {
   }
 });
 
+test('free practice rotates the person you talk to, not just the scene', () => {
+  const { api } = runtime();
+
+  for (const completed of [1, 2, 5, 8, 12, 20, 30]) {
+    // everyone the learner could meet at this point in the course
+    const pool = api.PRACTICE_TOPICS
+      .filter(t => completed >= t.min && t.turns.some(turn => completed >= turn.min))
+      .flatMap(t => api.PRACTICE_SCENES[t.id] || []);
+    const cast = new Set(pool.map(scene => scene.who));
+
+    const state = api.defaults();
+    state.onboarded = true;
+    state.completed = completed;
+    api.setState(state);
+
+    const people = [];
+    const places = [];
+    for (let run = 0; run < 14; run++) {
+      const session = api.buildPracticeSession();
+      assert.ok(session, `completed ${completed}: practice should be available`);
+      // exactly what startPractice does — recorded as the conversation opens,
+      // so walking out of one still counts as having seen it
+      api.rememberPracticeRun(session.sceneId, session.charId);
+      people.push(session.charId);
+      places.push(session.sceneId);
+    }
+
+    for (let i = 1; i < people.length; i++) {
+      if (cast.size > 1) assert.notEqual(people[i], people[i - 1],
+        `completed ${completed}: ${people[i]} turned up twice in a row (${people.join(' → ')})`);
+      if (pool.length > 1) assert.notEqual(places[i], places[i - 1],
+        `completed ${completed}: the same scene ran twice in a row`);
+    }
+
+    // and the rotation reaches everybody rather than ping-ponging between two
+    assert.equal(new Set(people).size, Math.min(cast.size, people.length),
+      `completed ${completed}: only met ${new Set(people).size} of ${cast.size} people in 14 conversations`);
+  }
+});
+
 test('a branch choice keeps progress length stable and inserts its fixed continuation', () => {
   const { api } = runtime();
   const state = api.defaults();
@@ -629,7 +669,9 @@ test('a completed speaking result resumes without requiring the phrase again', (
 test('PWA update code is versioned and does not clear local progress', () => {
   const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
   assert.match(sw, /CACHE_PREFIX\s*=\s*'speak-english-'/);
-  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v4'/);
+  // the cache must stay versioned, but pinning one number here only breaks
+  // the suite every time the app legitimately ships a new version
+  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v\d+'/);
   assert.match(sw, /SKIP_WAITING/);
   assert.match(html, /updateViaCache:'none'/);
   assert.doesNotMatch(sw, /localStorage/);
