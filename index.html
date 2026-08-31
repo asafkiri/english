@@ -1451,6 +1451,8 @@ function renderHome(){
     <div class="section-title">🗺️ המסלול שלך</div>
     ${listHtml}
   </div>`);
+  // an update that waited through a lesson applies now, on the home screen
+  if(typeof pendingServiceWorker !== 'undefined') tryAutoUpdate();
 }
 
 /* ================= review ================= */
@@ -2503,9 +2505,25 @@ window.addEventListener('pagehide',()=>{
 let pendingServiceWorker=null;
 let reloadingForUpdate=false;
 let updateReloadTimer=null;
+/* a waiting update applies itself when the learner is not mid-lesson:
+   progress is saved, so the one automatic reload is invisible in practice.
+   Mid-lesson we fall back to the banner, and after two failed automatic
+   attempts in a session we stop trying and leave the banner up. */
+function tryAutoUpdate(){
+  if(!pendingServiceWorker || reloadingForUpdate) return false;
+  if(typeof L !== 'undefined' && L) return false;
+  let tries = 0;
+  try{ tries = Number(sessionStorage.getItem('autoUpdTries') || 0); }catch(e){}
+  if(tries >= 2) return false;
+  try{ sessionStorage.setItem('autoUpdTries', String(tries + 1)); }catch(e){}
+  applyAppUpdate();
+  return true;
+}
 function showUpdateBanner(worker){
-  if(!worker||document.getElementById('updateBanner')) return;
+  if(!worker) return;
   pendingServiceWorker=worker;
+  if(tryAutoUpdate()) return;
+  if(document.getElementById('updateBanner')) return;
   const banner=document.createElement('div');
   banner.id='updateBanner'; banner.className='update-banner';
   banner.innerHTML=`<div class="txt"><b>גרסה חדשה מוכנה</b><span>העדכון ישמור את ההתקדמות שלך.</span></div><button class="btn" onclick="applyAppUpdate()">עדכון עכשיו</button>`;
