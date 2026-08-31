@@ -3194,8 +3194,10 @@ function startListening(target){
     if(!got) return;
     const step=L.curStep||{};
     step.heardText=best;
-    step.heardDetails=bestDetails;
-    if(heardEl) heardEl.innerHTML=`<div>זה מה שהטלפון קלט: “${esc(best)}”</div>${wordFeedbackHtml(bestDetails)}`;
+    // while still recording, show ONLY what was heard — the word-by-word
+    // feedback lists the target words, which would spoil the recall exercise
+    step.heardDetails=null;
+    if(heardEl) heardEl.innerHTML=`<div>זה מה שהטלפון קלט: “${esc(best)}”</div>`;
     requestAnimationFrame(scrollComposerToEnd);
     // finalize early ONLY when every word of the phrase was heard in order —
     // stopping at a partial match used to cut the mic off mid-sentence
@@ -3204,6 +3206,7 @@ function startListening(target){
       done=true;
       step.tries=(step.tries||0)+1;
       L.tries=step.tries;
+      step.heardDetails=bestDetails;
       stopRecognition();
       recordStepResult(step,'pass');
       showResult('pass',pick(PRAISE));
@@ -3222,7 +3225,7 @@ function startListening(target){
           ? 'בדיקת הקול באנגלית אינה זמינה במכשיר הזה. אמור את המשפט בקול והמשך בלי בדיקה.'
           : 'אין הרשאה למיקרופון. אמור את המשפט בקול והמשך בלי בדיקה.', true);
     }
-    else if(code==='no-speech') showMicFallback('לא נקלט קול. אפשר לנסות שוב או להמשיך ידנית.',!!L?.curStep?.isDlg);
+    else if(code==='no-speech') showMicFallback('לא נקלט קול. אפשר לנסות שוב או להמשיך ידנית.');
     else if(code==='network') showMicFallback('בדיקת הקול אינה זמינה כרגע בגלל החיבור. אפשר להמשיך ידנית.');
     else showMicFallback('בדיקת הקול לא הצליחה. אמור את המשפט בקול והמשך ידנית.');
   };
@@ -3238,10 +3241,12 @@ function startListening(target){
       return;
     }
     // the attempt ended without a clear pass — one full try, judged on the
-    // best transcript heard during the whole attempt
+    // best transcript heard during the whole attempt. Only now is the
+    // word-by-word feedback revealed, so it can't spoil the answer mid-attempt
     const step=L.curStep||{};
     step.tries=(step.tries||0)+1;
     L.tries=step.tries;
+    step.heardDetails=bestDetails;
     saveLessonCheckpoint();
     const missed=bestDetails.words.filter((w,i)=>!bestDetails.matched[i]);
     if(!bestDetails.criticalMismatch&&!missed.length){
