@@ -27,6 +27,9 @@
   --shadow:0 10px 30px rgba(0,0,0,.35);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* author display rules (e.g. .btn{display:block}) override the browser's
+   default [hidden] handling, so hidden must win explicitly */
+[hidden]{display:none!important}
 html,body{height:100%}
 body{
   background:var(--bg);
