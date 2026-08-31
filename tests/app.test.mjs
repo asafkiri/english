@@ -72,7 +72,7 @@ test('course content remains intact', () => {
   });
   assert.equal(
     crypto.createHash('sha256').update(protectedContent).digest('hex'),
-    'da07bb8a46691c4a738f9171f82105c0164e4e8726d788026c09992b4a56fc93',
+    'c4aec0688abc6bdbb22a8a43ff62f5dd1c9806ec8fd62075b4f36aa0faa6691f',
   );
 });
 
