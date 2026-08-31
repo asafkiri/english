@@ -55,8 +55,8 @@ function runtime(seed = new Map()) {
 
 test('course content remains intact', () => {
   const { api } = runtime();
-  assert.equal(api.UNITS.length, 4);
-  assert.equal(api.LESSONS.length, 20);
+  assert.equal(api.UNITS.length, 6);
+  assert.equal(api.LESSONS.length, 30);
   api.LESSONS.forEach((lesson, idx) => {
     assert.equal(lesson.phrases.length, 5);
     // branch lessons close with the choice conversation instead of the
@@ -72,7 +72,7 @@ test('course content remains intact', () => {
   });
   assert.equal(
     crypto.createHash('sha256').update(protectedContent).digest('hex'),
-    'c4aec0688abc6bdbb22a8a43ff62f5dd1c9806ec8fd62075b4f36aa0faa6691f',
+    '8f8ae32f8303a44c004044053f07479e19317d2fd38b36747f67a0894f52ae17',
   );
 });
 
@@ -167,7 +167,7 @@ test('each lesson builds three challenges of one gradual type', () => {
 
 test('there is one controlled branch conversation per unit', () => {
   const { api } = runtime();
-  assert.deepEqual(Object.keys(api.BRANCH_DIALOGUES), ['4', '9', '14', '19']);
+  assert.deepEqual(Object.keys(api.BRANCH_DIALOGUES), ['4', '9', '14', '19', '24', '29']);
   for (const branch of Object.values(api.BRANCH_DIALOGUES)) {
     assert.equal(branch.rounds.length, 2);
     for (const round of branch.rounds) {
@@ -260,7 +260,7 @@ test('invalid or completed checkpoint steps are rejected', () => {
 });
 
 test('every reachable lesson screen has a resumable checkpoint shape', () => {
-  for (let idx = 0; idx < 20; idx++) {
+  for (let idx = 0; idx < 30; idx++) {
     const { api } = runtime();
     const state = api.defaults();
     state.onboarded = true;
