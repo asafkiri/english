@@ -890,6 +890,7 @@ function load(){
       out.onboarded = !!out.onboarded;
       out.completed = Math.max(0, Math.min(LESSONS.length, Math.floor(Number(out.completed) || 0)));
       out.streak = Math.max(0, Number(out.streak) || 0);
+      out.lessonsToday = Math.max(0, Math.floor(Number(out.lessonsToday) || 0));
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -911,7 +912,7 @@ function load(){
 function defaults(){
   return {
     schemaVersion:2, name:'', onboarded:false, completed:0, streak:0,
-    lastDoneDate:'', replays:0, slowSpeech:true, micEnabled:true,
+    lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
     progressUpdatedAt:0, sessionUpdatedAt:0, finishedRuns:[],
@@ -1056,8 +1057,10 @@ function reconcileStoredProgress(){
     if(storedDay>localDay){
       state.lastDoneDate=stored.lastDoneDate;
       state.streak=Math.max(0,Number(stored.streak)||0);
+      state.lessonsToday=Math.max(0,Math.floor(Number(stored.lessonsToday)||0));
     } else if(storedDay===localDay){
       state.streak=Math.max(Number(state.streak)||0,Number(stored.streak)||0);
+      state.lessonsToday=Math.max(Number(state.lessonsToday)||0,Math.floor(Number(stored.lessonsToday)||0));
     }
 
     state.finishedRuns=[...new Set([
@@ -1108,6 +1111,13 @@ function dateNDaysAgo(n){
 }
 function todayStr(){ return dateNDaysAgo(0); }
 function yesterdayStr(){ return dateNDaysAgo(1); }
+/* how many lessons were completed today; states saved before the bonus
+   feature existed have no counter, so a lastDoneDate of today counts as 1 */
+function lessonsDoneToday(){
+  if(state.lastDoneDate !== todayStr()) return 0;
+  return Math.max(1, Math.floor(Number(state.lessonsToday) || 0));
+}
+const MAX_LESSONS_PER_DAY = 2;
 /* phrases the learner struggled with, remembered across days for warm-up review */
 function reviewMetaFor(id){
   state.reviewMeta=state.reviewMeta||{};
@@ -1331,7 +1341,9 @@ function greeting(){
   return 'ערב טוב' + nm + ' 🌙';
 }
 function renderHome(){
-  const doneToday = state.lastDoneDate === todayStr();
+  const doneCount = lessonsDoneToday();
+  const doneToday = doneCount > 0;
+  const canStartNew = doneCount < MAX_LESSONS_PER_DAY;
   const allDone = state.completed >= LESSONS.length;
   const savedSession = validSavedSession(state.session) ? state.session : null;
   const paused = savedSession && ((!savedSession.isReplay && savedSession.idx===state.completed) || (savedSession.isReplay && savedSession.idx<state.completed)) ? savedSession : null;
@@ -1360,12 +1372,21 @@ function renderHome(){
       <p>${LESSONS.length} שיעורים, ${LESSONS.length*5} משפטים — הכל שלך עכשיו. תמשיך לחזור ולתרגל כדי שזה יישאר חזק.</p>
       <button class="btn" onclick="renderReview()">תרגול חופשי 🎯</button>
     </div>`;
-  } else if(doneToday){
+  } else if(doneToday && canStartNew){
     heroHtml = `
     <div class="card done-today">
       <div class="big">✅</div>
       <h2>סיימת את השיעור של היום!</h2>
-      <p>15 דקות ביום — לא יותר. המוח שלך צריך את הלילה כדי לשמור את מה שלמדת.<br>השיעור הבא נפתח מחר. 😴</p>
+      <p>הכי טוב לעצור כאן ולתת למוח לילה לשמור את מה שלמדת.<br>אבל אם אתה מרגיש חזק — יש לך שיעור בונוס אחד ליום. 😉</p>
+      <button class="btn" onclick="startLesson(${cur}, false)">🎁 בא לי עוד — שיעור בונוס</button>
+      <button class="btn secondary" style="margin-top:8px" onclick="renderReview()">בא לי לחזור על מילים 🔁</button>
+    </div>`;
+  } else if(doneToday){
+    heroHtml = `
+    <div class="card done-today">
+      <div class="big">🔥🔥</div>
+      <h2>וואו, שני שיעורים ביום!</h2>
+      <p>עשית היום כפול. עכשיו באמת תן למוח לשמור את זה —<br>השיעור הבא נפתח מחר. 😴</p>
       <button class="btn secondary" onclick="renderReview()">בא לי לחזור על מילים 🔁</button>
     </div>`;
   } else {
@@ -1389,9 +1410,9 @@ function renderHome(){
       const locked = li > state.completed;
       const pausedHere = !!paused && paused.idx === li;
       const cls = done ? 'done' : isCur ? 'current' : 'locked';
-      const mark = pausedHere ? '⏸️' : done ? '⭐' : isCur ? (doneToday ? '🌙' : '▶️') : '🔒';
-      const subtitle = pausedHere ? 'עצרת כאן — אפשר להמשיך' : done ? 'הושלם — אפשר לחזור עליו' : isCur ? (doneToday ? 'נפתח מחר' : 'השיעור של היום') : 'עוד נגיע לשם';
-      const click = pausedHere ? 'onclick="resumeLesson()"' : done ? `onclick="startLesson(${li}, true)"` : (isCur && !doneToday) ? `onclick="startLesson(${li}, false)"` : '';
+      const mark = pausedHere ? '⏸️' : done ? '⭐' : isCur ? (!canStartNew ? '🌙' : doneToday ? '🎁' : '▶️') : '🔒';
+      const subtitle = pausedHere ? 'עצרת כאן — אפשר להמשיך' : done ? 'הושלם — אפשר לחזור עליו' : isCur ? (!canStartNew ? 'נפתח מחר' : doneToday ? 'זמין כשיעור בונוס 🎁' : 'השיעור של היום') : 'עוד נגיע לשם';
+      const click = pausedHere ? 'onclick="resumeLesson()"' : done ? `onclick="startLesson(${li}, true)"` : (isCur && canStartNew) ? `onclick="startLesson(${li}, false)"` : '';
       const disabled = !click ? 'disabled' : '';
       listHtml += `
       <button class="lesson-row ${cls}" ${click} ${disabled}>
@@ -2379,6 +2400,10 @@ function renderDone(){
   if(!wasReplay){
     state.completed = Math.max(state.completed, L.idx + 1);
     const today = todayStr();
+    if(state.lastDoneDate === today){
+      // a bonus lesson: the day's counter grows, the streak already counted
+      state.lessonsToday = lessonsDoneToday() + 1;
+    }
     if(state.lastDoneDate !== today){
       const prevStreak = state.streak;
       if(state.lastDoneDate === dateNDaysAgo(1)){
@@ -2393,6 +2418,7 @@ function renderDone(){
         state.streak = 1;
       }
       state.lastDoneDate = today;
+      state.lessonsToday = 1;
       const STREAK_MSGS = {3:'שלושה ימים — זה כבר מתחיל להיות הרגל!', 7:'שבוע שלם ברצף! רצינות אמיתית', 14:'שבועיים ברצף — אתה מכונה!', 30:'חודש שלם. וואו. פשוט וואו'};
       if(state.streak !== prevStreak && STREAK_MSGS[state.streak])
         milestones.push('🔥 ' + state.streak + ' ימים ברצף — ' + STREAK_MSGS[state.streak]);
@@ -2425,7 +2451,9 @@ function renderDone(){
       ${streakNote ? `<div class="streak-note">${esc(streakNote)}</div>` : ''}
       ${milestones.map(m=>`<div class="milestone">${esc(m)}</div>`).join('')}
       <div class="quote">💬 ${esc(pick(FINISH_QUOTES))}</div>
-      <button class="btn" onclick="renderHome()">${wasReplay ? 'חזרה הביתה' : 'סיימנו להיום — נתראה מחר! 👋'}</button>
+      <button class="btn" onclick="renderHome()">${wasReplay ? 'חזרה הביתה'
+        : (lessonsDoneToday() < MAX_LESSONS_PER_DAY && state.completed < LESSONS.length) ? 'חזרה הביתה 🏠 (מחכה לך בונוס 🎁)'
+        : 'סיימנו להיום — נתראה מחר! 👋'}</button>
     </div>
   `);
   L = null;
