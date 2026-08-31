@@ -48,7 +48,7 @@ function runtime(seed = new Map()) {
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
-      PRACTICE_TOPICS, PRACTICE_CAST, PRACTICE_SCENES, buildPracticeSession, personArt,
+      PRACTICE_TOPICS, PRACTICE_CAST, PRACTICE_SCENES, PRACTICE_BACKDROPS, buildPracticeSession, personArt,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
       manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -152,6 +152,122 @@ test('the modern cast stays visually distinct and every member remains in conver
   const sceneCharacters = new Set(Object.values(api.PRACTICE_SCENES).flat().map(scene => scene.who));
   assert.deepEqual([...sceneCharacters].sort(), [...castIds].sort(),
     'every redesigned character must remain reachable in free conversation');
+});
+
+test('all free-conversation routes use the intended 22 layered backdrops', () => {
+  const { api } = runtime();
+  const expectedRoutes = {
+    greet: ['street-school', 'elevator', 'city-square'],
+    meet: ['park-bench', 'art-studio'],
+    feelings: ['school-steps', 'living-room'],
+    likes: ['music-room', 'basketball-court'],
+    afterschool: ['school-gate', 'park-bench'],
+    food: ['restaurant', 'home-kitchen'],
+    plans: ['phone-room', 'courtyard-garden'],
+    shopping: ['clothing-store', 'market-stall'],
+    help: ['bus-stop', 'parking-lot'],
+    animals: ['dog-park', 'home-street'],
+    weather: ['weather-window', 'beach-path'],
+  };
+  const expectedIds = [
+    'street-school', 'elevator', 'city-square', 'park-bench', 'art-studio',
+    'school-steps', 'living-room', 'music-room', 'basketball-court', 'school-gate',
+    'restaurant', 'home-kitchen', 'phone-room', 'courtyard-garden',
+    'clothing-store', 'market-stall', 'bus-stop', 'parking-lot', 'dog-park',
+    'home-street', 'weather-window', 'beach-path',
+  ];
+  const actualRoutes = Object.fromEntries(Object.entries(api.PRACTICE_SCENES)
+    .map(([topic, scenes]) => [topic, [...scenes].map(scene => scene.bg)]));
+
+  assert.deepEqual(actualRoutes, expectedRoutes);
+  assert.equal(Object.values(actualRoutes).flat().length, 23,
+    'free conversation must retain all 23 scene choices');
+  assert.deepEqual(Object.keys(api.PRACTICE_BACKDROPS), expectedIds);
+  for (const id of Object.values(actualRoutes).flat())
+    assert.ok(api.PRACTICE_BACKDROPS[id], `scene references missing backdrop ${id}`);
+  assert.equal(Object.values(actualRoutes).flat().filter(id => id === 'park-bench').length, 2,
+    'the neighbourhood bench is the one intentionally shared illustration');
+});
+
+test('every conversation backdrop keeps a safe, distinct, bounded depth-layer contract', () => {
+  const { api } = runtime();
+  const semanticMarkers = {
+    'street-school': 'street-crossing',
+    elevator: 'elevator-panel',
+    'city-square': 'square-fountain',
+    'park-bench': 'park-bench',
+    'art-studio': 'art-easel',
+    'school-steps': 'school-steps',
+    'living-room': 'living-sofa',
+    'music-room': 'music-speaker',
+    'basketball-court': 'basketball-hoop',
+    'school-gate': 'school-gates',
+    restaurant: 'restaurant-table',
+    'home-kitchen': 'kitchen-counter',
+    'phone-room': 'phone-signal',
+    'courtyard-garden': 'courtyard-slide',
+    'clothing-store': 'clothes-rack',
+    'market-stall': 'market-produce',
+    'bus-stop': 'bus-shelter',
+    'parking-lot': 'garage-pillar',
+    'dog-park': 'dog-agility',
+    'home-street': 'home-cat',
+    'weather-window': 'weather-window-frame',
+    'beach-path': 'beach-ocean',
+  };
+  const hashes = new Set();
+  let totalBytes = 0;
+  let totalTags = 0;
+
+  for (const [id, backdrop] of Object.entries(api.PRACTICE_BACKDROPS)) {
+    assert.equal(backdrop.id, id);
+    assert.equal(backdrop.variant, 'layered-v2');
+    assert.match(backdrop.sky, /^#[0-9a-f]{6}$/i);
+    assert.match(backdrop.ground, /^#[0-9a-f]{6}$/i);
+    assert.equal(classCount(backdrop.art, 'backdrop-far'), 1, `${id} needs one far layer`);
+    assert.equal(classCount(backdrop.art, 'backdrop-mid'), 1, `${id} needs one middle layer`);
+    assert.equal(classCount(backdrop.art, 'backdrop-near'), 1, `${id} needs one near layer`);
+    assert.equal(classCount(backdrop.art, 'scene-base'), 1, `${id} needs one sky canvas`);
+    assert.equal(classCount(backdrop.art, 'scene-floor'), 1, `${id} needs one ground plane`);
+    assert.equal(classCount(backdrop.art, semanticMarkers[id]), 1,
+      `${id} needs its ${semanticMarkers[id]} semantic landmark`);
+    assert.match(backdrop.art, new RegExp(`id="${id}-sky"`));
+    assert.match(backdrop.art, new RegExp(`url\\(#${id}-sky\\)`));
+
+    // Artwork is inline and local: no executable SVG, remote resources or event handlers.
+    assert.doesNotMatch(backdrop.art,
+      /<(?:image|script|foreignObject|iframe|object|embed|animate|animateTransform)\b|\bon[a-z]+\s*=|\b(?:href|xlink:href)\s*=|url\(\s*['"]?(?:https?:|data:|javascript:)/i);
+
+    const byteSize = Buffer.byteLength(backdrop.art, 'utf8');
+    const tagCount = (backdrop.art.match(/<[a-z][\w:-]*\b/gi) || []).length;
+    assert.ok(byteSize >= 1_000 && byteSize <= 12_000,
+      `${id} SVG should stay detailed but lightweight; got ${byteSize} bytes`);
+    assert.ok(tagCount >= 15 && tagCount <= 160,
+      `${id} SVG tag count should stay phone-friendly; got ${tagCount}`);
+    totalBytes += byteSize;
+    totalTags += tagCount;
+    hashes.add(crypto.createHash('sha256').update(backdrop.art).digest('hex'));
+  }
+
+  assert.equal(hashes.size, Object.keys(semanticMarkers).length,
+    'all 22 backdrops need genuinely distinct artwork');
+  assert.ok(totalBytes <= 160_000, `backdrop payload is too large: ${totalBytes} bytes`);
+  assert.ok(totalTags <= 2_500, `backdrop DOM is too large: ${totalTags} SVG tags`);
+});
+
+test('the stage mounts full-height backdrop SVGs and respects reduced motion', () => {
+  assert.match(html,
+    /<div class="stage-bg" data-backdrop="\$\{esc\(bd\.id\)\}"[^>]*>/);
+  assert.match(html,
+    /<svg class="backdrop-art backdrop-\$\{esc\(bd\.id\)\}" data-art="\$\{esc\(bd\.id\)\}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">/);
+
+  const svgRule = html.match(/\.stage-bg svg\{([^}]*)\}/)?.[1] || '';
+  assert.match(svgRule, /position:absolute/);
+  assert.match(svgRule, /inset:0/);
+  assert.match(svgRule, /width:100%/);
+  assert.match(svgRule, /height:100%/);
+  assert.match(html,
+    /@media \(prefers-reduced-motion:reduce\)[\s\S]{0,240}\.stage-bg \.ambient\{[^}]*animation:none!important[^}]*transform:none!important/);
 });
 
 test('course content remains intact', () => {
@@ -725,7 +841,7 @@ test('a completed speaking result resumes without requiring the phrase again', (
 test('PWA update code is versioned and does not clear local progress', () => {
   const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
   assert.match(sw, /CACHE_PREFIX\s*=\s*'speak-english-'/);
-  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v5'/);
+  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v6'/);
   assert.match(sw, /SKIP_WAITING/);
   assert.match(html, /updateViaCache:'none'/);
   assert.doesNotMatch(sw, /localStorage/);
