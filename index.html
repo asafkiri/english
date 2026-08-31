@@ -36,7 +36,7 @@ body{
   line-height:1.55;
   overscroll-behavior:none;
 }
-#app{max-width:520px;margin:0 auto;min-height:100%;padding:0 16px calc(28px + env(safe-area-inset-bottom));}
+#app{max-width:520px;margin:0 auto;min-height:100%;padding:env(safe-area-inset-top) 16px calc(28px + env(safe-area-inset-bottom));}
 .screen{animation:fadeUp .35s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
@@ -50,7 +50,7 @@ body{
 .brand small{display:block;font-size:12.5px;font-weight:500;color:var(--dim)}
 .chips{display:flex;gap:8px}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px}
-.chip.gear{cursor:pointer;font-size:16px}
+.chip.gear{cursor:pointer;font-size:16px;color:var(--text);font-family:inherit;min-width:44px;min-height:44px;justify-content:center}
 
 /* ---------- cards & buttons ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
@@ -91,9 +91,10 @@ body{
 .lesson-row{
   display:flex;align-items:center;gap:12px;background:var(--card);
   border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:8px;
-  cursor:pointer;transition:transform .1s ease;
+  cursor:pointer;transition:transform .1s ease;width:100%;color:var(--text);font-family:inherit;text-align:right;
 }
 .lesson-row:active{transform:scale(.98)}
+.lesson-row:disabled{cursor:default}
 .lesson-row .num{
   width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
   font-weight:800;font-size:16px;flex-shrink:0;background:var(--card2);color:var(--dim);
@@ -108,7 +109,7 @@ body{
 
 /* ---------- lesson player ---------- */
 .player-top{display:flex;align-items:center;gap:12px;padding:16px 0 14px}
-.xbtn{width:38px;height:38px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--dim);font-size:17px;cursor:pointer;flex-shrink:0}
+.xbtn{width:44px;height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--dim);font-size:17px;cursor:pointer;flex-shrink:0}
 .pbar{flex:1;height:12px;background:var(--card);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
 .pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#6ee7b7);transition:width .4s ease}
 .timer{font-size:13px;font-weight:700;color:var(--dim);min-width:44px;text-align:left;font-variant-numeric:tabular-nums}
@@ -124,6 +125,7 @@ body{
 .phrase-en{direction:ltr;font-size:30px;font-weight:800;letter-spacing:.2px;margin-bottom:12px;line-height:1.35}
 .phrase-en .w{cursor:pointer;border-bottom:1.5px dashed rgba(147,160,189,.45);transition:color .12s ease}
 .phrase-en .w:active{color:var(--green)}
+.phrase-en button.w{display:inline;background:none;border:0;color:inherit;font:inherit;padding:0;line-height:inherit}
 .milestone{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.45);border-radius:16px;padding:14px 16px;margin:14px 0 0;font-weight:700;font-size:15.5px;color:var(--amber);animation:pop .4s ease both}
 .streak-note{margin-top:10px;font-size:14.5px;color:#a7d9c3}
 .phrase-tl{font-size:19px;color:var(--amber);font-weight:700;margin-bottom:6px}
@@ -196,7 +198,39 @@ body{
 .rev-item .txt{flex:1;min-width:0}
 .rev-item .en{direction:ltr;text-align:right;font-weight:800;font-size:16.5px}
 .rev-item .he{font-size:13.5px;color:var(--dim)}
-.rev-play{width:40px;height:40px;border-radius:50%;border:none;background:var(--card2);color:var(--blue);font-size:17px;cursor:pointer;flex-shrink:0}
+.rev-play{width:44px;height:44px;border-radius:50%;border:none;background:var(--card2);color:var(--blue);font-size:17px;cursor:pointer;flex-shrink:0}
+
+/* ---------- recall, challenges & conversation ---------- */
+.recall-card{background:linear-gradient(150deg,#1e2d4a,var(--card));border:1px solid var(--line);border-radius:var(--radius);padding:24px 18px;text-align:center;margin-bottom:16px}
+.recall-card .cue{font-size:23px;font-weight:800;margin-bottom:6px}
+.recall-card .cue-note{font-size:14px;color:var(--dim)}
+.hint-box{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.hint-box[hidden]{display:none}
+.hint-en{direction:ltr;font-size:27px;font-weight:800;line-height:1.35}
+.hint-tl{font-size:18px;color:var(--amber);font-weight:700;margin-top:6px}
+.hint-actions{display:flex;gap:8px;margin:12px 0 4px}
+.hint-actions .btn{padding:12px;font-size:15px}
+.challenge-help{color:var(--dim);font-size:14.5px;margin:-5px 0 15px}
+.audio-only{font-size:15px;color:var(--dim);margin:8px 0 16px}
+.order-built{direction:ltr;min-height:62px;border:1.5px dashed var(--line);border-radius:14px;padding:12px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.order-built.empty::after{content:"לחץ על החלקים לפי הסדר";direction:rtl;color:var(--dim);font-size:14px}
+.word-bank{direction:ltr;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.word-chip{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;font:inherit;font-weight:750;cursor:pointer}
+.word-chip:disabled{opacity:.3;cursor:default}
+.built-chip{background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.4);cursor:default}
+.chat-thread{margin-bottom:16px}
+.chat-thread .dlg-line:last-child{margin-bottom:0}
+.branch-options{display:grid;gap:10px;margin:14px 0}
+.branch-options .quiz-opt{text-align:center;margin:0}
+.mic-fallback{margin-top:8px}
+.word-feedback{direction:ltr;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.word-feedback span{padding:4px 8px;border-radius:8px;background:rgba(52,211,153,.13);color:var(--green);font-weight:700;font-size:14px}
+.word-feedback span.missing{background:rgba(251,191,36,.12);color:var(--amber)}
+.resume-note{color:#b9c6e2;font-size:14.5px;margin:8px 0 14px}
+.update-banner{position:fixed;z-index:300;right:16px;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));max-width:488px;margin:auto;background:#22304f;border:1px solid #3e527e;border-radius:18px;padding:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
+.update-banner .txt{flex:1;font-size:14.5px}
+.update-banner .txt b{display:block;font-size:16px}
+.update-banner .btn{width:auto;padding:11px 15px;font-size:15px}
 
 /* ---------- modal ---------- */
 .overlay{position:fixed;inset:0;background:rgba(5,10,20,.7);display:flex;align-items:flex-end;justify-content:center;z-index:100;animation:fadeUp .2s ease}
@@ -204,12 +238,15 @@ body{
 .sheet h3{font-size:20px;margin-bottom:16px}
 .set-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);font-size:16px}
 .seg{display:flex;background:var(--card);border-radius:12px;padding:3px;border:1px solid var(--line)}
-.seg button{border:none;background:transparent;color:var(--dim);font-family:inherit;font-weight:700;font-size:14px;padding:7px 14px;border-radius:9px;cursor:pointer}
+.seg button{border:none;background:transparent;color:var(--dim);font-family:inherit;font-weight:700;font-size:14px;padding:7px 14px;border-radius:9px;cursor:pointer;min-height:44px}
 .seg button.on{background:var(--green);color:#06281c}
 .toast{
-  position:fixed;top:18px;right:50%;transform:translateX(50%);background:var(--card2);
+  position:fixed;top:calc(18px + env(safe-area-inset-top));right:50%;transform:translateX(50%);background:var(--card2);
   border:1px solid var(--line);color:var(--text);padding:11px 20px;border-radius:99px;
   font-weight:700;font-size:15px;z-index:200;animation:pop .25s ease both;box-shadow:var(--shadow);
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 </style>
 </head>
@@ -557,9 +594,64 @@ const LESSONS = [
 ];
 const LESSONS_PER_UNIT = 5;
 
+/* A short controlled-choice conversation closes every unit. The learner
+   chooses the meaning in Hebrew, then produces the English answer from memory.
+   This keeps the conversation personal without needing an AI backend. */
+const BRANCH_DIALOGUES = {
+  4: {
+    ask:{en:'Good morning!', he:'בוקר טוב!', tl:'גוּד מוֹרְנִינְג!'},
+    options:[
+      {label:'בוקר טוב! מה שלומך?', answer:{en:'Good morning! How are you?', he:'בוקר טוב! מה שלומך?', tl:'גוּד מוֹרְנִינְג! הַאוּ אַר יוּ?'}, reply:{en:"I'm good, thanks. Have a nice day!", he:'אני בסדר, תודה. שיהיה לך יום טוב!', tl:'אַיְים גוּד, תֶ׳נְקְס. הֶב אַ נַייס דֵיי!'}},
+      {label:'שלום!', answer:{en:'Hello!', he:'שלום!', tl:'הֶלוֹ!'}, reply:{en:'Nice to meet you!', he:'נעים להכיר!', tl:'נַייס טוּ מִיט יוּ!'}},
+      {label:'היי!', answer:{en:'Hi!', he:'היי!', tl:'הַיי!'}, reply:{en:'Hi! See you later!', he:'היי! נתראה אחר כך!', tl:'הַיי! סִי יוּ לֵייטֶר!'}},
+    ],
+  },
+  9: {
+    ask:{en:'How do you feel today?', he:'איך אתה מרגיש היום?', tl:'הַאוּ דוּ יוּ פִיל טוּדֵיי?'},
+    options:[
+      {label:'אני שמח', answer:{en:"I'm happy", he:'אני שמח', tl:'אַיְים הֶפִּי'}, reply:{en:'Nice! I feel great too!', he:'יפה! גם אני מרגיש מעולה!', tl:'נַייס! אַיי פִיל גְרֵייט טוּ!'}},
+      {label:'אני עייף', answer:{en:"I'm tired", he:'אני עייף', tl:'אַיְים טַאיֶרְד'}, reply:{en:'OK. Take care!', he:'בסדר. שמור על עצמך!', tl:'אוֹקֵיי. טֵייק קֶר!'}},
+      {label:'אני רעב', answer:{en:"I'm hungry", he:'אני רעב', tl:'אַיְים הַנְגְרִי'}, reply:{en:'Me too!', he:'גם אני!', tl:'מִי טוּ!'}},
+    ],
+  },
+  14: {
+    ask:{en:'What would you like?', he:'מה תרצה?', tl:'וּוֹט וּוּד יוּ לַייק?'},
+    options:[
+      {label:'אני רוצה פיצה', answer:{en:'I want pizza', he:'אני רוצה פיצה', tl:'אַיי וּוֹנְט פִּיצָה'}, reply:{en:'OK! It is tasty!', he:'בסדר! זה טעים!', tl:'אוֹקֵיי! אִיט אִיז טֵייסְטִי!'}},
+      {label:'מים, בבקשה', answer:{en:'Water, please', he:'מים, בבקשה', tl:'וּוֹטֶר, פְּלִיז'}, reply:{en:'No problem!', he:'אין בעיה!', tl:'נוֹ פְּרוֹבְּלֶם!'}},
+      {label:'אני אקח המבורגר', answer:{en:"I'll have a burger", he:'אני אקח המבורגר', tl:'אַיְיל הֶב אַ בֶּרְגֶר'}, reply:{en:'OK! Anything else?', he:'בסדר! עוד משהו?', tl:'אוֹקֵיי! אֶנִיתִ׳ינְג אֶלְס?'}},
+    ],
+  },
+  19: {
+    ask:{en:'Is English hard?', he:'אנגלית זה קשה?', tl:'אִיז אִינְגְלִיש הַרְד?'},
+    options:[
+      {label:'קצת, אבל אני אנסה', answer:{en:'A little, but I will try', he:'קצת, אבל אני אנסה', tl:'אַ לִיטֶל, בַּאט אַיי וִויל טְרַיי'}, reply:{en:"Don't give up. I believe in you!", he:'אל תוותר. אני מאמין בך!', tl:'דוֹנְט גִיב אַפּ. אַיי בִּילִיב אִין יוּ!'}},
+      {label:'אני אנסה', answer:{en:'I will try', he:'אני אנסה', tl:'אַיי וִויל טְרַיי'}, reply:{en:'Well done!', he:'כל הכבוד!', tl:'וֶול דַאן!'}},
+      {label:'אני מסוגל!', answer:{en:'I can do it!', he:'אני מסוגל!', tl:'אַיי קֶן דוּ אִיט!'}, reply:{en:"That's awesome!", he:'זה מדהים!', tl:'דֶאטְס אוֹסוֹם!'}},
+    ],
+  },
+};
+
+const APP_VERSION = '2.0.0';
+const SESSION_VERSION = 2;
+// One predictable challenge type per lesson. The first two lessons start with
+// the easiest listening task; recall and ordering are introduced gradually.
+const CHALLENGE_PLAN = [
+  'listen','listen','order','recall','listen',
+  'order','recall','listen','recall','order',
+  'listen','recall','order','listen','order',
+  'recall','listen','order','recall','recall',
+];
+const CHALLENGE_LABELS = {
+  listen:'שמיעה', order:'סידור משפט', recall:'דיבור מהזיכרון',
+};
+const ORDER_PHRASE_INDEXES = {
+  2:[1,2,4], 5:[0,1,4], 9:[0,3,4], 12:[2,3,4], 14:[0,3,4], 17:[0,2,4],
+};
+
 /* ---------------- encouragement pools ---------------- */
-const PRAISE = ['מעולה! 🔥','נשמע מצוין!','בדיוק ככה! 👏','וואו, יפה מאוד!','כל הכבוד!','אלוף! 💪','זה היה טוב!'];
-const ALMOST = ['כמעט מושלם! עוד פעם אחת?','קרוב מאוד! נסה שוב','יפה! בוא ננסה עוד פעם ביחד'];
+const PRAISE = ['מעולה! 🔥','זיהיתי את המשפט!','בדיוק ככה! 👏','וואו, יפה מאוד!','כל הכבוד!','אלוף! 💪','זה היה טוב!'];
+const ALMOST = ['קלטתי חלק מהמשפט — עוד ניסיון אחד?','קרוב מאוד! נסה שוב','יפה! בוא ננסה עוד פעם ביחד'];
 const FINISH_QUOTES = [
   'כל מילה שאתה אומר בקול — נשארת איתך לתמיד.',
   'מי שמתאמן 15 דקות ביום, אחרי חודש מדבר אנגלית אמיתית.',
@@ -577,35 +669,299 @@ const HOME_LINES = [
 
 /* ---------------- state ---------------- */
 const STORE_KEY = 'speakEnglishV1';
+const SESSION_STEP_TYPES = new Set([
+  'intro','learn','speak','quiz','listenQuiz','order','dlgIntro','listen',
+  'branchChoice','branchPending','done',
+]);
 let state = load();
 function load(){
   try{
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
-    if(s && typeof s === 'object') return Object.assign(defaults(), s);
+    if(s && typeof s === 'object'){
+      const out = Object.assign(defaults(), s);
+      out.name = typeof out.name === 'string' ? out.name.slice(0,20) : '';
+      out.onboarded = !!out.onboarded;
+      out.completed = Math.max(0, Math.min(LESSONS.length, Math.floor(Number(out.completed) || 0)));
+      out.streak = Math.max(0, Number(out.streak) || 0);
+      out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
+      out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
+      out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
+      out.reviewMeta=normalizeReviewMeta(out.reviewMeta,out.hard);
+      out.hard=reviewHardIds(out.reviewMeta,out.hard);
+      out.lastWarmupIds=reviewWarmupIds(out.reviewMeta,out.lastWarmupIds);
+      for(const field of ['profileUpdatedAt','settingsUpdatedAt','reviewUpdatedAt','progressUpdatedAt','sessionUpdatedAt'])
+        out[field]=Math.max(0,Number(out[field])||0);
+      out.finishedRuns=Array.isArray(out.finishedRuns)
+        ? [...new Set(out.finishedRuns.filter(x=>typeof x==='string'))].slice(-200) : [];
+      out.session = validSavedSession(out.session) ? out.session : null;
+      if(out.session && ((!out.session.isReplay && out.session.idx!==out.completed) ||
+        (out.session.isReplay && out.session.idx>=out.completed))) out.session=null;
+      return out;
+    }
   }catch(e){}
   return defaults();
 }
 function defaults(){
-  return {name:'', onboarded:false, completed:0, streak:0, lastDoneDate:'', replays:0, slowSpeech:true, micEnabled:true, hard:[], lastGraceTs:0};
+  return {
+    schemaVersion:2, name:'', onboarded:false, completed:0, streak:0,
+    lastDoneDate:'', replays:0, slowSpeech:true, micEnabled:true,
+    hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
+    profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
+    progressUpdatedAt:0, sessionUpdatedAt:0, finishedRuns:[],
+  };
 }
-function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
-function dateNDaysAgo(n){ const d = new Date(Date.now()-n*864e5); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function normalizeReviewMeta(raw, hardIds=[]){
+  const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+  const hardSet=new Set(Array.isArray(hardIds)?hardIds:[]);
+  const ids=new Set([...Object.keys(source),...hardSet]);
+  const normalized={};
+  for(const id of ids){
+    if(typeof id!=='string') continue;
+    const value=source[id]&&typeof source[id]==='object'&&!Array.isArray(source[id])?source[id]:{};
+    const meta={...value};
+    for(const field of ['successes','lapses','hints','lastPracticedAt','lastWarmupAt','updatedAt','hardUpdatedAt'])
+      meta[field]=Math.max(0,Number(meta[field])||0);
+    meta.hard=typeof value.hard==='boolean'?value.hard:hardSet.has(id);
+    normalized[id]=meta;
+  }
+  return normalized;
+}
+function reviewEntryStamp(meta){
+  return Math.max(Number(meta?.updatedAt)||0,Number(meta?.hardUpdatedAt)||0,
+    Number(meta?.lastPracticedAt)||0,Number(meta?.lastWarmupAt)||0);
+}
+function reviewHardIds(meta, preferredOrder=[]){
+  const order=new Map((Array.isArray(preferredOrder)?preferredOrder:[]).map((id,i)=>[id,i]));
+  return Object.keys(meta||{}).filter(id=>meta[id]?.hard).sort((a,b)=>
+    (Number(meta[a].hardUpdatedAt)||reviewEntryStamp(meta[a]))-
+    (Number(meta[b].hardUpdatedAt)||reviewEntryStamp(meta[b])) ||
+    (order.get(a)??-1)-(order.get(b)??-1)
+  ).slice(-20);
+}
+function reviewWarmupIds(meta, preferredOrder=[]){
+  const candidates=[...new Set([
+    ...(Array.isArray(preferredOrder)?preferredOrder.filter(id=>meta?.[id]):[]),
+    ...Object.keys(meta||{}).filter(id=>Number(meta[id].lastWarmupAt)>0),
+  ])];
+  const order=new Map(candidates.map((id,i)=>[id,i]));
+  return candidates.sort((a,b)=>(Number(meta[a]?.lastWarmupAt)||0)-(Number(meta[b]?.lastWarmupAt)||0) ||
+    (order.get(a)??0)-(order.get(b)??0)).slice(-20);
+}
+function validPhraseData(p){
+  return !!(p && typeof p.en === 'string' && typeof p.he === 'string' && typeof p.tl === 'string');
+}
+function validSessionStep(step){
+  if(!step || !SESSION_STEP_TYPES.has(step.type)) return false;
+  if(step.type === 'learn' || step.type === 'speak') return validPhraseData(step.p);
+  if(step.type === 'quiz'){
+    return validPhraseData(step.p) && Array.isArray(step.options) &&
+      step.options.length >= 2 && step.options.every(x=>typeof x === 'string');
+  }
+  if(step.type === 'listen') return validPhraseData(step.line);
+  if(step.type === 'listenQuiz'){
+    return validPhraseData(step.p) && typeof step.correct === 'string' &&
+      Array.isArray(step.options) && step.options.length >= 2 && step.options.every(x=>typeof x === 'string');
+  }
+  if(step.type === 'order'){
+    return validPhraseData(step.p) && Array.isArray(step.chunks) && step.chunks.length >= 2 &&
+      step.chunks.every(x=>typeof x === 'string') && Array.isArray(step.bankOrder) &&
+      step.bankOrder.length === step.chunks.length &&
+      step.bankOrder.every(x=>Number.isInteger(x) && x>=0 && x<step.chunks.length) &&
+      new Set(step.bankOrder).size === step.chunks.length && Array.isArray(step.selected) &&
+      step.selected.every(x=>Number.isInteger(x) && x>=0 && x<step.chunks.length);
+  }
+  if(step.type === 'branchChoice'){
+    return Array.isArray(step.options) && step.options.length >= 2 && step.options.every(option=>
+      option && typeof option.label === 'string' && validPhraseData(option.answer) && validPhraseData(option.reply));
+  }
+  return true;
+}
+function validSavedSession(s){
+  if(!(s && s.version === SESSION_VERSION && Number.isInteger(s.idx) &&
+    s.idx >= 0 && s.idx < LESSONS.length && Array.isArray(s.steps) &&
+    s.steps.length > 0 && s.steps.length <= 100 && s.steps.every(validSessionStep) &&
+    Number.isInteger(s.i) && s.i >= 0 && s.i < s.steps.length &&
+    typeof s.isReplay === 'boolean' && Number.isFinite(Number(s.elapsedMs)) && Number(s.elapsedMs)>=0)) return false;
+  const current=s.steps[s.i];
+  return current.type !== 'done' && current.type !== 'branchPending';
+}
+function dateValue(value){
+  const match=String(value||'').match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!match) return 0;
+  return Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]));
+}
+function touchState(field){ state[field]=Math.max(Date.now(),(Number(state[field])||0)+1); }
+function rememberFinishedRun(runId){
+  if(typeof runId!=='string'||!runId) return;
+  state.finishedRuns=(state.finishedRuns||[]).filter(id=>id!==runId);
+  state.finishedRuns.push(runId);
+  state.finishedRuns=state.finishedRuns.slice(-200);
+}
+function reconcileStoredProgress(){
+  try{
+    const stored=JSON.parse(localStorage.getItem(STORE_KEY));
+    if(!stored || typeof stored !== 'object') return;
+
+    const storedProfileTs=Math.max(0,Number(stored.profileUpdatedAt)||0);
+    if(storedProfileTs>(Number(state.profileUpdatedAt)||0)){
+      state.name=typeof stored.name==='string'?stored.name.slice(0,20):'';
+      state.onboarded=!!stored.onboarded;
+    }
+    state.profileUpdatedAt=Math.max(Number(state.profileUpdatedAt)||0,storedProfileTs);
+
+    const storedSettingsTs=Math.max(0,Number(stored.settingsUpdatedAt)||0);
+    if(storedSettingsTs>(Number(state.settingsUpdatedAt)||0)){
+      state.slowSpeech=stored.slowSpeech!==false;
+      state.micEnabled=stored.micEnabled!==false;
+    }
+    state.settingsUpdatedAt=Math.max(Number(state.settingsUpdatedAt)||0,storedSettingsTs);
+
+    const localReviewTs=Math.max(0,Number(state.reviewUpdatedAt)||0);
+    const storedReviewTs=Math.max(0,Number(stored.reviewUpdatedAt)||0);
+    const localReview=normalizeReviewMeta(state.reviewMeta,state.hard);
+    const storedReview=normalizeReviewMeta(stored.reviewMeta,stored.hard);
+    const mergedReview={};
+    for(const id of new Set([...Object.keys(localReview),...Object.keys(storedReview)])){
+      const localMeta=localReview[id], storedMeta=storedReview[id];
+      if(!localMeta) mergedReview[id]=storedMeta;
+      else if(!storedMeta) mergedReview[id]=localMeta;
+      else {
+        const localStamp=reviewEntryStamp(localMeta), storedStamp=reviewEntryStamp(storedMeta);
+        mergedReview[id]=storedStamp>localStamp || (storedStamp===localStamp&&storedReviewTs>localReviewTs)
+          ? storedMeta : localMeta;
+      }
+    }
+    state.reviewMeta=mergedReview;
+    state.hard=reviewHardIds(mergedReview,[
+      ...(Array.isArray(stored.hard)?stored.hard:[]),...(Array.isArray(state.hard)?state.hard:[]),
+    ]);
+    state.lastWarmupIds=reviewWarmupIds(mergedReview,[
+      ...(Array.isArray(state.lastWarmupIds)?state.lastWarmupIds:[]),
+      ...(Array.isArray(stored.lastWarmupIds)?stored.lastWarmupIds:[]),
+    ]);
+    state.reviewUpdatedAt=Math.max(localReviewTs,storedReviewTs);
+
+    state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
+    state.replays=Math.max(Number(state.replays)||0,Number(stored.replays)||0);
+    state.lastGraceTs=Math.max(Number(state.lastGraceTs)||0,Number(stored.lastGraceTs)||0);
+    state.progressUpdatedAt=Math.max(Number(state.progressUpdatedAt)||0,Number(stored.progressUpdatedAt)||0);
+    const localDay=dateValue(state.lastDoneDate), storedDay=dateValue(stored.lastDoneDate);
+    if(storedDay>localDay){
+      state.lastDoneDate=stored.lastDoneDate;
+      state.streak=Math.max(0,Number(stored.streak)||0);
+    } else if(storedDay===localDay){
+      state.streak=Math.max(Number(state.streak)||0,Number(stored.streak)||0);
+    }
+
+    state.finishedRuns=[...new Set([
+      ...(Array.isArray(stored.finishedRuns)?stored.finishedRuns.filter(x=>typeof x==='string'):[]),
+      ...(Array.isArray(state.finishedRuns)?state.finishedRuns.filter(x=>typeof x==='string'):[]),
+    ])].slice(-200);
+    const finishedSet=new Set(state.finishedRuns);
+    const localSession=validSavedSession(state.session)&&!finishedSet.has(state.session.runId)?state.session:null;
+    const storedSession=validSavedSession(stored.session)&&!finishedSet.has(stored.session.runId)?stored.session:null;
+    const localSessionTs=Math.max(0,Number(state.sessionUpdatedAt)||0);
+    const storedSessionTs=Math.max(0,Number(stored.sessionUpdatedAt)||0);
+    let chosenSession=localSession;
+    const sameRun=localSession&&storedSession&&localSession.runId&&localSession.runId===storedSession.runId;
+    if(sameRun){
+      if(storedSession.i>localSession.i) chosenSession=storedSession;
+      else if(storedSession.i===localSession.i){
+        const furthestElapsed=Math.max(Number(localSession.elapsedMs)||0,Number(storedSession.elapsedMs)||0);
+        localSession.elapsedMs=furthestElapsed;
+        storedSession.elapsedMs=furthestElapsed;
+        if(storedSessionTs>localSessionTs || (storedSessionTs===localSessionTs &&
+          (Number(storedSession.savedAt)||0)>(Number(localSession.savedAt)||0))) chosenSession=storedSession;
+      }
+    } else if(storedSessionTs>localSessionTs) chosenSession=storedSession;
+    else if(storedSessionTs===localSessionTs && localSession && storedSession &&
+      (Number(storedSession.savedAt)||0)>(Number(localSession.savedAt)||0)) chosenSession=storedSession;
+    else if(storedSessionTs===localSessionTs && !localSession && storedSession){
+      chosenSession=storedSession;
+    }
+    state.session=chosenSession;
+    state.sessionUpdatedAt=Math.max(localSessionTs,storedSessionTs);
+    if(state.session && ((!state.session.isReplay && state.session.idx!==state.completed) ||
+      (state.session.isReplay && state.session.idx>=state.completed))){
+      rememberFinishedRun(state.session.runId);
+      state.session=null;
+      touchState('sessionUpdatedAt');
+    }
+  }catch(e){}
+}
+function save(){
+  try{ reconcileStoredProgress(); localStorage.setItem(STORE_KEY, JSON.stringify(state)); return true; }
+  catch(e){ return false; }
+}
+function dateNDaysAgo(n){
+  const d = new Date();
+  d.setHours(12,0,0,0);
+  d.setDate(d.getDate()-n);
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
 function todayStr(){ return dateNDaysAgo(0); }
 function yesterdayStr(){ return dateNDaysAgo(1); }
 /* phrases the learner struggled with, remembered across days for warm-up review */
-function addHard(id){
-  if(!id) return;
-  state.hard = state.hard || [];
-  if(!state.hard.includes(id)){ state.hard.push(id); if(state.hard.length > 20) state.hard.shift(); save(); }
+function reviewMetaFor(id){
+  state.reviewMeta=state.reviewMeta||{};
+  if(!state.reviewMeta[id]) state.reviewMeta[id]={
+    successes:0,lapses:0,hints:0,lastPracticedAt:0,lastWarmupAt:0,
+    updatedAt:0,hard:false,hardUpdatedAt:0,
+  };
+  return state.reviewMeta[id];
 }
-function removeHard(id){
+function setReviewHard(id, hard, at=Date.now()){
+  if(!id) return;
+  const meta=reviewMetaFor(id);
+  meta.hard=!!hard;
+  meta.hardUpdatedAt=at;
+  meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
+}
+function addHard(id, persist=true, at=Date.now()){
+  if(!id) return;
+  state.hard=(state.hard||[]).filter(x=>x!==id);
+  state.hard.push(id);
+  setReviewHard(id,true,at);
+  if(state.hard.length>20){
+    const removed=state.hard.shift();
+    if(removed) setReviewHard(removed,false,at);
+  }
+  if(persist){ touchState('reviewUpdatedAt'); save(); }
+}
+function removeHard(id, persist=true, at=Date.now()){
   if(!id) return;
   state.hard = (state.hard || []).filter(x => x !== id);
+  setReviewHard(id,false,at);
+  if(persist){ touchState('reviewUpdatedAt'); save(); }
+}
+function notePractice(id, result, usedHint=false, wasWarmup=false){
+  if(!id) return;
+  const at=Date.now();
+  const meta=reviewMetaFor(id);
+  meta.lastPracticedAt=at;
+  if(wasWarmup){
+    meta.lastWarmupAt=at;
+    state.lastWarmupIds = (state.lastWarmupIds || []).filter(x=>x!==id);
+    state.lastWarmupIds.push(id);
+    state.lastWarmupIds = state.lastWarmupIds.slice(-20);
+  }
+  if(result === 'pass'){
+    meta.successes = (meta.successes || 0) + 1;
+    if(!usedHint) removeHard(id,false,at);
+    else addHard(id,false,at);
+  } else if(result === 'fail'){
+    meta.lapses = (meta.lapses || 0) + 1;
+    addHard(id,false,at);
+  }
+  meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
+  touchState('reviewUpdatedAt');
   save();
 }
 
 /* ---------------- speech: text to speech ---------------- */
 let voices = [];
+let autoSpeakTimer = null;
+let uiEpoch = 0;
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
 if('speechSynthesis' in window){
   loadVoices();
@@ -619,6 +975,13 @@ function pickVoice(){
 }
 function speak(text, cb){
   if(!('speechSynthesis' in window)){ if(cb) cb(); return; }
+  if(typeof L !== 'undefined' && L && L.rec){
+    stopRecognition();
+    const micButton=document.getElementById('micBtn');
+    const micHint=document.getElementById('micHint');
+    if(micButton){ micButton.disabled=false; micButton.classList.remove('listening'); }
+    if(micHint) micHint.textContent='ההשמעה עצרה את ההאזנה — לחץ שוב על המיקרופון כשתהיה מוכן';
+  }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/\.\.\.|___/g,''));
   u.lang = 'en-US';
@@ -628,33 +991,89 @@ function speak(text, cb){
   if(cb){ u.onend = cb; u.onerror = cb; }
   speechSynthesis.speak(u);
 }
+function cancelAutoSpeak(){
+  if(autoSpeakTimer){ clearTimeout(autoSpeakTimer); autoSpeakTimer = null; }
+}
+function scheduleSpeak(text, delay=350){
+  cancelAutoSpeak();
+  const epoch = uiEpoch;
+  const session = typeof L !== 'undefined' ? L : null;
+  const stepIndex = session ? session.i : -1;
+  autoSpeakTimer = setTimeout(()=>{
+    autoSpeakTimer = null;
+    if(epoch !== uiEpoch) return;
+    if(session && (!L || L !== session || L.i !== stepIndex)) return;
+    speak(text);
+  }, delay);
+}
 
 /* ---------------- speech: recognition ---------------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-function micAvailable(){ return !!SR && state.micEnabled; }
+let micUnavailableThisSession = false;
+function micAvailable(){ return !!SR && state.micEnabled && !micUnavailableThisSession; }
 function normalize(s){
-  return s.toLowerCase()
+  return String(s || '').toLowerCase().replace(/[’‘]/g,"'")
+    .replace(/\b([1-9]|10):00\b/g,'$1 oclock')
+    .replace(/\b20\b/g,'twenty').replace(/\b17\b/g,'seventeen').replace(/\b10\b/g,'ten').replace(/\b9\b/g,'nine')
+    .replace(/\b8\b/g,'eight').replace(/\b7\b/g,'seven').replace(/\b6\b/g,'six')
+    .replace(/\b5\b/g,'five').replace(/\b4\b/g,'four').replace(/\b3\b/g,'three')
+    .replace(/\b2\b/g,'two').replace(/\b1\b/g,'one')
+    .replace(/\bdont\b/g,"don't").replace(/\bcant\b/g,"can't").replace(/\bcannot\b/g,'can not')
     .replace(/i'm/g,'i am').replace(/what's/g,'what is').replace(/it's/g,'it is')
     .replace(/don't/g,'do not').replace(/can't/g,'can not').replace(/you're/g,'you are')
     .replace(/i'll/g,'i will').replace(/let's/g,'let us').replace(/that's/g,'that is')
+    .replace(/\bo\s*'?\s*clock\b/g,'oclock').replace(/\bokay\b/g,'ok')
     .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
 }
-function matchScore(target, heard){
-  const t = normalize(target).split(' ').filter(w=>w && w!=='a' && w!=='the');
-  const h = new Set(normalize(heard).split(' '));
-  if(!t.length) return 1;
-  let hit = 0;
-  for(const w of t) if(h.has(w)) hit++;
-  return hit / t.length;
+function matchDetails(target, heard){
+  const t = normalize(target).split(' ').filter(Boolean);
+  const h = normalize(heard).split(' ').filter(Boolean);
+  if(!t.length) return {score:1, words:[], matched:[], criticalMismatch:false};
+
+  // Longest common subsequence: word order matters, while a dropped short word
+  // does not automatically fail an otherwise clear beginner sentence.
+  const dp = Array.from({length:t.length+1}, ()=>Array(h.length+1).fill(0));
+  for(let i=1;i<=t.length;i++){
+    for(let j=1;j<=h.length;j++){
+      dp[i][j] = t[i-1] === h[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+    }
+  }
+  const matched = Array(t.length).fill(false);
+  let i=t.length, j=h.length;
+  while(i>0 && j>0){
+    if(t[i-1] === h[j-1]){ matched[i-1]=true; i--; j--; }
+    else if(dp[i-1][j] >= dp[i][j-1]) i--;
+    else j--;
+  }
+  let score = dp[t.length][h.length] / Math.max(t.length, h.length, 1);
+  const critical = new Set(['not','no','never','without']);
+  const targetCritical = t.filter(w=>critical.has(w));
+  const heardCritical = h.filter(w=>critical.has(w));
+  const criticalMismatch = targetCritical.some(w=>!heardCritical.includes(w)) || heardCritical.some(w=>!targetCritical.includes(w));
+  if(criticalMismatch) score = Math.min(score, .49);
+  return {score, words:t, matched, criticalMismatch};
 }
+function matchScore(target, heard){ return matchDetails(target, heard).score; }
 
 /* ---------------- rendering helpers ---------------- */
 const app = document.getElementById('app');
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function h(html){ app.innerHTML = html; window.scrollTo(0,0); }
+function stopRecognition(){
+  if(typeof L === 'undefined' || !L || !L.rec) return;
+  const rec = L.rec; L.rec = null;
+  rec.onresult = rec.onerror = rec.onend = null;
+  try{ rec.abort(); }catch(e){}
+}
+function h(html){
+  uiEpoch++;
+  cancelAutoSpeak();
+  stopRecognition();
+  app.innerHTML = html;
+  window.scrollTo(0,0);
+}
 function toast(msg){
   const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
+  t.className = 'toast'; t.setAttribute('role','status'); t.setAttribute('aria-live','polite'); t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(()=>t.remove(), 2200);
 }
@@ -685,14 +1104,14 @@ function renderOnboarding(){
       <div><span>🗣️</span><span><b>מדברים מהשיעור הראשון.</b><br>כל משפט כתוב גם באותיות עבריות, כדי שתדע בדיוק איך להגיד אותו.</span></div>
       <div><span>🧠</span><span><b>אי אפשר להיכשל פה.</b><br>אין ציונים ואין טעויות — רק ניסיונות. כל ניסיון מקדם אותך.</span></div>
     </div>
-    <p style="margin-bottom:2px">איך קוראים לך?</p>
+    <label for="nameInput" style="display:block;margin-bottom:2px">איך קוראים לך?</label>
     <input id="nameInput" type="text" maxlength="20" placeholder="השם שלך" autocomplete="off">
     <button class="btn" onclick="finishOnboarding()">יאללה, מתחילים! 🚀</button>
   </div>`);
 }
 function finishOnboarding(){
   const v = document.getElementById('nameInput').value.trim();
-  state.name = v; state.onboarded = true; save();
+  state.name = v; state.onboarded = true; touchState('profileUpdatedAt'); save();
   renderHome();
 }
 
@@ -707,12 +1126,26 @@ function greeting(){
 function renderHome(){
   const doneToday = state.lastDoneDate === todayStr();
   const allDone = state.completed >= LESSONS.length;
+  const savedSession = validSavedSession(state.session) ? state.session : null;
+  const paused = savedSession && ((!savedSession.isReplay && savedSession.idx===state.completed) || (savedSession.isReplay && savedSession.idx<state.completed)) ? savedSession : null;
   const cur = Math.min(state.completed, LESSONS.length - 1);
   const lesson = LESSONS[cur];
   const words = state.completed * 5;
 
   let heroHtml;
-  if(allDone){
+  if(paused){
+    const pl = LESSONS[paused.idx];
+    const pct = Math.round(paused.i / Math.max(1,paused.steps.length-1) * 100);
+    heroHtml = `
+    <div class="card today">
+      <div class="deco">⏯️</div>
+      <div class="tag">המקום שלך נשמר · ${pct}% מהשיעור</div>
+      <h2>ממשיכים מאיפה שעצרת</h2>
+      <div class="goal">שיעור ${paused.idx+1} · ${esc(pl.title)}</div>
+      <button class="btn" onclick="resumeLesson()">המשך בשיעור ▶️</button>
+      <button class="btn ghost" style="margin-top:5px" onclick="restartSavedLesson()">התחל את השיעור מחדש</button>
+    </div>`;
+  } else if(allDone){
     heroHtml = `
     <div class="card done-today">
       <div class="big">🏆</div>
@@ -747,16 +1180,18 @@ function renderHome(){
       const done = li < state.completed;
       const isCur = li === state.completed && !allDone;
       const locked = li > state.completed;
+      const pausedHere = !!paused && paused.idx === li;
       const cls = done ? 'done' : isCur ? 'current' : 'locked';
-      const mark = done ? '⭐' : isCur ? (doneToday ? '🌙' : '▶️') : '🔒';
-      const subtitle = done ? 'הושלם — אפשר לחזור עליו' : isCur ? (doneToday ? 'נפתח מחר' : 'השיעור של היום') : 'עוד נגיע לשם';
-      const click = done ? `onclick="startLesson(${li}, true)"` : (isCur && !doneToday) ? `onclick="startLesson(${li}, false)"` : '';
+      const mark = pausedHere ? '⏸️' : done ? '⭐' : isCur ? (doneToday ? '🌙' : '▶️') : '🔒';
+      const subtitle = pausedHere ? 'עצרת כאן — אפשר להמשיך' : done ? 'הושלם — אפשר לחזור עליו' : isCur ? (doneToday ? 'נפתח מחר' : 'השיעור של היום') : 'עוד נגיע לשם';
+      const click = pausedHere ? 'onclick="resumeLesson()"' : done ? `onclick="startLesson(${li}, true)"` : (isCur && !doneToday) ? `onclick="startLesson(${li}, false)"` : '';
+      const disabled = !click ? 'disabled' : '';
       listHtml += `
-      <div class="lesson-row ${cls}" ${click}>
-        <div class="num">${li+1}</div>
-        <div class="info"><b>${esc(l.title)}</b><span>${subtitle}</span></div>
-        <div class="mark">${mark}</div>
-      </div>`;
+      <button class="lesson-row ${cls}" ${click} ${disabled}>
+        <span class="num">${li+1}</span>
+        <span class="info"><b>${esc(l.title)}</b><span>${subtitle}</span></span>
+        <span class="mark" aria-hidden="true">${mark}</span>
+      </button>`;
     }
     listHtml += '</div>';
   });
@@ -767,11 +1202,11 @@ function renderHome(){
       <div class="brand">מדברים אנגלית<small>15 דקות ביום, וזהו</small></div>
       <div class="chips">
         <div class="chip">🔥 ${state.streak}</div>
-        <div class="chip gear" onclick="openSettings()">⚙️</div>
+        <button class="chip gear" onclick="openSettings()" aria-label="פתיחת הגדרות">⚙️</button>
       </div>
     </div>
     <div class="hello">
-      <h1>${greeting()}</h1>
+      <h1>${esc(greeting())}</h1>
       <p>${esc(
         (!doneToday && state.completed > 0 && state.lastDoneDate && state.lastDoneDate !== yesterdayStr())
           ? 'טוב שחזרת! ממשיכים בדיוק מאיפה שעצרנו 💪'
@@ -799,18 +1234,18 @@ function renderReview(){
     l.phrases.forEach((p, pi)=>{
       items += `
       <div class="rev-item">
-        <button class="rev-play" onclick="replayPhrase(${li},${pi})">🔊</button>
+        <button class="rev-play" onclick="replayPhrase(${li},${pi})" aria-label="השמעת ${esc(p.en)}">🔊</button>
         <div class="txt">
-          <div class="en">${esc(p.en)}</div>
+          <div class="en" dir="ltr" lang="en">${esc(p.en)}</div>
           <div class="he">${esc(p.tl)} · ${esc(p.he)}</div>
         </div>
       </div>`;
     });
   });
   h(`
-  <div class="screen">
+    <div class="screen">
     <div class="player-top">
-      <button class="xbtn" onclick="renderHome()">←</button>
+      <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
       <h2 style="font-size:20px">המשפטים שלך 📚</h2>
     </div>
     <p style="color:var(--dim);font-size:15px;margin-bottom:16px">לחץ 🔊 כדי לשמוע, ותגיד את המשפט בקול אחריו. חזרה בקול = הדרך הכי מהירה לזכור.</p>
@@ -824,34 +1259,39 @@ function openSettings(){
   const ov = document.createElement('div');
   ov.className = 'overlay';
   ov.innerHTML = `
-  <div class="sheet" onclick="event.stopPropagation()">
-    <h3>⚙️ הגדרות</h3>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" onclick="event.stopPropagation()">
+    <h3 id="settingsTitle">⚙️ הגדרות</h3>
     <div class="set-row">
       <span>מהירות דיבור</span>
       <div class="seg">
-        <button class="${state.slowSpeech?'on':''}" onclick="setSpeed(true,this)">איטי 🐢</button>
-        <button class="${!state.slowSpeech?'on':''}" onclick="setSpeed(false,this)">רגיל</button>
+        <button class="${state.slowSpeech?'on':''}" aria-pressed="${state.slowSpeech}" onclick="setSpeed(true,this)">איטי 🐢</button>
+        <button class="${!state.slowSpeech?'on':''}" aria-pressed="${!state.slowSpeech}" onclick="setSpeed(false,this)">רגיל</button>
       </div>
     </div>
     <div class="set-row">
       <span>תרגול עם מיקרופון</span>
       <div class="seg">
-        <button class="${state.micEnabled?'on':''}" onclick="setMic(true,this)">פועל 🎤</button>
-        <button class="${!state.micEnabled?'on':''}" onclick="setMic(false,this)">כבוי</button>
+        <button class="${state.micEnabled?'on':''}" aria-pressed="${state.micEnabled}" onclick="setMic(true,this)">פועל 🎤</button>
+        <button class="${!state.micEnabled?'on':''}" aria-pressed="${!state.micEnabled}" onclick="setMic(false,this)">כבוי</button>
       </div>
     </div>
     <div class="set-row" style="border:none">
       <span style="color:var(--dim);font-size:14px">איפוס כל ההתקדמות</span>
       <button class="btn ghost" style="width:auto;color:#f87171" onclick="resetAll()">איפוס</button>
     </div>
+    <div style="color:var(--dim);font-size:12px;text-align:center;margin-top:10px">גרסה ${APP_VERSION}</div>
     <button class="btn secondary" style="margin-top:14px" onclick="this.closest('.overlay').remove()">סגור</button>
   </div>`;
   ov.onclick = ()=>ov.remove();
   document.body.appendChild(ov);
 }
-function refreshSeg(btn){ const seg = btn.parentElement; [...seg.children].forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
-function setSpeed(slow, btn){ state.slowSpeech = slow; save(); refreshSeg(btn); speak('Hello! How are you?'); }
-function setMic(on, btn){ state.micEnabled = on; save(); refreshSeg(btn); }
+function refreshSeg(btn){
+  const seg = btn.parentElement;
+  [...seg.children].forEach(b=>{ b.classList.remove('on'); b.setAttribute('aria-pressed','false'); });
+  btn.classList.add('on'); btn.setAttribute('aria-pressed','true');
+}
+function setSpeed(slow, btn){ state.slowSpeech = slow; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); speak('Hello! How are you?'); }
+function setMic(on, btn){ state.micEnabled = on; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); }
 function resetAll(){
   if(confirm('בטוח לאפס את כל ההתקדמות? אי אפשר לבטל את זה.')){
     localStorage.removeItem(STORE_KEY);
@@ -863,54 +1303,245 @@ function resetAll(){
 
 /* ================= lesson player ================= */
 let L = null; // current lesson session
-function startLesson(idx, isReplay){
+function shuffled(arr){
+  const out = arr.slice();
+  for(let i=out.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [out[i],out[j]] = [out[j],out[i]];
+  }
+  return out;
+}
+function allLearnedPhrases(idx){
+  const out = [];
+  for(let li=0;li<idx;li++) LESSONS[li].phrases.forEach((p,pi)=>out.push({p,id:li+':'+pi,li,pi}));
+  return out;
+}
+function warmupOrder(items, hardFirst=false){
+  return shuffled(items).sort((a,b)=>{
+    const am = (state.reviewMeta || {})[a.id] || {};
+    const bm = (state.reviewMeta || {})[b.id] || {};
+    if(hardFirst){
+      const ah = (am.lapses||0) + (am.hints||0) - (am.successes||0);
+      const bh = (bm.lapses||0) + (bm.hints||0) - (bm.successes||0);
+      if(ah !== bh) return bh-ah;
+    }
+    return (am.lastWarmupAt||0) - (bm.lastWarmupAt||0);
+  });
+}
+function takeWarmup(pool, amount, chosen, lastSet, allowRecentRepeat=false){
+  if(amount <= 0) return;
+  const fresh = pool.filter(x=>!chosen.has(x.id) && (allowRecentRepeat || !lastSet.has(x.id)));
+  const repeated = pool.filter(x=>!chosen.has(x.id) && !fresh.includes(x));
+  for(const item of [...fresh,...repeated]){
+    if(amount-- <= 0) break;
+    chosen.set(item.id,item);
+  }
+}
+function arrangeWarmup(items, hardSet, recentStart){
+  const hard = shuffled(items.filter(x=>hardSet.has(x.id)));
+  const recent = shuffled(items.filter(x=>!hardSet.has(x.id) && x.li>=recentStart));
+  const older = shuffled(items.filter(x=>!hardSet.has(x.id) && x.li<recentStart));
+  const ordered = [];
+  // At the 20-item cap this creates H-R-H-O instead of a discouraging block
+  // of ten difficult phrases followed by everything else.
+  while(hard.length || recent.length || older.length){
+    if(hard.length) ordered.push(hard.shift());
+    if(recent.length) ordered.push(recent.shift());
+    if(hard.length) ordered.push(hard.shift());
+    if(older.length) ordered.push(older.shift());
+  }
+  return ordered;
+}
+function selectWarmup(idx, target){
+  const learned = allLearnedPhrases(idx);
+  const hardSet = new Set(state.hard || []);
+  const lastSet = new Set(state.lastWarmupIds || []);
+  const chosen = new Map();
+  const recentStart = Math.max(0,idx-2);
+  const olderExists = learned.some(x=>x.li < recentStart);
+  const recentReserve = Math.min(5,Math.max(1,Math.floor(target/4)));
+  const oldReserve = olderExists ? Math.min(5,Math.max(1,Math.floor(target/4))) : 0;
+  const hardReserve = Math.min(10,Math.max(0,target-recentReserve-oldReserve));
+
+  const hard = warmupOrder(learned.filter(x=>hardSet.has(x.id)), true);
+  takeWarmup(hard,hardReserve,chosen,lastSet);
+
+  const recent = warmupOrder(learned.filter(x=>!hardSet.has(x.id) && x.li>=recentStart));
+  takeWarmup(recent,recentReserve,chosen,lastSet);
+
+  const older = warmupOrder(learned.filter(x=>!hardSet.has(x.id) && x.li<recentStart));
+  takeWarmup(older,oldReserve,chosen,lastSet);
+
+  // Fill a small/uneven bucket without duplicating a phrase.
+  takeWarmup(warmupOrder(learned.filter(x=>!hardSet.has(x.id))),target-chosen.size,chosen,lastSet);
+  takeWarmup(hard,target-chosen.size,chosen,lastSet);
+  return arrangeWarmup([...chosen.values()].slice(0,target),hardSet,recentStart);
+}
+function phraseIdForText(en, maxLessonIdx){
+  const target = normalize(en);
+  for(let li=0;li<=maxLessonIdx;li++){
+    const pi = LESSONS[li].phrases.findIndex(p=>normalize(p.en)===target);
+    if(pi>-1) return li+':'+pi;
+  }
+  return null;
+}
+function splitPhraseChunks(en){
+  const words = String(en).trim().split(/\s+/);
+  if(words.length <= 4) return words;
+  const size = Math.ceil(words.length/4);
+  const chunks = [];
+  for(let i=0;i<words.length;i+=size) chunks.push(words.slice(i,i+size).join(' '));
+  return chunks;
+}
+function makeOrderStep(p, hid){
+  const chunks = splitPhraseChunks(p.en);
+  let bankOrder = shuffled(chunks.map((_,i)=>i));
+  if(bankOrder.every((v,i)=>v===i) && bankOrder.length>1) bankOrder = bankOrder.slice().reverse();
+  return {type:'order',p,hid,chunks,bankOrder,selected:[]};
+}
+function buildChallengeSteps(idx, lesson){
+  const type = CHALLENGE_PLAN[idx] || 'listen';
+  let pairs = lesson.phrases.map((p,pi)=>({p,pi}));
+  if(type === 'order' && ORDER_PHRASE_INDEXES[idx]) pairs = ORDER_PHRASE_INDEXES[idx].map(pi=>({p:lesson.phrases[pi],pi}));
+  else pairs = shuffled(pairs).slice(0,3);
+  return pairs.map(({p,pi})=>{
+    const hid = idx+':'+pi;
+    if(type === 'order') return makeOrderStep(p,hid);
+    if(type === 'recall') return {type:'speak',p,hid,challenge:true};
+    const wrong = shuffled(lesson.phrases.filter(x=>x!==p)).slice(0,2).map(x=>x.he);
+    return {type:'listenQuiz',p,hid,correct:p.he,options:shuffled([p.he,...wrong])};
+  });
+}
+function startLesson(idx, isReplay, force=false){
+  if(!Number.isInteger(idx) || idx<0 || idx>=LESSONS.length) return;
+  if(state.session && !force){
+    if(state.session.idx === idx && !!state.session.isReplay === !!isReplay) return resumeLesson();
+    if(!confirm('יש שיעור שעצרת באמצע. להתחיל שיעור אחר ולוותר על המקום השמור?')) return;
+  }
+  rememberFinishedRun(state.session?.runId);
+  state.session = null;
   const lesson = LESSONS[idx];
   const steps = [{type:'intro'}];
-  // warm-up from earlier lessons, hard phrases first, random otherwise.
-  // it grows as the course advances — one more phrase per lesson (~half a
-  // minute), capped at 20 (~10 minutes of review at the end of the course)
+  let warmupIds = [];
+  // The cumulative review deliberately grows with the course and stops at 20.
+  // At the cap: up to 10 hard, 5 recent and 5 older phrases.
   if(!isReplay && idx > 0){
     const target = Math.min(2 + idx, 20);
-    const learned = [];
-    for(let li = 0; li < idx; li++) LESSONS[li].phrases.forEach((p, pi)=>learned.push({p, id:li+':'+pi}));
-    const hardSet = new Set(state.hard || []);
-    const chosen = learned.filter(x=>hardSet.has(x.id)).slice(0, target);
-    const rest = learned.filter(x=>!hardSet.has(x.id)).sort(()=>Math.random()-.5);
-    while(chosen.length < target && rest.length) chosen.push(rest.pop());
-    chosen.forEach(x=>steps.push({type:'speak', p:x.p, warmup:true, hid:x.id}));
+    const chosen = selectWarmup(idx,target);
+    warmupIds = chosen.map(x=>x.id);
+    chosen.forEach(x=>steps.push({type:'speak',p:x.p,warmup:true,hid:x.id}));
   }
-  lesson.phrases.forEach(p=>{ steps.push({type:'learn', p}); steps.push({type:'speak', p}); });
-  // easy quiz: 3 phrases, recognize the meaning
-  const qs = lesson.phrases.slice().sort(()=>Math.random()-.5).slice(0,3);
-  qs.forEach(p=>{
-    const wrong = lesson.phrases.filter(x=>x!==p).sort(()=>Math.random()-.5).slice(0,2).map(x=>x.he);
-    const options = [p.he, ...wrong].sort(()=>Math.random()-.5);
-    steps.push({type:'quiz', p, options});
+  lesson.phrases.forEach((p,pi)=>{
+    const hid = idx+':'+pi;
+    steps.push({type:'learn',p,hid});
+    steps.push({type:'speak',p,hid});
   });
-  steps.push({type:'dlgIntro'});
-  lesson.dialogue.forEach(line=>{
-    steps.push(line.who === 'app' ? {type:'listen', line} : {type:'speak', p:line, isDlg:true});
-  });
+  steps.push(...buildChallengeSteps(idx,lesson));
+  steps.push({type:'dlgIntro',unitChallenge:!!BRANCH_DIALOGUES[idx]});
+  const branch = BRANCH_DIALOGUES[idx];
+  if(branch){
+    steps.push({type:'listen',line:branch.ask,isBranchAsk:true});
+    steps.push({type:'branchChoice',options:branch.options});
+    // Reserve the two choice-dependent screens so the progress bar never
+    // moves backwards when the learner selects an answer.
+    steps.push({type:'branchPending'});
+    steps.push({type:'branchPending'});
+  } else {
+    lesson.dialogue.forEach(line=>{
+      steps.push(line.who === 'app'
+        ? {type:'listen',line}
+        : {type:'speak',p:line,isDlg:true,hid:phraseIdForText(line.en,idx)});
+    });
+  }
   steps.push({type:'done'});
-  L = {idx, lesson, steps, i:0, isReplay, t0:Date.now(), tries:0, rec:null, timerId:null};
+  L = {
+    idx,lesson,steps,i:0,isReplay,tries:0,attempts:0,rec:null,timerId:null,
+    elapsedBeforeMs:0,activeSince:Date.now(),chat:[],warmupIds,
+    runId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),
+  };
+  saveLessonCheckpoint();
   renderStep();
-  L.timerId = setInterval(updateTimer, 1000);
+  startLessonClock();
 }
-function elapsed(){ const s = Math.floor((Date.now()-L.t0)/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function activeElapsedMs(){
+  if(!L) return 0;
+  return (L.elapsedBeforeMs||0) + (L.activeSince ? Date.now()-L.activeSince : 0);
+}
+function elapsed(){
+  const s = Math.floor(activeElapsedMs()/1000);
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
 function updateTimer(){ const el = document.getElementById('timer'); if(el) el.textContent = elapsed(); }
+function startLessonClock(){
+  if(!L) return;
+  if(!L.activeSince) L.activeSince = Date.now();
+  if(L.timerId) clearInterval(L.timerId);
+  L.timerId = setInterval(updateTimer,1000);
+}
+function pauseLessonClock(){
+  if(!L) return;
+  if(L.activeSince){ L.elapsedBeforeMs = activeElapsedMs(); L.activeSince = 0; }
+  if(L.timerId){ clearInterval(L.timerId); L.timerId = null; }
+}
+function saveLessonCheckpoint(){
+  if(!L || !L.steps || L.steps[L.i]?.type === 'done') return;
+  const savedAt=Date.now();
+  state.session = {
+    version:SESSION_VERSION, idx:L.idx, isReplay:!!L.isReplay, i:L.i,
+    steps:L.steps, elapsedMs:activeElapsedMs(), chat:L.chat||[], warmupIds:L.warmupIds||[],
+    runId:L.runId, savedAt,
+  };
+  touchState('sessionUpdatedAt');
+  save();
+}
+function clearLessonCheckpoint(){
+  rememberFinishedRun(state.session?.runId);
+  state.session = null; touchState('sessionUpdatedAt'); save();
+}
+function resumeLesson(){
+  const s = state.session;
+  if(!validSavedSession(s)){
+    rememberFinishedRun(s?.runId); state.session = null; touchState('sessionUpdatedAt'); save(); renderHome(); return;
+  }
+  if((!s.isReplay && s.idx !== state.completed) || (s.isReplay && s.idx >= state.completed)){
+    rememberFinishedRun(s.runId); state.session = null; touchState('sessionUpdatedAt'); save(); renderHome(); return;
+  }
+  L = {
+    idx:s.idx,lesson:LESSONS[s.idx],steps:s.steps,i:s.i,isReplay:!!s.isReplay,
+    tries:0,attempts:0,rec:null,timerId:null,elapsedBeforeMs:Number(s.elapsedMs)||0,
+    activeSince:Date.now(),chat:Array.isArray(s.chat)?s.chat:[],warmupIds:Array.isArray(s.warmupIds)?s.warmupIds:[],
+    runId:typeof s.runId==='string'?s.runId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),
+  };
+  renderStep();
+  startLessonClock();
+}
+function restartSavedLesson(){
+  if(!state.session) return;
+  const idx=state.session.idx, isReplay=!!state.session.isReplay;
+  if(!confirm('להתחיל את השיעור הזה מחדש? המקום השמור יימחק.')) return;
+  rememberFinishedRun(state.session.runId);
+  state.session=null; touchState('sessionUpdatedAt'); save(); startLesson(idx,isReplay,true);
+}
 function exitLesson(){
-  if(confirm('לצאת מהשיעור? ההתקדמות בשיעור הזה לא תישמר, אבל תמיד אפשר להתחיל שוב.')){
-    stopLessonTimers(); renderHome();
+  if(confirm('לצאת מהשיעור? המקום שלך יישמר ותוכל להמשיך מכאן כשתחזור.')){
+    pauseLessonClock(); saveLessonCheckpoint(); stopLessonTimers(false); L=null; renderHome();
   }
 }
-function stopLessonTimers(){
-  if(L && L.timerId) clearInterval(L.timerId);
-  if(L && L.rec){ try{L.rec.abort();}catch(e){} L.rec = null; }
+function stopLessonTimers(keepCheckpoint=true){
+  if(L && keepCheckpoint){ pauseLessonClock(); saveLessonCheckpoint(); }
+  else if(L && L.timerId){ clearInterval(L.timerId); L.timerId=null; }
+  cancelAutoSpeak();
+  stopRecognition();
   if('speechSynthesis' in window) speechSynthesis.cancel();
 }
 function next(){
-  if(L.rec){ try{L.rec.abort();}catch(e){} L.rec = null; }
+  if(!L) return;
+  const current = L.steps[L.i];
+  if(current?.type === 'listen' && current.line) L.chat.push({who:'app',line:current.line});
+  if(current?.type === 'speak' && current.isDlg && current.p) L.chat.push({who:'you',line:current.p});
+  stopRecognition();
   L.i++; L.tries = 0;
+  saveLessonCheckpoint();
   renderStep();
 }
 function playerShell(inner){
@@ -918,9 +1549,9 @@ function playerShell(inner){
   h(`
   <div class="screen">
     <div class="player-top">
-      <button class="xbtn" onclick="exitLesson()">✕</button>
-      <div class="pbar"><i style="width:${pct}%"></i></div>
-      <div class="timer" id="timer">${elapsed()}</div>
+      <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהשיעור">✕</button>
+      <div class="pbar" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
     </div>
     <div class="step">${inner}</div>
   </div>`);
@@ -929,29 +1560,35 @@ function playerShell(inner){
 function renderStep(){
   const step = L.steps[L.i];
   if(!step) return;
+  if(step.type !== 'done') saveLessonCheckpoint();
   if(step.type === 'intro') return renderIntro();
   if(step.type === 'learn') return renderLearn(step);
   if(step.type === 'speak') return renderSpeak(step);
   if(step.type === 'quiz') return renderQuiz(step);
+  if(step.type === 'listenQuiz') return renderListenQuiz(step);
+  if(step.type === 'order') return renderOrder(step);
   if(step.type === 'dlgIntro') return renderDlgIntro();
   if(step.type === 'listen') return renderListen(step);
+  if(step.type === 'branchChoice') return renderBranchChoice(step);
   if(step.type === 'done') return renderDone();
 }
 
 /* ---- intro ---- */
 function renderIntro(){
   const wu = L.steps.filter(s=>s.warmup).length;
+  const challengeLabel = CHALLENGE_LABELS[CHALLENGE_PLAN[L.idx]] || 'קצר';
   playerShell(`
     <div class="step-label">שיעור ${L.idx+1} · ${esc(UNITS[Math.floor(L.idx/LESSONS_PER_UNIT)].title)}</div>
     <h2>${esc(L.lesson.title)}</h2>
     <p class="sub">${esc(L.lesson.goal)}</p>
-    ${wu ? `<p class="sub" style="margin-top:-8px">היום: 🔥 חימום של ${wu} משפטים שכבר למדת + 🎧 5 משפטים חדשים</p>` : ''}
+    <p class="sub" style="margin-top:-8px">היום: ${wu?`🔥 ${wu} משפטי חימום + `:''}🎧 5 משפטים חדשים + 🧠 3 אתגרי ${challengeLabel} + 💬 שיחה קצרה</p>
     <div class="card" style="margin-bottom:16px">
       <p style="font-size:15.5px;color:#c9d4ec">
         ככה זה עובד:<br>
         <b>1.</b> שומעים משפט 🔊<br>
         <b>2.</b> אומרים אותו בקול רם 🗣️<br>
-        <b>3.</b> ממשיכים. בלי לחץ, בלי ציונים.<br><br>
+        <b>3.</b> עושים אתגר ${challengeLabel} קצר<br>
+        <b>4.</b> מסיימים בשיחה. בלי לחץ ובלי ציונים.<br><br>
         טיפ: תגיד הכל <b>בקול רם</b>, גם אם אתה לבד בחדר. ככה המוח באמת לומד לדבר.
       </p>
     </div>
@@ -965,7 +1602,7 @@ function renderLearn(step){
   playerShell(`
     <div class="step-label">🎧 משפט חדש</div>
     <div class="phrase-card">
-      <div class="phrase-en" dir="ltr">${wordSpans(p.en)}</div>
+      <div class="phrase-en" dir="ltr" lang="en">${wordSpans(p.en)}</div>
       <div class="phrase-tl">${esc(p.tl)}</div>
       <div class="phrase-he">${esc(p.he)}</div>
       <button class="play-big" onclick="speak('${jsEsc(p.en)}')" aria-label="השמע">🔊</button>
@@ -973,7 +1610,7 @@ function renderLearn(step){
     <p class="sub" style="text-align:center">🔊 משמיע את כל המשפט · לחיצה על מילה משמיעה רק אותה.<br>תגיד את המשפט בקול אחרי כל השמעה.</p>
     <button class="btn" onclick="next()">אמרתי בקול — הלאה! ✔</button>
   `);
-  setTimeout(()=>speak(p.en), 350);
+  scheduleSpeak(p.en);
 }
 function jsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 /* each English word becomes tappable — tap hears just that word; 🔊 plays the whole sentence */
@@ -981,143 +1618,241 @@ function wordSpans(en){
   return String(en).split(' ').map(w=>{
     const clean = w.replace(/[^A-Za-z']/g,'');
     if(!clean) return esc(w);
-    return `<span class="w" onclick="event.stopPropagation();speak('${jsEsc(clean)}')">${esc(w)}</span>`;
+    return `<button type="button" class="w" lang="en" onclick="event.stopPropagation();speak('${jsEsc(clean)}')" aria-label="השמעת ${esc(clean)}">${esc(w)}</button>`;
   }).join(' ');
 }
 
 /* ---- speak a phrase (mic or self-check) ---- */
+function chatThreadHtml(){
+  if(!L || !Array.isArray(L.chat) || !L.chat.length) return '';
+  return `<div class="chat-thread">${L.chat.map(item=>{
+    const line=item.line||{};
+    return `<div class="dlg-line ${item.who==='you'?'me':''}">
+      <div class="dlg-avatar">${item.who==='you'?'🧑':'🤖'}</div>
+      <div class="dlg-bubble">
+        <div class="dlg-en" dir="ltr" lang="en">${esc(line.en||'')}</div>
+        <div class="dlg-tl">${esc(line.tl||'')}</div>
+        <div class="dlg-he">${esc(line.he||'')}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function noteHint(step){
+  if(!step || !step.hid) return;
+  const at=Date.now();
+  const meta=reviewMetaFor(step.hid);
+  meta.hints=(meta.hints||0)+1;
+  meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
+  addHard(step.hid,false,at);
+  touchState('reviewUpdatedAt');
+  save();
+}
+function revealSpeakHint(){
+  const step=L?.curStep;
+  if(!step||step.resultKind) return;
+  step.hintLevel=Math.min(2,(step.hintLevel||0)+1);
+  step.usedHint=true;
+  noteHint(step);
+  const en=document.getElementById('englishHint');
+  const tl=document.getElementById('translitHint');
+  const audio=document.getElementById('hintAudio');
+  const btn=document.getElementById('hintBtn');
+  if(step.hintLevel>=1 && en) en.hidden=false;
+  if(step.hintLevel>=2){
+    if(tl) tl.hidden=false;
+    if(audio) audio.hidden=false;
+    if(btn) btn.hidden=true;
+  } else if(btn) btn.textContent='עוד עזרה — תעתיק ושמיעה 🔊';
+  saveLessonCheckpoint();
+}
+function recordStepResult(step,result){
+  if(!step || step.practiceRecorded) return;
+  step.practiceRecorded=true;
+  notePractice(step.hid,result,!!step.usedHint,!!step.warmup);
+  saveLessonCheckpoint();
+}
+function speakResultHtml(kind,msg){
+  const cls = kind === 'pass' ? 'good' : 'almost';
+  let button = '';
+  if(kind === 'pass') button = `<button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>`;
+  if(kind === 'requeue') button = `<button class="btn" style="margin-top:12px" onclick="requeueAndNext()">ממשיכים — נחזור לזה בסוף ⬅</button>`;
+  return `<div class="result-msg ${cls}">${esc(msg||'')}</div>${button}`;
+}
 function renderSpeak(step){
-  const p = step.p;
-  L.curStep = step;
-  L.attempts = 0;
-  const label = step.warmup ? '🔥 חימום — משפט שכבר למדת'
-    : step.requeued ? '🔁 סיבוב שני — הפעם זה ילך'
-    : step.isDlg ? '💬 עכשיו התור שלך בשיחה' : '🎤 עכשיו אתה';
-  const mic = micAvailable();
+  const p=step.p;
+  L.curStep=step;
+  L.attempts=step.attempts||0;
+  L.tries=step.tries||0;
+  const label=step.warmup ? '🔥 חימום — משפט שכבר למדת'
+    : step.requeued ? '🔁 סיבוב שני — עוד תרגול קטן'
+    : step.isDlg ? '💬 עכשיו התור שלך בשיחה'
+    : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎤 עכשיו אתה';
+  const mic=micAvailable();
+  const hintLevel=step.hintLevel||0;
+  const terminalResult=step.resultKind==='pass'||step.resultKind==='requeue';
+  const heardHtml=step.heardText
+    ? `<div>זה מה שהטלפון קלט: “${esc(step.heardText)}”</div>${step.heardDetails?.words?wordFeedbackHtml(step.heardDetails):''}`
+    : '';
   playerShell(`
+    ${step.isDlg?chatThreadHtml():''}
     <div class="step-label">${label}</div>
-    <div class="phrase-card">
-      <div class="phrase-en" dir="ltr">${wordSpans(p.en)}</div>
-      <div class="phrase-tl">${esc(p.tl)}</div>
-      <div class="phrase-he">${esc(p.he)}</div>
-      <button class="play-big" onclick="speak('${jsEsc(p.en)}')" aria-label="השמע שוב">🔊</button>
+    <div class="recall-card">
+      <div class="cue">${esc(p.he)}</div>
+      <div class="cue-note">נסה להגיד את המשפט באנגלית בלי להסתכל</div>
+      <div class="hint-box" id="englishHint" ${hintLevel<1?'hidden':''}>
+        <div class="hint-en" dir="ltr" lang="en">${esc(p.en)}</div>
+      </div>
+      <div class="hint-box" id="translitHint" ${hintLevel<2?'hidden':''}>
+        <div class="hint-tl">${esc(p.tl)}</div>
+      </div>
+      <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(p.en)}')" aria-label="השמעת המשפט">🔊</button>
     </div>
+    <button class="btn secondary" id="hintBtn" ${terminalResult||hintLevel>=2?'hidden':''} onclick="revealSpeakHint()">${hintLevel===0?'צריך רמז? הצג באנגלית':'עוד עזרה — תעתיק ושמיעה 🔊'}</button>
     <div class="speak-zone" id="speakZone">
-      ${mic ? `
-        <button class="mic-btn" id="micBtn" onclick="startListening('${jsEsc(p.en)}')">🎤</button>
+      ${terminalResult?`
+        <div class="heard">${heardHtml}</div>
+        <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage)}</div>
+      `:mic?`
+        <button class="mic-btn" id="micBtn" onclick="startListening('${jsEsc(p.en)}')" aria-label="התחלת הקלטה">🎤</button>
         <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
-        <div class="heard" id="heard"></div>
-        <div id="resultArea"></div>
-        ${step.requeued || step.warmup
-          ? `<button class="btn ghost" id="escBtn" hidden onclick="skipSpeak()">המיקרופון לא עובד לי — המשך</button>`
-          : `<button class="btn ghost" onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`}
-      ` : `
-        <p class="mic-hint" style="margin-bottom:14px">תגיד את המשפט <b>בקול רם</b> — אפשר להיעזר בכתוב בעברית 🗣️</p>
-        <button class="btn" onclick="selfDone()">אמרתי בקול! ✔</button>
+        <div class="heard" id="heard">${heardHtml}</div>
+        <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
+        <button class="btn ghost mic-fallback" id="manualMicBtn" onclick="manualMicDone()">אמרתי בקול — המשך בלי בדיקה</button>
+        ${!step.requeued&&!step.warmup?`<button class="btn ghost" onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`:''}
+      `:`
+        <p class="mic-hint" style="margin:14px 0">תגיד את המשפט <b>בקול רם</b>. אם צריך, השתמש ברמז.</p>
+        <button class="btn" onclick="manualMicDone()">אמרתי בקול! ✔</button>
+        ${!step.requeued&&!step.warmup?`<button class="btn ghost" onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`:''}
       `}
     </div>
   `);
 }
-function selfDone(){
-  showResult('pass', pick(PRAISE));
+function manualMicDone(){
+  const step=L?.curStep;
+  stopRecognition();
+  if(step&&!step.practiceRecorded){
+    step.practiceRecorded=true;
+    notePractice(step.hid,'manual',!!step.usedHint,!!step.warmup);
+  }
+  showResult('pass','יפה — העיקר שאמרת את המשפט בקול! 💪');
 }
-// the second-round escape hatch stays hidden until three mic attempts failed,
-// so it only surfaces when the mic is genuinely stuck
-function maybeShowEscape(){
-  const b = document.getElementById('escBtn');
-  if(b && (L.attempts || 0) >= 3) b.hidden = false;
-}
-// skipping with a mic available is not a free pass — the phrase comes back
-// at the end of the lesson (a requeued step can't requeue again)
 function skipSpeak(){
-  const step = L.curStep;
-  if(step && step.warmup){ addHard(step.hid); next(); return; }
-  if(step && !step.requeued) toast('נחזור למשפט הזה בסוף השיעור 🔁');
+  const step=L.curStep;
+  recordStepResult(step,'fail');
+  if(step&&(step.warmup||step.requeued)){ next(); return; }
+  toast('נחזור למשפט הזה בסוף השיעור 🔁');
   requeueAndNext();
 }
+function wordFeedbackHtml(details){
+  return `<div class="word-feedback">${details.words.map((w,i)=>`<span class="${details.matched[i]?'':'missing'}">${esc(w)}</span>`).join('')}</div>`;
+}
+function showMicFallback(msg){
+  const hint=document.getElementById('micHint');
+  if(hint) hint.innerHTML=msg;
+  const manual=document.getElementById('manualMicBtn');
+  if(manual) manual.hidden=false;
+}
 function startListening(target){
-  const btn = document.getElementById('micBtn');
-  const hint = document.getElementById('micHint');
-  const heardEl = document.getElementById('heard');
-  if(!SR){ selfDone(); return; }
-  if(L.rec){ try{L.rec.abort();}catch(e){} }
+  const btn=document.getElementById('micBtn');
+  const hint=document.getElementById('micHint');
+  const heardEl=document.getElementById('heard');
+  if(!SR){ showMicFallback('בדיקת הקול לא זמינה כאן. אמור את המשפט בקול והמשך ידנית.'); return; }
+  stopRecognition();
   if('speechSynthesis' in window) speechSynthesis.cancel();
-  const rec = new SR();
-  L.rec = rec;
-  L.attempts = (L.attempts || 0) + 1;
-  rec.lang = 'en-US';
-  rec.interimResults = false;
-  rec.maxAlternatives = 4;
-  let got = false;
-  btn.classList.add('listening');
-  hint.textContent = 'מקשיב... דבר עכשיו! 🎙️';
-  rec.onresult = (e)=>{
-    got = true;
-    let best = '', bestScore = 0;
-    for(const alt of e.results[0]){
-      const sc = matchScore(target, alt.transcript);
-      if(sc >= bestScore){ bestScore = sc; best = alt.transcript; }
+  const rec=new SR();
+  const session=L, stepIndex=L.i, epoch=uiEpoch;
+  L.rec=rec;
+  L.curStep.retryMessage='';
+  L.curStep.heardText='';
+  L.curStep.heardDetails=null;
+  if(heardEl) heardEl.innerHTML='';
+  const resultArea=document.getElementById('resultArea');
+  if(resultArea) resultArea.innerHTML='';
+  L.attempts=(L.attempts||0)+1;
+  L.curStep.attempts=L.attempts;
+  saveLessonCheckpoint();
+  rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=4;
+  let got=false;
+  btn.disabled=true; btn.classList.add('listening');
+  hint.textContent='מקשיב... דבר עכשיו! 🎙️';
+  rec.onresult=(e)=>{
+    if(!L||L!==session||L.i!==stepIndex||L.rec!==rec||uiEpoch!==epoch) return;
+    got=true;
+    let best='', bestDetails={score:0,words:[],matched:[],criticalMismatch:false};
+    const result=e.results[0];
+    for(let ai=0;ai<result.length;ai++){
+      const alt=result[ai], details=matchDetails(target,alt.transcript);
+      if(details.score>=bestDetails.score){ bestDetails=details; best=alt.transcript; }
     }
-    if(heardEl) heardEl.textContent = '🎧 "' + best + '"';
-    L.tries++;
-    const step = L.curStep || {};
-    if(bestScore >= 0.55){
-      removeHard(step.hid);
-      showResult('pass', pick(PRAISE));
-    } else if(L.tries >= 3){
-      // three honest tries — move on without faking success, and practice again later
-      if(step.warmup){
-        addHard(step.hid);
-        showResult('pass', 'לא נורא — המשפט הזה יחזור בחימום של מחר. ממשיכים! 💪');
-      } else if(step.requeued){
-        addHard(step.hid);
-        showResult('pass', 'התאמנת על זה חזק היום — עם עוד תרגול זה יישב. ממשיכים! 💪');
-      } else {
-        showResult('requeue', 'המשפט הזה עקשן 😄 נמשיך בינתיים — ונחזור אליו שוב בסוף השיעור');
-      }
-    } else if(bestScore >= 0.25){
-      showResult('retry', pick(ALMOST));
-    } else {
-      showResult('retry', 'שמעתי מילים אחרות 🤔 לחץ 🔊, תקשיב שוב, ונסה לאט — יש לך את זה');
+    const step=L.curStep||{};
+    step.heardText=best;
+    step.heardDetails=bestDetails;
+    if(heardEl) heardEl.innerHTML=`<div>זה מה שהטלפון קלט: “${esc(best)}”</div>${wordFeedbackHtml(bestDetails)}`;
+    step.tries=(step.tries||0)+1;
+    L.tries=step.tries;
+    saveLessonCheckpoint();
+    if(bestDetails.score>=.70&&!bestDetails.criticalMismatch){
+      recordStepResult(step,'pass');
+      showResult('pass',pick(PRAISE));
+    } else if(L.tries>=3){
+      recordStepResult(step,'fail');
+      if(step.warmup) showResult('pass','לא נורא — המשפט הזה יחזור בחימום הבא. ממשיכים! 💪');
+      else if(step.requeued) showResult('pass','התאמנת על זה חזק היום — עם עוד תרגול זה יישב. ממשיכים! 💪');
+      else showResult('requeue','הטלפון עדיין לא קלט את כל המשפט. נמשיך ונחזור אליו שוב בסוף');
+    } else if(bestDetails.score>=.40) showResult('retry',pick(ALMOST));
+    else showResult('retry','התמלול לא היה בטוח. נסה שוב לאט, או המשך ידנית — יש לך את זה');
+  };
+  rec.onerror=(e)=>{
+    if(!L||L!==session||L.i!==stepIndex||L.rec!==rec||uiEpoch!==epoch||got) return;
+    btn.disabled=false; btn.classList.remove('listening');
+    const code=e?.error||'';
+    if(code==='aborted') return;
+    if(code==='not-allowed'||code==='service-not-allowed'||code==='audio-capture'||code==='language-not-supported'){
+      micUnavailableThisSession=true;
+      showMicFallback(code==='audio-capture'
+        ? 'המיקרופון אינו זמין כרגע. אמור את המשפט בקול והמשך בלי בדיקה.'
+        : code==='language-not-supported'
+          ? 'בדיקת הקול באנגלית אינה זמינה במכשיר הזה. אמור את המשפט בקול והמשך בלי בדיקה.'
+          : 'אין הרשאה למיקרופון. אמור את המשפט בקול והמשך בלי בדיקה.');
     }
+    else if(code==='no-speech') showMicFallback('לא נקלט קול. אפשר לנסות שוב או להמשיך ידנית.');
+    else if(code==='network') showMicFallback('בדיקת הקול אינה זמינה כרגע בגלל החיבור. אפשר להמשיך ידנית.');
+    else showMicFallback('בדיקת הקול לא הצליחה. אמור את המשפט בקול והמשך ידנית.');
   };
-  rec.onerror = ()=>{
-    if(got) return;
-    btn.classList.remove('listening');
-    hint.innerHTML = 'המיקרופון לא הצליח לשמוע — לא נורא!<br>נסה שוב, או תגיד את המשפט בקול והמשך עם הכפתור למטה.';
+  rec.onend=()=>{
+    if(!L||L!==session||L.i!==stepIndex||L.rec!==rec||uiEpoch!==epoch) return;
+    btn.disabled=false; btn.classList.remove('listening');
+    if(!got&&hint.textContent.indexOf('מקשיב')>-1) hint.textContent='לא שמעתי כלום — נסה שוב, קרוב לטלפון 🎤';
+    L.rec=null;
   };
-  rec.onend = ()=>{
-    btn.classList.remove('listening');
-    if(!got && hint.textContent.indexOf('מקשיב') > -1)
-      hint.textContent = 'לא שמעתי כלום — נסה שוב, קרוב לטלפון 🎤';
-    L.rec = null;
-    maybeShowEscape();
-  };
-  try{ rec.start(); }catch(e){ selfDone(); }
+  try{rec.start();}
+  catch(e){
+    if(L&&L===session&&L.rec===rec) L.rec=null;
+    btn.disabled=false; btn.classList.remove('listening');
+    showMicFallback('בדיקת הקול לא נפתחה. אמור את המשפט בקול והמשך ידנית.');
+  }
 }
 function showResult(kind, msg){
-  const area = document.getElementById('resultArea') || document.getElementById('speakZone');
-  if(!area) return;
-  const cls = kind === 'pass' ? 'good' : 'almost';
-  let btn = '';
-  if(kind === 'pass') btn = `<button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>`;
-  if(kind === 'requeue') btn = `<button class="btn" style="margin-top:12px" onclick="requeueAndNext()">ממשיכים — נחזור לזה בסוף ⬅</button>`;
-  const htmlMsg = `<div class="result-msg ${cls}">${esc(msg)}</div>` + btn;
-  if(document.getElementById('resultArea')){
-    document.getElementById('resultArea').innerHTML = htmlMsg;
-  } else {
-    area.innerHTML = htmlMsg;
+  const step=L?.curStep;
+  if(!step) return;
+  if(kind==='retry') step.retryMessage=msg;
+  else {
+    step.resultKind=kind;
+    step.resultMessage=msg;
+    step.retryMessage='';
   }
+  saveLessonCheckpoint();
+  renderSpeak(step);
   if(kind === 'pass' && navigator.vibrate) navigator.vibrate(40);
 }
 function requeueAndNext(){
   const step = L.curStep;
+  recordStepResult(step,'fail');
   if(step && !step.requeued && !step.warmup){
-    const pi = L.lesson.phrases.indexOf(step.p);
-    const hid = pi > -1 ? L.idx + ':' + pi : null;
-    addHard(hid);
+    const hid = step.hid || null;
     const doneIdx = L.steps.findIndex(s=>s.type === 'done');
     L.steps.splice(doneIdx, 0, {type:'speak', p:step.p, isDlg:step.isDlg, requeued:true, hid});
+    saveLessonCheckpoint();
   }
   next();
 }
@@ -1128,7 +1863,7 @@ function renderQuiz(step){
   playerShell(`
     <div class="step-label">🧩 זיהוי מהיר — אתה בטוח יודע את זה</div>
     <div class="phrase-card quiz-q">
-      <div class="phrase-en" dir="ltr">${esc(p.en)}</div>
+      <div class="phrase-en" dir="ltr" lang="en">${esc(p.en)}</div>
       <button class="play-big" onclick="speak('${jsEsc(p.en)}')" aria-label="השמע">🔊</button>
     </div>
     <p class="sub">מה זה אומר?</p>
@@ -1137,7 +1872,7 @@ function renderQuiz(step){
     </div>
     <div id="quizResult"></div>
   `);
-  setTimeout(()=>speak(p.en), 350);
+  scheduleSpeak(p.en);
 }
 function answerQuiz(btn, correct){
   const opts = document.querySelectorAll('.quiz-opt');
@@ -1155,23 +1890,128 @@ function answerQuiz(btn, correct){
   }
 }
 
+/* ---- varied, predictable lesson challenges ---- */
+function renderListenQuiz(step){
+  playerShell(`
+    <div class="step-label">🎧 אתגר שמיעה</div>
+    <h2>מה שמעת?</h2>
+    <p class="challenge-help">אפשר לשמוע שוב כמה פעמים שצריך</p>
+    ${step.correctAnswered?`
+      <div class="phrase-card">
+        <div class="phrase-en" dir="ltr" lang="en">${wordSpans(step.p.en)}</div>
+        <div class="phrase-tl">${esc(step.p.tl)}</div>
+        <div class="phrase-he">${esc(step.p.he)}</div>
+      </div>
+      <div class="result-msg good">${esc(pick(PRAISE))}</div>
+      <button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>
+    `:`
+      <div class="recall-card">
+        <button class="play-big" onclick="speak('${jsEsc(step.p.en)}')" aria-label="השמעת המשפט">🔊</button>
+        <div class="audio-only">המשפט מוסתר — מקשיבים ובוחרים משמעות</div>
+      </div>
+      <div>
+        ${step.options.map((o,i)=>`<button class="quiz-opt ${(step.wrongIndexes||[]).includes(i)?'wrong':''}" ${(step.wrongIndexes||[]).includes(i)?'disabled':''} onclick="answerListenQuiz(${i})">${esc(o)}</button>`).join('')}
+      </div>
+      <div id="quizResult" role="status" aria-live="polite">${step.feedback?`<div class="result-msg almost">${esc(step.feedback)}</div>`:''}</div>
+    `}
+  `);
+  if(!step.correctAnswered) scheduleSpeak(step.p.en);
+}
+function answerListenQuiz(optionIndex){
+  const step=L?.steps[L.i];
+  if(!step||step.type!=='listenQuiz'||step.correctAnswered) return;
+  if(step.options[optionIndex]===step.correct){
+    step.correctAnswered=true;
+    recordStepResult(step,'pass');
+  } else {
+    step.wrongIndexes=step.wrongIndexes||[];
+    if(!step.wrongIndexes.includes(optionIndex)) step.wrongIndexes.push(optionIndex);
+    if(!step.hadWrong){ step.hadWrong=true; step.usedHint=true; noteHint(step); }
+    step.feedback='לא זה — שמע שוב ונסה אפשרות אחרת';
+    saveLessonCheckpoint();
+  }
+  renderListenQuiz(step);
+}
+function renderOrder(step){
+  playerShell(`
+    <div class="step-label">🧩 אתגר סדר</div>
+    <h2>בנה את המשפט</h2>
+    <p class="challenge-help">${esc(step.p.he)} · לחץ על החלקים לפי הסדר</p>
+    ${step.showHint?`<div class="milestone" style="margin-bottom:12px"><span dir="ltr" lang="en">${esc(step.p.en)}</span></div>`:''}
+    <div class="order-built ${step.selected.length?'':'empty'}">
+      ${step.selected.map(id=>`<span class="word-chip built-chip">${esc(step.chunks[id])}</span>`).join('')}
+    </div>
+    <div class="word-bank">
+      ${step.bankOrder.map(id=>`<button class="word-chip" ${step.selected.includes(id)?'disabled':''} onclick="selectOrderChunk(${id})">${esc(step.chunks[id])}</button>`).join('')}
+    </div>
+    ${step.correct?`
+      <div class="result-msg good">בדיוק! בנית את המשפט נכון 👏</div>
+      <div class="phrase-tl" style="text-align:center;margin:8px 0">${esc(step.p.tl)}</div>
+      <button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>
+    `:step.wrong?`
+      <div class="result-msg almost">החלקים נכונים — רק הסדר עוד לא. נסה שוב בנחת.</div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn secondary" onclick="resetOrder()">נסה שוב</button>
+        <button class="btn ghost" onclick="revealOrderHint()">הצג רמז</button>
+      </div>
+    `:`
+      <div class="btn-row">
+        <button class="btn ghost" ${step.selected.length?'':'disabled'} onclick="undoOrder()">בטל חלק אחרון</button>
+        <button class="btn ghost" onclick="revealOrderHint()">צריך רמז?</button>
+      </div>
+    `}
+  `);
+}
+function selectOrderChunk(id){
+  const step=L?.steps[L.i];
+  if(!step||step.type!=='order'||step.correct||step.selected.includes(id)) return;
+  step.selected.push(id);
+  if(step.selected.length===step.chunks.length){
+    step.correct=step.selected.every((v,i)=>v===i);
+    step.wrong=!step.correct;
+    if(step.correct) recordStepResult(step,'pass');
+    else if(!step.hadWrong){ step.hadWrong=true; step.usedHint=true; noteHint(step); }
+  }
+  saveLessonCheckpoint();
+  renderOrder(step);
+}
+function undoOrder(){
+  const step=L?.steps[L.i];
+  if(!step||step.type!=='order'||step.correct) return;
+  step.selected.pop(); step.wrong=false; saveLessonCheckpoint(); renderOrder(step);
+}
+function resetOrder(){
+  const step=L?.steps[L.i];
+  if(!step||step.type!=='order') return;
+  step.selected=[]; step.wrong=false; saveLessonCheckpoint(); renderOrder(step);
+}
+function revealOrderHint(){
+  const step=L?.steps[L.i];
+  if(!step||step.type!=='order') return;
+  if(!step.showHint){ step.showHint=true; step.usedHint=true; noteHint(step); }
+  saveLessonCheckpoint(); renderOrder(step);
+}
+
 /* ---- dialogue ---- */
 function renderDlgIntro(){
+  const unitChallenge=!!L.steps[L.i].unitChallenge;
   playerShell(`
-    <div class="step-label">💬 שיחה אמיתית</div>
-    <h2>עכשיו — שיחה!</h2>
-    <p class="sub">אני אגיד את השורות שלי 🤖, ואתה תגיד את שלך 🗣️.<br>הכל עם המשפטים שכבר למדת עכשיו. אתה מוכן לזה לגמרי.</p>
+    <div class="step-label">${unitChallenge?'🏆 אתגר שיחה לסיום היחידה':'💬 תרגול שיחה'}</div>
+    <h2>${unitChallenge?'בוחר תשובה ומדבר':'עכשיו — שיחה!'}</h2>
+    <p class="sub">אני אגיד את השורות שלי 🤖, ואתה תגיד את שלך 🗣️.<br>${unitChallenge?'אתה תבחר בעברית מה אתה רוצה לענות, ואז תגיד את זה באנגלית.':'התשובה לא תופיע מראש, אבל תמיד אפשר לפתוח רמז.'}</p>
     <button class="btn" onclick="next()">מתחילים את השיחה 💬</button>
   `);
 }
 function renderListen(step){
   const line = step.line;
+  const nextType=L.steps[L.i+1]?.type;
   playerShell(`
+    ${chatThreadHtml()}
     <div class="step-label">💬 בשיחה — אני מדבר</div>
     <div class="dlg-line">
       <div class="dlg-avatar">🤖</div>
       <div class="dlg-bubble">
-        <div class="dlg-en" dir="ltr">${esc(line.en)}</div>
+        <div class="dlg-en" dir="ltr" lang="en">${esc(line.en)}</div>
         <div class="dlg-tl">${esc(line.tl)}</div>
         <div class="dlg-he">${esc(line.he)}</div>
       </div>
@@ -1179,14 +2019,41 @@ function renderListen(step){
     <div style="text-align:center;margin:10px 0 18px">
       <button class="play-big" onclick="speak('${jsEsc(line.en)}')" aria-label="השמע שוב">🔊</button>
     </div>
-    <button class="btn" onclick="next()">הבנתי — תורי לענות ⬅</button>
+    <button class="btn" onclick="next()">${nextType==='branchChoice'?'לבחירת התשובה שלי ⬅':nextType==='done'?'סיימנו את השיחה ⬅':'הבנתי — תורי לענות ⬅'}</button>
   `);
-  setTimeout(()=>speak(line.en), 350);
+  scheduleSpeak(line.en);
+}
+function renderBranchChoice(step){
+  playerShell(`
+    ${chatThreadHtml()}
+    <div class="step-label">💬 מה אתה רוצה לענות?</div>
+    <h2>בחר את הכוונה בעברית</h2>
+    <p class="sub">אחרי הבחירה תגיד את התשובה באנגלית מהזיכרון.</p>
+    <div class="branch-options">
+      ${step.options.map((o,i)=>`<button class="quiz-opt" onclick="chooseBranch(${i})">${esc(o.label)}</button>`).join('')}
+    </div>
+  `);
+}
+function chooseBranch(optionIndex){
+  const step=L?.steps[L.i];
+  if(!step||step.type!=='branchChoice'||!step.options[optionIndex]) return;
+  const option=step.options[optionIndex];
+  step.selectedIndex=optionIndex;
+  const hid=phraseIdForText(option.answer.en,L.idx);
+  L.steps.splice(L.i+1,2,
+    {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true},
+    {type:'listen',line:option.reply,isBranchReply:true}
+  );
+  L.i++;
+  saveLessonCheckpoint();
+  renderStep();
 }
 
 /* ---- done ---- */
 function renderDone(){
-  stopLessonTimers();
+  const durationMs=activeElapsedMs();
+  pauseLessonClock();
+  stopLessonTimers(false);
   const wasReplay = L.isReplay;
   let streakNote = '', milestones = [];
   if(!wasReplay){
@@ -1214,16 +2081,22 @@ function renderDone(){
       const u = UNITS[Math.floor(L.idx / LESSONS_PER_UNIT)];
       milestones.push('🏆 סיימת את כל יחידת "' + u.title + '"! אתה כבר יודע ' + (state.completed*5) + ' משפטים באנגלית');
     }
-    save();
+  } else {
+    state.replays=(state.replays||0)+1;
   }
+  touchState('progressUpdatedAt');
+  rememberFinishedRun(L.runId);
+  state.session=null;
+  touchState('sessionUpdatedAt');
+  save();
   confetti();
   if(milestones.length) setTimeout(confetti, 900);
-  const mins = Math.max(1, Math.round((Date.now()-L.t0)/60000));
+  const mins = Math.max(1, Math.round(durationMs/60000));
   const nm = state.name ? ' ' + state.name : '';
   playerShell(`
     <div class="finish">
       <div class="emoji">${wasReplay ? '🔁' : milestones.length ? '🏆' : '🏅'}</div>
-      <h2>${wasReplay ? 'חזרה מושלמת!' : 'כל הכבוד' + esc(nm) + '!'}</h2>
+      <h2>${wasReplay ? 'סיימת את החזרה!' : 'כל הכבוד' + esc(nm) + '!'}</h2>
       <p>${wasReplay
           ? 'חזרת על שיעור — וזה בדיוק מה שהופך ידע לזיכרון לתמיד.'
           : `סיימת את שיעור ${L.idx+1} ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} · למדת 5 משפטים חדשים 🗣️`}
@@ -1249,9 +2122,61 @@ document.addEventListener('pointerdown', ()=>{
   u.volume = 0;
   speechSynthesis.speak(u);
 }, true);
-window.addEventListener('beforeunload', ()=>{ if('speechSynthesis' in window) speechSynthesis.cancel(); });
+document.addEventListener('visibilitychange',()=>{
+  if(!L) return;
+  if(document.hidden){ pauseLessonClock(); saveLessonCheckpoint(); }
+  else startLessonClock();
+});
+window.addEventListener('pagehide',()=>{
+  if(L){ pauseLessonClock(); saveLessonCheckpoint(); }
+  cancelAutoSpeak(); stopRecognition();
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+});
+
+let pendingServiceWorker=null;
+let reloadingForUpdate=false;
+let updateReloadTimer=null;
+function showUpdateBanner(worker){
+  if(!worker||document.getElementById('updateBanner')) return;
+  pendingServiceWorker=worker;
+  const banner=document.createElement('div');
+  banner.id='updateBanner'; banner.className='update-banner';
+  banner.innerHTML=`<div class="txt"><b>גרסה חדשה מוכנה</b><span>העדכון ישמור את ההתקדמות שלך.</span></div><button class="btn" onclick="applyAppUpdate()">עדכון עכשיו</button>`;
+  document.body.appendChild(banner);
+}
+function applyAppUpdate(){
+  if(L){ pauseLessonClock(); saveLessonCheckpoint(); }
+  if(!pendingServiceWorker){ location.reload(); return; }
+  if(pendingServiceWorker.state==='activated'||pendingServiceWorker.state==='redundant'){
+    location.reload(); return;
+  }
+  reloadingForUpdate=true;
+  pendingServiceWorker.postMessage({type:'SKIP_WAITING'});
+  clearTimeout(updateReloadTimer);
+  updateReloadTimer=setTimeout(()=>location.reload(),3000);
+}
 if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('service-worker.js').catch(()=>{}); });
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(reloadingForUpdate||document.getElementById('updateBanner')){
+      if(L){ pauseLessonClock(); saveLessonCheckpoint(); }
+      clearTimeout(updateReloadTimer);
+      location.reload();
+    }
+  });
+  window.addEventListener('load',()=>{
+    const hadController=!!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('./service-worker.js',{updateViaCache:'none'}).then(reg=>{
+      if(hadController&&reg.waiting) showUpdateBanner(reg.waiting);
+      reg.addEventListener('updatefound',()=>{
+        const worker=reg.installing;
+        if(!worker) return;
+        worker.addEventListener('statechange',()=>{
+          if(worker.state==='installed'&&navigator.serviceWorker.controller) showUpdateBanner(worker);
+        });
+      });
+      reg.update().catch(()=>{});
+    }).catch(()=>{});
+  });
 }
 if(state.onboarded) renderHome(); else renderOnboarding();
 </script>
