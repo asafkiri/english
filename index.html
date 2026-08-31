@@ -866,14 +866,17 @@ let L = null; // current lesson session
 function startLesson(idx, isReplay){
   const lesson = LESSONS[idx];
   const steps = [{type:'intro'}];
-  // warm-up: 2-3 phrases from earlier lessons, hard ones first, random otherwise
+  // warm-up from earlier lessons, hard phrases first, random otherwise.
+  // it grows as the course advances — one more phrase per lesson (~half a
+  // minute), capped at 10 so a lesson stays around the 15-minute promise
   if(!isReplay && idx > 0){
+    const target = Math.min(2 + idx, 10);
     const learned = [];
     for(let li = 0; li < idx; li++) LESSONS[li].phrases.forEach((p, pi)=>learned.push({p, id:li+':'+pi}));
     const hardSet = new Set(state.hard || []);
-    const chosen = learned.filter(x=>hardSet.has(x.id)).slice(0, 3);
+    const chosen = learned.filter(x=>hardSet.has(x.id)).slice(0, target);
     const rest = learned.filter(x=>!hardSet.has(x.id)).sort(()=>Math.random()-.5);
-    while(chosen.length < 3 && rest.length) chosen.push(rest.pop());
+    while(chosen.length < target && rest.length) chosen.push(rest.pop());
     chosen.forEach(x=>steps.push({type:'speak', p:x.p, warmup:true, hid:x.id}));
   }
   lesson.phrases.forEach(p=>{ steps.push({type:'learn', p}); steps.push({type:'speak', p}); });
@@ -937,10 +940,12 @@ function renderStep(){
 
 /* ---- intro ---- */
 function renderIntro(){
+  const wu = L.steps.filter(s=>s.warmup).length;
   playerShell(`
     <div class="step-label">שיעור ${L.idx+1} · ${esc(UNITS[Math.floor(L.idx/LESSONS_PER_UNIT)].title)}</div>
     <h2>${esc(L.lesson.title)}</h2>
     <p class="sub">${esc(L.lesson.goal)}</p>
+    ${wu ? `<p class="sub" style="margin-top:-8px">היום: 🔥 חימום של ${wu} משפטים שכבר למדת + 🎧 5 משפטים חדשים</p>` : ''}
     <div class="card" style="margin-bottom:16px">
       <p style="font-size:15.5px;color:#c9d4ec">
         ככה זה עובד:<br>
