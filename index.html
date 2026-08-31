@@ -252,6 +252,12 @@ body{
 .stage-avatar.listening::before{border-color:rgba(52,211,153,.6);background:radial-gradient(circle at 50% 32%, rgba(52,211,153,.24), transparent 68%)}
 @keyframes ringOut{0%{transform:translateX(-50%) scale(.86);opacity:.5}100%{transform:translateX(-50%) scale(1.4);opacity:0}}
 
+/* The redesigned cast is drawn as half-body characters that belong in the
+   scene, rather than emoji-like portraits floating inside a video-call ring. */
+.stage-avatar.modern-cast{width:calc(var(--avatar)*1.12);height:calc(var(--avatar)*1.12);margin-top:-5px}
+.stage-avatar.modern-cast::before{display:none}
+.stage-avatar.modern-cast .ring{display:none}
+
 /* the drawn cast: breathing, blinking, and a mouth that actually talks */
 .person-art{position:relative;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45))}
 .person-art .figure{transform-box:fill-box;transform-origin:50% 100%;animation:figBreathe 4.4s ease-in-out infinite}
@@ -285,6 +291,39 @@ body{
 .person-art.voicing .mouth{animation:mouthTalk .3s ease-in-out infinite}
 .person-art.voicing .tongue{animation:tongueTalk .3s ease-in-out infinite}
 .person-art.mouth-js .mouth,.person-art.mouth-js .tongue{animation:none!important;transition:transform .07s linear,opacity .07s linear}
+
+/* Every redesigned character shares one layered face contract. Unlike the
+   original stretched ellipse, each vowel has a deliberately drawn mouth. */
+.person-art.modern-v2{filter:none}
+.person-art.modern-v2 .mouth{animation:none!important;transform:none!important}
+.person-art.modern-v2 .eyes{animation:none}
+.person-art.modern-v2 .mouth-shape{opacity:0;transition:opacity .055s linear}
+.person-art.modern-v2[data-viseme="rest"] .mouth-rest,
+.person-art.modern-v2:not([data-viseme]) .mouth-rest{opacity:1}
+.person-art.modern-v2[data-viseme="a"] .mouth-a,
+.person-art.modern-v2[data-viseme="default"] .mouth-a{opacity:1}
+.person-art.modern-v2[data-viseme="e"] .mouth-e,
+.person-art.modern-v2[data-viseme="i"] .mouth-e,
+.person-art.modern-v2[data-viseme="y"] .mouth-e{opacity:1}
+.person-art.modern-v2[data-viseme="o"] .mouth-o{opacity:1}
+.person-art.modern-v2[data-viseme="u"] .mouth-u{opacity:1}
+.person-art.modern-v2 .pupils,.person-art.modern-v2 .brows,.person-art.modern-v2 .cheeks{
+  transform-box:fill-box;transform-origin:center;transition:transform .24s ease,opacity .24s ease
+}
+.person-art.modern-v2 .eyelids{opacity:0;animation:castBlink 5.8s linear infinite}
+.person-art.modern-v2.listening .pupils{animation:castFocus 4.6s ease-in-out infinite}
+.person-art.modern-v2.waiting .pupils,.person-art.modern-v2.speaking .pupils{animation:castGaze 7.8s ease-in-out infinite}
+.person-art.modern-v2.thinking .pupils{transform:translate(3px,-2px)}
+.person-art.modern-v2.thinking .brows{transform:rotate(-2deg) translateY(-1px)}
+.person-art.modern-v2.reacting .head{animation:castReact .72s ease-out both}
+.person-art.modern-v2.reacting .cheeks{opacity:.72}
+.person-art.modern-v2.reacting .brows{transform:translateY(-1.5px)}
+.person-art.modern-v2.voicing .brows{animation:castBrows 2.2s ease-in-out infinite}
+@keyframes castFocus{0%,70%,100%{transform:none}78%,91%{transform:translateX(-1.5px)}}
+@keyframes castGaze{0%,36%,100%{transform:none}43%,58%{transform:translate(1.2px,.2px)}66%,79%{transform:translate(-.8px,0)}}
+@keyframes castBlink{0%,91%,94%,100%{opacity:0}92%,93%{opacity:1}}
+@keyframes castReact{0%{transform:none}42%{transform:translateY(2px) rotate(1.8deg)}100%{transform:none}}
+@keyframes castBrows{0%,100%{transform:none}45%{transform:translateY(-1px)}}
 @keyframes figBreathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-3px) scaleY(1.012)}}
 @keyframes blink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}97%{transform:scaleY(1)}}
 @keyframes mouthTalk{0%{transform:scale(1,.5)}20%{transform:scale(.86,3.1)}45%{transform:scale(1.05,1.5)}70%{transform:scale(.8,3.6)}100%{transform:scale(1,.6)}}
@@ -2419,24 +2458,241 @@ const PRACTICE_BACKDROPS = {
 };
 const PRACTICE_CAST = {
   tom:{name:'טום', avatar:'👦', color:'#60a5fa', role:'חבר מבית הספר',
-    look:{skin:'#f2c9a0', hairStyle:'short', hairColor:'#4a3122', clothes:'#3f6fd8', accent:'#2b52a8'}},
+    look:{variant:'modern-v2',id:'tom',outfit:'hoodie',faceShape:'oval',skin:'#f1c39d',skinShadow:'#d99f78',hairStyle:'short',hairColor:'#4b3022',eyeColor:'#557782',clothes:'#3973d9',accent:'#2555aa',blush:'#e98c7c'}},
   maya:{f:true, name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה',
-    look:{skin:'#f6d3ad', hairStyle:'long', hairColor:'#2f2320', clothes:'#e0559a', accent:'#b83c7b'}},
+    look:{variant:'modern-v2',id:'maya',outfit:'sweater',faceShape:'round',skin:'#f6d3ad',skinShadow:'#dca681',hairStyle:'long',hairColor:'#2f2320',eyeColor:'#5c493d',clothes:'#e0559a',accent:'#b83c7b',blush:'#ed8c98'}},
   sam:{name:'סם', avatar:'🧑‍🦱', color:'#34d399', role:'שכן',
-    look:{skin:'#d9a878', hairStyle:'curly', hairColor:'#231a15', clothes:'#2fa87a', accent:'#1f7f5c'}},
-  alex:{name:'אלכס', avatar:'🧑‍🍳', color:'#fbbf24', role:'מלצר',
-    look:{skin:'#f0c39a', hairStyle:'chefhat', hairColor:'#3a2a1e', clothes:'#eef1f6', accent:'#c9d0dd', apron:true}},
+    look:{variant:'modern-v2',id:'sam',outfit:'jacket',faceShape:'broad',skin:'#d9a878',skinShadow:'#b87852',hairStyle:'curly',hairColor:'#231a15',eyeColor:'#455d4d',clothes:'#2fa87a',accent:'#1f7f5c',blush:'#c87967'}},
+  alex:{name:'אלכס', avatar:'🤵', color:'#fbbf24', role:'מלצר',
+    look:{variant:'modern-v2',id:'alex',outfit:'waiter',faceShape:'angular',skin:'#f0c39a',skinShadow:'#d09a72',hairStyle:'sidepart',hairColor:'#3a2a1e',eyeColor:'#53647d',clothes:'#f1f4f8',accent:'#34445c',blush:'#dc8875'}},
   nina:{f:true, name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות',
-    look:{skin:'#e8bb8f', hairStyle:'bun', hairColor:'#5a3320', clothes:'#e08b2c', accent:'#b56b18'}},
+    look:{variant:'modern-v2',id:'nina',outfit:'blazer',faceShape:'soft',skin:'#e8bb8f',skinShadow:'#c98b62',hairStyle:'bob',hairColor:'#5a3320',eyeColor:'#6a5137',clothes:'#e08b2c',accent:'#8f4e18',blush:'#df826e'}},
   ben:{name:'בן', avatar:'🧑‍🦰', color:'#a78bfa', role:'תייר מלונדון',
-    look:{skin:'#f5d0b0', hairStyle:'cap', hairColor:'#a84b25', clothes:'#8b7ae8', accent:'#6a58c9'}},
+    look:{variant:'modern-v2',id:'ben',outfit:'traveler',faceShape:'narrow',skin:'#f5d0b0',skinShadow:'#d9a17a',hairStyle:'cap',hairColor:'#a84b25',eyeColor:'#587381',clothes:'#8b7ae8',accent:'#6a58c9',blush:'#e68f7f'}},
   dana:{f:true, name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג',
-    look:{skin:'#e3b58c', hairStyle:'bun', hairColor:'#2b2320', clothes:'#3aa6d8', accent:'#2483ae', glasses:true}},
+    look:{variant:'modern-v2',id:'dana',outfit:'teacher',faceShape:'oval',skin:'#e3b58c',skinShadow:'#c48760',hairStyle:'bun-side',hairColor:'#2b2320',eyeColor:'#4b6876',clothes:'#3aa6d8',accent:'#2483ae',blush:'#d77d70',glasses:true}},
 };
-/* The cast is drawn, not photographed: one parametric SVG figure — head,
-   face, hair, torso and clothing — so seven distinct people ship as code and
-   keep working offline. Mouth, eyes and posture animate per state, which is
-   what sells "somebody is talking to me". */
+function modernFacePath(shape){
+  return ({
+    round:'M57 82c0-38 20-59 53-59s54 23 53 61l-2 29c-2 31-23 53-51 56-29-3-50-25-52-56z',
+    broad:'M55 82c0-37 21-58 55-58 36 0 56 22 55 60l-2 29c-3 30-25 51-53 54-29-3-51-24-53-54z',
+    angular:'M61 80c1-36 20-56 49-57 31 0 51 22 50 59l-2 32c-4 28-25 51-48 56-24-5-44-27-48-56z',
+    narrow:'M64 80c1-36 18-57 46-57 30 0 48 23 47 60l-2 32c-3 31-23 54-45 58-24-4-43-27-45-58z',
+    soft:'M59 80c0-36 20-57 51-57 33 0 52 23 51 60l-2 31c-3 30-23 52-49 56-27-4-48-26-50-56z',
+    oval:'M59 81c0-37 20-58 51-58 33 0 53 23 51 61l-2 31c-3 30-24 52-49 55-27-3-48-25-50-55z',
+  })[shape]||modernFacePath('oval');
+}
+function modernBackArt(l, skin, clothes, accent){
+  if(l.id==='tom') return `
+    <path class="backpack" d="M39 217c0-24 10-39 28-44l15 23-12 63H43c-3-14-4-28-4-42z" fill="#1e3f7f" stroke="#172746" stroke-width="2.2"/>
+    <path class="hood" d="M72 190c6-17 20-27 38-27s32 10 38 27l-18 15H90z" fill="#1f4fa8" stroke="#1b3568" stroke-width="2.2"/>`;
+  if(l.id==='sam') return `<path class="jacket-hood" d="M69 194c5-19 21-31 41-31s36 12 41 31l-20 14H89z" fill="${accent}" stroke="#173f31" stroke-width="2.2"/>`;
+  if(l.id==='ben') return `
+    <path class="travel-backpack" d="M37 216c1-25 11-40 29-45l17 24-13 65H41c-3-15-5-29-4-44z" fill="#4a3e96" stroke="#292455" stroke-width="2.2"/>
+    <path class="backpack-strap" d="M61 183c15 12 24 30 28 54" fill="none" stroke="#d9ccff" stroke-width="6" opacity=".62"/>`;
+  if(l.id==='alex') return `<path class="apron-back" d="M71 193c8-20 22-30 39-30s31 10 39 30l-14 19H85z" fill="#dce3ec"/>`;
+  return '';
+}
+function modernOutfitArt(l, clothes, accent){
+  if(l.outfit==='hoodie') return `
+    <path d="M110 196l-18-15-13 13 19 25z" fill="#8eb5ff" opacity=".72"/><path d="M110 196l18-15 13 13-19 25z" fill="#a9c7ff" opacity=".66"/>
+    <path d="M95 184l15 12 15-12-5 35h-20z" fill="#f7e9d2"/><path d="M110 197v73" fill="none" stroke="${accent}" stroke-width="3"/>
+    <circle cx="110" cy="224" r="3.5" fill="#f2a23a" stroke="#9b5a14" stroke-width="1.2"/><path d="M83 226c-4 13-5 28-5 44M137 226c4 13 5 28 5 44" fill="none" stroke="${accent}" stroke-width="2" opacity=".65"/>`;
+  if(l.outfit==='sweater') return `
+    <path class="sweater-collar" d="M91 183q19 22 38 0l11 13q-30 26-60 0z" fill="#ffe3ef"/>
+    <g class="maya-headphones" fill="none" stroke="#6ed8c6" stroke-width="6"><path d="M82 190c-2 25 58 25 56 0"/><rect x="76" y="197" width="13" height="22" rx="6" fill="#9ce9dc" stroke="#398f83"/><rect x="132" y="197" width="13" height="22" rx="6" fill="#9ce9dc" stroke="#398f83"/></g>
+    <path d="M73 226q37 15 74 0" fill="none" stroke="${accent}" stroke-width="4" opacity=".55"/>`;
+  if(l.outfit==='jacket') return `
+    <path class="shirt" d="M94 182l16 14 16-14 2 39H92z" fill="#f0c76a"/>
+    <path d="M110 197L91 181 78 197l22 23zM110 197l19-16 13 16-22 23z" fill="${accent}" opacity=".78"/>
+    <path d="M110 198v72" stroke="#155e46" stroke-width="3"/><path d="M80 235h18v12H80zM122 235h18v12h-18z" fill="none" stroke="#b8f3dd" stroke-width="2" opacity=".72"/>`;
+  if(l.outfit==='waiter') return `
+    <path class="waiter-shirt" d="M91 183l19 16 19-16 8 36H83z" fill="#fff"/>
+    <path class="alex-waiter-vest" d="M110 201L89 182 75 199l20 27v44h30v-44l20-27-14-17z" fill="${accent}" stroke="#202b3b" stroke-width="2"/>
+    <path class="bow-tie" d="M110 198l-12-7-6 8 10 8 8-5 8 5 10-8-6-8z" fill="#e6aa32"/>
+    <path class="waiter-apron" d="M72 231h76l3 39H69z" fill="#263448"/>
+    <g class="alex-order-pad"><rect x="126" y="211" width="17" height="23" rx="3" fill="#f5e7b3" stroke="#745f2d" stroke-width="1.5"/><path d="M130 217h9M130 222h9M130 227h6" stroke="#9c8350" stroke-width="1.3"/></g>
+    <g fill="#e6aa32"><circle cx="110" cy="219" r="2.2"/><circle cx="110" cy="228" r="2.2"/></g>`;
+  if(l.outfit==='blazer') return `
+    <path class="blouse" d="M91 183l19 15 19-15 6 43H85z" fill="#fff0d6"/>
+    <path d="M110 199L89 182 76 200l26 25zM110 199l21-17 13 18-26 25z" fill="${accent}" opacity=".8"/>
+    <path class="shop-apron" d="M76 224h68l4 46H72z" fill="#b7651e" opacity=".7"/>
+    <g class="name-badge"><rect x="119" y="228" width="23" height="13" rx="3" fill="#fff7dd" stroke="#8e4b17"/><path d="M124 233h13M124 237h9" stroke="#d58b43" stroke-width="1.5" stroke-linecap="round"/></g>`;
+  if(l.outfit==='traveler') return `
+    <path class="travel-shirt" d="M92 183l18 14 18-14 2 40H90z" fill="#f1e9ff"/>
+    <path d="M110 198L89 181 78 197l22 23zM110 198l21-17 11 16-22 23z" fill="${accent}" opacity=".76"/>
+    <path class="crossbody-strap" d="M79 188l52 82" fill="none" stroke="#443a75" stroke-width="7"/>
+    <g class="ben-map"><path d="M121 226l9 3 8-4 7 4v22l-8-4-8 4-8-3z" fill="#fff2c7" stroke="#9d7e43" stroke-width="1.5"/><path d="M130 229l-1 22M138 225l-1 22M124 235l4 2 5-3 5 3 4-2" fill="none" stroke="#c99b4b" stroke-width="1.2"/></g>
+    <rect class="travel-pouch" x="116" y="238" width="30" height="25" rx="6" fill="#453a78" stroke="#d9ccff" stroke-width="2"/>`;
+  return `
+    <path class="teacher-blouse" d="M91 183l19 15 19-15 4 42H87z" fill="#705099"/>
+    <path d="M108 200L89 181 76 198l23 27zM112 200l19-19 13 17-23 27z" fill="${accent}" opacity=".78"/>
+    <path class="teacher-lanyard" d="M96 198l14 32 14-32" fill="none" stroke="#ffd86a" stroke-width="3"/><rect x="103" y="227" width="14" height="17" rx="3" fill="#fff4c2" stroke="#b88720" stroke-width="1.5"/>`;
+}
+function modernBackHairArt(l, hair){
+  if(l.hairStyle==='long') return `<path class="hair-long-wavy" d="M48 96c-4-50 22-80 62-80s67 30 63 82l-7 84c-12 8-25 11-38 9l-18-24-18 24c-15 2-28-2-39-11z" fill="${hair}" stroke="#211715" stroke-width="2.5"/>`;
+  if(l.hairStyle==='curly') return `<g class="hair-curly-back" fill="${hair}" stroke="#17110e" stroke-width="2"><circle cx="61" cy="77" r="22"/><circle cx="70" cy="51" r="23"/><circle cx="93" cy="33" r="23"/><circle cx="120" cy="30" r="24"/><circle cx="146" cy="46" r="23"/><circle cx="160" cy="73" r="21"/></g>`;
+  if(l.hairStyle==='bun') return `<circle class="hair-side-bun" cx="110" cy="16" r="22" fill="${hair}" stroke="#382016" stroke-width="2.5"/>`;
+  if(l.hairStyle==='bun-side') return `<g class="hair-curly-puff" fill="${hair}" stroke="#1d191c" stroke-width="2"><circle cx="151" cy="27" r="22"/><circle cx="137" cy="17" r="14"/><circle cx="164" cy="16" r="14"/></g>`;
+  if(l.hairStyle==='bob') return `<path class="hair-bob-back" d="M51 91c-2-46 23-74 59-74 38 0 62 29 59 75l-8 73c-12 10-24 13-38 10l-13-16-15 16c-13 2-26-2-36-11z" fill="${hair}" stroke="#382016" stroke-width="2.5"/>`;
+  return '';
+}
+function modernHairArt(l, hair, skin){
+  const shine=`stroke="rgba(255,255,255,.24)" stroke-width="3" stroke-linecap="round" fill="none"`;
+  if(l.hairStyle==='long') return `
+    <path d="M58 83c-4-37 17-62 52-64 33-2 55 22 54 59-16-17-35-24-54-20-19 4-33 14-52 25z" fill="${hair}" stroke="#211715" stroke-width="2.6"/>
+    <path d="M57 73c-2 32-1 62 5 91l15-5c-4-30-3-57 2-83zM163 71c3 31 2 61-4 91l-15-5c5-31 4-57-2-83z" fill="${hair}"/>
+    <path d="M73 52c16-18 39-25 61-19" ${shine}/><g class="hair-clip"><rect x="62" y="70" width="17" height="6" rx="3" fill="#ffd76a" transform="rotate(-18 62 70)"/></g>`;
+  if(l.hairStyle==='curly') return `
+    <path class="sam-hair-underlay" d="M53 81c0-41 23-65 57-65 35 0 59 25 58 65-17-13-37-19-58-18-21 0-40 6-57 18z" fill="${hair}"/>
+    <g class="hair-curly-front" fill="${hair}"><circle cx="64" cy="70" r="18"/><circle cx="82" cy="48" r="20"/><circle cx="106" cy="41" r="21"/><circle cx="132" cy="46" r="20"/><circle cx="153" cy="68" r="18"/></g>
+    <path d="M72 54c15-13 36-18 55-12" ${shine}/>`;
+  if(l.hairStyle==='chefhat') return `
+    <path d="M62 75c5-25 21-39 48-39s44 14 49 39c-13-10-30-15-49-13-19 1-35 6-48 13z" fill="${hair}"/>
+    <g class="chef-hat" fill="#fffdf8" stroke="#aeb9c9" stroke-width="2.4"><circle cx="80" cy="30" r="23"/><circle cx="110" cy="18" r="28"/><circle cx="141" cy="31" r="23"/><path d="M62 43h97v34H62z"/></g><path d="M70 63h81" stroke="#d7dde7" stroke-width="5"/>`;
+  if(l.hairStyle==='sidepart') return `
+    <path class="alex-sidepart" d="M60 79c-2-36 18-59 50-60 29 0 49 17 53 48-20-15-39-19-57-12-15 6-27 14-46 24z" fill="${hair}" stroke="#241814" stroke-width="2.6"/>
+    <path d="M112 24c-3 13-1 23 7 31M72 55c12-16 27-25 43-28" ${shine}/><path d="M59 74v31M161 69v34" stroke="${hair}" stroke-width="8" stroke-linecap="round"/>`;
+  if(l.hairStyle==='bun'||l.hairStyle==='bun-side') return `
+    <path d="M58 83c-2-36 19-61 52-62 34 0 55 24 53 62-16-14-34-20-53-18-20 1-37 8-52 18z" fill="${hair}" stroke="#2a1d19" stroke-width="2.5"/>
+    <path d="M66 63c17-21 43-29 69-19" ${shine}/><path d="M58 80c8-2 16-7 23-14-1 13-8 22-22 28z" fill="${hair}"/>`;
+  if(l.hairStyle==='bob') return `
+    <path class="hair-bob-front" d="M57 82c-3-37 19-61 53-63 31-1 51 18 55 50-14-9-27-13-40-12-17 1-30 9-45 21-6 5-14 9-23 12z" fill="${hair}" stroke="#382016" stroke-width="2.5"/>
+    <path d="M60 78c-1 27 0 54 4 80l14-3c-3-28-2-53 3-76zM161 70c5 27 5 54 0 82l-14-2c4-27 3-50-2-71z" fill="${hair}"/>
+    <path d="M74 53c18-19 42-26 65-17" ${shine}/>`;
+  if(l.hairStyle==='cap') return `
+    <path d="M61 81c4-30 21-47 49-47 27 0 45 17 49 47-13-10-29-15-49-14-20 0-36 5-49 14z" fill="${hair}"/>
+    <g class="travel-cap"><path d="M57 58c6-31 25-47 53-47 29 0 48 17 53 48-34-12-69-12-106-1z" fill="${l.clothes}" stroke="${l.accent}" stroke-width="2.6"/><path d="M57 58c24-6 49-7 76-3 13 2 24 7 31 14-23-4-43-3-60 3-19 6-34 3-47-14z" fill="${l.accent}"/></g>`;
+  return `
+    <path d="M59 82c-5-34 14-62 49-64 29-2 50 15 55 43-15-10-31-13-48-9-15 3-29 13-56 30z" fill="${hair}" stroke="#2a1b16" stroke-width="2.6"/>
+    <path d="M65 65c6-29 33-47 62-39-15 2-27 8-35 18 21-11 44-9 62 3-20-3-33 1-45 8-16 9-29 15-50 26z" fill="${hair}" opacity=".78"/>
+    <path d="M82 48c12-12 31-18 48-15M73 61c14-12 31-19 50-20" ${shine}/><path d="M101 25c-4-8 1-15 10-17-2 7 1 11 8 15" fill="none" stroke="${hair}" stroke-width="7" stroke-linecap="round"/>`;
+}
+function modernFaceAccessories(l){
+  let out='';
+  if(l.glasses) out+=`<g class="round-glasses" fill="none" stroke="#254657" stroke-width="3"><ellipse cx="84" cy="99" rx="18" ry="14"/><ellipse cx="136" cy="99" rx="18" ry="14"/><path d="M102 98h16M66 96l-9-4M154 96l9-4"/></g>`;
+  if(l.id==='nina') out+=`<g class="earrings" fill="#ffd46a" stroke="#9b6517" stroke-width="1.4"><circle cx="54" cy="120" r="4"/><circle cx="166" cy="120" r="4"/></g>`;
+  if(l.id==='maya') out+=`<g class="freckles" fill="#b6745e" opacity=".55"><circle cx="75" cy="114" r="1.2"/><circle cx="81" cy="116" r="1"/><circle cx="145" cy="114" r="1.2"/><circle cx="139" cy="116" r="1"/></g>`;
+  if(l.id==='alex') out+=`<path class="smile-line" d="M91 129c5 2 9 2 13 0M124 129c4 2 8 2 12 0" stroke="#8b5e49" stroke-width="1.3" stroke-linecap="round" opacity=".45"/>`;
+  return out;
+}
+
+function modernHairAccessoryArt(l){
+  if(l.id!=='dana') return '';
+  return `<g class="pencil-accessory" transform="rotate(-22 160 27)"><rect x="158" y="8" width="5" height="40" rx="2" fill="#f7c948"/><path d="M158 8h5l-2.5-7z" fill="#ead7bd"/><path d="M159.5 3h2l-1-3z" fill="#3e342d"/></g>`;
+}
+
+function modernEyePath(cx,y,rx,open){
+  const left=cx-rx,right=cx+rx,shoulder=Math.round(rx*.55),lower=Math.round(open*.72);
+  return `M${left} ${y}C${cx-shoulder} ${y-open} ${cx+shoulder} ${y-open} ${right} ${y}C${cx+shoulder} ${y+lower} ${cx-shoulder} ${y+lower} ${left} ${y}z`;
+}
+function modernFaceFeatures(l, eye, hair, skin){
+  const profiles={
+    tom:{lx:88,rx:133,y:98,w:14,o:8,iris:6.2,bw:4.2,bl:'M75 82c8-4 16-4 23 0',br:'M122 82c7-4 15-4 23 0'},
+    maya:{lx:87,rx:133,y:99,w:15,o:10,iris:6.4,bw:3.8,bl:'M72 83c8-2 17-2 25 1',br:'M123 84c8-3 17-3 25 0'},
+    sam:{lx:88,rx:133,y:99,w:14,o:7,iris:5.8,bw:4.8,bl:'M74 82c8-5 17-5 24-1',br:'M121 81c8-4 17-4 25 1'},
+    alex:{lx:89,rx:132,y:99,w:13,o:6,iris:5.3,bw:3.4,bl:'M77 83c7-3 14-3 21 0',br:'M121 83c7-3 14-3 21 0'},
+    nina:{lx:86,rx:134,y:99,w:15,o:6.5,iris:5.8,bw:4,bl:'M71 84c7-8 18-8 27-1',br:'M122 83c9-7 20-7 27 1'},
+    ben:{lx:88,rx:133,y:99,w:14,o:7.5,iris:6,bw:4,bl:'M75 82c8-4 16-4 23 0',br:'M122 82c8-4 16-4 23 0'},
+    dana:{lx:84,rx:136,y:99,w:14,o:7,iris:5.8,bw:3.8,bl:'M69 83c8-5 17-5 25-1',br:'M126 82c8-4 17-4 25 1'},
+  };
+  const p=profiles[l.id]||profiles.tom;
+  const left=modernEyePath(p.lx,p.y,p.w,p.o),right=modernEyePath(p.rx,p.y,p.w,p.o);
+  return `<g class="brows" fill="none" stroke="${hair}" stroke-width="${p.bw}" stroke-linecap="round"><path class="brow brow-l" d="${p.bl}"/><path class="brow brow-r" d="${p.br}"/></g>
+    <g class="eyes"><path d="${left}" fill="#fffdf8" stroke="#51382e" stroke-width="1.7"/><path d="${right}" fill="#fffdf8" stroke="#51382e" stroke-width="1.7"/>
+      <g class="pupils"><circle cx="${p.lx}" cy="${p.y}" r="${p.iris}" fill="${eye}"/><circle cx="${p.rx}" cy="${p.y}" r="${p.iris}" fill="${eye}"/><circle cx="${p.lx}" cy="${p.y+1}" r="3.3" fill="#1c3036"/><circle cx="${p.rx}" cy="${p.y+1}" r="3.3" fill="#1c3036"/><circle cx="${p.lx+2}" cy="${p.y-2}" r="1.7" fill="#fff"/><circle cx="${p.rx+2}" cy="${p.y-2}" r="1.7" fill="#fff"/></g>
+    </g>
+    <g class="eyelids"><path d="${left}" fill="${skin}" stroke="#51382e" stroke-width="1.8"/><path d="${right}" fill="${skin}" stroke="#51382e" stroke-width="1.8"/></g>`;
+}
+
+/* One layered renderer now gives every conversation partner the same polished
+   animation contract while hair, face, outfit and accessories stay unique. */
+function modernPersonArt(look, state='idle', cls=''){
+  const l=look||{};
+  const id=l.id||'tom',skin=l.skin||'#f1c39d',skinShadow=l.skinShadow||'#d99f78';
+  const hair=l.hairColor||'#4b3022',clothes=l.clothes||'#3973d9',accent=l.accent||'#2555aa';
+  const eye=l.eyeColor||'#557782',blush=l.blush||'#e98c7c';
+  const rearHair=l.hairStyle==='long'||l.hairStyle==='bob';
+  return `<svg class="person-art modern-v2 ${id}-v2 layered-mouth ${state} ${cls}${voiceActive?' voicing':''}" data-art="${id}-v2" data-character="${id}" data-palette="${id}" data-viseme="rest" viewBox="0 0 220 270" aria-hidden="true">
+    <ellipse cx="110" cy="263" rx="72" ry="7" fill="#07101f" opacity=".32"/>
+    <g class="figure">
+      ${modernBackArt(l,skin,clothes,accent)}
+      ${rearHair?modernBackHairArt(l,hair):''}
+
+      <!-- relaxed arms; the right hand sits a little higher for conversation gestures -->
+      <g class="arm arm-l">
+        <path d="M69 192c-18 7-28 27-32 55l27 7c3-21 9-37 19-48z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
+        <path d="M42 245c5-3 13-1 20 3l-3 18H37c-2-8 0-16 5-21z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
+        <path d="M45 249c5 2 9 5 12 10" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+      <g class="arm arm-r">
+        <path d="M151 191c18 7 29 26 33 51l-27 8c-4-20-10-35-20-44z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
+        <path d="M161 241c5-5 15-5 21 0 4 5 5 13 2 21h-22l-6-14c1-3 2-5 5-7z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
+        <path d="M164 247c5-2 10-2 15 0" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+
+      <path class="torso" d="M64 270c0-43 7-74 30-88l16 14 16-14c23 14 30 45 30 88z" fill="${clothes}" stroke="${accent}" stroke-opacity=".76" stroke-width="2.5" stroke-linejoin="round"/>
+      ${modernOutfitArt(l,clothes,accent)}
+
+      <!-- neck and under-chin shadow -->
+      <path d="M91 151h38v36c-5 9-33 9-38 0z" fill="${skin}" stroke="#7e5947" stroke-opacity=".35" stroke-width="2"/>
+      <path d="M92 151h36v15c-9 8-27 8-36 0z" fill="${skinShadow}" opacity=".58"/>
+
+      <g class="head">
+        ${rearHair?'':modernBackHairArt(l,hair)}
+        ${modernHairAccessoryArt(l)}
+        <!-- ears and a custom face shape: broad temples, soft jaw, rounded chin -->
+        <path d="M61 86c-10-3-16 4-15 15 1 12 8 20 17 17z" fill="${skin}" stroke="#7e5947" stroke-opacity=".45" stroke-width="2"/>
+        <path d="M159 86c10-3 16 4 15 15-1 12-8 20-17 17z" fill="${skin}" stroke="#7e5947" stroke-opacity=".45" stroke-width="2"/>
+        <path d="M54 98c5-5 10-3 10 5M166 98c-5-5-10-3-10 5" fill="none" stroke="#bd8067" stroke-width="2" stroke-linecap="round"/>
+        <path d="${modernFacePath(l.faceShape)}" fill="${skin}" stroke="#51382e" stroke-opacity=".58" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M145 55c10 15 12 35 10 59-2 24-16 43-36 51 23-4 38-24 40-50l2-31c1-22-6-39-18-49z" fill="${skinShadow}" opacity=".34"/>
+        <path d="M77 55c-7 13-10 28-9 43" fill="none" stroke="#ffe0c2" stroke-width="3" stroke-linecap="round" opacity=".68"/>
+
+        ${modernHairArt(l,hair,skin)}
+
+        <!-- eye shape, spacing and brow posture give each face its own read -->
+        ${modernFaceFeatures(l,eye,hair,skin)}
+        ${modernFaceAccessories(l)}
+
+        <!-- nose, cheeks and small face details -->
+        <path d="M110 101c-1 8-4 15-2 19 3 3 7 3 10 0" fill="none" stroke="#b77d62" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M103 123c5 2 10 2 15 0" fill="none" stroke="${skinShadow}" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
+        <g class="cheeks" fill="${blush}" opacity=".34"><ellipse cx="77" cy="122" rx="10" ry="5"/><ellipse cx="145" cy="122" rx="10" ry="5"/></g>
+        <circle cx="68" cy="112" r="1.2" fill="#a36a56" opacity=".55"/><circle cx="152" cy="112" r="1.2" fill="#a36a56" opacity=".55"/>
+
+        <!-- five clean mouth drawings: closed, A, E/I, O and U -->
+        <g class="mouth mouth-shapes">
+          <g class="mouth-shape mouth-rest">
+            <path d="M99 139c6 7 18 9 25 6 3-1 5-3 7-6" fill="none" stroke="#8a4748" stroke-width="3" stroke-linecap="round"/>
+            <path d="M103 146c5 3 15 4 22 1" fill="none" stroke="#d47b72" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+          </g>
+          <g class="mouth-shape mouth-a">
+            <path d="M98 138c7-5 24-5 32 0 1 15-6 22-16 22-11 0-17-8-16-22z" fill="#74383c" stroke="#633237" stroke-width="1.8"/>
+            <path d="M100 139c8-3 20-3 28 0-2 4-7 6-14 6s-12-2-14-6z" fill="#fff8ef"/>
+            <path d="M104 156c6-5 15-5 21 0-3 3-7 4-11 4s-8-1-10-4z" fill="#d86f78"/>
+          </g>
+          <g class="mouth-shape mouth-e">
+            <path d="M96 140c10-6 27-6 36 0-3 11-10 16-18 16s-15-5-18-16z" fill="#74383c" stroke="#633237" stroke-width="1.8"/>
+            <path d="M99 140c9-3 22-3 30 0-4 5-10 7-15 7-6 0-11-2-15-7z" fill="#fff8ef"/>
+            <path d="M104 152c6-2 14-2 20 0-3 3-6 4-10 4s-8-1-10-4z" fill="#d86f78"/>
+          </g>
+          <g class="mouth-shape mouth-o">
+            <ellipse cx="114" cy="147" rx="9" ry="13" fill="#6f353b" stroke="#633237" stroke-width="2"/>
+            <ellipse cx="114" cy="153" rx="5.5" ry="3" fill="#d86f78" opacity=".82"/>
+          </g>
+          <g class="mouth-shape mouth-u">
+            <ellipse cx="114" cy="147" rx="7" ry="10" fill="#6f353b" stroke="#633237" stroke-width="2"/>
+            <path d="M110 153c3-2 6-2 9 0" fill="none" stroke="#d86f78" stroke-width="2.2" stroke-linecap="round"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </svg>`;
+}
+
+/* Legacy fallback for old/saved character definitions. The active cast now
+   uses modernPersonArt(), but keeping this path protects older checkpoints. */
 function hairArt(style, color){
   const dark = color;
   // fringe on top plus strands beside the face — never across it
@@ -2463,6 +2719,7 @@ function hairArt(style, color){
 }
 function personArt(look, state='idle', cls=''){
   const l = look || {};
+  if(l.variant==='modern-v2') return modernPersonArt(l,state,cls);
   const skin = l.skin || '#f0c9a0';
   const shade = 'rgba(0,0,0,.13)';
   const hairColor = l.hairColor || '#3b2a20';
@@ -2470,7 +2727,7 @@ function personArt(look, state='idle', cls=''){
   const accent = l.accent || '#2f5bbf';
   const backHair = l.hairStyle==='long'
     ? `<path fill="${hairColor}" d="M52 100c0-38 20-64 48-64s48 26 48 64c0 30-6 54-12 78H64c-6-24-12-48-12-78z" opacity=".95"/>` : '';
-  return `<svg class="person-art ${state} ${cls}${voiceActive?' voicing':''}" viewBox="0 0 200 250" role="img" aria-hidden="true">
+  return `<svg class="person-art ${state} ${cls}${voiceActive?' voicing':''}" viewBox="0 0 200 250" aria-hidden="true">
     <g class="figure">
       <!-- torso -->
       <path class="torso" fill="${clothes}" d="M100 156c-32 0-56 16-66 42-6 16-9 34-10 52h152c-1-18-4-36-10-52-10-26-34-42-66-42z"/>
@@ -3084,8 +3341,9 @@ function speak(text, cb){
    with its own shape, words close between them, punctuation pauses. Where the
    browser reports word boundaries the schedule snaps to the real position. */
 const VISEMES = {
-  a:{sx:1.06,sy:3.5}, o:{sx:.82,sy:3.3}, u:{sx:.7,sy:2.6},
-  e:{sx:1.2,sy:1.9}, i:{sx:1.15,sy:1.5}, y:{sx:1.1,sy:1.7}, default:{sx:1,sy:2.2},
+  a:{id:'a',sx:1.06,sy:3.5}, o:{id:'o',sx:.82,sy:3.3}, u:{id:'u',sx:.7,sy:2.6},
+  e:{id:'e',sx:1.2,sy:1.9}, i:{id:'i',sx:1.15,sy:1.5}, y:{id:'y',sx:1.1,sy:1.7},
+  default:{id:'default',sx:1,sy:2.2},
 };
 function visemeFor(group){
   const g=String(group||'');
@@ -3107,14 +3365,14 @@ function buildMouthTimeline(text, rate){
       tl.push({t, charIndex:charPos, word:true});
       groups.forEach((g,i)=>{
         tl.push({t:t+i*per, ...visemeFor(g)});
-        tl.push({t:t+i*per+per*0.6, sx:1, sy:.5});
+        tl.push({t:t+i*per+per*0.6, id:'rest', sx:1, sy:.5});
       });
       t+=dur;
     }
     t += /[,.!?…]$/.test(word) ? 250 : 80;
     charPos+=word.length;
   }
-  tl.push({t:t+60, sx:1, sy:.42});
+  tl.push({t:t+60, id:'rest', sx:1, sy:.42});
   return tl.sort((a,b)=>a.t-b.t);
 }
 function mouthEls(){
@@ -3136,8 +3394,12 @@ function startMouthSync(text, rate){
     let frame=null;
     for(const f of mouthTimeline){ if(f.t<=now && f.sy!==undefined) frame=f; else if(f.t>now) break; }
     if(frame){
-      cur.mouth.style.transform=`scale(${frame.sx},${frame.sy})`;
-      if(cur.tongue) cur.tongue.style.opacity = frame.sy>1.6 ? '.85' : '0';
+      if(cur.art.classList.contains('layered-mouth')){
+        if(cur.art.dataset.viseme!==(frame.id||'default')) cur.art.dataset.viseme=frame.id||'default';
+      } else {
+        cur.mouth.style.transform=`scale(${frame.sx},${frame.sy})`;
+        if(cur.tongue) cur.tongue.style.opacity = frame.sy>1.6 ? '.85' : '0';
+      }
     }
     mouthRaf=requestAnimationFrame(step);
   };
@@ -3155,6 +3417,7 @@ function stopMouthSync(){
   mouthRaf=null; mouthTimeline=null; mouthShift=0;
   document.querySelectorAll('.person-art.mouth-js').forEach(art=>{
     art.classList.remove('mouth-js');
+    if(art.classList.contains('layered-mouth')) art.dataset.viseme='rest';
     const m=art.querySelector('.mouth'), tg=art.querySelector('.tongue');
     if(m) m.style.transform='';
     if(tg) tg.style.opacity='';
@@ -4289,12 +4552,16 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   const timer=screen.querySelector('#timer');
   if(timer) timer.textContent=elapsed();
   const avatar=screen.querySelector('.stage-avatar');
-  if(avatar) avatar.className='stage-avatar '+state_;
+  const modern=meta.character?.look?.variant==='modern-v2';
+  if(avatar) avatar.className='stage-avatar '+state_+' char-'+(meta.characterId||'unknown')+(modern?' modern-cast':'');
   const art=screen.querySelector('.person-art');
   if(art){
     // never silence a mouth mid-word: the live voice classes survive the morph
     const keep=['voicing','mouth-js'].filter(c=>art.classList.contains(c));
-    art.setAttribute('class',['person-art',state_,...keep].join(' '));
+    // variant classes are part of the illustration, not of the current beat
+    const transient=new Set(['idle','waiting','speaking','listening','reacting','thinking','voicing','mouth-js']);
+    const persistent=[...art.classList].filter(c=>c!=='person-art'&&!transient.has(c));
+    art.setAttribute('class',['person-art',...persistent,state_,...keep].join(' '));
   }
   const place=screen.querySelector('.stage-place');
   if(place) place.innerHTML=stagePlaceHtml(meta,history);
@@ -4308,6 +4575,7 @@ function stageShell(state_, caption, composer, cue){
   const pct=Math.round(L.i/(L.steps.length-1)*100);
   const meta=conversationMeta(L.idx);
   const history=(L.chat||[]).length;
+  const modern=meta.character?.look?.variant==='modern-v2';
   const sceneKey=(meta.characterId||'')+'|'+(meta.bg||'');
   if(updateStageInPlace(sceneKey, state_, cue||state_, caption, composer, pct, meta, history)) return;
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS.room;
@@ -4322,7 +4590,7 @@ function stageShell(state_, caption, composer, cue){
     </div>
     <div class="stage" style="--who:${meta.character.color}">
       <div class="stage-place">${stagePlaceHtml(meta,history)}</div>
-      <div class="stage-avatar ${state_}">
+      <div class="stage-avatar ${state_} char-${esc(meta.characterId||'unknown')}${modern?' modern-cast':''}">
         <span class="ring r1"></span><span class="ring r2"></span>
         ${meta.character.look
           ? personArt(meta.character.look, state_)
@@ -4531,7 +4799,7 @@ function renderDialogueSpeak(step){
     const caption=terminal
       ? `<div class="cap-sent">✔️ אמרת: <bdi dir="ltr">${esc(en)}</bdi></div>`
       : `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">תגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)}</div>`;
-    stageShell(terminal?'waiting':'listening', caption, composer, terminal?'heard':'listening');
+    stageShell(terminal?'reacting':'listening', caption, composer, terminal?'heard':'listening');
   } else {
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
   }
