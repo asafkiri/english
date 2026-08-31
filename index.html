@@ -308,6 +308,10 @@ body{
 .stage-status.cue-thinking .cue-icon{animation:cuePulse 1.1s ease-in-out infinite}
 @keyframes cuePulse{0%,100%{opacity:.45}50%{opacity:1}}
 .stage-caption{width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 14px;text-align:center}
+/* a beat change swaps the words, not the scene: the new caption and composer
+   glide in while the figure keeps breathing behind them */
+.stage-swap{animation:stageSwap .3s ease both}
+@keyframes stageSwap{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}
 .cap-en{direction:ltr;font-size:25px;font-weight:800;line-height:1.35}
 .cap-aid{margin-top:8px;font-size:16px;color:var(--dim)}
 .cap-aid.tl{color:var(--amber);font-weight:700}
@@ -4204,12 +4208,61 @@ function setStageCue(cue){
   el.className='stage-status cue-'+cue;
   el.innerHTML=stageCueHtml(cue, conversationMeta(L.idx).character);
 }
+/* Every beat of the conversation used to rebuild this whole screen: the
+   figure snapped mid-breath, the blink restarted, and the scene faded in
+   from scratch each time the caption changed — the person looked replaced,
+   not like someone standing there talking to you. When the same scene is
+   already on stage, morph it in place: only the words and the pose move. */
+function stagePlaceHtml(meta, history){
+  return `${meta.placeEmoji} ${esc(meta.place)}${history?` · <button class="stage-history" onclick="openChatHistory()">📜 מה נאמר עד עכשיו</button>`:''}`;
+}
+function swapStageBlock(el, html){
+  if(!el) return;
+  const changed=el.__stageHtml!==html;
+  // the markup is always rebuilt from state, exactly as a full render would
+  el.__stageHtml=html;
+  el.innerHTML=html;
+  // but pause/resume redraws the same words — don't make them jump again
+  if(!changed) return;
+  el.classList.remove('stage-swap');
+  void el.offsetWidth;
+  el.classList.add('stage-swap');
+}
+function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta, history){
+  const screen=document.querySelector('#app > .conversation-screen.stage-screen');
+  if(!screen||screen.dataset.scene!==sceneKey) return false;
+  // the side effects a full render would have had
+  uiEpoch++;
+  cancelAutoSpeak();
+  stopRecognition();
+  const bar=screen.querySelector('.pbar');
+  if(bar){ bar.setAttribute('aria-valuenow',String(pct)); const fill=bar.querySelector('i'); if(fill) fill.style.width=pct+'%'; }
+  const timer=screen.querySelector('#timer');
+  if(timer) timer.textContent=elapsed();
+  const avatar=screen.querySelector('.stage-avatar');
+  if(avatar) avatar.className='stage-avatar '+state_;
+  const art=screen.querySelector('.person-art');
+  if(art){
+    // never silence a mouth mid-word: the live voice classes survive the morph
+    const keep=['voicing','mouth-js'].filter(c=>art.classList.contains(c));
+    art.setAttribute('class',['person-art',state_,...keep].join(' '));
+  }
+  const place=screen.querySelector('.stage-place');
+  if(place) place.innerHTML=stagePlaceHtml(meta,history);
+  const status=screen.querySelector('#stageStatus');
+  if(status){ status.className='stage-status cue-'+cue; status.innerHTML=stageCueHtml(cue,meta.character); }
+  swapStageBlock(screen.querySelector('#stageCaption'),caption);
+  swapStageBlock(screen.querySelector('.conversation-composer'),composer);
+  return true;
+}
 function stageShell(state_, caption, composer, cue){
   const pct=Math.round(L.i/(L.steps.length-1)*100);
   const meta=conversationMeta(L.idx);
   const history=(L.chat||[]).length;
+  const sceneKey=(meta.characterId||'')+'|'+(meta.bg||'');
+  if(updateStageInPlace(sceneKey, state_, cue||state_, caption, composer, pct, meta, history)) return;
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS.room;
-  h(`<div class="conversation-screen stage-screen">
+  h(`<div class="conversation-screen stage-screen" data-scene="${esc(sceneKey)}">
     <div class="stage-bg" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground}">
       <svg viewBox="0 0 400 300" preserveAspectRatio="none">${bd.art}</svg>
     </div>
@@ -4219,7 +4272,7 @@ function stageShell(state_, caption, composer, cue){
       <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
     </div>
     <div class="stage" style="--who:${meta.character.color}">
-      <div class="stage-place">${meta.placeEmoji} ${esc(meta.place)}${history?` · <button class="stage-history" onclick="openChatHistory()">📜 מה נאמר עד עכשיו</button>`:''}</div>
+      <div class="stage-place">${stagePlaceHtml(meta,history)}</div>
       <div class="stage-avatar ${state_}">
         <span class="ring r1"></span><span class="ring r2"></span>
         ${meta.character.look
