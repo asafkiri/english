@@ -979,7 +979,7 @@ function speak(text, cb){
     stopRecognition();
     const micButton=document.getElementById('micBtn');
     const micHint=document.getElementById('micHint');
-    if(micButton){ micButton.disabled=false; micButton.classList.remove('listening'); }
+    if(micButton){ micButton.disabled=false; micButton.classList.remove('listening'); micButton.textContent='🎤'; micButton.setAttribute('aria-label','התחלת הקלטה'); }
     if(micHint) micHint.textContent='ההשמעה עצרה את ההאזנה — לחץ שוב על המיקרופון כשתהיה מוכן';
   }
   speechSynthesis.cancel();
@@ -1713,7 +1713,7 @@ function renderSpeak(step){
         <div class="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage)}</div>
       `:mic?`
-        <button class="mic-btn" id="micBtn" onclick="startListening('${jsEsc(p.en)}')" aria-label="התחלת הקלטה">🎤</button>
+        <button class="mic-btn" id="micBtn" onclick="micTap('${jsEsc(p.en)}')" aria-label="התחלת הקלטה">🎤</button>
         <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
         <div class="heard" id="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
@@ -1752,6 +1752,17 @@ function showMicFallback(msg){
   const manual=document.getElementById('manualMicBtn');
   if(manual) manual.hidden=false;
 }
+/* one tap starts listening; a tap while listening ends the recording early,
+   so background noise can't keep an attempt hanging open */
+function micTap(target){
+  if(L && L.rec){
+    const hint=document.getElementById('micHint');
+    if(hint) hint.textContent='רגע, בודק מה שמעתי...';
+    try{ L.rec.stop(); }catch(e){ try{ L.rec.abort(); }catch(_){} }
+    return;
+  }
+  startListening(target);
+}
 function startListening(target){
   const btn=document.getElementById('micBtn');
   const hint=document.getElementById('micHint');
@@ -1781,8 +1792,16 @@ function startListening(target){
   let got=false, done=false;
   let best='', bestDetails={score:0,words:[],matched:[],criticalMismatch:false};
   const active=()=>!!L&&L===session&&L.i===stepIndex&&L.rec===rec&&uiEpoch===epoch;
-  btn.disabled=true; btn.classList.add('listening');
-  hint.textContent='מקשיב... דבר עכשיו! 🎙️';
+  // while listening the mic button shows ⏹ — micTap() ends the attempt early
+  const restoreMicButton=()=>{
+    btn.classList.remove('listening');
+    btn.textContent='🎤';
+    btn.setAttribute('aria-label','התחלת הקלטה');
+  };
+  btn.classList.add('listening');
+  btn.textContent='⏹';
+  btn.setAttribute('aria-label','סיום ההקלטה');
+  hint.textContent='מקשיב... דבר, וכשסיימת לחץ ⏹';
   rec.onresult=(e)=>{
     if(done||!active()) return;
     for(let ri=0;ri<e.results.length;ri++){
@@ -1813,7 +1832,7 @@ function startListening(target){
   };
   rec.onerror=(e)=>{
     if(done||!active()||got) return;
-    btn.disabled=false; btn.classList.remove('listening');
+    restoreMicButton();
     const code=e?.error||'';
     if(code==='aborted') return;
     if(code==='not-allowed'||code==='service-not-allowed'||code==='audio-capture'||code==='language-not-supported'){
@@ -1831,10 +1850,11 @@ function startListening(target){
   rec.onend=()=>{
     if(!active()) return;
     L.rec=null;
-    btn.disabled=false; btn.classList.remove('listening');
+    restoreMicButton();
     if(done) return;
     if(!got){
-      if(hint.textContent.indexOf('מקשיב')>-1) hint.textContent='לא שמעתי כלום — נסה שוב, קרוב לטלפון 🎤';
+      const t=hint.textContent;
+      if(t.indexOf('מקשיב')>-1||t.indexOf('בודק')>-1) hint.textContent='לא שמעתי כלום — נסה שוב, קרוב לטלפון 🎤';
       return;
     }
     // the attempt ended without a clear pass — one full try, judged on the
@@ -1857,7 +1877,7 @@ function startListening(target){
   try{rec.start();}
   catch(e){
     if(L&&L===session&&L.rec===rec) L.rec=null;
-    btn.disabled=false; btn.classList.remove('listening');
+    restoreMicButton();
     showMicFallback('בדיקת הקול לא נפתחה. אמור את המשפט בקול והמשך ידנית.');
   }
 }
