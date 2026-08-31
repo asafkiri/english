@@ -230,6 +230,89 @@ body{
 @keyframes vblink{0%,100%{opacity:.2}50%{opacity:1}}
 .scene{background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:11px 14px;font-size:15.5px;font-weight:700;color:#b9d4fb;margin-bottom:14px}
 .chat-thread .dlg-line:last-child{margin-bottom:0}
+.conversation-screen{
+  height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 28px);
+  min-height:520px;display:flex;flex-direction:column;overflow:hidden;animation:fadeUp .25s ease both;
+}
+.conversation-top{display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0}
+.conversation-top .xbtn{width:44px;height:44px}
+.conversation-top .timer{min-width:40px}
+.conversation-person{
+  flex-shrink:0;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#172844,#152139);
+  border:1px solid var(--line);border-radius:16px;padding:9px 11px;margin-bottom:8px;
+}
+.conversation-person .portrait{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--card2);font-size:24px;flex-shrink:0;border:1px solid rgba(255,255,255,.08);
+}
+.conversation-person .person-copy{flex:1;min-width:0}
+.conversation-person .person-name{font-size:16px;font-weight:850;line-height:1.25}
+.conversation-person .person-scene{font-size:12.5px;color:#b9c6e2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conversation-person .mission{
+  max-width:42%;font-size:12px;font-weight:750;color:var(--amber);background:rgba(251,191,36,.1);
+  border:1px solid rgba(251,191,36,.28);border-radius:12px;padding:6px 8px;line-height:1.25;
+}
+.conversation-log{
+  flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth;
+  padding:8px 3px 12px;scrollbar-width:thin;scrollbar-color:var(--dim) transparent;
+}
+.conversation-log .chat-thread{margin:0}
+.conversation-log .dlg-line{direction:ltr;margin-bottom:10px;align-items:flex-end}
+.conversation-log .dlg-bubble{max-width:86%;padding:10px 12px;box-shadow:0 5px 14px rgba(0,0,0,.14)}
+.conversation-log .dlg-en{font-size:17px;line-height:1.35}
+.conversation-log .dlg-avatar{width:34px;height:34px;font-size:18px}
+.conversation-log .bubble-top{display:flex;align-items:center;gap:7px;margin-bottom:3px;direction:ltr}
+.conversation-log .bubble-speaker{font-size:11.5px;font-weight:800;color:var(--dim);flex:1}
+.bubble-action{
+  border:0;background:rgba(96,165,250,.13);color:var(--blue);border-radius:9px;min-width:44px;min-height:44px;
+  padding:5px 8px;font:inherit;font-size:14px;font-weight:750;cursor:pointer;
+}
+.bubble-help-actions{display:flex;gap:6px;margin-top:7px;direction:rtl}
+.bubble-help-actions .bubble-action{min-height:44px;color:#b9c6e2;background:rgba(255,255,255,.055);font-size:12.5px}
+.bubble-help{border-top:1px solid rgba(255,255,255,.08);margin-top:7px;padding-top:6px;direction:rtl;text-align:right}
+.bubble-help .dlg-he{font-size:15px;color:#c4cee2;margin:0}
+.bubble-help .dlg-tl{font-size:15px;margin:4px 0 0}
+.history-toggle{
+  display:block;margin:2px auto 12px;border:1px solid var(--line);background:var(--card);color:#b9c6e2;
+  border-radius:99px;padding:7px 13px;min-height:44px;font:inherit;font-size:12.5px;font-weight:750;cursor:pointer;
+}
+.typing-line .dlg-bubble{color:var(--dim)}
+.conversation-current .dlg-bubble{border-color:rgba(96,165,250,.5);box-shadow:0 0 0 2px rgba(96,165,250,.07)}
+.conversation-composer{
+  flex-shrink:0;background:linear-gradient(160deg,#1b2946,#17223a);border:1px solid var(--line);
+  border-radius:20px 20px 14px 14px;padding:11px 12px 10px;box-shadow:0 -8px 28px rgba(5,10,20,.32);
+  max-height:48dvh;overflow-y:auto;
+}
+.composer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.composer-label{color:var(--blue);font-size:12.5px;font-weight:850}
+.composer-intent{font-size:19px;font-weight:850;line-height:1.3;text-align:center;margin:2px 0 8px}
+.composer-note{font-size:12.5px;color:var(--dim);text-align:center;margin-top:5px}
+.composer-actions{display:flex;align-items:center;justify-content:center;gap:9px}
+.composer-actions .bubble-action{min-width:44px;min-height:44px;font-size:16px}
+.conversation-mic{
+  width:70px;height:70px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--green),var(--green-dark));
+  color:#fff;font-size:29px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.conversation-mic.listening{animation:pulse 1.4s infinite;background:linear-gradient(135deg,#f87171,#ef4444)}
+.conversation-composer .heard{margin:6px 0 0;min-height:0;font-size:13px;text-align:center}
+.conversation-composer .result-msg{font-size:14.5px;padding:8px 12px;margin:7px auto 0}
+.conversation-composer .word-feedback{margin-top:6px}
+.conversation-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.conversation-option{
+  min-height:52px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);border-radius:14px;
+  padding:9px 10px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;line-height:1.25;
+}
+.conversation-option:active{transform:scale(.98)}
+.conversation-option:last-child:nth-child(odd){grid-column:1/-1}
+.flow-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px 7px;color:var(--dim);font-size:12px}
+.flow-controls span{flex:1 1 100%;text-align:center}
+.flow-controls button{border:0;background:transparent;color:var(--blue);font:inherit;font-weight:800;padding:7px;min-height:44px;cursor:pointer}
+.sent-preview{opacity:.98}
+@media (max-height:640px){
+  .conversation-screen{min-height:0}
+  .conversation-person{padding:6px 9px}.conversation-person .portrait{width:38px;height:38px;font-size:21px}
+  .conversation-person .mission{display:none}.conversation-composer{padding:8px 10px}.conversation-mic{width:60px;height:60px}
+}
 .branch-options{display:grid;gap:10px;margin:14px 0}
 .branch-options .quiz-opt{text-align:center;margin:0}
 .mic-fallback{margin-top:8px}
@@ -252,6 +335,16 @@ body{
 .seg button.on{background:var(--green);color:#06281c}
 .name-edit{background:var(--card);border:1.5px solid var(--line);border-radius:12px;color:var(--text);padding:10px 12px;font-size:16px;font-family:inherit;width:140px;outline:none}
 .name-edit:focus{border-color:var(--green)}
+.profile-select,.profile-input{
+  width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:12px;color:var(--text);
+  padding:11px 12px;font-size:16px;font-family:inherit;outline:none;
+}
+.profile-select:focus,.profile-input:focus{border-color:var(--green)}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:12px 0}
+.profile-field{display:grid;gap:5px;text-align:right}
+.profile-field label{color:#c9d4ec;font-size:13.5px;font-weight:750}
+.profile-field.full{grid-column:1/-1}
+.sheet.profile-sheet{max-height:calc(100dvh - env(safe-area-inset-top) - 16px);overflow-y:auto}
 .toast{
   position:fixed;top:calc(18px + env(safe-area-inset-top));right:50%;transform:translateX(50%);background:var(--card2);
   border:1px solid var(--line);color:var(--text);padding:11px 20px;border-radius:99px;
@@ -308,7 +401,7 @@ const LESSONS = [
     {en:'My name is...', he:'קוראים לי...', tl:'מַיי נֵיים אִיז...'},
     {en:"What's your name?", he:'איך קוראים לך?', tl:'וּוַאטְס יוֹר נֵיים?'},
     {en:'Nice to meet you', he:'נעים להכיר', tl:'נַייס טוּ מִיט יוּ'},
-    {en:'I am seventeen', he:'אני בן שבע־עשרה', tl:'אַיי אַם סֶבֶנְטִין'},
+    {en:'I am {age}', he:'אני [[בן|בת]] {age}', tl:'אַיי אַם {age}'},
     {en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'},
   ],
   dialogue:[
@@ -317,8 +410,8 @@ const LESSONS = [
     {who:'app', en:'Nice to meet you!', he:'נעים להכיר!', tl:'נייס טו מיט יו!'},
     {who:'you', en:'Nice to meet you too!', he:'נעים להכיר גם!', tl:'נייס טו מיט יו טוּ!'},
     {who:'app', en:'How old are you?', he:'בן כמה אתה?', tl:'הַאוּ אוֹלְד אַר יוּ?'},
-    {who:'you', en:'I am seventeen', he:'אני בן שבע־עשרה', tl:'אַיי אַם סֶבֶנְטִין'},
-    {who:'app', en:'Where are you from?', he:'מאיפה אתה?', tl:'וֶּור אַר יוּ פְרוֹם?'},
+    {who:'you', en:'I am {age}', he:'אני [[בן|בת]] {age}', tl:'אַיי אַם {age}'},
+    {who:'app', en:'Where are you from?', he:'מאיפה [[אתה|את]]?', tl:'וֶּור אַר יוּ פְרוֹם?'},
     {who:'you', en:"I'm from Israel", he:'אני מישראל', tl:'אַיְים פְרוֹם יִשְׂרָאֵל'},
   ],
 },
@@ -402,7 +495,7 @@ const LESSONS = [
 {
   title:'דברים שאני אוהב', goal:'מוזיקה? כדורגל? היום תלמד לדבר על מה שאתה באמת אוהב.',
   phrases:[
-    {en:'I like music', he:'אני אוהב מוזיקה', tl:'אַיי לַייק מְיוּזִיק'},
+    {en:'I like {interest}', he:'אני [[אוהב|אוהבת]] {interest}', tl:'אַיי לַייק {interest}'},
     {en:'I love football', he:'אני מת על כדורגל', tl:'אַיי לַאב פוּטְבּוֹל'},
     {en:"I don't like homework", he:'אני לא אוהב שיעורי בית', tl:'אַיי דוֹנְט לַייק הוֹמְווֹרְק'},
     {en:'What do you like?', he:'מה אתה אוהב?', tl:'וּוַאט דוּ יוּ לַייק?'},
@@ -410,12 +503,12 @@ const LESSONS = [
   ],
   dialogue:[
     {who:'app', en:'What do you like, {name}?', he:'מה אתה אוהב?', tl:'וואט דו יו לייק?'},
-    {who:'you', en:'I like music', he:'אני אוהב מוזיקה', tl:'איי לייק מיוזיק'},
+    {who:'you', en:'I like {interest}', he:'אני [[אוהב|אוהבת]] {interest}', tl:'אַיי לַייק {interest}'},
     {who:'app', en:'Me too! I love music', he:'גם אני! אני מת על מוזיקה', tl:'מי טו! איי לאב מיוזיק'},
     {who:'you', en:'Do you like football?', he:'אתה אוהב כדורגל?', tl:'דו יו לייק פוטבול?'},
     {who:'app', en:'Yes, I love football!', he:'כן, אני מת על כדורגל!', tl:'יֶס, אַיי לַאב פוּטְבּוֹל!'},
     {who:'you', en:'Me too!', he:'גם אני!', tl:'מִי טוּ!'},
-    {who:'app', en:'Do you like homework?', he:'אתה אוהב שיעורי בית?', tl:'דוּ יוּ לַייק הוֹמְווֹרְק?'},
+    {who:'app', en:'Do you like homework?', he:'[[אתה אוהב|את אוהבת]] שיעורי בית?', tl:'דוּ יוּ לַייק הוֹמְווֹרְק?'},
     {who:'you', en:"No! I don't like homework", he:'לא! אני לא אוהב שיעורי בית', tl:'נוֹ! אַיי דוֹנְט לַייק הוֹמְווֹרְק'},
   ],
 },
@@ -479,7 +572,7 @@ const LESSONS = [
 {
   title:'אוכל ושתייה', goal:'חצי מהחיים זה אוכל. תלמד לבקש בדיוק מה שבא לך.',
   phrases:[
-    {en:'I want pizza', he:'אני רוצה פיצה', tl:'אַיי וּוֹנְט פִּיצָה'},
+    {en:'I want {food}', he:'אני רוצה {food}', tl:'אַיי וּוֹנְט {food}'},
     {en:'Water, please', he:'מים, בבקשה', tl:'וּוֹטֶר, פְּלִיז'},
     {en:'Can I have a burger?', he:'אפשר המבורגר?', tl:'קֶן אַיי הֶב אַ בֶּרְגֶר?'},
     {en:"It's tasty!", he:'זה טעים!', tl:'אִיטְס טֵייסְטִי!'},
@@ -487,7 +580,7 @@ const LESSONS = [
   ],
   dialogue:[
     {who:'app', en:'Are you hungry, {name}?', he:'אתה רעב?', tl:'אר יו הנגרי?'},
-    {who:'you', en:'Yes! I want pizza', he:'כן! אני רוצה פיצה', tl:'יס! איי וונט פיצה'},
+    {who:'you', en:'Yes! I want {food}', he:'כן! אני רוצה {food}', tl:'יֶס! אַיי וּוֹנְט {food}'},
     {who:'app', en:'Do you want water?', he:'אתה רוצה מים?', tl:'דו יו וונט ווטר?'},
     {who:'you', en:'Yes, water please', he:'כן, מים בבקשה', tl:'יס, ווטר פליז'},
     {who:'app', en:'Are you thirsty?', he:'אתה צמא?', tl:'אַר יוּ תֶ׳רְסְטִי?'},
@@ -671,17 +764,17 @@ const LESSONS = [
 },
 /* ---- יחידה 5: מספרים וצבעים ---- */
 {
-  title:'מספרים 11–20', goal:'כבר אמרת "I am seventeen" — היום תדע את כל המספרים עד עשרים.',
+  title:'מספרים 11–20', goal:'כבר למדת להגיד את הגיל — היום נכיר את כל המספרים עד עשרים.',
   phrases:[
     {en:'Eleven, twelve, thirteen', he:'אחת־עשרה, שתים־עשרה, שלוש־עשרה', tl:'אִילֶבֶן, טְוֶולְב, תֶ׳רְטִין'},
     {en:'Fourteen, fifteen, sixteen', he:'ארבע־עשרה, חמש־עשרה, שש־עשרה', tl:'פוֹרְטִין, פִיפְטִין, סִיקְסְטִין'},
     {en:'Seventeen, eighteen, nineteen, twenty', he:'שבע־עשרה, שמונה־עשרה, תשע־עשרה, עשרים', tl:'סֶבֶנְטִין, אֵייטִין, נַיינְטִין, טְוֶונְטִי'},
-    {en:'I am seventeen years old', he:'אני בן שבע־עשרה', tl:'אַיי אַם סֶבֶנְטִין יִירְז אוֹלְד'},
+    {en:'I am {age} years old', he:'אני [[בן|בת]] {age}', tl:'אַיי אַם {age} יִירְז אוֹלְד'},
     {en:'My brother is twelve', he:'אח שלי בן שתים־עשרה', tl:'מַיי בְּרַאדֶר אִיז טְוֶולְב'},
   ],
   dialogue:[
     {who:'app', en:'How old are you, {name}?', he:'בן כמה אתה?', tl:'הַאוּ אוֹלְד אַר יוּ?'},
-    {who:'you', en:'I am seventeen years old', he:'אני בן שבע־עשרה', tl:'אַיי אַם סֶבֶנְטִין יִירְז אוֹלְד'},
+    {who:'you', en:'I am {age} years old', he:'אני [[בן|בת]] {age}', tl:'אַיי אַם {age} יִירְז אוֹלְד'},
     {who:'app', en:'And how old is your brother?', he:'ובן כמה אח שלך?', tl:'אֶנְד הַאוּ אוֹלְד אִיז יוֹר בְּרַאדֶר?'},
     {who:'you', en:'My brother is twelve', he:'אח שלי בן שתים־עשרה', tl:'מַיי בְּרַאדֶר אִיז טְוֶולְב'},
     {who:'app', en:'Wow! And your sister?', he:'וואו! ואחות שלך?', tl:'וּוַאוּ! אֶנְד יוֹר סִיסְטֶר?'},
@@ -715,13 +808,13 @@ const LESSONS = [
   phrases:[
     {en:'Red, blue, green', he:'אדום, כחול, ירוק', tl:'רֶד, בְּלוּ, גְרִין'},
     {en:'Black, white, yellow', he:'שחור, לבן, צהוב', tl:'בְּלֶק, וַוייט, יֶלוֹ'},
-    {en:'My favorite color is blue', he:'הצבע האהוב עליי הוא כחול', tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז בְּלוּ'},
+    {en:'My favorite color is {color}', he:'הצבע האהוב עליי הוא {color}', tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז {color}'},
     {en:'The shirt is black', he:'החולצה שחורה', tl:'דֶה שֶרְט אִיז בְּלֶק'},
     {en:'What is your favorite color?', he:'מה הצבע האהוב עליך?', tl:'וּוַאט אִיז יוֹר פֵייבוֹרִיט קַאלֶר?'},
   ],
   dialogue:[
     {who:'app', en:'What is your favorite color, {name}?', he:'מה הצבע האהוב עליך?', tl:'וּוַאט אִיז יוֹר פֵייבוֹרִיט קַאלֶר?'},
-    {who:'you', en:'My favorite color is blue', he:'הצבע האהוב עליי הוא כחול', tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז בְּלוּ'},
+    {who:'you', en:'My favorite color is {color}', he:'הצבע האהוב עליי הוא {color}', tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז {color}'},
     {who:'app', en:'Nice! Look — the sky is blue!', he:'יפה! תראה — השמיים כחולים!', tl:'נַייס! לוּק — דֶה סְקַיי אִיז בְּלוּ!'},
     {who:'you', en:'And the shirt is black', he:'והחולצה שחורה', tl:'אֶנְד דֶה שֶרְט אִיז בְּלֶק'},
     {who:'app', en:'Do you like green?', he:'אתה אוהב ירוק?', tl:'דוּ יוּ לַייק גְרִין?'},
@@ -774,7 +867,7 @@ const LESSONS = [
     {en:'Do you like cats?', he:'אתה אוהב חתולים?', tl:'דוּ יוּ לַייק קֶטְס?'},
     {en:'The dog is big', he:'הכלב גדול', tl:'דֶה דוֹג אִיז בִּיג'},
     {en:'The cat is small', he:'החתול קטן', tl:'דֶה קֶט אִיז סְמוֹל'},
-    {en:'I like birds and fish', he:'אני אוהב ציפורים ודגים', tl:'אַיי לַייק בֶּרְדְז אֶנְד פִיש'},
+    {en:'I like {animal}', he:'אני [[אוהב|אוהבת]] {animal}', tl:'אַיי לַייק {animal}'},
   ],
   dialogue:[
     {who:'app', en:'Do you have a dog, {name}?', he:'יש לך כלב?', tl:'דוּ יוּ הֶב אַ דוֹג?'},
@@ -794,7 +887,7 @@ const LESSONS = [
     {en:'Shoes and a hat', he:'נעליים וכובע', tl:'שוּז אֶנְד אַ הֶט'},
     {en:'I want this shirt', he:'אני רוצה את החולצה הזאת', tl:'אַיי וּוֹנְט דִיס שֶרְט'},
     {en:'These shoes are cool!', he:'הנעליים האלה מגניבות!', tl:'דִיז שוּז אַר קוּל!'},
-    {en:'It looks good on you', he:'זה נראה טוב עליך', tl:'אִיט לוּקְס גוּד אוֹן יוּ'},
+    {en:'It looks good on you', he:'זה נראה טוב [[עליך|עלייך]]', tl:'אִיט לוּקְס גוּד אוֹן יוּ'},
   ],
   dialogue:[
     {who:'app', en:'Look, {name} — a new shirt!', he:'תראה — חולצה חדשה!', tl:'לוּק — אַ נְיוּ שֶרְט!'},
@@ -803,7 +896,7 @@ const LESSONS = [
     {who:'you', en:'These shoes are cool!', he:'הנעליים האלה מגניבות!', tl:'דִיז שוּז אַר קוּל!'},
     {who:'app', en:'Try the hat!', he:'תמדוד את הכובע!', tl:'טְרַיי דֶה הֶט!'},
     {who:'you', en:'How much does it cost?', he:'כמה זה עולה?', tl:'הַאוּ מַאץ׳ דַאז אִיט קוֹסְט?'},
-    {who:'app', en:'Thirty shekels. It looks good on you!', he:'שלושים שקל. זה נראה טוב עליך!', tl:'תֶ׳רְטִי שֶקֶלְס. אִיט לוּקְס גוּד אוֹן יוּ!'},
+    {who:'app', en:'Thirty shekels. It looks good on you!', he:'שלושים שקל. זה נראה טוב [[עליך|עלייך]]!', tl:'תֶ׳רְטִי שֶקֶלְס. אִיט לוּקְס גוּד אוֹן יוּ!'},
     {who:'you', en:"OK, I'll take it!", he:'בסדר, אני לוקח את זה!', tl:'אוֹקֵיי, אַיְיל טֵייק אִיט!'},
   ],
 },
@@ -1011,35 +1104,35 @@ const LESSON_CHOICES = {
     {label:'על לא דבר! ביי', answer:{en:"You're welcome! Bye!", he:'על לא דבר! ביי!', tl:'יוֹר וֶולְקַם! בַּיי!'}, reply:{en:'Bye!', he:'ביי!', tl:'בַּיי!'}},
   ]},
   3:{options:[
-    {label:'אני לא יודע... אולי!', answer:{en:"I don't know... maybe!", he:'אני לא יודע... אולי!', tl:'אַיי דוֹנְט נוֹאוּ... מֵייבִּי!'}, reply:{en:'You can do it!', he:'אתה מסוגל!', tl:'יוּ קֶן דוּ אִיט!'}},
+    {label:'אני לא [[יודע|יודעת]]... אולי!', answer:{en:"I don't know... maybe!", he:'אני לא [[יודע|יודעת]]... אולי!', tl:'אַיי דוֹנְט נוֹאוּ... מֵייבִּי!'}, reply:{en:'You can do it!', he:'[[אתה מסוגל|את מסוגלת]]!', tl:'יוּ קֶן דוּ אִיט!'}},
     {label:'כן!', answer:{en:'Yes!', he:'כן!', tl:'יֶס!'}, reply:{en:'Wow! Well done!', he:'וואו! כל הכבוד!', tl:'וּוַאוּ! וֶול דַאן!'}},
   ]},
   5:{options:[
-    {label:'יפה!', answer:{en:'Nice!', he:'יפה!', tl:'נַייס!'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
-    {label:'אני אוהב את אמא ואבא שלי', answer:{en:'I love my mom and my dad', he:'אני אוהב את אמא ואבא שלי', tl:'אַיי לַאב מַיי מַאם אֶנְד מַיי דֶאד'}, reply:{en:'Nice family!', he:'משפחה יפה!', tl:'נַייס פֶמִילִי!'}},
+    {label:'יפה!', answer:{en:'Nice!', he:'יפה!', tl:'נַייס!'}, reply:{en:'Take care!', he:'[[שמור|שמרי]] על עצמך!', tl:'טֵייק קֶר!'}},
+    {label:'אני [[אוהב|אוהבת]] את אמא ואבא שלי', answer:{en:'I love my mom and my dad', he:'אני [[אוהב|אוהבת]] את אמא ואבא שלי', tl:'אַיי לַאב מַיי מַאם אֶנְד מַיי דֶאד'}, reply:{en:'Your family sounds lovely!', he:'נשמע שיש לך משפחה מקסימה!', tl:'יוֹר פֶמִילִי סַאוּנְדְז לַאבְלִי!'}},
   ]},
   6:{options:[
-    {label:'לא! אני לא אוהב שיעורי בית', answer:{en:"No! I don't like homework", he:'לא! אני לא אוהב שיעורי בית', tl:'נוֹ! אַיי דוֹנְט לַייק הוֹמְווֹרְק'}, reply:{en:"Me too! I don't like homework", he:'גם אני! אני לא אוהב שיעורי בית', tl:'מִי טוּ! אַיי דוֹנְט לַייק הוֹמְווֹרְק'}},
-    {label:'אולי... קצת', answer:{en:'Maybe... a little', he:'אולי... קצת', tl:'מֵייבִּי... אַ לִיטֶל'}, reply:{en:'Wow! Well done!', he:'וואו! כל הכבוד!', tl:'וּוַאוּ! וֶול דַאן!'}},
+    {label:'לא! אני לא [[אוהב|אוהבת]] שיעורי בית', answer:{en:"No! I don't like homework", he:'לא! אני לא [[אוהב|אוהבת]] שיעורי בית', tl:'נוֹ! אַיי דוֹנְט לַייק הוֹמְווֹרְק'}, reply:{en:"Me too! I don't like homework", he:'גם אני! אני לא אוהבת שיעורי בית', tl:'מִי טוּ! אַיי דוֹנְט לַייק הוֹמְווֹרְק'}},
+    {label:'אולי... קצת', answer:{en:'Maybe... a little', he:'אולי... קצת', tl:'מֵייבִּי... אַ לִיטֶל'}, reply:{en:'Nice! A little is still something.', he:'יפה! גם קצת זה משהו.', tl:'נַייס! אַ לִיטֶל אִיז סְטִיל סַמְתִ׳ינְג.'}},
   ]},
   7:{options:[
     {label:'גם אני רואה סרטונים!', answer:{en:'I watch videos too!', he:'גם אני רואה סרטונים!', tl:'אַיי וּוֹטְש וִידְיוֹז טוּ!'}, reply:{en:'Cool!', he:'מגניב!', tl:'קוּל!'}},
-    {label:'אני משחק משחקים עם חברים', answer:{en:'I play games with friends', he:'אני משחק משחקים עם חברים', tl:'אַיי פְּלֵיי גֵיימְס וִית׳ פְרֶנְדְס'}, reply:{en:'Cool! Me too!', he:'מגניב! גם אני!', tl:'קוּל! מִי טוּ!'}},
+    {label:'אני [[משחק|משחקת]] משחקים עם חברים', answer:{en:'I play games with friends', he:'אני [[משחק|משחקת]] משחקים עם חברים', tl:'אַיי פְּלֵיי גֵיימְס וִית׳ פְרֶנְדְס'}, reply:{en:'Cool! Me too!', he:'מגניב! גם אני!', tl:'קוּל! מִי טוּ!'}},
   ]},
   8:{options:[
-    {label:'גם אני שמח!', answer:{en:"I'm happy too!", he:'גם אני שמח!', tl:'אַיְים הֶפִּי טוּ!'}, reply:{en:'Great!', he:'מעולה!', tl:'גְרֵייט!'}},
-    {label:'אני עייף אבל שמח', answer:{en:"I'm tired but happy", he:'אני עייף אבל שמח', tl:'אַיְים טַאיֶרְד בַּאט הֶפִּי'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
+    {label:'גם אני [[שמח|שמחה]]!', answer:{en:"I'm happy too!", he:'גם אני [[שמח|שמחה]]!', tl:'אַיְים הֶפִּי טוּ!'}, reply:{en:'Great!', he:'מעולה!', tl:'גְרֵייט!'}},
+    {label:'אני [[עייף|עייפה]] אבל [[שמח|שמחה]]', answer:{en:"I'm tired but happy", he:'אני [[עייף|עייפה]] אבל [[שמח|שמחה]]', tl:'אַיְים טַאיֶרְד בַּאט הֶפִּי'}, reply:{en:'Take care!', he:'[[שמור|שמרי]] על עצמך!', tl:'טֵייק קֶר!'}},
   ]},
   10:{options:[
     {label:'זה טעים!', answer:{en:"It's tasty!", he:'זה טעים!', tl:'אִיטְס טֵייסְטִי!'}, reply:{en:'Great!', he:'מעולה!', tl:'גְרֵייט!'}},
-    {label:'תודה! אני רעב', answer:{en:"Thank you! I'm hungry", he:'תודה! אני רעב', tl:'תֶ׳נְק יוּ! אַיְים הַנְגְרִי'}, reply:{en:'Enjoy!', he:'בתיאבון!', tl:'אֶנְגּ׳וֹי!'}},
+    {label:'תודה! אני [[רעב|רעבה]]', answer:{en:"Thank you! I'm hungry", he:'תודה! אני [[רעב|רעבה]]', tl:'תֶ׳נְק יוּ! אַיְים הַנְגְרִי'}, reply:{en:'Enjoy!', he:'בתיאבון!', tl:'אֶנְגּ׳וֹי!'}},
   ]},
   11:{options:[
     {label:'תודה! להתראות', answer:{en:'Thanks! Goodbye!', he:'תודה! להתראות!', tl:'תֶ׳נְקְס! גוּדְבַּיי!'}, reply:{en:'Goodbye!', he:'להתראות!', tl:'גוּדְבַּיי!'}},
     {label:'היה טעים! נתראה', answer:{en:'It was tasty! See you later', he:'היה טעים! נתראה', tl:'אִיט וּוֹז טֵייסְטִי! סִי יוּ לֵייטֶר'}, reply:{en:'See you!', he:'נתראה!', tl:'סִי יוּ!'}},
   ]},
   12:{options:[
-    {label:'להתראות!', answer:{en:'Goodbye!', he:'להתראות!', tl:'גוּדְבַּיי!'}, reply:{en:'Bye! Take care!', he:'ביי! שמור על עצמך!', tl:'בַּיי! טֵייק קֶר!'}},
+    {label:'להתראות!', answer:{en:'Goodbye!', he:'להתראות!', tl:'גוּדְבַּיי!'}, reply:{en:'Bye! Take care!', he:'ביי! [[שמור|שמרי]] על עצמך!', tl:'בַּיי! טֵייק קֶר!'}},
     {label:'נתראה בשבע! ביי', answer:{en:'See you at seven! Bye!', he:'נתראה בשבע! ביי!', tl:'סִי יוּ אֶט סֶבֶן! בַּיי!'}, reply:{en:'Bye!', he:'ביי!', tl:'בַּיי!'}},
   ]},
   13:{options:[
@@ -1047,24 +1140,24 @@ const LESSON_CHOICES = {
     {label:'תודה! גם לך', answer:{en:'Thanks! You too!', he:'תודה! גם לך!', tl:'תֶ׳נְקְס! יוּ טוּ!'}, reply:{en:'Thank you! Bye!', he:'תודה! ביי!', tl:'תֶ׳נְק יוּ! בַּיי!'}},
   ]},
   15:{options:[
-    {label:'לא הרבה. אני מקשיב למוזיקה', answer:{en:'Not much. I listen to music', he:'לא הרבה. אני מקשיב למוזיקה', tl:'נוֹט מַאץ׳. אַיי לִיסֶן טוּ מְיוּזִיק'}, reply:{en:'Cool! Me too!', he:'מגניב! גם אני!', tl:'קוּל! מִי טוּ!'}},
+    {label:'לא הרבה. אני [[מקשיב|מקשיבה]] למוזיקה', answer:{en:'Not much. I listen to music', he:'לא הרבה. אני [[מקשיב|מקשיבה]] למוזיקה', tl:'נוֹט מַאץ׳. אַיי לִיסֶן טוּ מְיוּזִיק'}, reply:{en:'Cool! Me too!', he:'מגניב! גם אני!', tl:'קוּל! מִי טוּ!'}},
     {label:'אני מבלה עם חברים', answer:{en:'I hang out with friends', he:'אני מבלה עם חברים', tl:'אַיי הֶנְג אַאוּט וִית׳ פְרֶנְדְס'}, reply:{en:'Nice! Have fun!', he:'יפה! שיהיה כיף!', tl:'נַייס! הֶב פַאן!'}},
   ]},
   16:{options:[
-    {label:'נתראה!', answer:{en:'See you later!', he:'נתראה אחר כך!', tl:'סִי יוּ לֵייטֶר!'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
+    {label:'נתראה!', answer:{en:'See you later!', he:'נתראה אחר כך!', tl:'סִי יוּ לֵייטֶר!'}, reply:{en:'Take care!', he:'[[שמור|שמרי]] על עצמך!', tl:'טֵייק קֶר!'}},
     {label:'נתראה! שיהיה לך יום טוב', answer:{en:'See you! Have a nice day!', he:'נתראה! שיהיה לך יום טוב!', tl:'סִי יוּ! הֶב אַ נַייס דֵיי!'}, reply:{en:'You too! Bye!', he:'גם לך! ביי!', tl:'יוּ טוּ! בַּיי!'}},
   ]},
   17:{options:[
-    {label:'על לא דבר!', answer:{en:"You're welcome!", he:'על לא דבר!', tl:'יוֹר וֶולְקַם!'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
-    {label:'אין בעיה, בכל זמן', answer:{en:'No problem, any time', he:'אין בעיה, בכל זמן', tl:'נוֹ פְּרוֹבְּלֶם, אֶנִי טַיים'}, reply:{en:"You're a great friend!", he:'אתה חבר מעולה!', tl:'יוֹר אַ גְרֵייט פְרֶנְד!'}},
+    {label:'על לא דבר!', answer:{en:"You're welcome!", he:'על לא דבר!', tl:'יוֹר וֶולְקַם!'}, reply:{en:'Take care!', he:'[[שמור|שמרי]] על עצמך!', tl:'טֵייק קֶר!'}},
+    {label:'אין בעיה!', answer:{en:'No problem!', he:'אין בעיה!', tl:'נוֹ פְּרוֹבְּלֶם!'}, reply:{en:"You're a great friend!", he:'[[אתה חבר מעולה|את חברה מעולה]]!', tl:'יוֹר אַ גְרֵייט פְרֶנְד!'}},
   ]},
   18:{options:[
     {label:'זה מדהים! כל הכבוד!', answer:{en:"That's awesome! Well done!", he:'זה מדהים! כל הכבוד!', tl:'דֶאטְס אוֹסוֹם! וֶול דַאן!'}, reply:{en:'Thank you! You helped me!', he:'תודה! עזרת לי!', tl:'תֶ׳נְק יוּ! יוּ הֶלְפְּד מִי!'}},
-    {label:'ידעתי! אני מאמין בך', answer:{en:'I knew it! I believe in you', he:'ידעתי! אני מאמין בך', tl:'אַיי נִיוּ אִיט! אַיי בִּילִיב אִין יוּ'}, reply:{en:'Thank you so much!', he:'תודה רבה לך!', tl:'תֶ׳נְק יוּ סוֹ מַאץ׳!'}},
+    {label:'אני [[מאמין|מאמינה]] בך! כל הכבוד!', answer:{en:'I believe in you! Well done!', he:'אני [[מאמין|מאמינה]] בך! כל הכבוד!', tl:'אַיי בִּילִיב אִין יוּ! וֶול דַאן!'}, reply:{en:'Thank you so much!', he:'תודה רבה לך!', tl:'תֶ׳נְק יוּ סוֹ מַאץ׳!'}},
   ]},
   20:{options:[
     {label:'תודה!', answer:{en:'Thank you!', he:'תודה!', tl:'תֶ׳נְק יוּ!'}, reply:{en:'See you later!', he:'נתראה אחר כך!', tl:'סִי יוּ לֵייטֶר!'}},
-    {label:'תודה! אני אוהב את המשפחה שלי', answer:{en:'Thanks! I love my family', he:'תודה! אני אוהב את המשפחה שלי', tl:'תֶ׳נְקְס! אַיי לַאב מַיי פֶמִילִי'}, reply:{en:'Nice!', he:'יפה!', tl:'נַייס!'}},
+    {label:'תודה! אני [[אוהב|אוהבת]] את המשפחה שלי', answer:{en:'Thanks! I love my family', he:'תודה! אני [[אוהב|אוהבת]] את המשפחה שלי', tl:'תֶ׳נְקְס! אַיי לַאב מַיי פֶמִילִי'}, reply:{en:'That is lovely!', he:'איזה יופי!', tl:'דֶאט אִיז לַאבְלִי!'}},
   ]},
   21:{options:[
     {label:'לא, תודה. להתראות!', answer:{en:'No, thanks. Goodbye!', he:'לא, תודה. להתראות!', tl:'נוֹ, תֶ׳נְקְס. גוּדְבַּיי!'}, reply:{en:'Have a nice day!', he:'שיהיה לך יום טוב!', tl:'הֶב אַ נַייס דֵיי!'}},
@@ -1075,47 +1168,415 @@ const LESSON_CHOICES = {
     {label:'הצבע האהוב עליי הוא שחור', answer:{en:'My favorite color is black', he:'הצבע האהוב עליי הוא שחור', tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז בְּלֶק'}, reply:{en:'Black is cool!', he:'שחור זה מגניב!', tl:'בְּלֶק אִיז קוּל!'}},
   ]},
   23:{options:[
-    {label:'נתראה ביום שישי!', answer:{en:'See you on Friday!', he:'נתראה ביום שישי!', tl:'סִי יוּ אוֹן פְרַיידֵיי!'}, reply:{en:'Take care!', he:'שמור על עצמך!', tl:'טֵייק קֶר!'}},
+    {label:'נתראה ביום שישי!', answer:{en:'See you on Friday!', he:'נתראה ביום שישי!', tl:'סִי יוּ אוֹן פְרַיידֵיי!'}, reply:{en:'Take care!', he:'[[שמור|שמרי]] על עצמך!', tl:'טֵייק קֶר!'}},
     {label:'מעולה! נתראה', answer:{en:'Great! See you later!', he:'מעולה! נתראה!', tl:'גְרֵייט! סִי יוּ לֵייטֶר!'}, reply:{en:'Bye!', he:'ביי!', tl:'בַּיי!'}},
   ]},
   25:{options:[
     {label:'גם אני!', answer:{en:'Me too!', he:'גם אני!', tl:'מִי טוּ!'}, reply:{en:'Nice!', he:'יפה!', tl:'נַייס!'}},
-    {label:'אני אוהב ציפורים ודגים', answer:{en:'I like birds and fish', he:'אני אוהב ציפורים ודגים', tl:'אַיי לַייק בֶּרְדְז אֶנְד פִיש'}, reply:{en:'Cool!', he:'מגניב!', tl:'קוּל!'}},
+    {label:'אני [[אוהב|אוהבת]] ציפורים ודגים', answer:{en:'I like birds and fish', he:'אני [[אוהב|אוהבת]] ציפורים ודגים', tl:'אַיי לַייק בֶּרְדְז אֶנְד פִיש'}, reply:{en:'Cool!', he:'מגניב!', tl:'קוּל!'}},
   ]},
   26:{options:[
-    {label:'בסדר, אני לוקח את זה!', answer:{en:"OK, I'll take it!", he:'בסדר, אני לוקח את זה!', tl:'אוֹקֵיי, אַיְיל טֵייק אִיט!'}, reply:{en:'Great!', he:'מעולה!', tl:'גְרֵייט!'}},
+    {label:'בסדר, אני [[לוקח|לוקחת]] את זה!', answer:{en:"OK, I'll take it!", he:'בסדר, אני [[לוקח|לוקחת]] את זה!', tl:'אוֹקֵיי, אַיְיל טֵייק אִיט!'}, reply:{en:'Great!', he:'מעולה!', tl:'גְרֵייט!'}},
     {label:'זה יקר מדי', answer:{en:"It's too expensive", he:'זה יקר מדי', tl:'אִיטְס טוּ אֶקְסְפֶּנְסִיב'}, reply:{en:'OK — twenty for you!', he:'טוב — עשרים בשבילך!', tl:'אוֹקֵיי — טְוֶונְטִי פוֹר יוּ!'}},
   ]},
   27:{options:[
-    {label:'אני מרגיש יותר טוב עכשיו', answer:{en:'I feel better now', he:'אני מרגיש יותר טוב עכשיו', tl:'אַיי פִיל בֶּטֶר נַאוּ'}, reply:{en:'Great! Take care!', he:'מעולה! שמור על עצמך!', tl:'גְרֵייט! טֵייק קֶר!'}},
-    {label:'עדיין כואב לי הראש', answer:{en:'My head still hurts', he:'עדיין כואב לי הראש', tl:'מַיי הֶד סְטִיל הֶרְטְס'}, reply:{en:"Don't worry — rest a little", he:'אל תדאג — תנוח קצת', tl:'דוֹנְט וּוֹרִי — רֶסְט אַ לִיטֶל'}},
+    {label:'אני [[מרגיש|מרגישה]] יותר טוב עכשיו', answer:{en:'I feel better now', he:'אני [[מרגיש|מרגישה]] יותר טוב עכשיו', tl:'אַיי פִיל בֶּטֶר נַאוּ'}, reply:{en:'Great! Take care!', he:'מעולה! [[שמור|שמרי]] על עצמך!', tl:'גְרֵייט! טֵייק קֶר!'}},
+    {label:'כואב לי הראש', answer:{en:'My head hurts', he:'כואב לי הראש', tl:'מַיי הֶד הֶרְטְס'}, reply:{en:"Don't worry — rest a little", he:'[[אל תדאג — תנוח קצת|אל תדאגי — תנוחי קצת]]', tl:'דוֹנְט וּוֹרִי — רֶסְט אַ לִיטֶל'}},
   ]},
   28:{options:[
     {label:'נשמע טוב! נתראה!', answer:{en:'Sounds good! See you!', he:'נשמע טוב! נתראה!', tl:'סַאוּנְדְס גוּד! סִי יוּ!'}, reply:{en:'Bye!', he:'ביי!', tl:'בַּיי!'}},
-    {label:'בעשר אני לא יכול. באחת־עשרה?', answer:{en:"I can't at ten. At eleven?", he:'אני לא יכול בעשר. באחת־עשרה?', tl:'אַיי קֶאנְט אֶט טֶן. אֶט אִילֶבֶן?'}, reply:{en:'OK, at eleven!', he:'בסדר, באחת־עשרה!', tl:'אוֹקֵיי, אֶט אִילֶבֶן!'}},
+    {label:'בעשר אני לא [[יכול|יכולה]]. באחת־עשרה?', answer:{en:"I can't at ten. At eleven?", he:'אני לא [[יכול|יכולה]] בעשר. באחת־עשרה?', tl:'אַיי קֶאנְט אֶט טֶן. אֶט אִילֶבֶן?'}, reply:{en:'OK, at eleven!', he:'בסדר, באחת־עשרה!', tl:'אוֹקֵיי, אֶט אִילֶבֶן!'}},
   ]},
 };
 
-/* one-line scene setters shown before each conversation */
-const SCENES = {
-  0:'👋 אתה פוגש מישהו חדש ברחוב', 1:'🤝 מישהו חדש רוצה להכיר אותך',
-  2:'🚌 מישהו ברחוב פונה אליך', 3:'🇬🇧 תייר שואל אם אתה מדבר אנגלית',
-  4:'☀️ בוקר. אתה פוגש שכן בדרך החוצה', 5:'👨‍👩‍👦 חבר חדש שואל על המשפחה שלך',
-  6:'🎧 אתם מגלים מה שניכם אוהבים', 7:'🏀 חבר שואל מה אתה עושה אחרי הלימודים',
-  8:'😅 חבר בודק מה שלומך היום', 9:'🧭 מישהו ברחוב צריך את העזרה שלך',
-  10:'🍕 אתה אצל חבר, ומתחשק לכם לאכול', 11:'🍔 אתה במסעדה בחו״ל, המלצר ניגש אליך',
-  12:'⏰ אתם קובעים מתי להיפגש', 13:'🛍️ אתה בחנות בחו״ל',
-  14:'📱 אתה מחליף מספרים עם חבר חדש', 15:'💬 חבר כותב לך בערב',
-  16:'🎉 חבר מזמין אותך לצאת', 17:'🆘 חבר צריך את העזרה שלך',
-  18:'💪 חבר מתייאש — ואתה מרים אותו', 19:'🏆 השיחה האחרונה של היחידה. היא עליך',
-  20:'🔢 חבר חדש שואל על הגילאים במשפחה', 21:'🛒 אתה בשוק, מתמקח על מחיר',
-  22:'🎨 אתם מדברים על צבעים אהובים', 23:'📅 סוגרים תוכנית לסוף השבוע',
-  24:'🏬 בחנות: בוחרים, משלמים, וקובעים מתי לחזור', 25:'🐶 חבר מספר לך על חיות המחמד שלו',
-  26:'👕 קניות בגדים עם חבר', 27:'🤕 לא מרגישים טוב — וחבר דואג לך',
-  28:'🌧️ מציצים מהחלון ומתכננים ים', 29:'🏆 יום יפה, כלב שמח — ואתה, אחרי 30 שיעורים',
+/* Every regular conversation has two meaningful decision points. This first
+   round is followed by the lesson's existing closing question and choices. */
+const OPENING_ROUNDS = {
+  0:{
+    ask:{en:'Good morning, {name}!',he:'בוקר טוב!',tl:'גוּד מוֹרְנִינְג!'},
+    options:[
+      {label:'בוקר טוב!',answer:{en:'Good morning!',he:'בוקר טוב!',tl:'גוּד מוֹרְנִינְג!'},reply:{en:'Good morning! The sun is out.',he:'בוקר טוב! השמש זורחת.',tl:'גוּד מוֹרְנִינְג! דֶה סַאן אִיז אַאוּט.'}},
+      {label:'היי!',answer:{en:'Hi!',he:'היי!',tl:'הַיי!'},reply:{en:'Hi! Nice to see you.',he:'היי! כיף לראות אותך.',tl:'הַיי! נַייס טוּ סִי יוּ.'}},
+    ],
+  },
+  1:{
+    ask:{en:"Hello! What's your name?",he:'שלום! איך קוראים לך?',tl:'הֶלוֹ! וּוַאטְס יוֹר נֵיים?'},
+    options:[
+      {label:'קוראים לי {name}',answer:{en:'My name is {name}',he:'קוראים לי {name}',tl:'מַיי נֵיים אִיז {name}'},reply:{en:'Nice to meet you, {name}!',he:'נעים להכיר, {name}!',tl:'נַייס טוּ מִיט יוּ, {name}!'}},
+      {label:'קוראים לי {name}, ואני [[בן|בת]] {age}',answer:{en:'My name is {name}. I am {age}',he:'קוראים לי {name}, ואני [[בן|בת]] {age}',tl:'מַיי נֵיים אִיז {name}. אַיי אַם {age}'},reply:{en:'Thanks for telling me. Nice to meet you!',he:'תודה שסיפרת לי. נעים להכיר!',tl:'תֶ׳נְקְס פוֹר טֶלִינְג מִי. נַייס טוּ מִיט יוּ!'}},
+    ],
+  },
+  2:{
+    ask:{en:'Thank you for your help!',he:'תודה על העזרה!',tl:'תֶ׳נְק יוּ פוֹר יוֹר הֶלְפּ!'},
+    options:[
+      {label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:'Have a nice day!',he:'שיהיה לך יום טוב!',tl:'הֶב אַ נַייס דֵיי!'}},
+      {label:'על לא דבר! להתראות',answer:{en:"You're welcome! Goodbye!",he:'על לא דבר! להתראות!',tl:'יוֹר וֶולְקַם! גוּדְבַּיי!'},reply:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'}},
+    ],
+  },
+  3:{
+    ask:{en:'Do you understand me, {name}?',he:'הבנת אותי?',tl:'דוּ יוּ אַנְדֶרְסְטֶנְד מִי?'},
+    options:[
+      {label:'אולי...',answer:{en:'Maybe...',he:'אולי...',tl:'מֵייבִּי...'},reply:{en:'No problem. I can speak slowly!',he:'אין בעיה. אדבר לאט!',tl:'נוֹ פְּרוֹבְּלֶם. אַיי קֶן סְפִּיק סְלוֹלִי!'}},
+      {label:'אני לא [[מבין|מבינה]]',answer:{en:"I don't understand",he:'אני לא [[מבין|מבינה]]',tl:'אַיי דוֹנְט אַנְדֶרְסְטֶנְד'},reply:{en:"That's OK. Let's try together!",he:'זה בסדר. ננסה יחד!',tl:'דֶאטְס אוֹקֵיי. לֶטְס טְרַיי טוּגֶדֶר!'}},
+    ],
+  },
+  5:{
+    ask:{en:'Do you love your family, {name}?',he:'המשפחה שלך חשובה לך?',tl:'דוּ יוּ לַאב יוֹר פֶמִילִי?'},
+    options:[
+      {label:'כן! אני [[אוהב|אוהבת]] את המשפחה שלי',answer:{en:'Yes! I love my family',he:'כן! אני [[אוהב|אוהבת]] את המשפחה שלי',tl:'יֶס! אַיי לַאב מַיי פֶמִילִי'},reply:{en:'I love my family too!',he:'גם אני אוהבת את המשפחה שלי!',tl:'אַיי לַאב מַיי פֶמִילִי טוּ!'}},
+      {label:'כן!',answer:{en:'Yes!',he:'כן!',tl:'יֶס!'},reply:{en:"I'm happy to hear that!",he:'משמח אותי לשמוע!',tl:'אַיְים הֶפִּי טוּ הִיר דֶאט!'}},
+    ],
+  },
+  6:{
+    ask:{en:'What do you like, {name}?',he:'מה הכי כיף לך?',tl:'וּוַאט דוּ יוּ לַייק?'},
+    options:[
+      {label:'אני [[אוהב|אוהבת]] {interest}',answer:{en:'I like {interest}',he:'אני [[אוהב|אוהבת]] {interest}',tl:'אַיי לַייק {interest}'},reply:{en:'Me too! That is fun.',he:'גם אני! זה כיף.',tl:'מִי טוּ! דֶאט אִיז פַאן.'}},
+      {label:'אני [[אוהב|אוהבת]] לבלות עם חברים',answer:{en:'I like hanging out with friends',he:'אני [[אוהב|אוהבת]] לבלות עם חברים',tl:'אַיי לַייק הֶנְגִינְג אַאוּט וִית׳ פְרֶנְדְס'},reply:{en:'Nice! Friends make every day better.',he:'יפה! חברים משפרים כל יום.',tl:'נַייס! פְרֶנְדְס מֵייק אֶבְרִי דֵיי בֶּטֶר.'}},
+    ],
+  },
+  7:{
+    ask:{en:'What do you do after school, {name}?',he:'מה עושים אחרי הלימודים?',tl:'וּוַאט דוּ יוּ דוּ אַפְטֶר סְקוּל?'},
+    options:[
+      {label:'אני [[מקשיב|מקשיבה]] למוזיקה',answer:{en:'I listen to music',he:'אני [[מקשיב|מקשיבה]] למוזיקה',tl:'אַיי לִיסֶן טוּ מְיוּזִיק'},reply:{en:'Cool! I listen to music after school too.',he:'מגניב! גם אני מקשיב למוזיקה אחרי הלימודים.',tl:'קוּל! אַיי לִיסֶן טוּ מְיוּזִיק אַפְטֶר סְקוּל טוּ.'}},
+      {label:'אני מבלה עם חברים',answer:{en:'I hang out with friends',he:'אני מבלה עם חברים',tl:'אַיי הֶנְג אַאוּט וִית׳ פְרֶנְדְס'},reply:{en:'Nice! Time with friends is fun.',he:'יפה! כיף לבלות עם חברים.',tl:'נַייס! טַיים וִית׳ פְרֶנְדְס אִיז פַאן.'}},
+    ],
+  },
+  8:{
+    ask:{en:'How do you feel today, {name}?',he:'איך ההרגשה היום?',tl:'הַאוּ דוּ יוּ פִיל טוּדֵיי?'},
+    options:[
+      {label:'אני [[שמח|שמחה]]. מה שלומך?',answer:{en:"I'm happy. How are you?",he:'אני [[שמח|שמחה]]. מה שלומך?',tl:'אַיְים הֶפִּי. הַאוּ אַר יוּ?'},reply:{en:"I'm happy too!",he:'גם אני שמחה!',tl:'אַיְים הֶפִּי טוּ!'}},
+      {label:'אני [[עייף|עייפה]]. מה שלומך?',answer:{en:"I'm tired. How are you?",he:'אני [[עייף|עייפה]]. מה שלומך?',tl:'אַיְים טַאיֶרְד. הַאוּ אַר יוּ?'},reply:{en:"I'm a little tired too.",he:'גם אני קצת עייפה.',tl:'אַיְים אַ לִיטֶל טַאיֶרְד טוּ.'}},
+    ],
+  },
+  10:{
+    ask:{en:'What do you want to eat, {name}?',he:'מה בא לך לאכול?',tl:'וּוַאט דוּ יוּ וּוֹנְט טוּ אִיט?'},
+    options:[
+      {label:'אני רוצה {food}',answer:{en:'I want {food}',he:'אני רוצה {food}',tl:'אַיי וּוֹנְט {food}'},reply:{en:"Great! Let's get {food}.",he:'מעולה! נביא {food}.',tl:'גְרֵייט! לֶטְס גֶט {food}.'}},
+      {label:'אפשר {food}, בבקשה?',answer:{en:'Can I have {food}, please?',he:'אפשר {food}, בבקשה?',tl:'קֶן אַיי הֶב {food}, פְּלִיז?'},reply:{en:'Of course. {food} sounds good!',he:'ברור. {food} נשמע מצוין!',tl:'אוֹף קוֹרְס. {food} סַאוּנְדְז גוּד!'}},
+    ],
+  },
+  11:{
+    ask:{en:'Hello {name}! What would you like?',he:'שלום! מה [[תרצה|תרצי]]?',tl:'הֶלוֹ! וּוַאט וּוּד יוּ לַייק?'},
+    options:[
+      {label:'אני אקח המבורגר, בבקשה',answer:{en:"I'll have a burger, please",he:'אני אקח המבורגר, בבקשה',tl:'אַיְיל הֶב אַ בֶּרְגֶר, פְּלִיז'},reply:{en:'Great choice! I will bring it soon.',he:'בחירה מעולה! אביא אותו מיד.',tl:'גְרֵייט צ׳וֹיס! אַיי וִויל בְּרִינְג אִיט סוּן.'}},
+      {label:'את התפריט, בבקשה',answer:{en:'The menu, please',he:'את התפריט, בבקשה',tl:'דֶה מֶנְיוּ, פְּלִיז'},reply:{en:'Of course. Here is the menu.',he:'כמובן. הנה התפריט.',tl:'אוֹף קוֹרְס. הִיר אִיז דֶה מֶנְיוּ.'}},
+    ],
+  },
+  12:{
+    ask:{en:'What time is it?',he:'מה השעה?',tl:'וּוַאט טַיים אִיז אִיט?'},
+    options:[
+      {label:'השעה חמש',answer:{en:"It's five o'clock",he:'השעה חמש',tl:'אִיטְס פַייב אוֹקְלוֹק'},reply:{en:'Great! We have two hours until seven.',he:'מעולה! נשארו שעתיים עד שבע.',tl:'גְרֵייט! וִי הֶב טוּ אַאוּרְז אַנְטִיל סֶבֶן.'}},
+      {label:'השעה שש',answer:{en:"It's six o'clock",he:'השעה שש',tl:'אִיטְס סִיקְס אוֹקְלוֹק'},reply:{en:'Great! We have one hour until seven.',he:'מעולה! נשארה שעה עד שבע.',tl:'גְרֵייט! וִי הֶב וַואן אַאוּר אַנְטִיל סֶבֶן.'}},
+    ],
+  },
+  13:{
+    ask:{en:'Can I help you?',he:'אפשר לעזור?',tl:'קֶן אַיי הֶלְפּ יוּ?'},
+    options:[
+      {label:'רק [[מסתכל|מסתכלת]], תודה',answer:{en:'Just looking, thanks',he:'רק [[מסתכל|מסתכלת]], תודה',tl:'גַ׳סְט לוּקִינְג, תֶ׳נְקְס'},reply:{en:'No problem!',he:'אין בעיה!',tl:'נוֹ פְּרוֹבְּלֶם!'}},
+      {label:'יש לכם את זה בשחור?',answer:{en:'Do you have this in black?',he:'יש לכם את זה בשחור?',tl:'דוּ יוּ הֶב דִיס אִין בְּלֶק?'},reply:{en:"Sorry, we don't.",he:'סליחה, אין לנו.',tl:'סוֹרִי, וִי דוֹנְט.'}},
+    ],
+  },
+  15:{
+    ask:{en:"Hey {name}! What's up?",he:'היי! מה קורה?',tl:'הַיי! וּוַאטְס אַפּ?'},
+    options:[
+      {label:'לא הרבה. איך היה היום שלך?',answer:{en:'Not much. How was your day?',he:'לא הרבה. איך היה היום שלך?',tl:'נוֹט מַאץ׳. הַאוּ וּוֹז יוֹר דֵיי?'},reply:{en:'It was fun!',he:'היה כיף!',tl:'אִיט וּוֹז פַאן!'}},
+      {label:'לא הרבה. מה קורה איתך?',answer:{en:"Not much. What's up with you?",he:'לא הרבה. מה קורה איתך?',tl:'נוֹט מַאץ׳. וּוַאטְס אַפּ וִית׳ יוּ?'},reply:{en:'Same here!',he:'גם אצלי!',tl:'סֵיים הִיר!'}},
+    ],
+  },
+  16:{
+    ask:{en:'Do you want to go out today, {name}?',he:'רוצה לצאת היום?',tl:'דוּ יוּ וּוֹנְט טוּ גוֹ אַאוּט טוּדֵיי?'},
+    options:[
+      {label:'נשמע טוב! בחמש?',answer:{en:'Sounds good! At five?',he:'נשמע טוב! בחמש?',tl:'סַאוּנְדְס גוּד! אֶט פַייב?'},reply:{en:'Yes, at five!',he:'כן, בחמש!',tl:'יֶס, אֶט פַייב!'}},
+      {label:'אני לא [[יכול|יכולה]] היום. בשבע?',answer:{en:"I can't today. At seven?",he:'אני לא [[יכול|יכולה]] היום. בשבע?',tl:'אַיי קֶאנְט טוּדֵיי. אֶט סֶבֶן?'},reply:{en:'Yes, at seven!',he:'כן, בשבע!',tl:'יֶס, אֶט סֶבֶן!'}},
+    ],
+  },
+  17:{
+    ask:{en:'I need help with my homework, {name}. Can you help me?',he:'אני צריכה עזרה בשיעורי הבית. אפשר לעזור לי?',tl:'אַיי נִיד הֶלְפּ וִית׳ מַיי הוֹמְווֹרְק. קֶן יוּ הֶלְפּ מִי?'},
+    options:[
+      {label:'ברור! אני [[יכול|יכולה]] לעזור',answer:{en:'Of course! I can help.',he:'ברור! אני [[יכול|יכולה]] לעזור.',tl:'אוֹף קוֹרְס! אַיי קֶן הֶלְפּ.'},reply:{en:'Thank you! This question is hard.',he:'תודה! השאלה הזאת קשה.',tl:'תֶ׳נְק יוּ! דִיס קְוֶוסְצֶ׳ן אִיז הַרְד.'}},
+      {label:'אל תדאג. אין בעיה!',answer:{en:"Don't worry. No problem!",he:'אל תדאג. אין בעיה!',tl:'דוֹנְט וּוֹרִי. נוֹ פְּרוֹבְּלֶם!'},reply:{en:"Thanks! Let's do it together.",he:'תודה! נעשה את זה יחד.',tl:'תֶ׳נְקְס! לֶטְס דוּ אִיט טוּגֶדֶר.'}},
+    ],
+  },
+  18:{
+    ask:{en:"I can't do it, {name}. It's hard.",he:'אני לא מסוגל. זה קשה.',tl:'אַיי קֶאנְט דוּ אִיט. אִיטְס הַרְד.'},
+    options:[
+      {label:'אל תוותר! אני [[מאמין|מאמינה]] בך',answer:{en:"Don't give up! I believe in you.",he:'אל תוותר! אני [[מאמין|מאמינה]] בך.',tl:'דוֹנְט גִיב אַפּ! אַיי בִּילִיב אִין יוּ.'},reply:{en:'OK. I will try.',he:'בסדר. אני אנסה.',tl:'אוֹקֵיי. אַיי וִויל טְרַיי.'}},
+      {label:'אתה תותח בזה. אל תוותר!',answer:{en:"You're great at this. Don't give up!",he:'אתה תותח בזה. אל תוותר!',tl:'יוֹר גְרֵייט אֶט דִיס. דוֹנְט גִיב אַפּ!'},reply:{en:'Thank you. I will try.',he:'תודה. אני אנסה.',tl:'תֶ׳נְק יוּ. אַיי וִויל טְרַיי.'}},
+    ],
+  },
+  20:{
+    ask:{en:'How old is your brother or sister, {name}?',he:'בן כמה אח שלך, או בת כמה אחות שלך?',tl:'הַאוּ אוֹלְד אִיז יוֹר בְּרַאדֶר אוֹר סִיסְטֶר?'},
+    options:[
+      {label:'אח שלי בן שתים־עשרה',answer:{en:'My brother is twelve',he:'אח שלי בן שתים־עשרה',tl:'מַיי בְּרַאדֶר אִיז טְוֶולְב'},reply:{en:'Wow! Twelve!',he:'וואו! שתים־עשרה!',tl:'וּוַאוּ! טְוֶולְב!'}},
+      {label:'אחות שלי בת חמש־עשרה',answer:{en:'My sister is fifteen',he:'אחות שלי בת חמש־עשרה',tl:'מַיי סִיסְטֶר אִיז פִיפְטִין'},reply:{en:'Nice! Fifteen!',he:'יפה! חמש־עשרה!',tl:'נַייס! פִיפְטִין!'}},
+    ],
+  },
+  21:{
+    ask:{en:'It costs fifty shekels',he:'זה עולה חמישים שקל',tl:'אִיט קוֹסְטְס פִיפְטִי שֶקֶלְס'},
+    options:[
+      {label:'רק חמישים? אני [[לוקח|לוקחת]]!',answer:{en:"Only fifty? I'll take it!",he:'רק חמישים? אני [[לוקח|לוקחת]]!',tl:'אוֹנְלִי פִיפְטִי? אַיְיל טֵייק אִיט!'},reply:{en:'Here you go!',he:'בבקשה!',tl:'הִיר יוּ גוֹ!'}},
+      {label:'זה יותר מדי! שלושים, בבקשה?',answer:{en:'That is too much! Thirty, please?',he:'זה יותר מדי! שלושים, בבקשה?',tl:'דֶאט אִיז טוּ מַאץ׳! תֶ׳רְטִי, פְּלִיז?'},reply:{en:'OK — thirty shekels!',he:'בסדר — שלושים שקל!',tl:'אוֹקֵיי — תֶ׳רְטִי שֶקֶלְס!'}},
+    ],
+  },
+  22:{
+    ask:{en:'What is your favorite color, {name}?',he:'מה הצבע האהוב [[עליך|עלייך]]?',tl:'וּוַאט אִיז יוֹר פֵייבוֹרִיט קַאלֶר?'},
+    options:[
+      {label:'הצבע האהוב עליי הוא {color}',answer:{en:'My favorite color is {color}',he:'הצבע האהוב עליי הוא {color}',tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז {color}'},reply:{en:'Great choice!',he:'בחירה מעולה!',tl:'גְרֵייט צ׳וֹיס!'}},
+      {label:'אני [[אוהב|אוהבת]] שחור',answer:{en:'I like black',he:'אני [[אוהב|אוהבת]] שחור',tl:'אַיי לַייק בְּלֶק'},reply:{en:'Black is cool!',he:'שחור זה מגניב!',tl:'בְּלֶק אִיז קוּל!'}},
+    ],
+  },
+  23:{
+    ask:{en:'Do you want to go out on Friday or Saturday, {name}?',he:'רוצה לצאת ביום שישי או בשבת?',tl:'דוּ יוּ וּוֹנְט טוּ גוֹ אַאוּט אוֹן פְרַיידֵיי אוֹר סָטֶרְדֵיי?'},
+    options:[
+      {label:'שישי נשמע טוב!',answer:{en:'Friday sounds good!',he:'שישי נשמע טוב!',tl:'פְרַיידֵיי סַאוּנְדְס גוּד!'},reply:{en:'Great! See you on Friday.',he:'מעולה! נתראה ביום שישי.',tl:'גְרֵייט! סִי יוּ אוֹן פְרַיידֵיי.'}},
+      {label:'אני לא [[יכול|יכולה]] בשבת. שישי?',answer:{en:"I can't on Saturday. Friday?",he:'אני לא [[יכול|יכולה]] בשבת. שישי?',tl:'אַיי קֶאנְט אוֹן סָטֶרְדֵיי. פְרַיידֵיי?'},reply:{en:'Sounds good! Friday it is.',he:'נשמע טוב! קבענו ליום שישי.',tl:'סַאוּנְדְס גוּד! פְרַיידֵיי אִיט אִיז.'}},
+    ],
+  },
+  25:{
+    ask:{en:'What animals do you like, {name}?',he:'איזה חיות אהובות [[עליך|עלייך]]?',tl:'וּוַאט אַנִימַלְז דוּ יוּ לַייק?'},
+    options:[
+      {label:'אני [[אוהב|אוהבת]] {animal}',answer:{en:'I like {animal}',he:'אני [[אוהב|אוהבת]] {animal}',tl:'אַיי לַייק {animal}'},reply:{en:'Nice! I like dogs.',he:'יפה! אני אוהבת כלבים.',tl:'נַייס! אַיי לַייק דוֹגְז.'}},
+      {label:'אני [[אוהב|אוהבת]] כלבים וחתולים',answer:{en:'I like dogs and cats',he:'אני [[אוהב|אוהבת]] כלבים וחתולים',tl:'אַיי לַייק דוֹגְז אֶנְד קֶטְס'},reply:{en:'Me too! Cats are fun.',he:'גם אני! חתולים זה כיף.',tl:'מִי טוּ! קֶטְס אַר פַאן.'}},
+    ],
+  },
+  26:{
+    ask:{en:'What do you want, {name}?',he:'מה [[אתה רוצה|את רוצה]]?',tl:'וּוַאט דוּ יוּ וּוֹנְט?'},
+    options:[
+      {label:'אני רוצה את החולצה הזאת',answer:{en:'I want this shirt',he:'אני רוצה את החולצה הזאת',tl:'אַיי וּוֹנְט דִיס שֶרְט'},reply:{en:'Great! Try it on.',he:'מעולה! [[תמדוד|תמדדי]] אותה.',tl:'גְרֵייט! טְרַיי אִיט אוֹן.'}},
+      {label:'כובע, בבקשה',answer:{en:'A hat, please',he:'כובע, בבקשה',tl:'אַ הֶט, פְּלִיז'},reply:{en:'Good choice! Try it on.',he:'בחירה טובה! [[תמדוד|תמדדי]] אותו.',tl:'גוּד צ׳וֹיס! טְרַיי אִיט אוֹן.'}},
+    ],
+  },
+  27:{
+    ask:{en:'Are you OK, {name}?',he:'[[אתה בסדר|את בסדר]]?',tl:'אַר יוּ אוֹקֵיי?'},
+    options:[
+      {label:'כואב לי הראש. מים, בבקשה',answer:{en:'My head hurts. Water, please.',he:'כואב לי הראש. מים, בבקשה.',tl:'מַיי הֶד הֶרְטְס. וּוֹטֶר, פְּלִיז.'},reply:{en:'Of course. Here you go.',he:'ברור. בבקשה.',tl:'אוֹף קוֹרְס. הִיר יוּ גוֹ.'}},
+      {label:'כואב לי הראש. אני [[צריך|צריכה]] עזרה',answer:{en:'My head hurts. I need help.',he:'כואב לי הראש. אני [[צריך|צריכה]] עזרה.',tl:'מַיי הֶד הֶרְטְס. אַיי נִיד הֶלְפּ.'},reply:{en:"Of course. I'll get the nurse.",he:'ברור. אקרא לאחות.',tl:'אוֹף קוֹרְס. אַיְיל גֶט דֶה נֶרְס.'}},
+    ],
+  },
+  28:{
+    ask:{en:'What is the weather like outside, {name}?',he:'איך מזג האוויר בחוץ?',tl:'וּוַאט אִיז דֶה וֶודֶר לַייק אַאוּטְסַייד?'},
+    options:[
+      {label:'יורד גשם. אולי מחר?',answer:{en:"It's raining. Maybe tomorrow?",he:'יורד גשם. אולי מחר?',tl:'אִיטְס רֵיינִינְג. מֵייבִּי טוּמוֹרוֹ?'},reply:{en:'Sounds good! Maybe tomorrow.',he:'נשמע טוב! אולי מחר.',tl:'סַאוּנְדְס גוּד! מֵייבִּי טוּמוֹרוֹ.'}},
+      {label:'קר בחוץ. אולי מחר?',answer:{en:"It's cold outside. Maybe tomorrow?",he:'קר בחוץ. אולי מחר?',tl:'אִיטְס קוֹלְד אַאוּטְסַייד. מֵייבִּי טוּמוֹרוֹ?'},reply:{en:"Good idea! Let's go tomorrow.",he:'רעיון טוב! נלך מחר.',tl:'גוּד אַיידִיאָה! לֶטְס גוֹ טוּמוֹרוֹ.'}},
+    ],
+  },
 };
 
-const APP_VERSION = '2.1.0';
+const CLOSING_ROUND_OVERRIDES = {
+  2:{
+    ask:{en:'Have a nice day!',he:'שיהיה לך יום טוב!',tl:'הֶב אַ נַייס דֵיי!'},
+    options:[
+      {label:'תודה! גם לך!',answer:{en:'Thank you! You too!',he:'תודה! גם לך!',tl:'תֶ׳נְק יוּ! יוּ טוּ!'},reply:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'}},
+      {label:'להתראות!',answer:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'},reply:{en:'Take care!',he:'[[שמור|שמרי]] על עצמך!',tl:'טֵייק קֶר!'}},
+    ],
+  },
+  5:{
+    ask:{en:'What do you want to tell me about your family?',he:'מה בא לך לספר על המשפחה שלך?',tl:'וּוַאט דוּ יוּ וּוֹנְט טוּ טֶל מִי אַבַּאוּט יוֹר פֶמִילִי?'},
+    options:[
+      {label:'אני [[אוהב|אוהבת]] את המשפחה שלי',answer:{en:'I love my family',he:'אני [[אוהב|אוהבת]] את המשפחה שלי',tl:'אַיי לַאב מַיי פֶמִילִי'},reply:{en:'That is lovely!',he:'איזה יופי!',tl:'דֶאט אִיז לַאבְלִי!'}},
+      {label:'אני [[אוהב|אוהבת]] את אמא ואבא שלי',answer:{en:'I love my mom and my dad',he:'אני [[אוהב|אוהבת]] את אמא ואבא שלי',tl:'אַיי לַאב מַיי מַאם אֶנְד מַיי דֶאד'},reply:{en:'They are lucky to have you!',he:'יש להם מזל שיש להם אותך!',tl:'דֵיי אַר לַאקִי טוּ הֶב יוּ!'}},
+    ],
+  },
+  7:{
+    ask:{en:'Do you watch videos after school too?',he:'גם לך יוצא לראות סרטונים אחרי הלימודים?',tl:'דוּ יוּ וּוֹטְש וִידְיוֹז אַפְטֶר סְקוּל טוּ?'},
+    options:[
+      {label:'כן, גם אני רואה סרטונים',answer:{en:'Yes, I watch videos too',he:'כן, גם אני רואה סרטונים',tl:'יֶס, אַיי וּוֹטְש וִידְיוֹז טוּ'},reply:{en:'Cool! We like the same things.',he:'מגניב! אנחנו אוהבים דברים דומים.',tl:'קוּל! וִי לַייק דֶה סֵיים תִ׳ינְגְז.'}},
+      {label:'לא, אני [[משחק|משחקת]] עם חברים',answer:{en:'No, I play games with friends',he:'לא, אני [[משחק|משחקת]] עם חברים',tl:'נוֹ, אַיי פְּלֵיי גֵיימְס וִית׳ פְרֶנְדְס'},reply:{en:'That sounds fun too!',he:'גם זה נשמע כיף!',tl:'דֶאט סַאוּנְדְז פַאן טוּ!'}},
+    ],
+  },
+  8:{
+    ask:{en:'Are you hungry too?',he:'גם [[אתה רעב|את רעבה]]?',tl:'אַר יוּ הַנְגְרִי טוּ?'},
+    options:[
+      {label:'כן, אני [[רעב|רעבה]]',answer:{en:"Yes, I'm hungry",he:'כן, אני [[רעב|רעבה]]',tl:'יֶס, אַיְים הַנְגְרִי'},reply:{en:"Me too! Let's get a snack.",he:'גם אני! בוא נביא משהו קטן לאכול.',tl:'מִי טוּ! לֶטְס גֶט אַ סְנֶק.'}},
+      {label:'לא, אני רק [[עייף|עייפה]]',answer:{en:"No, I'm just tired",he:'לא, אני רק [[עייף|עייפה]]',tl:'נוֹ, אַיְים גַ׳סְט טַאיֶרְד'},reply:{en:'OK. Take care and rest later.',he:'בסדר. [[שמור|שמרי]] על עצמך [[ותנוח|ותנוחי]] אחר כך.',tl:'אוֹקֵיי. טֵייק קֶר אֶנְד רֶסְט לֵייטֶר.'}},
+    ],
+  },
+  10:{
+    ask:{en:'Here is {food}! How does it look?',he:'הנה ה{food} שלך! איך זה נראה?',tl:'הִיר אִיז {food}! הַאוּ דַאז אִיט לוּק?'},
+    options:[
+      {label:'זה נראה טעים!',answer:{en:'It looks tasty!',he:'זה נראה טעים!',tl:'אִיט לוּקְס טֵייסְטִי!'},reply:{en:'Great! Enjoy your food.',he:'מעולה! בתיאבון.',tl:'גְרֵייט! אֶנְגּ׳וֹי יוֹר פוּד.'}},
+      {label:'תודה! אני [[רעב|רעבה]]',answer:{en:"Thank you! I'm hungry",he:'תודה! אני [[רעב|רעבה]]',tl:'תֶ׳נְק יוּ! אַיְים הַנְגְרִי'},reply:{en:'Enjoy! I hope you like it.',he:'בתיאבון! מקווה שיהיה לך טעים.',tl:'אֶנְגּ׳וֹי! אַיי הוֹפּ יוּ לַייק אִיט.'}},
+    ],
+  },
+  11:{
+    ask:{en:'A little later... How was your meal?',he:'קצת אחר כך... איך הייתה הארוחה?',tl:'אַ לִיטֶל לֵייטֶר... הַאוּ וּוֹז יוֹר מִיל?'},
+    options:[
+      {label:'היה מעולה!',answer:{en:'It was great!',he:'היה מעולה!',tl:'אִיט וּוֹז גְרֵייט!'},reply:{en:"I'm glad! Have a nice day.",he:'איזה כיף! שיהיה לך יום טוב.',tl:'אַיְים גְלֶאד! הֶב אַ נַייס דֵיי.'}},
+      {label:'היה טעים! חשבון, בבקשה',answer:{en:'It was tasty! The check, please',he:'היה טעים! חשבון, בבקשה',tl:'אִיט וּוֹז טֵייסְטִי! דֶה צֶ׳ק, פְּלִיז'},reply:{en:'Of course. Here is the check.',he:'כמובן. הנה החשבון.',tl:'אוֹף קוֹרְס. הִיר אִיז דֶה צֶ׳ק.'}},
+    ],
+  },
+  15:{
+    ask:{en:'What are you doing now?',he:'מה עושים עכשיו?',tl:'וּוַאט אַר יוּ דוּאִינְג נַאוּ?'},
+    options:[
+      {label:'אני [[מקשיב|מקשיבה]] למוזיקה',answer:{en:'I am listening to music',he:'אני [[מקשיב|מקשיבה]] למוזיקה',tl:'אַיי אַם לִיסֶנִינְג טוּ מְיוּזִיק'},reply:{en:'Cool! I am listening to music too.',he:'מגניב! גם אני מקשיבה למוזיקה.',tl:'קוּל! אַיי אַם לִיסֶנִינְג טוּ מְיוּזִיק טוּ.'}},
+      {label:'אני מבלה עם חברים',answer:{en:'I am hanging out with friends',he:'אני מבלה עם חברים',tl:'אַיי אַם הֶנְגִינְג אַאוּט וִית׳ פְרֶנְדְס'},reply:{en:'Nice! Have fun with your friends.',he:'יפה! שיהיה כיף עם החברים.',tl:'נַייס! הֶב פַאן וִית׳ יוֹר פְרֶנְדְס.'}},
+    ],
+  },
+  17:{
+    ask:{en:'I understand it now. Thank you so much!',he:'עכשיו הבנתי. תודה רבה!',tl:'אַיי אַנְדֶרְסְטֶנְד אִיט נַאוּ. תֶ׳נְק יוּ סוֹ מַאץ׳!'},
+    options:[
+      {label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:"You're a great friend!",he:'[[אתה חבר מעולה|את חברה מעולה]]!',tl:'יוֹר אַ גְרֵייט פְרֶנְד!'}},
+      {label:'אין בעיה!',answer:{en:'No problem!',he:'אין בעיה!',tl:'נוֹ פְּרוֹבְּלֶם!'},reply:{en:"Thanks! Let's study together again.",he:'תודה! נלמד יחד שוב.',tl:'תֶ׳נְקְס! לֶטְס סְטַאדִי טוּגֶדֶר אַגֵן.'}},
+    ],
+  },
+  22:{
+    ask:{en:'Do you want the {color} paint or the black paint?',he:'רוצה את הצבע ה{color} או את הצבע השחור?',tl:'דוּ יוּ וּוֹנְט דֶה {color} פֵּיינְט אוֹר דֶה בְּלֶק פֵּיינְט?'},
+    options:[
+      {label:'אני רוצה את ה{color}',answer:{en:'I want the {color} one',he:'אני רוצה את ה{color}',tl:'אַיי וּוֹנְט דֶה {color} וַואן'},reply:{en:'Great choice! Here you go.',he:'בחירה מעולה! בבקשה.',tl:'גְרֵייט צ׳וֹיס! הִיר יוּ גוֹ.'}},
+      {label:'אני רוצה את השחור',answer:{en:'I want the black one',he:'אני רוצה את השחור',tl:'אַיי וּוֹנְט דֶה בְּלֶק וַואן'},reply:{en:'Black is cool! Here you go.',he:'שחור זה מגניב! בבקשה.',tl:'בְּלֶק אִיז קוּל! הִיר יוּ גוֹ.'}},
+    ],
+  },
+  25:{
+    ask:{en:'Do you like birds too?',he:'גם [[אתה אוהב|את אוהבת]] ציפורים?',tl:'דוּ יוּ לַייק בֶּרְדְז טוּ?'},
+    options:[
+      {label:'כן, אני [[אוהב|אוהבת]] ציפורים ודגים',answer:{en:'Yes, I like birds and fish',he:'כן, אני [[אוהב|אוהבת]] ציפורים ודגים',tl:'יֶס, אַיי לַייק בֶּרְדְז אֶנְד פִיש'},reply:{en:"Cool! Let's look for birds.",he:'מגניב! נחפש ציפורים.',tl:'קוּל! לֶטְס לוּק פוֹר בֶּרְדְז.'}},
+      {label:'אני [[אוהב|אוהבת]] יותר כלבים וחתולים',answer:{en:'I like dogs and cats more',he:'אני [[אוהב|אוהבת]] יותר כלבים וחתולים',tl:'אַיי לַייק דוֹגְז אֶנְד קֶטְס מוֹר'},reply:{en:"Me too! Let's look for dogs.",he:'גם אני! נחפש כלבים.',tl:'מִי טוּ! לֶטְס לוּק פוֹר דוֹגְז.'}},
+    ],
+  },
+  27:{
+    ask:{en:'How do you feel now?',he:'איך ההרגשה עכשיו?',tl:'הַאוּ דוּ יוּ פִיל נַאוּ?'},
+    options:[
+      {label:'אני [[מרגיש|מרגישה]] יותר טוב עכשיו',answer:{en:'I feel better now',he:'אני [[מרגיש|מרגישה]] יותר טוב עכשיו',tl:'אַיי פִיל בֶּטֶר נַאוּ'},reply:{en:'Great! Take care.',he:'מעולה! [[שמור|שמרי]] על עצמך.',tl:'גְרֵייט! טֵייק קֶר.'}},
+      {label:'עדיין כואב לי הראש',answer:{en:'My head still hurts',he:'עדיין כואב לי הראש',tl:'מַיי הֶד סְטִיל הֶרְטְס'},reply:{en:"Let's tell the nurse.",he:'[[בוא|בואי]] נספר לאחות.',tl:'לֶטְס טֶל דֶה נֶרְס.'}},
+    ],
+  },
+  28:{
+    ask:{en:'Shall we meet tomorrow at ten?',he:'ניפגש מחר בעשר?',tl:'שֶל וִי מִיט טוּמוֹרוֹ אֶט טֶן?'},
+    options:[
+      {label:'נשמע טוב! נתראה!',answer:{en:'Sounds good! See you!',he:'נשמע טוב! נתראה!',tl:'סַאוּנְדְס גוּד! סִי יוּ!'},reply:{en:'Great! See you tomorrow.',he:'מעולה! נתראה מחר.',tl:'גְרֵייט! סִי יוּ טוּמוֹרוֹ.'}},
+      {label:'בעשר אני לא [[יכול|יכולה]]. באחת־עשרה?',answer:{en:"I can't at ten. At eleven?",he:'אני לא [[יכול|יכולה]] בעשר. באחת־עשרה?',tl:'אַיי קֶאנְט אֶט טֶן. אֶט אִילֶבֶן?'},reply:{en:'Eleven works for me!',he:'אחת־עשרה מתאים לי!',tl:'אִילֶבֶן וֶרְקְס פוֹר מִי!'}},
+    ],
+  },
+};
+const FINALE_ROUND_OVERRIDES = {
+  4:{rounds:[
+    {ask:{en:'Good morning, {name}! How are you?',he:'בוקר טוב! מה שלומך?',tl:'גוּד מוֹרְנִינְג! הַאוּ אַר יוּ?'},options:[
+      {label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:"Great! I'm good too.",he:'מעולה! גם אני בסדר.',tl:'גְרֵייט! אַיְים גוּד טוּ.'}},
+      {label:'בוקר טוב! אני בסדר',answer:{en:"Good morning! I'm good",he:'בוקר טוב! אני בסדר',tl:'גוּד מוֹרְנִינְג! אַיְים גוּד'},reply:{en:'Nice! Have a good morning!',he:'יפה! שיהיה בוקר טוב!',tl:'נַייס! הֶב אַ גוּד מוֹרְנִינְג!'}},
+      {label:'היי! אני בסדר, תודה',answer:{en:"Hi! I'm good, thanks",he:'היי! אני בסדר, תודה',tl:'הַיי! אַיְים גוּד, תֶ׳נְקְס'},reply:{en:"Hi! I'm good too.",he:'היי! גם אני בסדר.',tl:'הַיי! אַיְים גוּד טוּ.'}},
+    ]},
+    {ask:{en:'I have to go. Goodbye, {name}!',he:'אני צריך ללכת. להתראות!',tl:'אַיי הֶב טוּ גוֹ. גוּדְבַּיי!'},options:[
+      {label:'נתראה אחר כך!',answer:{en:'See you later!',he:'נתראה אחר כך!',tl:'סִי יוּ לֵייטֶר!'},reply:{en:'Take care!',he:'[[שמור|שמרי]] על עצמך!',tl:'טֵייק קֶר!'}},
+      {label:'שיהיה לך יום טוב!',answer:{en:'Have a nice day!',he:'שיהיה לך יום טוב!',tl:'הֶב אַ נַייס דֵיי!'},reply:{en:'Thank you! Goodbye!',he:'תודה! להתראות!',tl:'תֶ׳נְק יוּ! גוּדְבַּיי!'}},
+      {label:'תודה! שמור על עצמך!',answer:{en:'Thanks! Take care!',he:'תודה! שמור על עצמך!',tl:'תֶ׳נְקְס! טֵייק קֶר!'},reply:{en:'Thank you! You too!',he:'תודה! גם לך!',tl:'תֶ׳נְק יוּ! יוּ טוּ!'}},
+    ]},
+  ]},
+  9:{rounds:[
+    {ask:{en:'Excuse me, {name}. I need help!',he:'סליחה, אני צריך עזרה!',tl:'אֶקְסְקְיוּז מִי. אַיי נִיד הֶלְפּ!'},options:[
+      {label:'ברור. מה קרה?',answer:{en:'Of course. What happened?',he:'ברור. מה קרה?',tl:'אוֹף קוֹרְס. וּוַאט הֶפֶּנְד?'},reply:{en:"Thank you! I can't find my phone.",he:'תודה! אני לא מוצא את הטלפון שלי.',tl:'תֶ׳נְק יוּ! אַיי קֶאנְט פַיינְד מַיי פוֹן.'}},
+      {label:'כן, אין בעיה. מה אתה מחפש?',answer:{en:'Yes, no problem. What are you looking for?',he:'כן, אין בעיה. מה אתה מחפש?',tl:'יֶס, נוֹ פְּרוֹבְּלֶם. וּוַאט אַר יוּ לוּקִינְג פוֹר?'},reply:{en:"My phone. I don't know where it is.",he:'את הטלפון שלי. אני לא יודע איפה הוא.',tl:'מַיי פוֹן. אַיי דוֹנְט נוֹאוּ וֶור אִיט אִיז.'}},
+      {label:'אפשר לעזור לך?',answer:{en:'Can I help you?',he:'אפשר לעזור לך?',tl:'קֶן אַיי הֶלְפּ יוּ?'},reply:{en:'Yes, please. My phone is missing.',he:'כן, בבקשה. הטלפון שלי נעלם.',tl:'יֶס, פְּלִיז. מַיי פוֹן אִיז מִיסִינְג.'}},
+    ]},
+    {ask:{en:'Can you help me find it?',he:'אפשר לעזור לי למצוא אותו?',tl:'קֶן יוּ הֶלְפּ מִי פַיינְד אִיט?'},options:[
+      {label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:"Thank you! Let's look near the bench.",he:'תודה! נחפש ליד הספסל.',tl:'תֶ׳נְק יוּ! לֶטְס לוּק נִיר דֶה בֶּנְץ׳.'}},
+      {label:'סליחה, אני לא [[יודע|יודעת]] איפה הוא',answer:{en:"Sorry, I don't know where it is",he:'סליחה, אני לא [[יודע|יודעת]] איפה הוא',tl:'סוֹרִי, אַיי דוֹנְט נוֹאוּ וֶור אִיט אִיז'},reply:{en:"That's OK. Let's ask someone.",he:'זה בסדר. נשאל מישהו.',tl:'דֶאטְס אוֹקֵיי. לֶטְס אַסְק סַמְוַאן.'}},
+      {label:'מה זה?',answer:{en:'What is this?',he:'מה זה?',tl:'וּוַאט אִיז דִיס?'},reply:{en:"That's my phone! Thank you!",he:'זה הטלפון שלי! תודה!',tl:'דֶאטְס מַיי פוֹן! תֶ׳נְק יוּ!'}},
+    ]},
+  ]},
+  14:{rounds:[
+    {ask:{en:'The game is over, {name}. What would you like?',he:'המשחק נגמר. מה [[תרצה|תרצי]]?',tl:'דֶה גֵיים אִיז אוֹבֶר. וּוַאט וּוּד יוּ לַייק?'},options:[
+      {label:'אני רוצה {food}, בבקשה',answer:{en:'I want {food}, please',he:'אני רוצה {food}, בבקשה',tl:'אַיי וּוֹנְט {food}, פְּלִיז'},reply:{en:"Great! Let's get {food}.",he:'מעולה! נביא {food}.',tl:'גְרֵייט! לֶטְס גֶט {food}.'}},
+      {label:'אני אקח המבורגר, בבקשה',answer:{en:"I'll have a burger, please",he:'אני אקח המבורגר, בבקשה',tl:'אַיְיל הֶב אַ בֶּרְגֶר, פְּלִיז'},reply:{en:"Sounds good! I'll have one too.",he:'נשמע טוב! גם אני אקח אחד.',tl:'סַאוּנְדְס גוּד! אַיְיל הֶב וַואן טוּ.'}},
+      {label:'מים, בבקשה',answer:{en:'Water, please',he:'מים, בבקשה',tl:'וּוֹטֶר, פְּלִיז'},reply:{en:'Of course! Here is some water.',he:'ברור! הנה מים.',tl:'אוֹף קוֹרְס! הִיר אִיז סַם וּוֹטֶר.'}},
+    ]},
+    {ask:{en:'How should we stay in touch?',he:'איך נשמור על קשר?',tl:'הַאוּ שוּד וִי סְטֵיי אִין טַאץ׳?'},options:[
+      {label:'שלח לי הודעה, בבקשה',answer:{en:'Text me, please',he:'שלח לי הודעה, בבקשה',tl:'טֶקְסְט מִי, פְּלִיז'},reply:{en:"No problem. I'll send you a message!",he:'אין בעיה. אשלח הודעה!',tl:'נוֹ פְּרוֹבְּלֶם. אַיְיל סֶנְד יוּ אַ מֶסֶג׳!'}},
+      {label:'תתקשר אליי, בבקשה',answer:{en:'Call me, please',he:'תתקשר אליי, בבקשה',tl:'קוֹל מִי, פְּלִיז'},reply:{en:'OK. I will call you!',he:'בסדר. אתקשר!',tl:'אוֹקֵיי. אַיי וִיל קוֹל יוּ!'}},
+      {label:'אני אשלח לך הודעה',answer:{en:"I'll send you a message",he:'אני אשלח לך הודעה',tl:'אַיְיל סֶנְד יוּ אַ מֶסֶג׳'},reply:{en:"Great! I'll wait for it.",he:'מעולה! אחכה להודעה.',tl:'גְרֵייט! אַיְיל וֵייט פוֹר אִיט.'}},
+    ]},
+  ]},
+  19:{rounds:[
+    {ask:{en:'Is English hard, {name}?',he:'אנגלית קשה?',tl:'אִיז אִינְגְלִיש הַרְד?'},options:[
+      {label:'קצת, אבל אני אנסה',answer:{en:'A little, but I will try',he:'קצת, אבל אני אנסה',tl:'אַ לִיטֶל, בַּאט אַיי וִויל טְרַיי'},reply:{en:"Don't give up. I believe in you!",he:'[[אל תוותר|אל תוותרי]]. אני מאמין בך!',tl:'דוֹנְט גִיב אַפּ. אַיי בִּילִיב אִין יוּ!'}},
+      {label:'כן, אבל אני [[מסוגל|מסוגלת]]!',answer:{en:'Yes, but I can do it!',he:'כן, אבל אני [[מסוגל|מסוגלת]]!',tl:'יֶס, בַּאט אַיי קֶן דוּ אִיט!'},reply:{en:"That's awesome!",he:'זה מדהים!',tl:'דֶאטְס אוֹסוֹם!'}},
+      {label:'לא. אני רוצה ללמוד אנגלית!',answer:{en:'No. I want to learn English!',he:'לא. אני רוצה ללמוד אנגלית!',tl:'נוֹ. אַיי וּוֹנְט טוּ לֶרְן אִינְגְלִיש!'},reply:{en:'Practice makes perfect!',he:'תרגול עושה מושלם!',tl:'פְּרַקְטִיס מֵייקְס פֶּרְפֶקְט!'}},
+    ]},
+    {ask:{en:'What do you tell yourself, {name}?',he:'מה אומרים לעצמנו?',tl:'וּוַאט דוּ יוּ טֶל יוֹרְסֶלְף?'},options:[
+      {label:'אני אנסה',answer:{en:'I will try',he:'אני אנסה',tl:'אַיי וִויל טְרַיי'},reply:{en:'Well done!',he:'כל הכבוד!',tl:'וֶול דַאן!'}},
+      {label:'לאט לאט',answer:{en:'Little by little',he:'לאט לאט',tl:'לִיטֶל בַּיי לִיטֶל'},reply:{en:"Exactly! Don't give up!",he:'בדיוק! לא מוותרים!',tl:'אִיגְזַקְטְלִי! דוֹנְט גִיב אַפּ!'}},
+      {label:'אני [[מסוגל|מסוגלת]]!',answer:{en:'I can do it!',he:'אני [[מסוגל|מסוגלת]]!',tl:'אַיי קֶן דוּ אִיט!'},reply:{en:'Yes! You can do it!',he:'כן! [[אתה מסוגל|את מסוגלת]]!',tl:'יֶס! יוּ קֶן דוּ אִיט!'}},
+    ]},
+  ]},
+  24:{rounds:[
+    {ask:{en:'Hello {name}! What would you like today?',he:'שלום! מה [[תרצה|תרצי]] היום?',tl:'הֶלוֹ! וּוַאט וּוּד יוּ לַייק טוּדֵיי?'},options:[
+      {label:'אני רוצה את {color}',answer:{en:'I want the {color} one',he:'אני רוצה את ה{color}',tl:'אַיי וּוֹנְט דֶה {color} וַואן'},reply:{en:'Good choice! Forty shekels, please',he:'בחירה טובה! ארבעים שקל, בבקשה',tl:'גוּד צ׳וֹיס! פוֹרְטִי שֶקֶלְס, פְּלִיז'}},
+      {label:'כמה עולה החולצה השחורה?',answer:{en:'How much is the black shirt?',he:'כמה עולה החולצה השחורה?',tl:'הַאוּ מַאץ׳ אִיז דֶה בְּלֶק שֶרְט?'},reply:{en:'Fifty shekels',he:'חמישים שקל',tl:'פִיפְטִי שֶקֶלְס'}},
+      {label:'אני רוצה את החולצה השחורה',answer:{en:'I want the black shirt',he:'אני רוצה את החולצה השחורה',tl:'אַיי וּוֹנְט דֶה בְּלֶק שֶרְט'},reply:{en:'Good choice! Fifty shekels, please',he:'בחירה טובה! חמישים שקל, בבקשה',tl:'גוּד צ׳וֹיס! פִיפְטִי שֶקֶלְס, פְּלִיז'}},
+    ]},
+    {ask:{en:'We are open Monday, Tuesday and Friday. When do you want to come back?',he:'אנחנו פתוחים ביום שני, שלישי ושישי. מתי [[תרצה|תרצי]] לחזור?',tl:'וִי אַר אוֹפֶּן מַאנְדֵיי, טְיוּזְדֵיי אֶנְד פְרַיידֵיי. וֶון דוּ יוּ וּוֹנְט טוּ קַאם בֶּק?'},options:[
+      {label:'אפשר לבוא ביום שני?',answer:{en:'Can I come on Monday?',he:'אפשר לבוא ביום שני?',tl:'קֶן אַיי קַאם אוֹן מַאנְדֵיי?'},reply:{en:'Of course! See you on Monday!',he:'ברור! נתראה ביום שני!',tl:'אוֹף קוֹרְס! סִי יוּ אוֹן מַאנְדֵיי!'}},
+      {label:'אני לא [[יכול|יכולה]] ביום שני. יום שלישי?',answer:{en:"I can't on Monday. Tuesday?",he:'אני לא [[יכול|יכולה]] ביום שני. יום שלישי?',tl:'אַיי קֶאנְט אוֹן מַאנְדֵיי. טְיוּזְדֵיי?'},reply:{en:'Tuesday is good!',he:'יום שלישי מתאים!',tl:'טְיוּזְדֵיי אִיז גוּד!'}},
+      {label:'אפשר לבוא ביום שישי?',answer:{en:'Can I come on Friday?',he:'אפשר לבוא ביום שישי?',tl:'קֶן אַיי קַאם אוֹן פְרַיידֵיי?'},reply:{en:'Of course! See you on Friday!',he:'ברור! נתראה ביום שישי!',tl:'אוֹף קוֹרְס! סִי יוּ אוֹן פְרַיידֵיי!'}},
+    ]},
+  ]},
+  29:{rounds:[
+    {ask:{en:'What a beautiful day, {name}! What do you want to do?',he:'איזה יום יפה! מה בא לך לעשות?',tl:'וּוַאט אַ בְּיוּטִיפוּל דֵיי! וּוַאט דוּ יוּ וּוֹנְט טוּ דוּ?'},options:[
+      {label:'בוא נוציא את הכלב',answer:{en:"Let's take the dog out",he:'בוא נוציא את הכלב',tl:'לֶטְס טֵייק דֶה דוֹג אַאוּט'},reply:{en:'Yes! The dog is happy!',he:'כן! הכלב שמח!',tl:'יֶס! דֶה דוֹג אִיז הֶפִּי!'}},
+      {label:'בוא נלך לים!',answer:{en:"Let's go to the beach!",he:'בוא נלך לים!',tl:'לֶטְס גוֹ טוּ דֶה בִּיץ׳!'},reply:{en:'Great! The sun is out!',he:'מעולה! השמש בחוץ!',tl:'גְרֵייט! דֶה סַאן אִיז אַאוּט!'}},
+      {label:'בוא נצא',answer:{en:"Let's go out",he:'בוא נצא',tl:'לֶטְס גוֹ אַאוּט'},reply:{en:'Sounds good!',he:'נשמע טוב!',tl:'סַאוּנְדְס גוּד!'}},
+    ]},
+    {ask:{en:'You finished thirty lessons, {name}! What do you want to say?',he:'סיימת שלושים שיעורים! מה בא לך להגיד?',tl:'יוּ פִינִישְד תֶ׳רְטִי לֶסֶנְז! וּוַאט דוּ יוּ וּוֹנְט טוּ סֵיי?'},options:[
+      {label:'אנגלית זה כיף!',answer:{en:'English is fun!',he:'אנגלית זה כיף!',tl:'אִינְגְלִיש אִיז פַאן!'},reply:{en:'Yes! And you learned so much!',he:'כן! למדת כל כך הרבה!',tl:'יֶס! אֶנְד יוּ לֶרְנְד סוֹ מַאץ׳!'}},
+      {label:'אני [[מרגיש|מרגישה]] מעולה',answer:{en:'I feel great',he:'אני [[מרגיש|מרגישה]] מעולה',tl:'אַיי פִיל גְרֵייט'},reply:{en:"That's awesome!",he:'זה מדהים!',tl:'דֶאטְס אוֹסוֹם!'}},
+      {label:'אני [[מסוגל|מסוגלת]]!',answer:{en:'I can do it!',he:'אני [[מסוגל|מסוגלת]]!',tl:'אַיי קֶן דוּ אִיט!'},reply:{en:'I believe in you!',he:'אני מאמין בך!',tl:'אַיי בִּילִיב אִין יוּ!'}},
+    ]},
+  ]},
+};
+function conversationRounds(idx){
+  const finale=FINALE_ROUND_OVERRIDES[idx]||BRANCH_DIALOGUES[idx];
+  if(finale) return finale.rounds;
+  const opening=OPENING_ROUNDS[idx];
+  const closing=CLOSING_ROUND_OVERRIDES[idx]||{
+    ask:LESSONS[idx].dialogue[6],options:LESSON_CHOICES[idx]?.options||[],
+  };
+  return opening?[opening,closing]:[];
+}
+
+const CHARACTERS = {
+  tom:{name:'טום',avatar:'👦',color:'#60a5fa'},
+  maya:{name:'מאיה',avatar:'👧',color:'#f472b6'},
+  sam:{name:'סם',avatar:'🧑‍🦱',color:'#34d399'},
+  alex:{name:'אלכס',avatar:'🧑‍🍳',color:'#fbbf24'},
+};
+const CONVERSATION_META_ROWS = [
+  ['tom','☀️','בדרך לבית הספר','לברך ולספר מה שלומך'],
+  ['tom','🛝','בגינה','להציג את עצמך'],
+  ['sam','🚌','בתחנת האוטובוס','לענות בנימוס'],
+  ['sam','🇬🇧','במרכז העיר','לספר כמה אנגלית מבינים'],
+  ['tom','🚪','ליד הבית','להיפרד ולאחל יום טוב'],
+  ['maya','🏡','אצל מאיה','לספר על המשפחה'],
+  ['maya','🎧','בחדר המוזיקה','לגלות מה שניכם אוהבים'],
+  ['tom','🏀','אחרי הלימודים','לספר מה עושים אחרי הלימודים'],
+  ['maya','😅','בהפסקה','לספר איך מרגישים היום'],
+  ['sam','🧭','ברחוב','לעזור כשאפשר'],
+  ['tom','🍕','אצל טום','לבחור אוכל ושתייה'],
+  ['alex','🍽️','במסעדה','להזמין ארוחה'],
+  ['tom','⏰','בדרך למפגש','לקבוע שעה להיפגש'],
+  ['alex','🛍️','בחנות','לשאול על מחיר'],
+  ['tom','📱','במגרש','לשמור על קשר'],
+  ['maya','💬','בשיחת ערב','לנהל שיחה קצרה וטבעית'],
+  ['tom','🎉','לקראת יציאה','להזמין חבר ולתכנן'],
+  ['maya','🆘','בדרך הביתה','לבקש ולהציע עזרה'],
+  ['tom','💪','במגרש האימונים','לעודד חבר'],
+  ['tom','🏆','בסיום היחידה','להראות שאפשר לדבר'],
+  ['maya','🎂','במסיבת יום הולדת','לספר את הגיל'],
+  ['alex','🛒','בשוק','לדבר על מחיר'],
+  ['maya','🎨','בחנות יצירה','לספר מה הצבע האהוב'],
+  ['tom','📅','בדרך הביתה','לקבוע באיזה יום להיפגש'],
+  ['alex','🏬','בחנות הגדולה','לבחור ולקבוע מתי לחזור'],
+  ['maya','🐶','בפארק','לספר על חיות אהובות'],
+  ['alex','👕','בחנות בגדים','לבחור בגד וצבע'],
+  ['maya','🤕','בחדר האחות','לספר איך מרגישים'],
+  ['tom','🌦️','ליד החלון','לדבר על מזג האוויר'],
+  ['tom','🌞','בחוף הים','לבחור תוכנית ולסיים את המסע'],
+];
+const CONVERSATION_META = CONVERSATION_META_ROWS.map((row,idx)=>({
+  lessonIndex:idx,characterId:row[0],placeEmoji:row[1],place:row[2],mission:row[3],character:CHARACTERS[row[0]],
+}));
+function conversationMeta(idx){ return CONVERSATION_META[idx]||CONVERSATION_META[0]; }
+function learnerAvatar(){ return state?.profile?.gender==='female'?'👧':'🧒'; }
+
+const APP_VERSION = '2.2.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -1153,6 +1614,92 @@ const HOME_LINES = [
   'ההצלחה שלך = כמה פעמים פתחת את האפליקציה. פשוט.',
 ];
 
+/* Optional local profile values used to make practice lines true for the
+   learner. Empty choices keep the lesson's built-in fallback; age 17 and
+   masculine Hebrew preserve the behaviour of older saved installations. */
+const PROFILE_CHOICES = {
+  interest:{
+    games:{en:'games',he:'משחקים',tl:'גֵיימְס'},
+    football:{en:'football',he:'כדורגל',tl:'פוּטְבּוֹל'},
+    music:{en:'music',he:'מוזיקה',tl:'מְיוּזִיק'},
+    drawing:{en:'drawing',he:'ציור',tl:'דְרוֹאִינְג'},
+    videos:{en:'videos',he:'סרטונים',tl:'וִידִיוֹז'},
+    reading:{en:'reading',he:'קריאה',tl:'רִידִינְג'},
+  },
+  food:{
+    pizza:{en:'pizza',he:'פיצה',tl:'פִּיצָה'},
+    burgers:{en:'a burger',he:'המבורגר',tl:'אַ בֶּרְגֶר'},
+    pasta:{en:'pasta',he:'פסטה',tl:'פַּסְטָה'},
+    icecream:{en:'ice cream',he:'גלידה',tl:'אַייס קְרִים'},
+    salad:{en:'salad',he:'סלט',tl:'סֶלֶד'},
+  },
+  color:{
+    blue:{en:'blue',he:'כחול',tl:'בְּלוּ'}, green:{en:'green',he:'ירוק',tl:'גְרִין'},
+    red:{en:'red',he:'אדום',tl:'רֶד'}, yellow:{en:'yellow',he:'צהוב',tl:'יֶלוֹ'},
+    pink:{en:'pink',he:'ורוד',tl:'פִּינְק'}, black:{en:'black',he:'שחור',tl:'בְּלֶק'},
+  },
+  animal:{
+    dogs:{en:'dogs',he:'כלבים',tl:'דוֹגְז'}, cats:{en:'cats',he:'חתולים',tl:'קֶטְס'},
+    birds:{en:'birds',he:'ציפורים',tl:'בֶּרְדְז'}, fish:{en:'fish',he:'דגים',tl:'פִיש'},
+    horses:{en:'horses',he:'סוסים',tl:'הוֹרְסֶז'},
+  },
+};
+const PROFILE_LABELS = {
+  interest:{games:'משחקים',football:'כדורגל',music:'מוזיקה',drawing:'ציור',videos:'סרטונים',reading:'קריאה'},
+  food:{pizza:'פיצה',burgers:'המבורגר',pasta:'פסטה',icecream:'גלידה',salad:'סלט'},
+  color:{blue:'כחול',green:'ירוק',red:'אדום',yellow:'צהוב',pink:'ורוד',black:'שחור'},
+  animal:{dogs:'כלבים',cats:'חתולים',birds:'ציפורים',fish:'דגים',horses:'סוסים'},
+};
+function defaultProfile(){ return {age:17,gender:'male',interest:'',food:'',color:'',animal:''}; }
+function normalizeProfile(raw){
+  const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+  const out=defaultProfile();
+  const age=(source.age===''||source.age===null||source.age===undefined)?NaN:Math.floor(Number(source.age));
+  if(Number.isFinite(age)) out.age=Math.max(5,Math.min(99,age));
+  out.gender=source.gender==='female'?'female':'male';
+  for(const key of ['interest','food','color','animal']){
+    const value=typeof source[key]==='string'?source[key]:'';
+    out[key]=PROFILE_CHOICES[key][value]?value:'';
+  }
+  return out;
+}
+function genderText(value){
+  const female=state?.profile?.gender==='female';
+  return String(value??'').replace(/\[\[([^\]|]*)\|([^\]]*)\]\]/g,(_,male,fem)=>female?fem:male);
+}
+function profileToken(kind,field){
+  const chosen=state?.profile?.[kind]||'';
+  const fallback={interest:'music',food:'pizza',color:'blue',animal:'dogs'}[kind];
+  return PROFILE_CHOICES[kind][chosen] || PROFILE_CHOICES[kind][fallback];
+}
+const NUMBER_TL = {
+  zero:'זִירוֹ',one:'וַואן',two:'טוּ',three:'תְ׳רִי',four:'פוֹר',five:'פַייב',six:'סִיקְס',seven:'סֶבֶן',eight:'אֵייט',nine:'נַיין',ten:'טֶן',
+  eleven:'אִילֶבֶן',twelve:'טְוֶולְב',thirteen:'תֶ׳רְטִין',fourteen:'פוֹרְטִין',fifteen:'פִיפְטִין',sixteen:'סִיקְסְטִין',seventeen:'סֶבֶנְטִין',eighteen:'אֵייטִין',nineteen:'נַיינְטִין',
+  twenty:'טְוֶונְטִי',thirty:'תֶ׳רְטִי',forty:'פוֹרְטִי',fifty:'פִיפְטִי',sixty:'סִיקְסְטִי',seventy:'סֶבֶנְטִי',eighty:'אֵייטִי',ninety:'נַיינְטִי',
+};
+function numberTransliteration(value){
+  return numberWords(value).split(/[-\s]+/).map(word=>NUMBER_TL[word]||word).join(' ');
+}
+function fillProfileText(value,field='en',spoken=false){
+  const profile=normalizeProfile(state?.profile);
+  let out=genderText(value);
+  const typedName=String(state?.name||'').trim();
+  const omitSpokenName=spoken&&typedName&&!/^[A-Za-z' .-]+$/.test(typedName);
+  // Vocatives sound natural without a name. In a learner sentence such as
+  // "My name is {name}", keep an audible/readable pause so the child still
+  // knows where to say a Hebrew name that the English voice cannot pronounce.
+  if(!typedName||omitSpokenName) out=out.replace(/,\s*\{name\}/g,'');
+  const name=(!typedName||omitSpokenName)?'...':typedName;
+  const ageText=field==='en'?numberWords(profile.age):field==='tl'?numberTransliteration(profile.age):String(profile.age);
+  out=out.replace(/\{name\}/g,name).replace(/\{age\}/g,ageText);
+  for(const kind of ['interest','food','color','animal']){
+    const token=profileToken(kind,field);
+    out=out.replace(new RegExp('\\{'+kind+'\\}','g'),token[field]||token.en);
+  }
+  return out.replace(/\s{2,}/g,' ').replace(/\s+([!?.,])/g,'$1').trim();
+}
+function ptext(p,field,spoken=false){ return fillProfileText(p?.[field]||'',field,spoken); }
+
 /* ---------------- state ---------------- */
 const STORE_KEY = 'speakEnglishV1';
 const SESSION_STEP_TYPES = new Set([
@@ -1166,6 +1713,7 @@ function load(){
     if(s && typeof s === 'object'){
       const out = Object.assign(defaults(), s);
       out.name = typeof out.name === 'string' ? out.name.slice(0,20) : '';
+      out.profile = normalizeProfile(out.profile);
       out.onboarded = !!out.onboarded;
       out.completed = Math.max(0, Math.min(LESSONS.length, Math.floor(Number(out.completed) || 0)));
       out.streak = Math.max(0, Number(out.streak) || 0);
@@ -1191,6 +1739,7 @@ function load(){
 function defaults(){
   return {
     schemaVersion:2, name:'', onboarded:false, completed:0, streak:0,
+    profile:defaultProfile(),
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
@@ -1263,12 +1812,16 @@ function validSessionStep(step){
   }
   return true;
 }
+function validChatItem(item){
+  return !!(item&&((item.who==='app')||(item.who==='you'))&&validPhraseData(item.line));
+}
 function validSavedSession(s){
   if(!(s && s.version === SESSION_VERSION && Number.isInteger(s.idx) &&
     s.idx >= 0 && s.idx < LESSONS.length && Array.isArray(s.steps) &&
     s.steps.length > 0 && s.steps.length <= 100 && s.steps.every(validSessionStep) &&
     Number.isInteger(s.i) && s.i >= 0 && s.i < s.steps.length &&
-    typeof s.isReplay === 'boolean' && Number.isFinite(Number(s.elapsedMs)) && Number(s.elapsedMs)>=0)) return false;
+    typeof s.isReplay === 'boolean' && Number.isFinite(Number(s.elapsedMs)) && Number(s.elapsedMs)>=0 &&
+    (s.chat===undefined||(Array.isArray(s.chat)&&s.chat.length<=40&&s.chat.every(validChatItem))))) return false;
   const current=s.steps[s.i];
   return current.type !== 'done' && current.type !== 'branchPending';
 }
@@ -1292,8 +1845,10 @@ function reconcileStoredProgress(){
     const storedProfileTs=Math.max(0,Number(stored.profileUpdatedAt)||0);
     if(storedProfileTs>(Number(state.profileUpdatedAt)||0)){
       state.name=typeof stored.name==='string'?stored.name.slice(0,20):'';
+      state.profile=normalizeProfile(stored.profile);
       state.onboarded=!!stored.onboarded;
     }
+    state.profile=normalizeProfile(state.profile);
     state.profileUpdatedAt=Math.max(Number(state.profileUpdatedAt)||0,storedProfileTs);
 
     const storedSettingsTs=Math.max(0,Number(stored.settingsUpdatedAt)||0);
@@ -1458,6 +2013,7 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
 let voices = [];
 let autoSpeakTimer = null;
 let uiEpoch = 0;
+let speechToken = 0;
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
 if('speechSynthesis' in window){
   loadVoices();
@@ -1469,6 +2025,10 @@ function pickVoice(){
   for(const p of prefs){ const v = voices.find(v=>v.name.indexOf(p)>-1); if(v) return v; }
   return voices.find(v=>/^en(-|_)US/i.test(v.lang)) || voices.find(v=>/^en/i.test(v.lang)) || null;
 }
+function cancelSpeech(){
+  speechToken++;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+}
 function speak(text, cb){
   if(!('speechSynthesis' in window)){ if(cb) cb(); return; }
   if(typeof L !== 'undefined' && L && L.rec){
@@ -1478,13 +2038,17 @@ function speak(text, cb){
     if(micButton){ micButton.disabled=false; micButton.classList.remove('listening'); micButton.textContent='🎤'; micButton.setAttribute('aria-label','התחלת הקלטה'); }
     if(micHint) micHint.textContent='ההשמעה עצרה את ההאזנה — לחץ שוב על המיקרופון כשתהיה מוכן';
   }
+  const token=++speechToken;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text.replace(/\.\.\.|___/g,''));
+  const u = new SpeechSynthesisUtterance(text.replace(/___/g,''));
   u.lang = 'en-US';
   const v = pickVoice(); if(v) u.voice = v;
   u.rate = state.slowSpeech ? 0.8 : 1.0;
   u.pitch = 1;
-  if(cb){ u.onend = cb; u.onerror = cb; }
+  if(cb){
+    const finish=()=>{ if(token===speechToken) cb(); };
+    u.onend = finish; u.onerror = finish;
+  }
   speechSynthesis.speak(u);
 }
 function cancelAutoSpeak(){
@@ -1507,13 +2071,18 @@ function scheduleSpeak(text, delay=350){
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let micUnavailableThisSession = false;
 function micAvailable(){ return !!SR && state.micEnabled && !micUnavailableThisSession; }
+function numberWords(value){
+  const n=Math.floor(Number(value));
+  const small=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+  const tens=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  if(n>=0&&n<20) return small[n];
+  if(n>=20&&n<100) return tens[Math.floor(n/10)]+(n%10?' '+small[n%10]:'');
+  return String(value);
+}
 function normalize(s){
   return String(s || '').toLowerCase().replace(/[’‘]/g,"'")
     .replace(/\b([1-9]|10):00\b/g,'$1 oclock')
-    .replace(/\b20\b/g,'twenty').replace(/\b17\b/g,'seventeen').replace(/\b10\b/g,'ten').replace(/\b9\b/g,'nine')
-    .replace(/\b8\b/g,'eight').replace(/\b7\b/g,'seven').replace(/\b6\b/g,'six')
-    .replace(/\b5\b/g,'five').replace(/\b4\b/g,'four').replace(/\b3\b/g,'three')
-    .replace(/\b2\b/g,'two').replace(/\b1\b/g,'one')
+    .replace(/\b\d{1,2}\b/g,m=>numberWords(m))
     .replace(/\bdont\b/g,"don't").replace(/\bcant\b/g,"can't").replace(/\bcannot\b/g,'can not')
     .replace(/i'm/g,'i am').replace(/what's/g,'what is').replace(/it's/g,'it is')
     .replace(/don't/g,'do not').replace(/can't/g,'can not').replace(/you're/g,'you are')
@@ -1746,8 +2315,8 @@ function renderReview(){
       <div class="rev-item">
         <button class="rev-play" onclick="replayPhrase(${li},${pi})" aria-label="השמעת ${esc(p.en)}">🔊</button>
         <div class="txt">
-          <div class="en" dir="ltr" lang="en">${esc(p.en)}</div>
-          <div class="he">${esc(p.tl)} · ${esc(p.he)}</div>
+          <div class="en" dir="ltr" lang="en">${esc(ptext(p,'en'))}</div>
+          <div class="he">${esc(ptext(p,'tl'))} · ${esc(ptext(p,'he'))}</div>
         </div>
       </div>`;
     });
@@ -1762,7 +2331,7 @@ function renderReview(){
     ${items || '<p style="color:var(--dim)">עוד אין פה כלום — תסיים את השיעור הראשון וזה יתמלא! 💪</p>'}
   </div>`);
 }
-function replayPhrase(li, pi){ speak(LESSONS[li].phrases[pi].en); }
+function replayPhrase(li, pi){ speak(ptext(LESSONS[li].phrases[pi],'en')); }
 
 /* ================= settings ================= */
 function openSettings(){
@@ -1778,6 +2347,13 @@ function openSettings(){
         <button class="btn" style="width:auto;padding:10px 16px;font-size:15px" onclick="saveName()">שמור</button>
       </div>
       <div style="flex-basis:100%;color:var(--dim);font-size:12.5px">💡 שם באותיות אנגליות (למשל Dan) גם יישמע בקול בשיחות</div>
+    </div>
+    <div class="set-row">
+      <div>
+        <span style="display:block">התאמה אישית לשיחות</span>
+        <small style="display:block;color:var(--dim);font-size:12px;margin-top:2px">${esc(profileSummary())}</small>
+      </div>
+      <button class="btn secondary" style="width:auto;padding:10px 14px;font-size:14px" onclick="openProfileSettings()">עריכה</button>
     </div>
     <div class="set-row">
       <span>מהירות דיבור</span>
@@ -1817,6 +2393,76 @@ function saveName(){
   toast(state.name ? 'השם עודכן: ' + state.name + ' 👋' : 'השם נמחק');
   if(state.name && /^[A-Za-z' .-]+$/.test(state.name)) speak('Hi ' + state.name + '!');
 }
+function profileSummary(){
+  const p=normalizeProfile(state.profile);
+  const extras=['interest','food','color','animal'].filter(key=>p[key]).length;
+  return `${p.gender==='female'?'בת':'בן'} ${p.age}${extras?' · '+extras+' העדפות':''}`;
+}
+function profileOptionsHtml(kind,selected){
+  const emptyLabel={interest:'לא הוגדר תחביב',food:'לא הוגדר אוכל',color:'לא הוגדר צבע',animal:'לא הוגדרה חיה'}[kind];
+  return `<option value="">${emptyLabel}</option>`+Object.keys(PROFILE_CHOICES[kind]).map(key=>
+    `<option value="${key}" ${selected===key?'selected':''}>${esc(PROFILE_LABELS[kind][key])}</option>`
+  ).join('');
+}
+function openProfileSettings(){
+  document.querySelector('.overlay')?.remove();
+  const p=normalizeProfile(state.profile);
+  const ov=document.createElement('div');
+  ov.className='overlay';
+  ov.innerHTML=`
+  <div class="sheet profile-sheet" role="dialog" aria-modal="true" aria-labelledby="profileTitle" onclick="event.stopPropagation()">
+    <h3 id="profileTitle">✨ התאמה אישית לשיחות</h3>
+    <p style="color:var(--dim);font-size:14px;margin-top:-8px">הכול נשמר רק במכשיר. לא חייבים להגדיר דבר — גיל ברירת המחדל הוא 17.</p>
+    <div class="profile-grid">
+      <div class="profile-field">
+        <label for="profileAge">גיל</label>
+        <input class="profile-input" id="profileAge" type="number" min="5" max="99" inputmode="numeric" value="${p.age}">
+      </div>
+      <div class="profile-field">
+        <label for="profileGender">צורת פנייה</label>
+        <select class="profile-select" id="profileGender">
+          <option value="male" ${p.gender==='male'?'selected':''}>זכר</option>
+          <option value="female" ${p.gender==='female'?'selected':''}>נקבה</option>
+        </select>
+      </div>
+      <div class="profile-field">
+        <label for="profileInterest">תחביב אהוב</label>
+        <select class="profile-select" id="profileInterest">${profileOptionsHtml('interest',p.interest)}</select>
+      </div>
+      <div class="profile-field">
+        <label for="profileFood">אוכל אהוב</label>
+        <select class="profile-select" id="profileFood">${profileOptionsHtml('food',p.food)}</select>
+      </div>
+      <div class="profile-field">
+        <label for="profileColor">צבע אהוב</label>
+        <select class="profile-select" id="profileColor">${profileOptionsHtml('color',p.color)}</select>
+      </div>
+      <div class="profile-field">
+        <label for="profileAnimal">חיה אהובה</label>
+        <select class="profile-select" id="profileAnimal">${profileOptionsHtml('animal',p.animal)}</select>
+      </div>
+    </div>
+    <button class="btn" onclick="saveProfileSettings()">שמור התאמה אישית</button>
+    <button class="btn ghost" style="margin-top:5px" onclick="openSettings();this.closest('.overlay')?.remove()">חזרה להגדרות</button>
+  </div>`;
+  ov.onclick=()=>ov.remove();
+  document.body.appendChild(ov);
+}
+function saveProfileSettings(){
+  const age=Math.floor(Number(document.getElementById('profileAge')?.value));
+  state.profile=normalizeProfile({
+    age:Number.isFinite(age)?age:17,
+    gender:document.getElementById('profileGender')?.value,
+    interest:document.getElementById('profileInterest')?.value,
+    food:document.getElementById('profileFood')?.value,
+    color:document.getElementById('profileColor')?.value,
+    animal:document.getElementById('profileAnimal')?.value,
+  });
+  touchState('profileUpdatedAt');
+  save();
+  document.querySelector('.overlay')?.remove();
+  toast('הפרופיל נשמר — השיחות יתאימו את עצמן ✨');
+}
 function setSpeed(slow, btn){ state.slowSpeech = slow; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); speak('Hello! How are you?'); }
 function setMic(on, btn){ state.micEnabled = on; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); }
 function resetAll(){
@@ -1830,6 +2476,22 @@ function resetAll(){
 
 /* ================= lesson player ================= */
 let L = null; // current lesson session
+let dialogueTimer = null;
+let dialogueFlowToken = 0;
+function invalidateDialogueFlow(cancelVoice=false){
+  if(dialogueTimer){ clearTimeout(dialogueTimer); dialogueTimer=null; }
+  dialogueFlowToken++;
+  if(cancelVoice) cancelSpeech();
+}
+function scheduleDialogueFlow(callback,delay){
+  invalidateDialogueFlow(false);
+  const token=dialogueFlowToken,session=L,stepIndex=L?.i;
+  dialogueTimer=setTimeout(()=>{
+    dialogueTimer=null;
+    if(!L||L!==session||L.i!==stepIndex||dialogueFlowToken!==token||L.flowPaused||document.hidden) return;
+    callback();
+  },delay);
+}
 function shuffled(arr){
   const out = arr.slice();
   for(let i=out.length-1;i>0;i--){
@@ -1908,6 +2570,7 @@ function selectWarmup(idx, target){
    learner's name as typed; speech drops it unless it's written in Latin
    letters, since the English voice can't pronounce a Hebrew name. */
 function fillName(s, nm){
+  if(nm === undefined) return fillProfileText(s,'en',false);
   const name = (nm !== undefined ? nm : (state.name || '')).trim();
   return String(s)
     .replace(/,\s*\{name\}/g, name ? ', ' + name : '')
@@ -1917,8 +2580,7 @@ function fillName(s, nm){
     .trim();
 }
 function fillNameSpoken(s){
-  const nm = (state.name || '').trim();
-  return fillName(s, /^[A-Za-z' .-]+$/.test(nm) ? nm : '');
+  return fillProfileText(s,'en',true);
 }
 function phraseIdForText(en, maxLessonIdx){
   const target = normalize(en);
@@ -1937,7 +2599,7 @@ function splitPhraseChunks(en){
   return chunks;
 }
 function makeOrderStep(p, hid){
-  const chunks = splitPhraseChunks(p.en);
+  const chunks = splitPhraseChunks(ptext(p,'en'));
   let bankOrder = shuffled(chunks.map((_,i)=>i));
   if(bankOrder.every((v,i)=>v===i) && bankOrder.length>1) bankOrder = bankOrder.slice().reverse();
   return {type:'order',p,hid,chunks,bankOrder,selected:[]};
@@ -1951,8 +2613,9 @@ function buildChallengeSteps(idx, lesson){
     const hid = idx+':'+pi;
     if(type === 'order') return makeOrderStep(p,hid);
     if(type === 'recall') return {type:'speak',p,hid,challenge:true};
-    const wrong = shuffled(lesson.phrases.filter(x=>x!==p)).slice(0,2).map(x=>x.he);
-    return {type:'listenQuiz',p,hid,correct:p.he,options:shuffled([p.he,...wrong])};
+    const correct=ptext(p,'he');
+    const wrong = shuffled(lesson.phrases.filter(x=>x!==p)).slice(0,2).map(x=>ptext(x,'he'));
+    return {type:'listenQuiz',p,hid,correct,options:shuffled([correct,...wrong])};
   });
 }
 function startLesson(idx, isReplay, force=false){
@@ -1981,37 +2644,18 @@ function startLesson(idx, isReplay, force=false){
   });
   steps.push(...buildChallengeSteps(idx,lesson));
   steps.push({type:'dlgIntro',unitChallenge:!!BRANCH_DIALOGUES[idx]});
-  const branch = BRANCH_DIALOGUES[idx];
-  if(branch){
-    branch.rounds.forEach(round=>{
-      steps.push({type:'listen',line:round.ask,isBranchAsk:true});
-      steps.push({type:'branchChoice',options:round.options});
-      // Reserve the two choice-dependent screens so the progress bar never
-      // moves backwards when the learner selects an answer.
-      steps.push({type:'branchPending'});
-      steps.push({type:'branchPending'});
-    });
-  } else {
-    // when the lesson has a closing choice, the last scripted exchange
-    // (lines 7-8) is replaced by ask → choice → answer → reply
-    const choice = LESSON_CHOICES[idx];
-    const lines = choice ? lesson.dialogue.slice(0, 6) : lesson.dialogue;
-    lines.forEach(line=>{
-      steps.push(line.who === 'app'
-        ? {type:'listen',line}
-        : {type:'speak',p:line,isDlg:true,hid:phraseIdForText(line.en,idx)});
-    });
-    if(choice){
-      steps.push({type:'listen',line:lesson.dialogue[6],isBranchAsk:true});
-      steps.push({type:'branchChoice',options:choice.options});
-      steps.push({type:'branchPending'});
-      steps.push({type:'branchPending'});
-    }
-  }
+  conversationRounds(idx).forEach((round,roundIndex)=>{
+    steps.push({type:'listen',line:round.ask,isBranchAsk:true,roundIndex});
+    steps.push({type:'branchChoice',options:round.options,roundIndex});
+    // Reserve the two choice-dependent screens so the progress bar never
+    // moves backwards when the learner selects an answer.
+    steps.push({type:'branchPending'});
+    steps.push({type:'branchPending'});
+  });
   steps.push({type:'done'});
   L = {
     idx,lesson,steps,i:0,isReplay,tries:0,attempts:0,rec:null,timerId:null,
-    elapsedBeforeMs:0,activeSince:Date.now(),chat:[],warmupIds,
+    elapsedBeforeMs:0,activeSince:Date.now(),chat:[],warmupIds,flowPaused:false,chatExpanded:false,
     runId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),
   };
   saveLessonCheckpoint();
@@ -2044,7 +2688,7 @@ function saveLessonCheckpoint(){
   state.session = {
     version:SESSION_VERSION, idx:L.idx, isReplay:!!L.isReplay, i:L.i,
     steps:L.steps, elapsedMs:activeElapsedMs(), chat:L.chat||[], warmupIds:L.warmupIds||[],
-    runId:L.runId, savedAt,
+    flowPaused:!!L.flowPaused,chatExpanded:!!L.chatExpanded,runId:L.runId, savedAt,
   };
   touchState('sessionUpdatedAt');
   save();
@@ -2072,6 +2716,7 @@ function resumeLesson(){
     idx:s.idx,lesson:LESSONS[s.idx],steps:s.steps,i:s.i,isReplay:!!s.isReplay,
     tries:0,attempts:0,rec:null,timerId:null,elapsedBeforeMs:Number(s.elapsedMs)||0,
     activeSince:Date.now(),chat:Array.isArray(s.chat)?s.chat:[],warmupIds:Array.isArray(s.warmupIds)?s.warmupIds:[],
+    flowPaused:!!s.flowPaused,chatExpanded:!!s.chatExpanded,
     runId:typeof s.runId==='string'?s.runId:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),
   };
   renderStep();
@@ -2093,18 +2738,27 @@ function stopLessonTimers(keepCheckpoint=true){
   if(L && keepCheckpoint){ pauseLessonClock(); saveLessonCheckpoint(); }
   else if(L && L.timerId){ clearInterval(L.timerId); L.timerId=null; }
   cancelAutoSpeak();
+  invalidateDialogueFlow(false);
   stopRecognition();
-  if('speechSynthesis' in window) speechSynthesis.cancel();
+  cancelSpeech();
 }
 function next(){
-  if(!L) return;
+  if(!L||L.stepTransitioning) return;
+  const session=L;
+  L.stepTransitioning=true;
+  invalidateDialogueFlow(true);
   const current = L.steps[L.i];
-  if(current?.type === 'listen' && current.line) L.chat.push({who:'app',line:current.line});
-  if(current?.type === 'speak' && current.isDlg && current.p) L.chat.push({who:'you',line:current.p});
+  if(!current?.chatAdded&&current?.type === 'listen' && current.line){
+    L.chat.push({who:'app',line:current.line,showHe:false,showTl:false}); current.chatAdded=true;
+  }
+  if(!current?.chatAdded&&current?.type === 'speak' && current.isDlg && current.p){
+    L.chat.push({who:'you',line:current.p,showHe:false,showTl:false}); current.chatAdded=true;
+  }
   stopRecognition();
-  L.i++; L.tries = 0;
+  L.i++; L.tries = 0; L.flowPaused=false;
   saveLessonCheckpoint();
   renderStep();
+  requestAnimationFrame(()=>{ if(L===session) L.stepTransitioning=false; });
 }
 function playerShell(inner){
   const pct = Math.round(L.i / (L.steps.length-1) * 100);
@@ -2161,18 +2815,19 @@ function renderIntro(){
 /* ---- learn a phrase ---- */
 function renderLearn(step){
   const p = step.p;
+  const en=ptext(p,'en'), he=ptext(p,'he'), tl=ptext(p,'tl');
   playerShell(`
     <div class="step-label">🎧 משפט חדש</div>
     <div class="phrase-card">
-      <div class="phrase-en" dir="ltr" lang="en">${wordSpans(p.en)}</div>
-      <div class="phrase-tl">${esc(p.tl)}</div>
-      <div class="phrase-he">${esc(p.he)}</div>
-      <button class="play-big" onclick="speak('${jsEsc(p.en)}')" aria-label="השמע">🔊</button>
+      <div class="phrase-en" dir="ltr" lang="en">${wordSpans(en)}</div>
+      <div class="phrase-tl">${esc(tl)}</div>
+      <div class="phrase-he">${esc(he)}</div>
+      <button class="play-big" onclick="speak('${jsEsc(en)}')" aria-label="השמע">🔊</button>
     </div>
     <p class="sub" style="text-align:center">🔊 משמיע את כל המשפט · לחיצה על מילה משמיעה רק אותה.<br>תגיד את המשפט בקול אחרי כל השמעה.</p>
     <button class="btn" onclick="next()">אמרתי בקול — הלאה! ✔</button>
   `);
-  scheduleSpeak(p.en);
+  scheduleSpeak(en);
 }
 function jsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 /* each English word becomes tappable — tap hears just that word; 🔊 plays the whole sentence */
@@ -2185,19 +2840,124 @@ function wordSpans(en){
 }
 
 /* ---- speak a phrase (mic or self-check) ---- */
-function chatThreadHtml(){
-  if(!L || !Array.isArray(L.chat) || !L.chat.length) return '';
-  return `<div class="chat-thread">${L.chat.map(item=>{
-    const line=item.line||{};
-    return `<div class="dlg-line ${item.who==='you'?'me':''}">
-      <div class="dlg-avatar">${item.who==='you'?'🧑':'🤖'}</div>
-      <div class="dlg-bubble">
-        <div class="dlg-en" dir="ltr" lang="en">${esc(fillName(line.en||''))}</div>
-        <div class="dlg-tl">${esc(line.tl||'')}</div>
-        <div class="dlg-he">${esc(line.he||'')}</div>
+function chatItem(source,index){
+  if(source==='history') return L?.chat?.[index]||null;
+  const step=L?.steps?.[L.i];
+  if(!step) return null;
+  const line=step.type==='listen'?step.line:step.p;
+  return line?{who:step.type==='listen'?'app':'you',line,showHe:!!step.showHe,showTl:!!step.showTl}:null;
+}
+function chatBubbleHtml(item,source,index,extraClass=''){
+  if(!item||!item.line) return '';
+  const meta=conversationMeta(L.idx);
+  const who=item.who==='you'?'you':'app';
+  const en=ptext(item.line,'en'),he=ptext(item.line,'he'),tl=ptext(item.line,'tl');
+  const sourceArg=`'${source}'`;
+  return `<div class="dlg-line ${who==='you'?'me':''} ${extraClass}" id="chat-bubble-${source}-${index}">
+    <div class="dlg-avatar" aria-hidden="true">${who==='you'?learnerAvatar():meta.character.avatar}</div>
+    <div class="dlg-bubble" style="${who==='app'?'border-color:'+meta.character.color+'55':''}">
+      <div class="bubble-top">
+        <span class="bubble-speaker">${who==='you'?'אני':esc(meta.character.name)}</span>
+        <button class="bubble-action" onclick="replayChatMessage(${sourceArg},${index})" aria-label="השמעת ההודעה">🔊</button>
       </div>
-    </div>`;
-  }).join('')}</div>`;
+      <div class="dlg-en" dir="ltr" lang="en">${esc(en)}</div>
+      <div class="bubble-help" id="bubble-he-${source}-${index}" ${item.showHe?'':'hidden'}><div class="dlg-he">${esc(he)}</div></div>
+      <div class="bubble-help" id="bubble-tl-${source}-${index}" ${item.showTl?'':'hidden'}><div class="dlg-tl">${esc(tl)}</div></div>
+      <div class="bubble-help-actions">
+        <button class="bubble-action" aria-pressed="${!!item.showHe}" onclick="toggleBubbleAid(${sourceArg},${index},'he',this)">תרגום</button>
+        <button class="bubble-action" aria-pressed="${!!item.showTl}" onclick="toggleBubbleAid(${sourceArg},${index},'tl',this)">איך אומרים?</button>
+      </div>
+    </div>
+  </div>`;
+}
+function chatMessagesHtml(currentItem=null,currentClass=''){
+  const history=Array.isArray(L?.chat)?L.chat:[];
+  const split=Math.max(0,history.length-3);
+  const older=history.slice(0,split).map((item,i)=>chatBubbleHtml(item,'history',i)).join('');
+  const recent=history.slice(split).map((item,i)=>chatBubbleHtml(item,'history',split+i)).join('');
+  const current=currentItem?chatBubbleHtml(currentItem,'current',L.i,currentClass):'';
+  return `<div class="chat-thread">
+    ${older?`<button class="history-toggle" id="historyToggle" onclick="toggleChatHistory()">${L.chatExpanded?'הסתר הודעות קודמות':'הצג '+split+' הודעות קודמות'}</button><div id="olderMessages" ${L.chatExpanded?'':'hidden'}>${older}</div>`:''}
+    ${recent}${current}
+  </div>`;
+}
+function dialogueShell(messages,composer){
+  const pct=Math.round(L.i/(L.steps.length-1)*100);
+  const meta=conversationMeta(L.idx);
+  h(`<div class="conversation-screen">
+    <div class="conversation-top">
+      <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהשיעור">✕</button>
+      <div class="pbar" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
+    </div>
+    <div class="conversation-person">
+      <div class="portrait" style="border-color:${meta.character.color}88" aria-hidden="true">${meta.character.avatar}</div>
+      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
+      <div class="mission">🎯 ${esc(meta.mission)}</div>
+    </div>
+    <div class="conversation-log" id="conversationLog" role="log" aria-live="polite">${messages}</div>
+    <div class="conversation-composer">${composer}</div>
+  </div>`);
+  requestAnimationFrame(scrollConversationToEnd);
+}
+function scrollConversationToEnd(){
+  const log=document.getElementById('conversationLog');
+  if(log) log.scrollTop=log.scrollHeight;
+}
+function scrollComposerToEnd(){
+  const composer=document.querySelector('.conversation-composer');
+  if(composer) composer.scrollTop=composer.scrollHeight;
+}
+function scrollChatItemIntoView(source,index){
+  const item=document.getElementById(`chat-bubble-${source}-${index}`);
+  if(item?.scrollIntoView) item.scrollIntoView({block:'nearest',behavior:'smooth'});
+  else scrollConversationToEnd();
+}
+function toggleBubbleAid(source,index,kind,button){
+  const target=source==='history'?L?.chat?.[index]:L?.steps?.[L.i];
+  if(!target) return;
+  const field=kind==='tl'?'showTl':'showHe';
+  target[field]=!target[field];
+  const panel=document.getElementById(`bubble-${kind}-${source}-${index}`);
+  if(panel) panel.hidden=!target[field];
+  if(button) button.setAttribute('aria-pressed',String(!!target[field]));
+  if((L?.steps?.[L.i]?.type==='listen'||source==='current')&&!L.flowPaused&&dialogueTimer) pauseDialogue();
+  saveLessonCheckpoint();
+  requestAnimationFrame(()=>source==='history'?scrollChatItemIntoView(source,index):scrollConversationToEnd());
+}
+function toggleChatHistory(){
+  if(!L) return;
+  L.chatExpanded=!L.chatExpanded;
+  const older=document.getElementById('olderMessages');
+  const btn=document.getElementById('historyToggle');
+  if(older) older.hidden=!L.chatExpanded;
+  if(btn) btn.textContent=L.chatExpanded?'הסתר הודעות קודמות':'הצג הודעות קודמות';
+  if(!L.flowPaused&&dialogueTimer) pauseDialogue();
+  saveLessonCheckpoint();
+  requestAnimationFrame(()=>{
+    if(L.chatExpanded&&btn?.scrollIntoView) btn.scrollIntoView({block:'start',behavior:'smooth'});
+    else scrollConversationToEnd();
+  });
+}
+function replayChatMessage(source,index){
+  const item=chatItem(source,index);
+  if(!item) return;
+  if(!L?.flowPaused&&dialogueTimer) pauseDialogue();
+  // Always use the speech-safe form. A Hebrew learner name remains visible
+  // in the bubble, but is omitted from the English TTS voice.
+  speak(ptext(item.line,'en',true));
+}
+function pauseDialogue(){
+  if(!L) return;
+  L.flowPaused=true;invalidateDialogueFlow(true);saveLessonCheckpoint();
+  const status=document.getElementById('flowStatus');
+  if(status) status.textContent='השיחה מושהית — אפשר לקרוא או לשמוע שוב';
+  const pause=document.getElementById('pauseFlow');if(pause) pause.hidden=true;
+  const resume=document.getElementById('resumeFlow');if(resume) resume.hidden=false;
+}
+function resumeDialogue(){
+  if(!L) return;
+  L.flowPaused=false;saveLessonCheckpoint();renderStep();
 }
 function noteHint(step){
   if(!step || !step.hid) return;
@@ -2224,8 +2984,9 @@ function revealSpeakHint(){
     if(tl) tl.hidden=false;
     if(audio) audio.hidden=false;
     if(btn) btn.hidden=true;
-  } else if(btn) btn.textContent='עוד עזרה — תעתיק ושמיעה 🔊';
+  } else if(btn) btn.textContent=step.isDlg?'🗣️':'עוד עזרה — תעתיק ושמיעה 🔊';
   saveLessonCheckpoint();
+  if(step.isDlg) requestAnimationFrame(scrollComposerToEnd);
 }
 function recordStepResult(step,result){
   if(!step || step.practiceRecorded) return;
@@ -2240,14 +3001,55 @@ function speakResultHtml(kind,msg){
   if(kind === 'requeue') button = `<button class="btn" style="margin-top:12px" onclick="requeueAndNext()">ממשיכים — נחזור לזה בסוף ⬅</button>`;
   return `<div class="result-msg ${cls}">${esc(msg||'')}</div>${button}`;
 }
+function renderDialogueSpeak(step){
+  const p=step.p,en=ptext(p,'en'),spokenEn=ptext(p,'en',true),he=ptext(p,'he'),tl=ptext(p,'tl');
+  L.curStep=step;L.attempts=step.attempts||0;L.tries=step.tries||0;
+  const mic=micAvailable(),hintLevel=step.hintLevel||0;
+  const terminal=step.resultKind==='pass'||step.resultKind==='requeue';
+  const heardHtml=step.heardText
+    ? `<div><span dir="rtl">זה מה שהטלפון קלט:</span> <bdi dir="ltr">“${esc(step.heardText)}”</bdi></div>${step.heardDetails?.words?wordFeedbackHtml(step.heardDetails):''}`:'';
+  const current=terminal?{who:'you',line:p,showHe:!!step.showHe,showTl:!!step.showTl}:null;
+  const composer=terminal?`
+    <div class="composer-head"><span class="composer-label">✔️ ההודעה נשלחה</span><span style="font-size:12px;color:var(--dim)">${conversationMeta(L.idx).character.name} עונה מיד</span></div>
+    ${heardHtml?`<div class="heard">${heardHtml}</div>`:''}
+    <div id="resultArea" role="status" aria-live="polite"><div class="result-msg good">${esc(step.resultMessage||'מעולה!')}</div></div>
+    <button class="btn ghost" style="padding:7px;margin-top:2px" onclick="next()">המשך עכשיו</button>
+  `:`
+    <div class="composer-head"><span class="composer-label">💬 עכשיו התור שלך</span><span style="font-size:12px;color:var(--dim)">תגיד באנגלית</span></div>
+    <div class="composer-intent">${esc(he)}</div>
+    <div id="englishHint" ${hintLevel<1?'hidden':''}><div class="hint-en" dir="ltr" lang="en" style="font-size:20px;text-align:center">${esc(en)}</div></div>
+    <div id="translitHint" ${hintLevel<2?'hidden':''}><div class="hint-tl" style="text-align:center;font-size:16px">${esc(tl)}</div></div>
+    <div class="composer-actions">
+      <button class="bubble-action" id="hintBtn" ${hintLevel>=2?'hidden':''} onclick="revealSpeakHint()" aria-label="רמז">${hintLevel===0?'💡':'🗣️'}</button>
+      ${mic?`<button class="conversation-mic" id="micBtn" onclick="micTap('${jsEsc(spokenEn)}')" aria-label="התחלת הקלטה">🎤</button>`:
+        `<button class="btn" style="width:auto;padding:12px 18px" onclick="manualMicDone()">אמרתי בקול ✔</button>`}
+      <button class="bubble-action" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(spokenEn)}')" aria-label="השמעת המשפט">🔊</button>
+    </div>
+    <div class="mic-hint composer-note" id="micHint">${mic?'לחץ על המיקרופון, דבר ולחץ שוב לסיום':'אמור את המשפט בקול והמשך'}</div>
+    <div class="heard" id="heard">${heardHtml}</div>
+    <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
+    ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=1?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
+    <button class="btn ghost" id="skipBtn" style="padding:7px" onclick="skipDialogueSpeak()">קשה לי עכשיו — נמשיך בשיחה</button>
+  `;
+  dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
+  if(terminal||step.retryMessage) requestAnimationFrame(scrollComposerToEnd);
+  if(terminal&&!L.flowPaused) scheduleDialogueFlow(()=>next(),1900);
+}
+function skipDialogueSpeak(){
+  const step=L?.curStep;if(!step) return;
+  recordStepResult(step,'fail');
+  step.resultKind='pass';step.resultMessage='ממשיכים — המשפט יחזור אליך לתרגול 💪';step.retryMessage='';
+  saveLessonCheckpoint();renderDialogueSpeak(step);
+}
 function renderSpeak(step){
+  if(step.isDlg) return renderDialogueSpeak(step);
   const p=step.p;
+  const en=ptext(p,'en'), he=ptext(p,'he'), tl=ptext(p,'tl');
   L.curStep=step;
   L.attempts=step.attempts||0;
   L.tries=step.tries||0;
   const label=step.warmup ? '🔥 חימום — משפט שכבר למדת'
     : step.requeued ? '🔁 סיבוב שני — עוד תרגול קטן'
-    : step.isDlg ? '💬 עכשיו התור שלך בשיחה'
     : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎤 עכשיו אתה';
   const mic=micAvailable();
   const hintLevel=step.hintLevel||0;
@@ -2256,18 +3058,17 @@ function renderSpeak(step){
     ? `<div>זה מה שהטלפון קלט: “${esc(step.heardText)}”</div>${step.heardDetails?.words?wordFeedbackHtml(step.heardDetails):''}`
     : '';
   playerShell(`
-    ${step.isDlg?chatThreadHtml():''}
     <div class="step-label">${label}</div>
     <div class="recall-card">
-      <div class="cue">${esc(p.he)}</div>
+      <div class="cue">${esc(he)}</div>
       <div class="cue-note">נסה להגיד את המשפט באנגלית בלי להסתכל</div>
       <div class="hint-box" id="englishHint" ${hintLevel<1?'hidden':''}>
-        <div class="hint-en" dir="ltr" lang="en">${esc(p.en)}</div>
+        <div class="hint-en" dir="ltr" lang="en">${esc(en)}</div>
       </div>
       <div class="hint-box" id="translitHint" ${hintLevel<2?'hidden':''}>
-        <div class="hint-tl">${esc(p.tl)}</div>
+        <div class="hint-tl">${esc(tl)}</div>
       </div>
-      <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(p.en)}')" aria-label="השמעת המשפט">🔊</button>
+      <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(en)}')" aria-label="השמעת המשפט">🔊</button>
     </div>
     <button class="btn secondary" id="hintBtn" ${terminalResult||hintLevel>=2?'hidden':''} onclick="revealSpeakHint()">${hintLevel===0?'צריך רמז? הצג באנגלית':'עוד עזרה — תעתיק ושמיעה 🔊'}</button>
     <div class="speak-zone" id="speakZone">
@@ -2275,7 +3076,7 @@ function renderSpeak(step){
         <div class="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage)}</div>
       `:mic?`
-        <button class="mic-btn" id="micBtn" onclick="micTap('${jsEsc(p.en)}')" aria-label="התחלת הקלטה">🎤</button>
+        <button class="mic-btn" id="micBtn" onclick="micTap('${jsEsc(en)}')" aria-label="התחלת הקלטה">🎤</button>
         <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
         <div class="heard" id="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
@@ -2312,7 +3113,8 @@ function wordFeedbackHtml(details){
    way out never appears before a real effort was made. A genuinely broken
    mic (force=true) reveals the manual path immediately. */
 function revealEscapes(force=false){
-  if(!force && (L?.attempts||0) < 3) return;
+  const needed=L?.curStep?.isDlg?1:3;
+  if(!force && (L?.attempts||0) < needed) return;
   const manual=document.getElementById('manualMicBtn');
   if(manual) manual.hidden=false;
   if(!force){
@@ -2324,6 +3126,7 @@ function showMicFallback(msg, forceManual=false){
   const hint=document.getElementById('micHint');
   if(hint) hint.innerHTML=msg;
   revealEscapes(forceManual);
+  requestAnimationFrame(scrollComposerToEnd);
 }
 /* one tap starts listening; a tap while listening ends the recording early,
    so background noise can't keep an attempt hanging open */
@@ -2342,7 +3145,7 @@ function startListening(target){
   const heardEl=document.getElementById('heard');
   if(!SR){ showMicFallback('בדיקת הקול לא זמינה כאן. אמור את המשפט בקול והמשך ידנית.', true); return; }
   stopRecognition();
-  if('speechSynthesis' in window) speechSynthesis.cancel();
+  cancelSpeech();
   const rec=new SR();
   const session=L, stepIndex=L.i, epoch=uiEpoch;
   L.rec=rec;
@@ -2394,6 +3197,7 @@ function startListening(target){
     step.heardText=best;
     step.heardDetails=bestDetails;
     if(heardEl) heardEl.innerHTML=`<div>זה מה שהטלפון קלט: “${esc(best)}”</div>${wordFeedbackHtml(bestDetails)}`;
+    requestAnimationFrame(scrollComposerToEnd);
     // finalize early ONLY when every word of the phrase was heard in order —
     // stopping at a partial match used to cut the mic off mid-sentence
     const missedNow=bestDetails.words.filter((w,i)=>!bestDetails.matched[i]);
@@ -2419,7 +3223,7 @@ function startListening(target){
           ? 'בדיקת הקול באנגלית אינה זמינה במכשיר הזה. אמור את המשפט בקול והמשך בלי בדיקה.'
           : 'אין הרשאה למיקרופון. אמור את המשפט בקול והמשך בלי בדיקה.', true);
     }
-    else if(code==='no-speech') showMicFallback('לא נקלט קול. אפשר לנסות שוב או להמשיך ידנית.');
+    else if(code==='no-speech') showMicFallback('לא נקלט קול. אפשר לנסות שוב או להמשיך ידנית.',!!L?.curStep?.isDlg);
     else if(code==='network') showMicFallback('בדיקת הקול אינה זמינה כרגע בגלל החיבור. אפשר להמשיך ידנית.');
     else showMicFallback('בדיקת הקול לא הצליחה. אמור את המשפט בקול והמשך ידנית.');
   };
@@ -2444,6 +3248,9 @@ function startListening(target){
     if(!bestDetails.criticalMismatch&&!missed.length){
       recordStepResult(step,'pass');
       showResult('pass',pick(PRAISE));
+    } else if(step.isDlg&&bestDetails.score>=.65&&!bestDetails.criticalMismatch){
+      recordStepResult(step,'pass');
+      showResult('pass','הבנתי אותך! ממשיכים בשיחה 👏');
     } else if(bestDetails.score>=.70&&!bestDetails.criticalMismatch&&L.tries<3){
       // almost there — a word went missing, so the practice repeats it
       showResult('retry','כמעט! 👏 לא שמעתי את: ' + missed.join(', ') + ' — עוד פעם, והפעם תדגיש אותה 💪');
@@ -2451,6 +3258,7 @@ function startListening(target){
       recordStepResult(step,'fail');
       if(step.warmup) showResult('pass','לא נורא — המשפט הזה יחזור בחימום הבא. ממשיכים! 💪');
       else if(step.requeued) showResult('pass','התאמנת על זה חזק היום — עם עוד תרגול זה יישב. ממשיכים! 💪');
+      else if(step.isDlg) showResult('pass','כל הכבוד שניסית — נמשיך בשיחה והמשפט יחזור בתרגול 💪');
       else showResult('requeue','הטלפון עדיין לא קלט את כל המשפט. נמשיך ונחזור אליו שוב בסוף');
     } else if(bestDetails.score>=.40) showResult('retry',pick(ALMOST));
     else showResult('retry','התמלול לא היה בטוח. נסה שוב לאט, או המשך ידנית — יש לך את זה');
@@ -2490,19 +3298,20 @@ function requeueAndNext(){
 /* ---- quiz ---- */
 function renderQuiz(step){
   const p = step.p;
+  const en=ptext(p,'en'), he=ptext(p,'he');
   playerShell(`
     <div class="step-label">🧩 זיהוי מהיר — אתה בטוח יודע את זה</div>
     <div class="phrase-card quiz-q">
-      <div class="phrase-en" dir="ltr" lang="en">${esc(p.en)}</div>
-      <button class="play-big" onclick="speak('${jsEsc(p.en)}')" aria-label="השמע">🔊</button>
+      <div class="phrase-en" dir="ltr" lang="en">${esc(en)}</div>
+      <button class="play-big" onclick="speak('${jsEsc(en)}')" aria-label="השמע">🔊</button>
     </div>
     <p class="sub">מה זה אומר?</p>
     <div id="quizOpts">
-      ${step.options.map(o=>`<button class="quiz-opt" onclick="answerQuiz(this, ${o===p.he})">${esc(o)}</button>`).join('')}
+      ${step.options.map(o=>`<button class="quiz-opt" onclick="answerQuiz(this, ${o===he})">${esc(o)}</button>`).join('')}
     </div>
     <div id="quizResult"></div>
   `);
-  scheduleSpeak(p.en);
+  scheduleSpeak(en);
 }
 function answerQuiz(btn, correct){
   const opts = document.querySelectorAll('.quiz-opt');
@@ -2522,21 +3331,22 @@ function answerQuiz(btn, correct){
 
 /* ---- varied, predictable lesson challenges ---- */
 function renderListenQuiz(step){
+  const en=ptext(step.p,'en'), he=ptext(step.p,'he'), tl=ptext(step.p,'tl');
   playerShell(`
     <div class="step-label">🎧 אתגר שמיעה</div>
     <h2>מה שמעת?</h2>
     <p class="challenge-help">אפשר לשמוע שוב כמה פעמים שצריך</p>
     ${step.correctAnswered?`
       <div class="phrase-card">
-        <div class="phrase-en" dir="ltr" lang="en">${wordSpans(step.p.en)}</div>
-        <div class="phrase-tl">${esc(step.p.tl)}</div>
-        <div class="phrase-he">${esc(step.p.he)}</div>
+        <div class="phrase-en" dir="ltr" lang="en">${wordSpans(en)}</div>
+        <div class="phrase-tl">${esc(tl)}</div>
+        <div class="phrase-he">${esc(he)}</div>
       </div>
       <div class="result-msg good">${esc(pick(PRAISE))}</div>
       <button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>
     `:`
       <div class="recall-card">
-        <button class="play-big" onclick="speak('${jsEsc(step.p.en)}')" aria-label="השמעת המשפט">🔊</button>
+        <button class="play-big" onclick="speak('${jsEsc(en)}')" aria-label="השמעת המשפט">🔊</button>
         <div class="audio-only">המשפט מוסתר — מקשיבים ובוחרים משמעות</div>
       </div>
       <div>
@@ -2545,7 +3355,7 @@ function renderListenQuiz(step){
       <div id="quizResult" role="status" aria-live="polite">${step.feedback?`<div class="result-msg almost">${esc(step.feedback)}</div>`:''}</div>
     `}
   `);
-  if(!step.correctAnswered) scheduleSpeak(step.p.en);
+  if(!step.correctAnswered) scheduleSpeak(en);
 }
 function answerListenQuiz(optionIndex){
   const step=L?.steps[L.i];
@@ -2563,11 +3373,12 @@ function answerListenQuiz(optionIndex){
   renderListenQuiz(step);
 }
 function renderOrder(step){
+  const en=ptext(step.p,'en'), he=ptext(step.p,'he'), tl=ptext(step.p,'tl');
   playerShell(`
     <div class="step-label">🧩 אתגר סדר</div>
     <h2>בנה את המשפט</h2>
-    <p class="challenge-help">${esc(step.p.he)} · לחץ על החלקים לפי הסדר</p>
-    ${step.showHint?`<div class="milestone" style="margin-bottom:12px"><span dir="ltr" lang="en">${esc(step.p.en)}</span></div>`:''}
+    <p class="challenge-help">${esc(he)} · לחץ על החלקים לפי הסדר</p>
+    ${step.showHint?`<div class="milestone" style="margin-bottom:12px"><span dir="ltr" lang="en">${esc(en)}</span></div>`:''}
     <div class="order-built ${step.selected.length?'':'empty'}">
       ${step.selected.map(id=>`<span class="word-chip built-chip">${esc(step.chunks[id])}</span>`).join('')}
     </div>
@@ -2576,7 +3387,7 @@ function renderOrder(step){
     </div>
     ${step.correct?`
       <div class="result-msg good">בדיוק! בנית את המשפט נכון 👏</div>
-      <div class="phrase-tl" style="text-align:center;margin:8px 0">${esc(step.p.tl)}</div>
+      <div class="phrase-tl" style="text-align:center;margin:8px 0">${esc(tl)}</div>
       <button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>
     `:step.wrong?`
       <div class="result-msg almost">החלקים נכונים — רק הסדר עוד לא. נסה שוב בנחת.</div>
@@ -2625,96 +3436,80 @@ function revealOrderHint(){
 /* ---- dialogue ---- */
 function renderDlgIntro(){
   const unitChallenge=!!L.steps[L.i].unitChallenge;
-  const scene=SCENES[L.idx];
+  const meta=conversationMeta(L.idx);
   playerShell(`
     <div class="step-label">${unitChallenge?'🏆 אתגר שיחה לסיום היחידה':'💬 תרגול שיחה'}</div>
-    <h2>${unitChallenge?'בוחר תשובה ומדבר':'עכשיו — שיחה!'}</h2>
-    ${scene?`<p class="scene">${esc(scene)}</p>`:''}
-    <p class="sub">אני אגיד את השורות שלי 🤖, ואתה תגיד את שלך 🗣️.<br>${unitChallenge?'אתה תבחר בעברית מה אתה רוצה לענות, ואז תגיד את זה באנגלית.':'בסוף השיחה תבחר בעצמך מה לענות 😎 ותמיד אפשר לפתוח רמז.'}</p>
-    <button class="btn" onclick="next()">מתחילים את השיחה 💬</button>
+    <h2>${unitChallenge?'שיחת הסיום שלך':'עכשיו — שיחה עם '+esc(meta.character.name)+'!'}</h2>
+    <div class="conversation-person" style="margin:12px 0 16px">
+      <div class="portrait" style="border-color:${meta.character.color}88">${meta.character.avatar}</div>
+      <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
+      <div class="mission">🎯 ${esc(meta.mission)}</div>
+    </div>
+    <p class="sub">${esc(fillProfileText('בכל תור [[אתה בוחר|את בוחרת]] מה באמת מתאים לך, [[אומר|אומרת]] את התשובה באנגלית והשיחה ממשיכה בהתאם.','he'))}<br>אפשר לפתוח תרגום, לשמוע שוב או להשהות בכל רגע.</p>
+    <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
   `);
 }
 function renderListen(step){
-  const line = step.line;
-  const shownEn=fillName(line.en);
-  const spokenEn=fillNameSpoken(line.en);
-  playerShell(`
-    ${chatThreadHtml()}
-    <div class="step-label">💬 בשיחה — אני מדבר</div>
-    <div class="dlg-line" id="voiceNote">
-      <div class="dlg-avatar">🤖</div>
-      <div class="dlg-bubble voice-note">🎙️ מקליט הודעה קולית<span class="vdots"><i></i><i></i><i></i></span></div>
-    </div>
-    <div id="botLine" hidden>
-      <div class="dlg-line">
-        <div class="dlg-avatar">🤖</div>
-        <div class="dlg-bubble">
-          <div class="dlg-en" dir="ltr" lang="en">${esc(shownEn)}</div>
-          <div class="dlg-tl">${esc(line.tl)}</div>
-          <div class="dlg-he">${esc(line.he)}</div>
-        </div>
-      </div>
-      <div style="text-align:center;margin:10px 0 6px">
-        <button class="play-big" id="listenReplay" aria-label="השמע שוב">🔊</button>
-      </div>
-      <div style="text-align:center;color:var(--dim);font-size:13px;margin-bottom:12px">השיחה ממשיכה לבד · 🔊 משמיע שוב</div>
-    </div>
-  `);
-  // the voice-note indicator plays for a moment, then the message "arrives",
-  // plays, and the conversation flows on by itself — no confirm button
-  const epoch=uiEpoch;
-  let advTimer=null, advanced=false;
-  const scheduleAdvance=(ms)=>{
-    clearTimeout(advTimer);
-    advTimer=setTimeout(()=>{
-      if(advanced || uiEpoch!==epoch || !L) return;
-      advanced=true;
-      next();
-    }, ms);
+  invalidateDialogueFlow(true);
+  const line=step.line,meta=conversationMeta(L.idx),spokenEn=ptext(line,'en',true);
+  const current=step.arrived?{who:'app',line,showHe:!!step.showHe,showTl:!!step.showTl}:null;
+  const paused=!!L.flowPaused;
+  const typing=`<div class="dlg-line typing-line"><div class="dlg-avatar" aria-hidden="true">${meta.character.avatar}</div><div class="dlg-bubble voice-note">${paused
+    ? `⏸️ ההודעה של ${esc(meta.character.name)} מושהית`
+    : `🎙️ ${esc(meta.character.name)} שולח הודעה<span class="vdots"><i></i><i></i><i></i></span>`}</div></div>`;
+  const composer=`
+    <div class="flow-controls">
+      <span id="flowStatus">${paused?'השיחה מושהית — אפשר לקרוא או לשמוע שוב':step.arrived?meta.character.name+' מדבר…':'הודעה חדשה בדרך…'}</span>
+      <button id="pauseFlow" ${paused?'hidden':''} onclick="pauseDialogue()">⏸ השהה</button>
+      <button id="resumeFlow" ${paused?'':'hidden'} onclick="resumeDialogue()">▶ המשך</button>
+      <button onclick="next()">דלג קדימה</button>
+    </div>`;
+  dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
+  if(paused) return;
+  if(!step.arrived){
+    scheduleDialogueFlow(()=>{ step.arrived=true;saveLessonCheckpoint();renderListen(step); },600);
+    return;
+  }
+  const readingDelay=Math.max(1900,Math.min(3400,spokenEn.length*38));
+  const speechDeadline=Date.now()+20000;
+  const afterSpeech=()=>{
+    const status=document.getElementById('flowStatus');if(status) status.textContent='ממשיך בעוד רגע…';
+    scheduleDialogueFlow(()=>next(),readingDelay);
   };
-  const playThenAdvance=()=>{
-    clearTimeout(advTimer);
-    // safety net in case speech never reports its end
-    scheduleAdvance(Math.max(4000, spokenEn.length*110));
-    speak(spokenEn, ()=>{
-      if(uiEpoch!==epoch) return;
-      // a beat after the audio ends, or reading time when there is no audio
-      scheduleAdvance(Math.max(1300, spokenEn.length*25));
-    });
+  const watchdog=()=>{
+    if('speechSynthesis' in window&&speechSynthesis.speaking){
+      if(Date.now()<speechDeadline){ scheduleDialogueFlow(watchdog,900); return; }
+      pauseDialogue();
+      const status=document.getElementById('flowStatus');
+      if(status) status.textContent='ההשמעה נעצרה — אפשר לשמוע שוב או להמשיך';
+      return;
+    }
+    afterSpeech();
   };
-  setTimeout(()=>{
-    if(uiEpoch!==epoch) return;
-    const vn=document.getElementById('voiceNote');
-    const bl=document.getElementById('botLine');
-    if(vn) vn.hidden=true;
-    if(bl) bl.hidden=false;
-    const rp=document.getElementById('listenReplay');
-    if(rp) rp.onclick=playThenAdvance;
-    playThenAdvance();
-  }, 900);
+  scheduleDialogueFlow(watchdog,Math.max(5500,spokenEn.length*160));
+  speak(spokenEn,afterSpeech);
 }
 function renderBranchChoice(step){
-  playerShell(`
-    ${chatThreadHtml()}
-    <div class="step-label">💬 מה אתה רוצה לענות?</div>
-    <h2>בחר את הכוונה בעברית</h2>
-    <p class="sub">אחרי הבחירה תגיד את התשובה באנגלית מהזיכרון.</p>
-    <div class="branch-options">
-      ${step.options.map((o,i)=>`<button class="quiz-opt" onclick="chooseBranch(${i})">${esc(o.label)}</button>`).join('')}
+  invalidateDialogueFlow(false);
+  dialogueShell(chatMessagesHtml(),`
+    <div class="composer-head"><span class="composer-label">💬 מה מתאים לך לענות?</span><span style="font-size:12px;color:var(--dim)">אחר כך אומרים באנגלית</span></div>
+    <div class="conversation-options">
+      ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranch(${i})">${esc(fillProfileText(o.label,'he'))}</button>`).join('')}
     </div>
   `);
 }
 function chooseBranch(optionIndex){
   const step=L?.steps[L.i];
   if(!step||step.type!=='branchChoice'||!step.options[optionIndex]) return;
+  invalidateDialogueFlow(true);
   const option=step.options[optionIndex];
   step.selectedIndex=optionIndex;
   const hid=phraseIdForText(option.answer.en,L.idx);
   L.steps.splice(L.i+1,2,
-    {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true},
-    {type:'listen',line:option.reply,isBranchReply:true}
+    {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true,roundIndex:step.roundIndex},
+    {type:'listen',line:option.reply,isBranchReply:true,roundIndex:step.roundIndex}
   );
-  L.i++;
+  L.i++;L.flowPaused=false;
   saveLessonCheckpoint();
   renderStep();
 }
@@ -2801,13 +3596,47 @@ document.addEventListener('pointerdown', ()=>{
 }, true);
 document.addEventListener('visibilitychange',()=>{
   if(!L) return;
-  if(document.hidden){ pauseLessonClock(); saveLessonCheckpoint(); }
-  else startLessonClock();
+  if(document.hidden){
+    pauseLessonClock();
+    // Both incoming messages and a successfully sent learner message can be
+    // waiting on an automatic transition. Preserve that transition instead
+    // of letting its timer expire silently while the tab is in the background.
+    L.resumeFlowOnVisible=!!dialogueTimer&&!L.flowPaused;
+    L.rerenderOnVisible=L.resumeFlowOnVisible||!!L.rec;
+    L.stepTransitioning=false;
+    cancelAutoSpeak();
+    stopRecognition();
+    invalidateDialogueFlow(false);
+    cancelSpeech();
+    saveLessonCheckpoint();
+  } else {
+    startLessonClock();
+    L.stepTransitioning=false;
+    if(L.rerenderOnVisible||L.resumeFlowOnVisible){
+      L.rerenderOnVisible=false;L.resumeFlowOnVisible=false;
+      L.rerenderOnPageShow=false;L.resumeFlowOnPageShow=false;renderStep();
+    }
+  }
 });
 window.addEventListener('pagehide',()=>{
-  if(L){ pauseLessonClock(); saveLessonCheckpoint(); }
-  cancelAutoSpeak(); stopRecognition();
-  if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(L){
+    L.resumeFlowOnPageShow=(!!dialogueTimer||!!L.resumeFlowOnVisible)&&!L.flowPaused;
+    L.rerenderOnPageShow=L.resumeFlowOnPageShow||!!L.rec;
+    L.stepTransitioning=false;
+    pauseLessonClock(); saveLessonCheckpoint();
+  }
+  cancelAutoSpeak(); invalidateDialogueFlow(false); stopRecognition();
+  cancelSpeech();
+});
+window.addEventListener('pageshow',()=>{
+  if(!L) return;
+  L.stepTransitioning=false;
+  if(document.hidden) return;
+  startLessonClock();
+  if(L.rerenderOnPageShow||(L.resumeFlowOnPageShow&&!L.flowPaused)){
+    L.rerenderOnPageShow=false;L.resumeFlowOnPageShow=false;L.resumeFlowOnVisible=false;L.rerenderOnVisible=false;
+    renderStep();
+  }
 });
 
 let pendingServiceWorker=null;
