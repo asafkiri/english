@@ -45,7 +45,7 @@ function runtime(seed = new Map()) {
   const expose = `
     ;globalThis.__test = {
       UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
-      OPENING_ROUNDS, MIDDLE_ROUNDS, FINALE_ROUND_OVERRIDES,
+      OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
@@ -197,7 +197,7 @@ test('there is one controlled branch conversation per unit', () => {
   }
 });
 
-test('every lesson conversation runs three rounds, all sayable from what was taught', () => {
+test('every lesson conversation runs four rounds, all sayable from what was taught', () => {
   const { api } = runtime();
   const words = s => String(s).toLowerCase().replace(/\{[a-z]+\}/g, ' ').match(/[a-z']+/g) || [];
 
@@ -216,7 +216,7 @@ test('every lesson conversation runs three rounds, all sayable from what was tau
 
   for (let idx = 0; idx < api.LESSONS.length; idx++) {
     const rounds = api.conversationRounds(idx);
-    assert.equal(rounds.length, 3, `lesson ${idx} should hold a three-round conversation`);
+    assert.equal(rounds.length, 4, `lesson ${idx} should hold a four-round conversation`);
     rounds.forEach((round, n) => {
       assert.ok(round.ask.en && round.ask.he && round.ask.tl, `lesson ${idx} round ${n} needs a full ask`);
       assert.ok(round.options.length >= 2, `lesson ${idx} round ${n} needs at least two ways to answer`);
@@ -228,11 +228,11 @@ test('every lesson conversation runs three rounds, all sayable from what was tau
           `lesson ${idx} round ${n}: reply needs all three forms`);
       });
     });
-    // the added middle round may never ask for a word the course hasn't taught
-    rounds[1].options.forEach(option => {
+    // the added rounds may never ask for a word the course hasn't taught yet
+    [1, 2].forEach(n => rounds[n].options.forEach(option => {
       words(option.answer.en).forEach(word => assert.ok(taught[idx].has(word),
-        `lesson ${idx}: middle round asks for the untaught word "${word}" in "${option.answer.en}"`));
-    });
+        `lesson ${idx}: added round ${n} asks for the untaught word "${word}" in "${option.answer.en}"`));
+    }));
   }
 
   // The conversation still opens and closes exactly where it always did —
@@ -243,9 +243,9 @@ test('every lesson conversation runs three rounds, all sayable from what was tau
     const opening = source ? source.rounds[0] : api.OPENING_ROUNDS[idx];
     const closing = source ? source.rounds[1] : null;
     assert.equal(rounds[0].ask.en, opening.ask.en, `lesson ${idx} must still open on its original line`);
-    if (closing) assert.equal(rounds[2].ask.en, closing.ask.en, `lesson ${idx} must still close on its original line`);
-    assert.notEqual(rounds[1].ask.en, rounds[0].ask.en, `lesson ${idx}: the middle round must not repeat the opening`);
-    assert.notEqual(rounds[1].ask.en, rounds[2].ask.en, `lesson ${idx}: the middle round must not repeat the closing`);
+    if (closing) assert.equal(rounds[3].ask.en, closing.ask.en, `lesson ${idx} must still close on its original line`);
+    const asks = rounds.map(r => r.ask.en);
+    assert.equal(new Set(asks).size, asks.length, `lesson ${idx}: every round must ask something different`);
   }
 });
 
