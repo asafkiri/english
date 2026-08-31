@@ -2058,6 +2058,13 @@ function resumeLesson(){
   if((!s.isReplay && s.idx !== state.completed) || (s.isReplay && s.idx >= state.completed)){
     rememberFinishedRun(s.runId); state.session = null; touchState('sessionUpdatedAt'); save(); renderHome(); return;
   }
+  // a resumed lesson is a fresh sitting: attempt counters from the previous
+  // sitting must not instantly reveal the escape buttons or burn tries
+  s.steps.forEach(st=>{
+    if(st && (st.type === 'speak') && !st.resultKind){
+      st.attempts = 0; st.tries = 0; st.retryMessage = '';
+    }
+  });
   L = {
     idx:s.idx,lesson:LESSONS[s.idx],steps:s.steps,i:s.i,isReplay:!!s.isReplay,
     tries:0,attempts:0,rec:null,timerId:null,elapsedBeforeMs:Number(s.elapsedMs)||0,
