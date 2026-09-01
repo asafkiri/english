@@ -49,10 +49,15 @@ function runtime(seed = new Map()) {
       defaults, load, save, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES,
+      PRACTICE_STAGE_DIRECTIONS, STAGE_DIRECTION_PRESETS, STAGE_ACTION_DURATIONS_MS,
       practiceStoryById, practiceSceneById, matchesPracticeWhen, resolvePracticeBeat,
       applyPracticeChoice, fillPracticeStoryTokens, fillProfileText, materializePracticeBeat,
-      initialPracticeStageWorld, applyPracticeStageMutation, enterPracticeStageAction,
-      settlePracticeStageAction, practiceStageModel, stagePropsHtml, stageWeatherHtml, syncStageVisualBlock,
+      initialPracticeStageWorld, initialPracticeVars, applyPracticeStageMutation, enterPracticeStageAction,
+      ensurePracticeStageWorld, settlePracticeStageAction, finishPracticeStageActionVisual,
+      practiceStageModel, practiceStageDirection, practiceStageActionDuration,
+      stageDirectionModel, stageDirectionClasses, stageBackdropMomentClasses,
+      stageActionClass, stageHeldObjectClasses, stageWorldClasses,
+      stagePropsHtml, stageWeatherHtml, syncStageVisualBlock,
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
@@ -578,7 +583,13 @@ test('every authored free-practice path is complete, coherent and learned', () =
       });
     };
 
-    walk(0, {}, 0, '', '');
+    const initialVarSeeds = story.id === 'maya_lost_dog'
+      ? [
+        { size: 'big', collar: 'blue' }, { size: 'big', collar: 'red' },
+        { size: 'small', collar: 'blue' }, { size: 'small', collar: 'red' },
+      ]
+      : [{}];
+    for (const initialVars of initialVarSeeds) walk(0, initialVars, 0, '', '');
     assert.ok(pathCount > 0 && pathCount < 200_000, `${story.id}: unreasonable path count ${pathCount}`);
     assert.ok(rememberedChoiceComparisons > 0, `${story.id}: no choice affects a later turn`);
     story.beats.forEach((beat, beatIndex) => storyVariants(beat).forEach((variant, variantIndex) => {
@@ -765,8 +776,8 @@ test('free-practice captions keep Hebrew visible but let English lead', () => {
     'the translation should arrive shortly after the English, not at the same instant');
   assert.match(html, /translationReadingDelay=Math\.max\(2200,Math\.min\(3800,translatedLength\*45\)\)/,
     'short follow-up lines still need enough time for a beginner to read the translation');
-  assert.match(html, /@media \(max-height:620px\)[\s\S]*--avatar:clamp\(84px,16vh,108px\)/,
-    'bilingual captions need a compact layout on short phones');
+  assert.match(html, /@media \(max-height:620px\)[\s\S]*--avatar:clamp\(108px,19vh,124px\)/,
+    'short phones should keep the full-body acting large enough to read');
   assert.match(html, /requestAnimationFrame\(keepStageCaptionVisible\)/,
     'the bilingual caption should be brought into view after a stage update');
 
@@ -797,7 +808,7 @@ test('a story event remains visible while choosing and in conversation history',
   api.startPractice();
   const lesson = api.getLesson();
   const story = api.practiceStoryById(lesson.practiceStoryId);
-  let vars = {};
+  let vars = api.initialPracticeVars(story);
   let eventIndex = -1;
   let resolved = null;
   for (let i = 0; i < story.beats.length; i++) {
@@ -823,46 +834,110 @@ test('a story event remains visible while choosing and in conversation history',
   api.stopLessonTimers(false);
 });
 
+test('every free-practice line has one coherent authored acting direction', () => {
+  const { api } = runtime();
+  const cueIds = [];
+
+  for (const story of api.PRACTICE_STORIES) {
+    assert.equal(
+      Object.keys(api.PRACTICE_STAGE_DIRECTIONS[story.id] || {}).sort().join('|'),
+      Array.from(story.beats, beat => beat.id).sort().join('|'),
+      `${story.id}: every beat needs an ask/reply direction pair`,
+    );
+    for (const beat of story.beats) for (const variant of storyVariants(beat)) {
+      for (const phase of ['ask', 'reply']) {
+        const cue = api.practiceStageDirection(story, beat, variant, phase);
+        assert.ok(cue, `${story.id}/${beat.id}/${variant.id || 'base'}: missing ${phase} direction`);
+        assert.ok(api.STAGE_DIRECTION_PRESETS[cue.preset], `${cue.id}: unknown direction preset`);
+        cueIds.push(cue.id);
+      }
+    }
+
+    const session = {
+      practiceStoryId: story.id, practiceVars: api.initialPracticeVars(story),
+      steps: Array.from({ length: 2 + story.beats.length * 4 }, () => ({ type: 'pending' })),
+    };
+    for (let beatIndex = 0; beatIndex < story.beats.length; beatIndex++) {
+      assert.equal(api.materializePracticeBeat(beatIndex, session), true);
+      const at = 1 + beatIndex * 4;
+      assert.ok(session.steps[at].stageCue?.id, `${story.id}/${beatIndex}: ask cue not materialized`);
+      assert.ok(session.steps[at + 1].replyStageCue?.id, `${story.id}/${beatIndex}: reply cue not materialized`);
+      session.practiceVars = api.applyPracticeChoice(session.practiceVars, session.steps[at + 1].options[0]);
+    }
+  }
+
+  assert.equal(new Set(cueIds).size, cueIds.length, 'each variant and phase needs a stable unique cue id');
+});
+
 test('authored stage actions are narrated, unique and use the supported world contract', () => {
   const { api } = runtime();
   const gestures = new Set([
     'place-brushes', 'pick-up-phone', 'hand-over-phone', 'phone-to-desk',
     'reveal-wrong-bag', 'replace-bag', 'start-rain', 'stop-rain',
+    'inspect-found-bag', 'find-lost-bag', 'serve-wrong-meal', 'swap-correct-meal',
+    'catch-photo', 'return-photo', 'choose-activity', 'confirm-activity',
+    'signal-breaks', 'message-arrives', 'lose-ball', 'recover-ball', 'score-ball',
+    'dog-appears', 'inspect-dog', 'dog-reunion', 'reveal-robot', 'robot-lights',
   ]);
+  const motions = new Set(['reach-low', 'present', 'swap', 'catch', 'offer', 'react', 'celebrate']);
   const worldValues = {
     brushes: new Set(['held', 'placed']),
     phone: new Set(['floor', 'held', 'learner', 'desk']),
     bag: new Set(['none', 'wrong', 'right']),
     weather: new Set(['sunny', 'rain']),
+    lostBag: new Set(['missing', 'wrong', 'found']),
+    mealTray: new Set(['none', 'wrong', 'correct']),
+    photo: new Set(['notebook', 'held', 'learner']),
+    activity: new Set(['options', 'choosing', 'selected']),
+    connection: new Set(['clear', 'bad', 'message']),
+    ball: new Set(['held', 'lost', 'scored']),
+    lostDog: new Set(['none', 'spotted', 'identified', 'reunited']),
+    robot: new Set(['bag', 'awake', 'lit']),
   };
   const ids = [];
+  const locations = new Map();
+  const actionStories = new Set();
 
   for (const story of api.PRACTICE_STORIES) {
     for (const [key, value] of Object.entries(story.stageInitial || {})) {
       assert.ok(worldValues[key]?.has(value), `${story.id}: unsupported initial ${key}=${value}`);
     }
     for (const beat of story.beats) for (const variant of storyVariants(beat)) {
-      const action = variant.stageAction;
+      const action = variant.stageAction || beat.stageAction;
       if (!action) continue;
-      ids.push(action.id);
-      assert.ok(variant.event, `${story.id}/${beat.id}: a visible action needs matching narration`);
+      const location = `${story.id}/${beat.id}`;
+      assert.ok(variant.event || beat.event, `${location}: a visible action needs matching narration`);
       assert.ok(typeof action.id === 'string' && action.id.trim(), `${story.id}/${beat.id}: missing action id`);
       assert.ok(gestures.has(action.gesture), `${story.id}/${beat.id}: unsupported ${action.gesture}`);
+      assert.ok(api.STAGE_ACTION_DURATIONS_MS[action.gesture], `${location}: gesture needs an authored duration`);
+      assert.equal(api.practiceStageActionDuration(action), api.STAGE_ACTION_DURATIONS_MS[action.gesture]);
+      if (action.motion) assert.ok(motions.has(action.motion), `${location}: unsupported motion ${action.motion}`);
       assert.ok(action.set && Object.keys(action.set).length, `${story.id}/${beat.id}: action changes no world state`);
       for (const [key, value] of Object.entries(action.set)) {
         assert.ok(worldValues[key]?.has(value), `${story.id}/${beat.id}: unsupported ${key}=${value}`);
+      }
+      if (locations.has(action.id)) {
+        assert.equal(locations.get(action.id), location, `${action.id}: reused by two different beats`);
+      } else {
+        locations.set(action.id, location);
+        ids.push(action.id);
+        actionStories.add(story.id);
       }
     }
   }
 
   assert.equal(new Set(ids).size, ids.length, 'stage action ids must be globally unique');
-  assert.deepEqual(ids.sort(), [
-    'dana-place-brushes', 'maya-rain-starts', 'maya-sun-returns',
-    'nina-open-wrong-bag', 'nina-replace-with-right-bag',
-    'sam-hand-phone-to-desk', 'sam-hand-phone-to-learner', 'sam-pick-up-phone',
-  ]);
-  for (const gesture of gestures) assert.match(html, new RegExp(`\\.stage-avatar\\.stage-action-${gesture}`),
-    `${gesture}: authored action needs a matching character gesture`);
+  assert.equal(ids.length, 27);
+  assert.equal(actionStories.size, api.PRACTICE_STORIES.length, 'every randomly selected story needs a physical event');
+  for (const [id, location] of locations) {
+    const [storyId, beatId] = location.split('/');
+    const beat = api.practiceStoryById(storyId).beats.find(row => row.id === beatId);
+    const action = beat.stageAction || storyVariants(beat).find(row => row.stageAction)?.stageAction;
+    if (action.motion) assert.match(html, new RegExp(`\\.stage-avatar\\.stage-motion-${action.motion}`),
+      `${id}: reusable body motion is missing`);
+    else assert.match(html, new RegExp(`\\.stage-avatar\\.stage-action-${action.gesture}`),
+      `${id}: authored character gesture is missing`);
+  }
 
   const artStory = api.practiceStoryById('first_art_class');
   const materialized = {
@@ -962,6 +1037,97 @@ test('stage actions run once on arrival and their logical result persists across
   assert.match(api.stageWeatherHtml(api.practiceStageModel(weather)), /returning-sun/);
   api.settlePracticeStageAction(weather);
   assert.equal(api.stageWeatherHtml(api.practiceStageModel(weather)), '');
+
+  const visual = sessionFor('morning_robot');
+  const revealRobot = actionAt('morning_robot', 2, visual.practiceVars);
+  assert.equal(enter(visual, revealRobot), true);
+  assert.equal(api.finishPracticeStageActionVisual(visual, revealRobot), true);
+  assert.equal(visual.pendingStageAction, null);
+  assert.deepEqual(Array.from(visual.stagePlayedActions), ['tom-reveals-robot']);
+  assert.equal(visual.stageWorld.robot, 'awake');
+  assert.equal(api.finishPracticeStageActionVisual(visual, revealRobot), false,
+    'a completed action callback must be idempotent');
+  visual.pendingStageAction = { id: 'newer-action', gesture: 'robot-lights' };
+  assert.equal(api.finishPracticeStageActionVisual(visual, revealRobot), false,
+    'a stale timer must never clear the next action');
+  assert.equal(visual.pendingStageAction.id, 'newer-action');
+});
+
+test('every story world renders a persistent prop and held objects share the hand rig', () => {
+  const { api } = runtime();
+  const modelFor = (storyId, world, vars = {}, action = null) => api.practiceStageModel({
+    practiceStoryId: storyId, practiceVars: vars, stageWorld: world,
+    stagePlayedActions: [], pendingStageAction: action,
+  });
+
+  const oldRobotSession = { practiceStoryId: 'morning_robot', stageWorld: {}, stagePlayedActions: [] };
+  assert.equal(api.ensurePracticeStageWorld(oldRobotSession).robot, 'bag',
+    'older sessions should receive a newly authored initial prop');
+  oldRobotSession.stageWorld.robot = 'lit';
+  assert.equal(api.ensurePracticeStageWorld(oldRobotSession).robot, 'lit',
+    'merging missing defaults must never overwrite story progress');
+
+  const renderCases = [
+    ['first_art_class', { brushes: 'placed' }, {}, /prop-brushes/],
+    ['phone_in_elevator', { phone: 'floor' }, {}, /prop-phone/],
+    ['nina_wrong_bag', { bag: 'right' }, { color: 'black' }, /prop-bag[^>]*shirt-black/],
+    ['lost_bag', { lostBag: 'found' }, {}, /prop-lost-bag[^>]*lost-bag-found/],
+    ['restaurant_mixup', { mealTray: 'correct' }, { meal: 'burger', drink: 'water' }, /prop-meal[^>]*served-burger/],
+    ['family_photo_wind', { photo: 'notebook' }, {}, /prop-photo[^>]*at-notebook/],
+    ['school_activity', { activity: 'selected' }, { final: 'football' }, /prop-activity[^>]*selected-football/],
+    ['broken_phone_plan', { connection: 'message' }, {}, /prop-connection[^>]*connection-message/],
+    ['tom_last_shot', { ball: 'lost' }, {}, /prop-ball[^>]*at-lost/],
+    ['maya_lost_dog', { lostDog: 'spotted' }, { size: 'small', collar: 'red' }, /prop-dog[^>]*dog-spotted/],
+    ['morning_robot', { robot: 'lit' }, {}, /prop-robot[^>]*robot-lit/],
+  ];
+  for (const [storyId, world, vars, expected] of renderCases) {
+    assert.match(api.stagePropsHtml(modelFor(storyId, world, vars)), expected, `${storyId}: missing final prop`);
+  }
+  assert.match(api.stageWeatherHtml(modelFor('maya_rainy_beach', { weather: 'rain' })), /rain-field/);
+  const dogPair = api.stagePropsHtml(modelFor('maya_lost_dog', { lostDog: 'spotted' }, { size: 'small', collar: 'blue' }));
+  assert.match(dogPair, /dog-friend/);
+  assert.match(dogPair, /stroke="#c9ab61"/,
+    'Maya\'s dog needs a distinct gold collar even when the lost dog is small and blue-collared');
+  assert.match(dogPair, /stroke="#3e8fd8"/);
+
+  const stable = { practiceStoryId: 'restaurant_mixup', practiceVars: { meal: 'pizza', drink: 'none' }, stageWorld: { mealTray: 'wrong' } };
+  const firstKey = api.practiceStageModel(stable).key;
+  assert.equal(api.practiceStageModel(stable).key, firstKey, 'identical stage state needs a stable visual key');
+  stable.practiceVars.meal = 'burger';
+  assert.notEqual(api.practiceStageModel(stable).key, firstKey, 'a visible story choice must refresh its prop');
+
+  const bagSwap = modelFor('lost_bag', { lostBag: 'found' }, {}, {
+    id: 'ben-find-own-bag', gesture: 'find-lost-bag', motion: 'swap',
+  });
+  assert.match(api.stagePropsHtml(bagSwap), /lost-bag-wrong is-leaving/);
+  assert.match(api.stagePropsHtml(bagSwap), /lost-bag-found is-arriving/);
+  const mealSwap = modelFor('restaurant_mixup', { mealTray: 'correct' }, { meal: 'pizza', drink: 'water' }, {
+    id: 'alex-swap-correct-meal', gesture: 'swap-correct-meal', motion: 'swap',
+  });
+  assert.match(api.stagePropsHtml(mealSwap), /meal-wrong[^>]*is-leaving/);
+  assert.match(api.stagePropsHtml(mealSwap), /meal-correct[^>]*is-arriving/);
+
+  assert.match(api.stageHeldObjectClasses({ world: { photo: 'held' } }), /has-held-photo/);
+  assert.match(api.stageHeldObjectClasses({ world: { photo: 'learner' }, action: { gesture: 'return-photo' } }), /has-held-photo/,
+    'the photo stays gripped until the release contact');
+  assert.doesNotMatch(api.stageHeldObjectClasses({ world: { photo: 'learner' } }), /has-held-photo/);
+  assert.match(api.stageHeldObjectClasses({ world: { ball: 'held' } }), /has-held-ball/);
+  assert.match(api.stageHeldObjectClasses({ world: { ball: 'scored' }, action: { gesture: 'score-ball' } }), /has-held-ball/,
+    'the ball stays in the hand until the throw');
+  assert.doesNotMatch(api.stageHeldObjectClasses({ world: { ball: 'scored' } }), /has-held-ball/);
+
+  const slotAt = html.indexOf('class="hand-object-slot"');
+  const fingersAt = html.indexOf('class="grip-fingers"', slotAt);
+  assert.ok(slotAt >= 0 && fingersAt > slotAt, 'the front fingers must be painted above held objects');
+  for (const held of ['held-brushes-art', 'held-phone-art', 'held-photo-art', 'held-ball-art']) {
+    const at = html.indexOf(`class="held-object ${held}"`, slotAt);
+    assert.ok(at > slotAt && at < fingersAt, `${held}: object must live inside the hand slot`);
+  }
+  for (const held of ['brushes', 'phone', 'photo', 'ball']) {
+    assert.match(html, new RegExp(`has-held-${held}`), `${held}: held state needs a visibility selector`);
+  }
+  assert.match(html, /\.stage-bg\.has-story-connection \.phone-signal/,
+    'the authored phone prop must replace the room signal instead of duplicating it');
 });
 
 test('an arriving stage action animates through renderListen and settles through next', () => {
@@ -973,6 +1139,7 @@ test('an arriving stage action animates through renderListen and settles through
   const beat = api.resolvePracticeBeat(story, 3, {});
   const listen = {
     type: 'listen', line: beat.ask, event: beat.event, stageAction: beat.stageAction,
+    stageCue: beat.stageCue,
     practiceBeatId: beat.id, practiceVariantId: beat.variantId, roundIndex: 3, arrived: true,
   };
   const choice = {
@@ -995,14 +1162,25 @@ test('an arriving stage action animates through renderListen and settles through
   api.renderStep();
   assert.equal(lesson.stageWorld.brushes, 'placed');
   assert.equal(lesson.pendingStageAction.id, 'dana-place-brushes');
+  assert.ok(lesson.stageActionSettleTimer, 'the visual action should have its own settle timer');
   assert.match(app.innerHTML, /stage-action-place-brushes/);
   assert.match(app.innerHTML, /at-placed is-placing/);
+  assert.match(app.innerHTML, new RegExp(`data-stage-cue="${beat.stageCue.id}"`));
+  const direction = api.STAGE_DIRECTION_PRESETS[beat.stageCue.preset];
+  assert.match(app.innerHTML, /stage-directed/);
+  assert.match(app.innerHTML, new RegExp(`stage-pose-${direction.pose}`));
+  assert.match(app.innerHTML, new RegExp(`stage-expression-${direction.expression}`));
+  assert.match(app.innerHTML, new RegExp(`stage-gaze-${direction.gaze}`));
+  assert.match(app.innerHTML, new RegExp(`stage-shot-${direction.camera}`));
+  assert.match(app.innerHTML, new RegExp(`stage-camera-${direction.camera}`));
+  assert.match(app.innerHTML, new RegExp(`stage-mood-${direction.mood}`));
   assert.match(app.innerHTML, /id="stageEventAnnouncer" aria-live="polite" aria-atomic="true"/,
     'the stage should keep a persistent empty announcer for narrated events');
 
   api.next();
   assert.equal(lesson.i, 1);
   assert.equal(lesson.pendingStageAction, null);
+  assert.equal(lesson.stageActionSettleTimer, null);
   assert.equal(lesson.stageWorld.brushes, 'placed');
   assert.match(app.innerHTML, /at-placed/);
   assert.doesNotMatch(app.innerHTML, /is-placing|stage-action-place-brushes/,
@@ -1016,15 +1194,22 @@ test('stage action markup updates independently and has a reduced-motion final s
   assert.match(html, /id="stageWeather" data-visual-key=/);
   assert.match(html, /syncStageVisualBlock\(screen\.querySelector\('#stageStoryProps'\)/);
   assert.match(html, /syncStageVisualBlock\(screen\.querySelector\('#stageWeather'\)/);
-  assert.match(html, /pendingStageAction[\s\S]*setTimeout\(\(\)=>[\s\S]*1400\)/,
-    'short screens should show the action before scrolling the bilingual caption into view');
-  assert.match(html, /if\(stageActionStarted\) requestAnimationFrame\(keepStageActionVisible\)/,
+  assert.match(html, /practiceStageActionVisualDelay\(action\)\+140/,
+    'caption scrolling should wait for the authored action, including longer cinematic beats');
+  assert.match(html, /behavior:prefersReducedStageMotion\(\)\?'auto':'smooth'/,
+    'reduced-motion users should not be forced through a smooth programmatic scroll');
+  assert.match(html, /if\(stageActionStarted\)\{[\s\S]*requestAnimationFrame\(keepStageActionVisible\)/,
     'a later action should restore the avatar even when the stage was already scrolled to the prior caption');
   assert.match(html, /announceStageEvent\(step\.arrived\?step\.event:null\)/);
   assert.match(html, /announcer\.textContent=''[\s\S]*requestAnimationFrame\(\(\)=>[\s\S]*announcer\.textContent=text/,
     'the persistent live region must be mutated after insertion for reliable screen-reader output');
-  assert.match(html, /\.prop-bag\.is-leaving,\.rain-field\.is-clearing\{display:none\}/,
-    'reduced motion should jump directly to the resolved bag and sunny weather');
+  assert.match(html, /\.stage-prop\.is-leaving,[^\{]*\.rain-field\.is-clearing\{display:none\}/,
+    'reduced motion should jump directly to resolved props and sunny weather');
+  const reduced = html.match(/@media \(prefers-reduced-motion:reduce\)\{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.ok(reduced, 'stage animation needs a reduced-motion contract');
+  assert.doesNotMatch(reduced, /transform:none!important/,
+    'reduced motion must preserve static SVG joints and character accessories');
+  assert.match(reduced, /\.stage-moment-fx\{display:none\}/);
 
   const { api } = runtime();
   const block = { dataset: {}, innerHTML: '' };
@@ -1042,6 +1227,15 @@ test('stage action markup updates independently and has a reduced-motion final s
     'a frame timestamp must not bypass the action-first scroll delay');
   api.settlePracticeStageAction(actionSession);
   assert.equal(actionSession.stageCaptionAfterActionTimer, null);
+
+  const timerSession = {
+    stageActionSettleTimer: setTimeout(() => {}, 5000),
+    stageCaptionAfterActionTimer: setTimeout(() => {}, 5000),
+  };
+  api.setLesson(timerSession);
+  api.stopLessonTimers(false);
+  assert.equal(timerSession.stageActionSettleTimer, null);
+  assert.equal(timerSession.stageCaptionAfterActionTimer, null);
   api.setLesson(null);
 });
 
@@ -1073,9 +1267,12 @@ test('a free-practice choice fills the next fixed slot without changing progress
   assert.equal(lesson.i, 3);
   assert.equal(lesson.steps[3].p, option.answer);
   assert.equal(lesson.steps[4].line, option.reply);
+  assert.equal(lesson.steps[4].stageCue, choice.replyStageCue);
   assert.equal(lesson.steps[5].line, expectedNext.ask);
   assert.equal(lesson.steps[6].options, expectedNext.options);
   assert.equal(lesson.steps[5].practiceVariantId, expectedNext.variantId);
+  assert.equal(lesson.steps[5].stageCue.id, expectedNext.stageCue.id);
+  assert.equal(lesson.steps[6].replyStageCue.id, expectedNext.replyStageCue.id);
   for (const [key, value] of Object.entries(option.set || {})) assert.equal(lesson.practiceVars[key], value);
   api.stopLessonTimers(false);
 });
