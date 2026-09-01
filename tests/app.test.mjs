@@ -51,10 +51,13 @@ function runtime(seed = new Map()) {
       PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES,
       practiceStoryById, practiceSceneById, matchesPracticeWhen, resolvePracticeBeat,
       applyPracticeChoice, fillPracticeStoryTokens, fillProfileText, materializePracticeBeat,
+      initialPracticeStageWorld, applyPracticeStageMutation, enterPracticeStageAction,
+      settlePracticeStageAction, practiceStageModel, stagePropsHtml, stageWeatherHtml, syncStageVisualBlock,
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
       manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, captionHtml, chatMessagesHtml,
+      keepStageCaptionVisible,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -818,6 +821,228 @@ test('a story event remains visible while choosing and in conversation history',
   assert.match(app.innerHTML, /class="story-event /);
   assert.ok(app.innerHTML.includes(listen.event.emoji));
   api.stopLessonTimers(false);
+});
+
+test('authored stage actions are narrated, unique and use the supported world contract', () => {
+  const { api } = runtime();
+  const gestures = new Set([
+    'place-brushes', 'pick-up-phone', 'hand-over-phone', 'phone-to-desk',
+    'reveal-wrong-bag', 'replace-bag', 'start-rain', 'stop-rain',
+  ]);
+  const worldValues = {
+    brushes: new Set(['held', 'placed']),
+    phone: new Set(['floor', 'held', 'learner', 'desk']),
+    bag: new Set(['none', 'wrong', 'right']),
+    weather: new Set(['sunny', 'rain']),
+  };
+  const ids = [];
+
+  for (const story of api.PRACTICE_STORIES) {
+    for (const [key, value] of Object.entries(story.stageInitial || {})) {
+      assert.ok(worldValues[key]?.has(value), `${story.id}: unsupported initial ${key}=${value}`);
+    }
+    for (const beat of story.beats) for (const variant of storyVariants(beat)) {
+      const action = variant.stageAction;
+      if (!action) continue;
+      ids.push(action.id);
+      assert.ok(variant.event, `${story.id}/${beat.id}: a visible action needs matching narration`);
+      assert.ok(typeof action.id === 'string' && action.id.trim(), `${story.id}/${beat.id}: missing action id`);
+      assert.ok(gestures.has(action.gesture), `${story.id}/${beat.id}: unsupported ${action.gesture}`);
+      assert.ok(action.set && Object.keys(action.set).length, `${story.id}/${beat.id}: action changes no world state`);
+      for (const [key, value] of Object.entries(action.set)) {
+        assert.ok(worldValues[key]?.has(value), `${story.id}/${beat.id}: unsupported ${key}=${value}`);
+      }
+    }
+  }
+
+  assert.equal(new Set(ids).size, ids.length, 'stage action ids must be globally unique');
+  assert.deepEqual(ids.sort(), [
+    'dana-place-brushes', 'maya-rain-starts', 'maya-sun-returns',
+    'nina-open-wrong-bag', 'nina-replace-with-right-bag',
+    'sam-hand-phone-to-desk', 'sam-hand-phone-to-learner', 'sam-pick-up-phone',
+  ]);
+  for (const gesture of gestures) assert.match(html, new RegExp(`\\.stage-avatar\\.stage-action-${gesture}`),
+    `${gesture}: authored action needs a matching character gesture`);
+
+  const artStory = api.practiceStoryById('first_art_class');
+  const materialized = {
+    practiceStoryId: artStory.id, practiceVars: {},
+    steps: Array.from({ length: 2 + artStory.beats.length * 4 }, () => ({ type: 'pending' })),
+  };
+  assert.equal(api.materializePracticeBeat(3, materialized), true);
+  assert.equal(materialized.steps[13].stageAction.id, 'dana-place-brushes');
+  assert.equal(materialized.steps[14].stageAction, undefined,
+    'the duplicated narration on the choice screen must not carry the one-shot action');
+
+  const phoneStory = api.practiceStoryById('phone_in_elevator');
+  for (const [vars, beatIndex, actionId] of [
+    [{ owner: 'mine' }, 2, 'sam-hand-phone-to-learner'],
+    [{ owner: 'other' }, 3, 'sam-hand-phone-to-desk'],
+  ]) {
+    const phonePath = {
+      practiceStoryId: phoneStory.id, practiceVars: vars,
+      steps: Array.from({ length: 2 + phoneStory.beats.length * 4 }, () => ({ type: 'pending' })),
+    };
+    assert.equal(api.materializePracticeBeat(beatIndex, phonePath), true);
+    const at = 1 + beatIndex * 4;
+    assert.equal(phonePath.steps[at].stageAction.id, actionId);
+    assert.equal(phonePath.steps[at + 1].stageAction, undefined);
+  }
+});
+
+test('stage actions run once on arrival and their logical result persists across later turns', () => {
+  const { api } = runtime();
+  const sessionFor = (storyId, vars = {}) => ({
+    isPractice: true, practiceStoryId: storyId, practiceVars: { ...vars },
+    stageWorld: api.initialPracticeStageWorld(storyId), stagePlayedActions: [], pendingStageAction: null,
+  });
+  const actionAt = (storyId, beatIndex, vars = {}) => {
+    const beat = api.resolvePracticeBeat(storyId, beatIndex, vars);
+    assert.ok(beat, `${storyId}/${beatIndex}: unresolved beat`);
+    return beat.stageAction;
+  };
+  const enter = (session, action, arrived = true) => api.enterPracticeStageAction({
+    arrived, stageAction: action,
+  }, session);
+
+  const art = sessionFor('first_art_class');
+  const brushes = actionAt('first_art_class', 3);
+  assert.deepEqual({ ...art.stageWorld }, { brushes: 'held' });
+  assert.equal(enter(art, brushes, false), false, 'the prop must not move while the line is still incoming');
+  assert.deepEqual({ ...art.stageWorld }, { brushes: 'held' });
+  assert.equal(enter(art, brushes), true);
+  assert.equal(enter(art, brushes), false, 'rerendering the same listen step must not replay its action');
+  assert.equal(art.stageWorld.brushes, 'placed');
+  assert.match(api.stagePropsHtml(api.practiceStageModel(art)), /at-placed is-placing/);
+  api.settlePracticeStageAction(art);
+  assert.equal(art.stageWorld.brushes, 'placed', 'settling a gesture must keep its final prop state');
+  assert.match(api.stagePropsHtml(api.practiceStageModel(art)), /at-placed/);
+  assert.doesNotMatch(api.stagePropsHtml(api.practiceStageModel(art)), /is-placing/);
+
+  const mine = sessionFor('phone_in_elevator', { owner: 'mine' });
+  enter(mine, actionAt('phone_in_elevator', 0));
+  api.settlePracticeStageAction(mine);
+  assert.equal(mine.stageWorld.phone, 'held');
+  enter(mine, actionAt('phone_in_elevator', 2, mine.practiceVars));
+  api.settlePracticeStageAction(mine);
+  assert.equal(mine.stageWorld.phone, 'learner');
+
+  const other = sessionFor('phone_in_elevator', { owner: 'other' });
+  enter(other, actionAt('phone_in_elevator', 0));
+  api.settlePracticeStageAction(other);
+  assert.equal(actionAt('phone_in_elevator', 2, other.practiceVars), null,
+    'the phone stays with Sam until the front-desk beat on the other-owner path');
+  enter(other, actionAt('phone_in_elevator', 3, other.practiceVars));
+  api.settlePracticeStageAction(other);
+  assert.equal(other.stageWorld.phone, 'desk');
+
+  const bag = sessionFor('nina_wrong_bag', { color: 'black', price: 'fifty' });
+  enter(bag, actionAt('nina_wrong_bag', 4, bag.practiceVars));
+  api.settlePracticeStageAction(bag);
+  assert.equal(bag.stageWorld.bag, 'wrong');
+  assert.match(api.stagePropsHtml(api.practiceStageModel(bag)), /shirt-red/);
+  enter(bag, actionAt('nina_wrong_bag', 7, bag.practiceVars));
+  api.settlePracticeStageAction(bag);
+  const rightBag = api.stagePropsHtml(api.practiceStageModel(bag));
+  assert.equal(bag.stageWorld.bag, 'right');
+  assert.match(rightBag, /shirt-black/);
+  assert.doesNotMatch(rightBag, /shirt-red/, 'the red mistake must be gone once the right bag arrives');
+
+  const weather = sessionFor('maya_rainy_beach', { wait: 'music' });
+  enter(weather, actionAt('maya_rainy_beach', 5, weather.practiceVars));
+  api.settlePracticeStageAction(weather);
+  assert.equal(weather.stageWorld.weather, 'rain');
+  assert.match(api.stageWeatherHtml(api.practiceStageModel(weather)), /rain-field/);
+  assert.equal(actionAt('maya_rainy_beach', 6, weather.practiceVars), null);
+  assert.equal(actionAt('maya_rainy_beach', 7, weather.practiceVars), null);
+  assert.equal(weather.stageWorld.weather, 'rain', 'rain must survive both waiting beats');
+  enter(weather, actionAt('maya_rainy_beach', 8, weather.practiceVars));
+  assert.equal(weather.stageWorld.weather, 'sunny');
+  assert.match(api.stageWeatherHtml(api.practiceStageModel(weather)), /is-clearing/);
+  assert.match(api.stageWeatherHtml(api.practiceStageModel(weather)), /returning-sun/);
+  api.settlePracticeStageAction(weather);
+  assert.equal(api.stageWeatherHtml(api.practiceStageModel(weather)), '');
+});
+
+test('an arriving stage action animates through renderListen and settles through next', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+  const story = api.practiceStoryById('first_art_class');
+  const beat = api.resolvePracticeBeat(story, 3, {});
+  const listen = {
+    type: 'listen', line: beat.ask, event: beat.event, stageAction: beat.stageAction,
+    practiceBeatId: beat.id, practiceVariantId: beat.variantId, roundIndex: 3, arrived: true,
+  };
+  const choice = {
+    type: 'branchChoice', options: beat.options, event: beat.event,
+    practiceBeatId: beat.id, practiceVariantId: beat.variantId, roundIndex: 3,
+  };
+  const lesson = {
+    idx: 0, steps: [listen, choice], i: 0, isReplay: true, isPractice: true,
+    practiceStoryId: story.id, practiceVars: {}, practiceDecisions: [],
+    practiceMeta: {
+      characterId: 'dana', character: { name: 'דנה', avatar: '🎨', color: '#38bdf8', f: true },
+      placeEmoji: '🎨', place: 'בחוג', mission: story.goal, role: 'מדריכה', bg: 'art-studio',
+    },
+    stageWorld: api.initialPracticeStageWorld(story), stagePlayedActions: [], pendingStageAction: null,
+    elapsedBeforeMs: 0, activeSince: Date.now(), chat: [], chatExpanded: false,
+    tries: 0, attempts: 0, rec: null, timerId: null, runId: 'stage-lifecycle-test',
+  };
+  api.setLesson(lesson);
+
+  api.renderStep();
+  assert.equal(lesson.stageWorld.brushes, 'placed');
+  assert.equal(lesson.pendingStageAction.id, 'dana-place-brushes');
+  assert.match(app.innerHTML, /stage-action-place-brushes/);
+  assert.match(app.innerHTML, /at-placed is-placing/);
+  assert.match(app.innerHTML, /id="stageEventAnnouncer" aria-live="polite" aria-atomic="true"/,
+    'the stage should keep a persistent empty announcer for narrated events');
+
+  api.next();
+  assert.equal(lesson.i, 1);
+  assert.equal(lesson.pendingStageAction, null);
+  assert.equal(lesson.stageWorld.brushes, 'placed');
+  assert.match(app.innerHTML, /at-placed/);
+  assert.doesNotMatch(app.innerHTML, /is-placing|stage-action-place-brushes/,
+    'the choice screen keeps the brushes but never replays Dana placing them');
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('stage action markup updates independently and has a reduced-motion final state', () => {
+  assert.match(html, /id="stageStoryProps" data-visual-key=/);
+  assert.match(html, /id="stageWeather" data-visual-key=/);
+  assert.match(html, /syncStageVisualBlock\(screen\.querySelector\('#stageStoryProps'\)/);
+  assert.match(html, /syncStageVisualBlock\(screen\.querySelector\('#stageWeather'\)/);
+  assert.match(html, /pendingStageAction[\s\S]*setTimeout\(\(\)=>[\s\S]*1400\)/,
+    'short screens should show the action before scrolling the bilingual caption into view');
+  assert.match(html, /if\(stageActionStarted\) requestAnimationFrame\(keepStageActionVisible\)/,
+    'a later action should restore the avatar even when the stage was already scrolled to the prior caption');
+  assert.match(html, /announceStageEvent\(step\.arrived\?step\.event:null\)/);
+  assert.match(html, /announcer\.textContent=''[\s\S]*requestAnimationFrame\(\(\)=>[\s\S]*announcer\.textContent=text/,
+    'the persistent live region must be mutated after insertion for reliable screen-reader output');
+  assert.match(html, /\.prop-bag\.is-leaving,\.rain-field\.is-clearing\{display:none\}/,
+    'reduced motion should jump directly to the resolved bag and sunny weather');
+
+  const { api } = runtime();
+  const block = { dataset: {}, innerHTML: '' };
+  api.syncStageVisualBlock(block, 'phone-held|pickup', '<svg>moving</svg>');
+  assert.equal(block.innerHTML, '<svg>moving</svg>');
+  api.syncStageVisualBlock(block, 'phone-held|pickup', '<svg>replayed</svg>');
+  assert.equal(block.innerHTML, '<svg>moving</svg>', 'the same visual key must not rebuild and restart CSS motion');
+  api.syncStageVisualBlock(block, 'phone-held|settled', '<svg>settled</svg>');
+  assert.equal(block.innerHTML, '<svg>settled</svg>');
+
+  const actionSession = { pendingStageAction: { id: 'visible-action' } };
+  api.setLesson(actionSession);
+  api.keepStageCaptionVisible(123.45); // requestAnimationFrame supplies this timestamp argument
+  assert.ok(actionSession.stageCaptionAfterActionTimer,
+    'a frame timestamp must not bypass the action-first scroll delay');
+  api.settlePracticeStageAction(actionSession);
+  assert.equal(actionSession.stageCaptionAfterActionTimer, null);
+  api.setLesson(null);
 });
 
 test('a free-practice choice fills the next fixed slot without changing progress length', () => {
