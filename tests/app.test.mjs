@@ -49,6 +49,7 @@ function runtime(seed = new Map()) {
       defaults, load, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       PRACTICE_TOPICS, PRACTICE_SCENES, buildPracticeSession, rememberPracticeRun,
+      UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
       manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -428,6 +429,118 @@ test('free practice rotates the person you talk to, not just the scene', () => {
     assert.equal(new Set(people).size, Math.min(cast.size, people.length),
       `completed ${completed}: only met ${new Set(people).size} of ${cast.size} people in 14 conversations`);
   }
+});
+
+test('a unit rehearsal only ever asks for what that unit taught', () => {
+  const { api } = runtime();
+  const words = s => String(s).toLowerCase().replace(/\{[a-z]+\}/g, ' ').match(/[a-z']+/g) || [];
+
+  // everything heard or said by the end of each unit
+  const seen = new Set(['and', 'a', 'the', 'i', 'it', 'is', 'you', 'my', 'to', 'too', 'or']);
+  const taughtByUnit = [];
+  for (let idx = 0; idx < api.LESSONS.length; idx++) {
+    api.LESSONS[idx].phrases.forEach(p => words(p.en).forEach(w => seen.add(w)));
+    api.LESSONS[idx].dialogue.forEach(l => words(l.en).forEach(w => seen.add(w)));
+    api.conversationRounds(idx).forEach(round => {
+      words(round.ask.en).forEach(w => seen.add(w));
+      round.options.forEach(o => words(o.reply.en).forEach(w => seen.add(w)));
+    });
+    if ((idx + 1) % api.LESSONS_PER_UNIT === 0) taughtByUnit.push(new Set(seen));
+  }
+
+  assert.equal(api.UNIT_REHEARSALS.length, taughtByUnit.length);
+  api.UNIT_REHEARSALS.forEach((rehearsal, u) => {
+    assert.ok(rehearsal.turns.length >= 5, `unit ${u + 1}: a rehearsal should be a long conversation`);
+    assert.ok(rehearsal.who && rehearsal.place && rehearsal.open && rehearsal.close);
+
+    rehearsal.turns.forEach((turn, n) => {
+      const last = n === rehearsal.turns.length - 1;
+      assert.ok(turn.ask.en && turn.ask.he && turn.ask.tl, `unit ${u + 1} round ${n + 1}: ask needs all three forms`);
+      assert.ok(turn.options.length >= 2);
+
+      turn.options.forEach(option => {
+        assert.ok(option.label, `unit ${u + 1} round ${n + 1}: option needs a Hebrew label`);
+        for (const form of [option.answer, option.reply])
+          assert.ok(form.en && form.he && form.tl, `unit ${u + 1} round ${n + 1}: needs all three forms`);
+
+        // the whole point of a rehearsal is that he can already say every word
+        words(option.answer.en).forEach(word => assert.ok(taughtByUnit[u].has(word),
+          `unit ${u + 1} round ${n + 1}: asks for the untaught word "${word}" in "${option.answer.en}"`));
+
+        if (!last) {
+          assert.ok(!/\?\s*$/.test(option.reply.en),
+            `unit ${u + 1} round ${n + 1}: "${option.reply.en}" asks a question, then the next line talks over it`);
+          for (const line of [option.answer.en, option.reply.en])
+            assert.ok(!/\bgoodbye\b|\bhave a nice day\b|(?:^|[^a-z])bye\b/i.test(line),
+              `unit ${u + 1} round ${n + 1}: "${line}" says goodbye, then the conversation keeps going`);
+        }
+      });
+    });
+  });
+});
+
+test('every unit ends with a real mission he could actually go and do', () => {
+  const { api } = runtime();
+  const words = s => String(s).toLowerCase().replace(/\{[a-z]+\}/g, ' ').match(/[a-z']+/g) || [];
+
+  const seen = new Set(['and', 'a', 'the', 'i', 'it', 'is', 'you', 'my', 'to', 'too', 'or']);
+  const taughtByUnit = [];
+  for (let idx = 0; idx < api.LESSONS.length; idx++) {
+    api.LESSONS[idx].phrases.forEach(p => words(p.en).forEach(w => seen.add(w)));
+    api.LESSONS[idx].dialogue.forEach(l => words(l.en).forEach(w => seen.add(w)));
+    api.conversationRounds(idx).forEach(round => {
+      words(round.ask.en).forEach(w => seen.add(w));
+      round.options.forEach(o => words(o.reply.en).forEach(w => seen.add(w)));
+    });
+    if ((idx + 1) % api.LESSONS_PER_UNIT === 0) taughtByUnit.push(new Set(seen));
+  }
+
+  assert.equal(api.UNIT_MISSIONS.length, api.UNITS.length);
+  api.UNIT_MISSIONS.forEach((mission, u) => {
+    for (const field of ['emoji', 'title', 'what', 'tip', 'win'])
+      assert.ok(mission[field], `unit ${u + 1}: a mission needs ${field}`);
+    assert.ok(mission.lines.length >= 3, `unit ${u + 1}: give him the lines to say`);
+    // he must never be sent out with a sentence the course has not taught him
+    mission.lines.forEach(line => words(line).forEach(word => assert.ok(taughtByUnit[u].has(word),
+      `unit ${u + 1}: the mission line "${line}" uses the untaught word "${word}"`)));
+  });
+});
+
+test('rehearsals and missions only ever move forward', () => {
+  const seed = new Map();
+  const first = runtime(seed);
+  const state = first.api.defaults();
+  state.onboarded = true;
+  state.completed = 10;
+  first.api.setState(state);
+
+  // normalising junk gives a complete, safe shape
+  const clean = first.api.normalizeMissions({ 0: { rehearsed: true, done: 'yes', doneAt: '77' }, 9: 'nonsense' });
+  assert.equal(clean[0].rehearsed, true);
+  assert.equal(clean[0].done, true);
+  assert.equal(clean[0].doneAt, 77);
+  assert.equal(clean[1].rehearsed, false);
+
+  // two tabs can only add to each other, never undo a mission already done
+  const merged = first.api.mergeMissions(
+    { 0: { rehearsed: true, done: true, doneAt: 500 }, 1: { rehearsed: false, done: false, doneAt: 0 } },
+    { 0: { rehearsed: false, done: false, doneAt: 0 }, 1: { rehearsed: true, done: false, doneAt: 0 } },
+  );
+  assert.equal(merged[0].done, true, 'a completed mission must survive a stale tab');
+  assert.equal(merged[0].doneAt, 500);
+  assert.equal(merged[1].rehearsed, true);
+
+  // and it survives being written out and read back by a fresh runtime
+  const live = first.api.getState();
+  live.missions = first.api.normalizeMissions({ 0: { rehearsed: true, done: true, doneAt: 1234 } });
+  first.api.setState(live);
+  first.api.saveLessonCheckpoint();
+  seed.set('speakEnglishV1', JSON.stringify({ ...JSON.parse(seed.get('speakEnglishV1') || '{}'), missions: live.missions }));
+
+  const second = runtime(seed);
+  assert.equal(second.api.getState().missions[0].done, true);
+  assert.equal(second.api.getState().missions[0].doneAt, 1234);
+  first.api.stopLessonTimers(false);
 });
 
 test('a branch choice keeps progress length stable and inserts its fixed continuation', () => {
