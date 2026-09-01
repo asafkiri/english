@@ -46,7 +46,7 @@ function runtime(seed = new Map()) {
     ;globalThis.__test = {
       UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
-      defaults, load, validSavedSession, normalize, matchDetails, matchScore,
+      defaults, load, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       PRACTICE_TOPICS, PRACTICE_SCENES, buildPracticeSession, rememberPracticeRun,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
@@ -130,6 +130,48 @@ test('speech matching respects order and negation', () => {
   // fuzziness must not cross critical words or short unrelated words
   assert.ok(api.matchScore('No', 'know') < 0.99);
   assert.ok(api.matchScore('She is fifteen', 'he is fifteen') < 0.99);
+});
+
+test('the learner\'s own name never blocks a passing sentence', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.name = 'Asaf';
+  api.setState(state);
+
+  // exactly what the phone did: an English engine cannot spell a Hebrew name,
+  // so "Asaf" came back as "Steph" — and a pass needs every word matched
+  const target = 'My name is Asaf. Nice to meet you!';
+  const heard = 'My name is Steph nice to meet you';
+
+  const strict = api.matchDetails(target, heard);
+  assert.ok(strict.words.some((w, i) => w === 'asaf' && !strict.matched[i]),
+    'without the softening the name is what fails — otherwise this test proves nothing');
+
+  const soft = api.softWordsFor({ p: { en: 'My name is {name}. Nice to meet you!' } });
+  assert.deepEqual([...soft], ['asaf']);
+  const lenient = api.matchDetails(target, heard, soft);
+  assert.deepEqual([...lenient.words.filter((w, i) => !lenient.matched[i])], [],
+    'no word may be reported missing when only the name was misheard');
+  assert.equal(lenient.score, 1);
+  assert.equal(lenient.criticalMismatch, false);
+
+  // the softening is the name and nothing else: a real English word that went
+  // missing still has to be said again
+  const dropped = api.matchDetails('My name is Asaf. Nice to meet you!', 'My name is Steph to meet you', soft);
+  assert.ok(dropped.words.some((w, i) => w === 'nice' && !dropped.matched[i]));
+
+  // a sentence that never asked for the name softens nothing, so a learner
+  // called Ben cannot get the English word "Ben" for free
+  assert.deepEqual([...api.softWordsFor({ p: { en: "I'm good, thanks" } })], []);
+
+  // a Hebrew name is dropped from the spoken sentence altogether, so there is
+  // nothing to credit and nothing to fail on
+  const hebrew = api.defaults();
+  hebrew.onboarded = true;
+  hebrew.name = 'אסף';
+  api.setState(hebrew);
+  assert.deepEqual([...api.softWordsFor({ p: { en: 'My name is {name}' } })], []);
 });
 
 test('warm-up grows to 20 and keeps hard, recent and older material', () => {
