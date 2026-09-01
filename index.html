@@ -3655,11 +3655,23 @@ function fuseHeard(t,h){
   }
   return out;
 }
-function matchDetails(target, heard){
+/* Words the sentence asked for that the recogniser cannot fairly be expected
+   to return. Only the learner's own name qualifies: the engine is English and
+   a personal name is not, so 'Asaf' comes back as 'Steph' or 'a self' however
+   clearly it was said — and a pass needs every single word, so the name alone
+   could block it forever. Credited only where the sentence actually asked for
+   {name}, so a learner called Ben never gets the English word for free. */
+function softWordsFor(step){
+  if(!/\{name\}/.test(String(step?.p?.en||''))) return [];
+  return normalize(state?.name||'').split(' ').filter(Boolean);
+}
+function matchDetails(target, heard, soft=[]){
   const t = normalize(target).split(' ').filter(Boolean);
   let h = normalize(heard).split(' ').filter(Boolean);
   if(!t.length) return {score:1, words:[], matched:[], criticalMismatch:false};
   h = fuseHeard(t,h);
+  const softSet = new Set((Array.isArray(soft)?soft:[])
+    .flatMap(w=>normalize(w).split(' ')).filter(Boolean));
 
   // Longest common subsequence: word order matters, while a dropped short word
   // does not automatically fail an otherwise clear beginner sentence.
@@ -3676,7 +3688,12 @@ function matchDetails(target, heard){
     else if(dp[i-1][j] >= dp[i][j-1]) i--;
     else j--;
   }
-  let score = dp[t.length][h.length] / Math.max(t.length, h.length, 1);
+  // the name is credited whether or not the engine spelled it back
+  let credited = 0;
+  if(softSet.size) t.forEach((w,idx)=>{
+    if(!matched[idx] && softSet.has(w)){ matched[idx]=true; credited++; }
+  });
+  let score = Math.min(1, (dp[t.length][h.length] + credited) / Math.max(t.length, h.length, 1));
   const critical = new Set(['not','no','never','without']);
   const targetCritical = t.filter(w=>critical.has(w));
   const heardCritical = h.filter(w=>critical.has(w));
@@ -5129,6 +5146,7 @@ function startListening(target){
   rec.interimResults=true;
   rec.maxAlternatives=4;
   let got=false, done=false;
+  const soft=softWordsFor(L.curStep);
   let best='', bestDetails={score:0,words:[],matched:[],criticalMismatch:false};
   const active=()=>!!L&&L===session&&L.i===stepIndex&&L.rec===rec&&uiEpoch===epoch;
   // while listening the mic button shows ⏹ — micTap() ends the attempt early
@@ -5151,7 +5169,7 @@ function startListening(target){
         const transcript=alt&&typeof alt.transcript==='string'?alt.transcript.trim():'';
         if(!transcript) continue;
         got=true;
-        const details=matchDetails(target,transcript);
+        const details=matchDetails(target,transcript,soft);
         if(details.score>=bestDetails.score){ bestDetails=details; best=transcript; }
       }
     }
