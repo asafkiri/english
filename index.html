@@ -241,6 +241,11 @@ body{
 .stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .backdrop-near{transform-box:fill-box;transform-origin:center}
 .stage-bg .backdrop-far{animation:sceneParallaxFar 18s ease-in-out infinite}
 .stage-bg .backdrop-mid{animation:sceneParallaxMid 13s ease-in-out infinite}
+.stage-bg .backdrop-far{filter:saturate(.82) brightness(.9)}
+.stage-bg .backdrop-mid{filter:drop-shadow(0 3px 4px rgba(4,9,17,.14))}
+.stage-bg .backdrop-near{filter:drop-shadow(0 7px 8px rgba(4,9,17,.24)) saturate(.96)}
+.stage-bg .scene-material{mix-blend-mode:soft-light;opacity:.28}
+.stage-bg .scene-light-beam{mix-blend-mode:screen;animation:lightBeamBreathe 7.5s ease-in-out infinite}
 .stage-bg .scene-ground-light{mix-blend-mode:screen;animation:groundLight 6.5s ease-in-out infinite}
 .stage-bg .scene-contact{filter:blur(1.5px)}
 .stage-bg .ambient{transform-box:fill-box;transform-origin:center}
@@ -253,6 +258,37 @@ body{
 @keyframes sceneParallaxFar{0%,100%{transform:translateX(-1.5px)}50%{transform:translateX(1.5px)}}
 @keyframes sceneParallaxMid{0%,100%{transform:translateX(1px)}50%{transform:translateX(-1px)}}
 @keyframes groundLight{0%,100%{opacity:.3}50%{opacity:.5}}
+@keyframes lightBeamBreathe{0%,100%{opacity:.44}50%{opacity:.72}}
+
+/* Motion belongs to the place: no generic floating scene. Each background
+   gets one quiet, recognisable ambient behaviour that stays behind the words. */
+.context-motion>*{transform-box:fill-box;transform-origin:center}
+.motion-breeze .leaf{animation:sceneLeaf 8s linear infinite}.motion-breeze .leaf:nth-child(2){animation-delay:-4.2s}
+.motion-dust .mote,.motion-home .mote{animation:sceneMote 7s ease-in-out infinite}.motion-dust .mote:nth-child(2n),.motion-home .mote:nth-child(2n){animation-delay:-3.2s}
+.motion-lift .lift-glint,.motion-retail .shop-glint,.motion-transit .transit-glint{animation:sceneGlint 6.8s ease-in-out infinite}
+.motion-plaza .bird{animation:sceneBird 12s linear infinite}
+.motion-school .paper{animation:scenePaper 9s ease-in-out infinite}
+.motion-music .meter{animation:sceneMeter 1.8s ease-in-out infinite;transform-origin:50% 100%}.motion-music .meter:nth-child(2){animation-delay:-.55s}.motion-music .meter:nth-child(3){animation-delay:-1.05s}
+.motion-court .ball-shadow{animation:sceneBall 3.8s ease-in-out infinite}
+.motion-restaurant .warm-light{animation:backdropPulse 4.2s ease-in-out infinite}
+.motion-kitchen .steam{animation:sceneSteam 5s ease-in-out infinite}.motion-kitchen .steam:nth-child(2){animation-delay:-2.4s}
+.motion-phone .signal{animation:sceneSignal 2.6s ease-out infinite}.motion-phone .signal:nth-child(2){animation-delay:-1.3s}
+.motion-market .flag{animation:sceneFlag 4.6s ease-in-out infinite;transform-origin:50% 0}.motion-market .flag:nth-child(2){animation-delay:-1.5s}
+.motion-weather .rain{animation:sceneRain 2.4s linear infinite}.motion-weather .rain:nth-child(2){animation-delay:-1.1s}
+.motion-beach .sea-glint{animation:sceneSea 5.5s ease-in-out infinite}
+.motion-neighborhood .window-glow{animation:backdropPulse 6s ease-in-out infinite}
+@keyframes sceneLeaf{0%{transform:translate(-34px,-18px) rotate(0);opacity:0}12%{opacity:.55}85%{opacity:.35}100%{transform:translate(80px,52px) rotate(260deg);opacity:0}}
+@keyframes sceneMote{0%,100%{transform:translate(0,8px);opacity:.1}50%{transform:translate(7px,-13px);opacity:.6}}
+@keyframes sceneGlint{0%,68%,100%{transform:translateX(-42px);opacity:0}78%{opacity:.34}92%{transform:translateX(74px);opacity:0}}
+@keyframes sceneBird{0%{transform:translateX(-42px);opacity:0}12%,86%{opacity:.5}100%{transform:translateX(102px);opacity:0}}
+@keyframes scenePaper{0%,100%{transform:translate(0,0) rotate(-5deg);opacity:.18}50%{transform:translate(18px,-8px) rotate(8deg);opacity:.42}}
+@keyframes sceneMeter{0%,100%{transform:scaleY(.42)}45%{transform:scaleY(1)}}
+@keyframes sceneBall{0%,100%{transform:translateY(0) scaleX(1);opacity:.2}50%{transform:translateY(-11px) scaleX(.7);opacity:.38}}
+@keyframes sceneSteam{0%{transform:translateY(11px) scale(.85);opacity:0}35%{opacity:.38}100%{transform:translate(5px,-23px) scale(1.18);opacity:0}}
+@keyframes sceneSignal{0%{transform:scale(.55);opacity:.52}100%{transform:scale(1.35);opacity:0}}
+@keyframes sceneFlag{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg)}}
+@keyframes sceneRain{0%{transform:translate(-8px,-26px);opacity:0}20%{opacity:.38}100%{transform:translate(12px,48px);opacity:0}}
+@keyframes sceneSea{0%,100%{transform:translateX(-14px);opacity:.18}50%{transform:translateX(16px);opacity:.55}}
 .stage-screen .stage-caption{background:rgba(20,28,46,.94);backdrop-filter:none}
 .stage-screen .conversation-composer{background:rgba(18,25,41,.96);backdrop-filter:none}
 .stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
@@ -277,6 +313,9 @@ body{
 .stage-avatar.modern-cast::before{display:none}
 .stage-avatar.modern-cast::after{content:'';position:absolute;z-index:-1;left:50%;bottom:1.5%;width:76%;height:7%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(4,10,19,.5),rgba(4,10,19,0) 72%);filter:blur(2px)}
 .stage-avatar.modern-cast .ring{display:none}
+.stage-avatar.light-left{--shadow-shift:8px;--shadow-skew:-5deg}.stage-avatar.light-right{--shadow-shift:-8px;--shadow-skew:5deg}
+.stage-avatar.light-right .face-lighting,.stage-avatar.light-right .body-lighting{transform:scaleX(-1)}
+.stage-avatar.light-center{--shadow-shift:0px;--shadow-skew:0deg}
 
 /* the drawn cast: breathing, blinking, and a mouth that actually talks */
 .person-art{position:relative;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45))}
@@ -286,21 +325,31 @@ body{
 .person-art .mouth,.person-art .tongue{transform-box:fill-box;transform-origin:center}
 .person-art .tongue{opacity:0}
 .person-art .arm{transform-box:fill-box;transform-origin:50% 0}
+.person-art .upper-arm,.person-art .forearm,.person-art .hand{transform-box:fill-box}
+.person-art .upper-arm{transform-origin:50% 8%}.person-art .forearm{transform-origin:50% 5%}.person-art .hand{transform-origin:50% 20%}
 .person-art .lower-body,.person-art .leg{transform-box:fill-box;transform-origin:50% 0}
 .person-art .lower-body{animation:bodyBalance 7s ease-in-out infinite}
 .person-art .leg-l{animation:legIdleL 7s ease-in-out infinite}
 .person-art .leg-r{animation:legIdleR 7s ease-in-out infinite}
 .person-art .arm-l{animation:armIdleL 5.2s ease-in-out infinite}
 .person-art .arm-r{animation:armIdleR 5.8s ease-in-out infinite}
+.person-art .arm-l .forearm{animation:forearmIdleL 6.4s ease-in-out infinite}
+.person-art .arm-r .forearm{animation:forearmIdleR 6.8s ease-in-out infinite}
 .person-art.listening .arm-l{animation:armIdleL 4s ease-in-out infinite}
 .person-art.listening .arm-r{animation:armIdleR 4.4s ease-in-out infinite}
 /* gestures belong to the voice, not to the scene state */
 .person-art.voicing .arm-l{animation:armTalkL 2.3s ease-in-out infinite}
 .person-art.voicing .arm-r{animation:armTalkR 2.9s ease-in-out infinite}
+.person-art.voicing .arm-l .forearm{animation:forearmTalkL 2.3s ease-in-out infinite}
+.person-art.voicing .arm-r .forearm{animation:forearmTalkR 2.15s ease-in-out infinite}
 @keyframes armIdleL{0%,100%{transform:rotate(0)}50%{transform:rotate(1.6deg)}}
 @keyframes armIdleR{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.6deg)}}
 @keyframes armTalkL{0%,100%{transform:rotate(-1deg) translateY(0)}35%{transform:rotate(5deg) translateY(-4px)}70%{transform:rotate(1deg) translateY(-1px)}}
 @keyframes armTalkR{0%,100%{transform:rotate(1deg) translateY(0)}40%{transform:rotate(-6deg) translateY(-5px)}75%{transform:rotate(-1deg) translateY(-1px)}}
+@keyframes forearmIdleL{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.8deg)}}
+@keyframes forearmIdleR{0%,100%{transform:rotate(0)}50%{transform:rotate(2.2deg)}}
+@keyframes forearmTalkL{0%,100%{transform:rotate(-1deg)}38%{transform:rotate(-10deg)}72%{transform:rotate(-4deg)}}
+@keyframes forearmTalkR{0%,100%{transform:rotate(1deg)}35%{transform:rotate(16deg) translateY(-2px)}70%{transform:rotate(6deg)}}
 @keyframes bodyBalance{0%,100%{transform:translateX(0)}45%{transform:translateX(-1.1px)}72%{transform:translateX(1px)}}
 @keyframes legIdleL{0%,100%{transform:rotate(0)}45%{transform:rotate(.65deg)}}
 @keyframes legIdleR{0%,100%{transform:rotate(0)}45%{transform:rotate(-.65deg)}}
@@ -324,6 +373,12 @@ body{
 .person-art.modern-v2{filter:drop-shadow(0 11px 13px rgba(3,8,18,.36))}
 .person-art.modern-v2 .ground-shadow{animation:castShadow 4.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 .person-art.modern-v2.voicing .hand{animation:handEmphasis 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.person-art.modern-v2 .face-lighting,.person-art.modern-v2 .body-lighting{transform-box:fill-box;transform-origin:center;transition:transform .35s ease}
+.person-art.modern-v2 .hair-long-wavy,.person-art.modern-v2 .hair-bob-back,.person-art.modern-v2 .hair-curly-puff,.person-art.modern-v2 .travel-cap,.person-art.modern-v2 .pencil-accessory{transform-box:fill-box;transform-origin:50% 100%;animation:secondaryIdle 6.2s ease-in-out infinite}
+.person-art.modern-v2.voicing .hair-long-wavy,.person-art.modern-v2.voicing .hair-bob-back,.person-art.modern-v2.voicing .hair-curly-puff,.person-art.modern-v2.voicing .travel-cap,.person-art.modern-v2.voicing .pencil-accessory{animation:secondaryTalk 2s ease-in-out infinite}
+.person-art.modern-v2 .teacher-lanyard,.person-art.modern-v2 .crossbody-strap,.person-art.modern-v2 .maya-headphones,.person-art.modern-v2 .waiter-apron{transform-box:fill-box;transform-origin:50% 0;animation:clothSettle 4.8s ease-in-out infinite}
+.person-art.modern-v2.tom-v2{--leg-l-angle:-.45deg;--leg-r-angle:.65deg}.person-art.modern-v2.maya-v2{--leg-l-angle:.55deg;--leg-r-angle:-.45deg}.person-art.modern-v2.sam-v2{--leg-l-angle:-.8deg;--leg-r-angle:.8deg}.person-art.modern-v2.alex-v2{--leg-l-angle:-.2deg;--leg-r-angle:.2deg}.person-art.modern-v2.nina-v2{--leg-l-angle:.45deg;--leg-r-angle:-.7deg}.person-art.modern-v2.ben-v2{--leg-l-angle:-1deg;--leg-r-angle:.55deg}.person-art.modern-v2.dana-v2{--leg-l-angle:-.35deg;--leg-r-angle:.75deg}
+.person-art.modern-v2.tom-v2 .eyelids{animation-delay:-1.1s}.person-art.modern-v2.maya-v2 .eyelids{animation-delay:-3.8s}.person-art.modern-v2.sam-v2 .eyelids{animation-delay:-2.2s}.person-art.modern-v2.alex-v2 .eyelids{animation-delay:-4.7s}.person-art.modern-v2.nina-v2 .eyelids{animation-delay:-.4s}.person-art.modern-v2.ben-v2 .eyelids{animation-delay:-3s}.person-art.modern-v2.dana-v2 .eyelids{animation-delay:-5.2s}
 .person-art.modern-v2 .mouth{animation:none!important;transform:none!important}
 .person-art.modern-v2 .eyes{animation:none}
 .person-art.modern-v2 .mouth-shape{opacity:0;transition:opacity .055s linear}
@@ -353,8 +408,11 @@ body{
 @keyframes castBlink{0%,91%,94%,100%{opacity:0}92%,93%{opacity:1}}
 @keyframes castReact{0%{transform:none}42%{transform:translateY(2px) rotate(1.8deg)}100%{transform:none}}
 @keyframes castBrows{0%,100%{transform:none}45%{transform:translateY(-1px)}}
-@keyframes castShadow{0%,100%{transform:scaleX(1);opacity:.38}50%{transform:scaleX(.92);opacity:.31}}
+@keyframes castShadow{0%,100%{transform:translateX(var(--shadow-shift,0px)) skewX(var(--shadow-skew,0deg)) scaleX(1);opacity:.38}50%{transform:translateX(var(--shadow-shift,0px)) skewX(var(--shadow-skew,0deg)) scaleX(.92);opacity:.31}}
 @keyframes handEmphasis{0%,100%{transform:rotate(0)}45%{transform:rotate(-2.5deg)}}
+@keyframes secondaryIdle{0%,100%{transform:rotate(-.35deg)}50%{transform:rotate(.55deg)}}
+@keyframes secondaryTalk{0%,100%{transform:rotate(-.8deg)}45%{transform:rotate(1.2deg)}}
+@keyframes clothSettle{0%,100%{transform:translateX(0)}50%{transform:translateX(1.2px)}}
 @keyframes figBreathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-3px) scaleY(1.012)}}
 @keyframes blink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}97%{transform:scaleY(1)}}
 @keyframes mouthTalk{0%{transform:scale(1,.5)}20%{transform:scale(.86,3.1)}45%{transform:scale(1.05,1.5)}70%{transform:scale(.8,3.6)}100%{transform:scale(1,.6)}}
@@ -362,7 +420,7 @@ body{
 @keyframes headTalk{0%,100%{transform:rotate(-1.2deg) translateY(0)}50%{transform:rotate(1.2deg) translateY(-2px)}}
 @keyframes headNod{0%,100%{transform:rotate(0) translateY(0)}30%{transform:rotate(2.2deg) translateY(2px)}60%{transform:rotate(-1deg) translateY(0)}}
 @keyframes headIdle{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.6deg)}}
-@media (prefers-reduced-motion:reduce){.person-art *,.stage-bg .ambient{animation:none!important;transform:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){.person-art *,.stage-bg .ambient,.stage-bg .context-motion *,.stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .scene-light-beam,.stage-bg .scene-ground-light{animation:none!important;transform:none!important;transition:none!important}}
 .stage-name{font-size:19px;font-weight:850;text-align:center}
 .stage-name span{font-size:13px;font-weight:600;color:var(--dim);font-style:italic}
 /* whose turn it is, readable at a glance rather than as fine print */
@@ -2424,25 +2482,71 @@ const PRACTICE_TOPICS = [
 /* Backgrounds use the same idea as the modern cast: a small shared rendering
    contract and scene-specific art. Every scene has far, middle and near depth,
    explicit colour and a quiet centre where the face remains easy to read. */
+function sceneMotionProfile(id){
+  return ({
+    'street-school':'breeze',elevator:'lift','city-square':'plaza','park-bench':'breeze',
+    'art-studio':'dust','school-steps':'school','living-room':'home','music-room':'music',
+    'basketball-court':'court','school-gate':'school',restaurant:'restaurant','home-kitchen':'kitchen',
+    'phone-room':'phone','courtyard-garden':'breeze','clothing-store':'retail','market-stall':'market',
+    'bus-stop':'transit','parking-lot':'transit','dog-park':'breeze','home-street':'neighborhood',
+    'weather-window':'weather','beach-path':'beach',
+  })[id]||'dust';
+}
+function sceneLightSide(id){
+  if(['city-square','park-bench','basketball-court','school-gate','restaurant','market-stall','bus-stop','beach-path'].includes(id)) return 'right';
+  if(['elevator','music-room','phone-room','parking-lot'].includes(id)) return 'center';
+  return 'left';
+}
+function sceneAtmosphere(profile){
+  const art={
+    breeze:`<path class="leaf" d="M36 276q9-8 17 1-9 8-17-1z" fill="#d8d58a" opacity=".5"/><path class="leaf" d="M323 229q8-7 15 2-9 7-15-2z" fill="#87b181" opacity=".45"/>`,
+    dust:`<g fill="#fff4cf"><circle class="mote" cx="103" cy="207" r="2"/><circle class="mote" cx="274" cy="272" r="1.7"/><circle class="mote" cx="147" cy="343" r="1.3"/><circle class="mote" cx="329" cy="166" r="1.2"/></g>`,
+    lift:`<path class="lift-glint" d="M92 74h18v440H92z" fill="#eaf8ff" opacity=".2"/>`,
+    plaza:`<g class="bird" fill="none" stroke="#263f52" stroke-width="2.3" stroke-linecap="round" opacity=".5"><path d="M59 176q7-7 14 0q7-7 14 0"/><path d="M93 194q5-5 10 0q5-5 10 0"/></g>`,
+    school:`<path class="paper" d="M65 435l25-9-8 19-8-7-9-3z" fill="#f3ead3" opacity=".35"/>`,
+    home:`<g fill="#f9dfad"><circle class="mote" cx="112" cy="204" r="1.6"/><circle class="mote" cx="286" cy="294" r="1.3"/><circle class="mote" cx="164" cy="363" r="1.1"/></g>`,
+    music:`<g fill="#70d8df" opacity=".34"><rect class="meter" x="317" y="394" width="6" height="28" rx="3"/><rect class="meter" x="329" y="384" width="6" height="38" rx="3"/><rect class="meter" x="341" y="402" width="6" height="20" rx="3"/></g>`,
+    court:`<ellipse class="ball-shadow" cx="319" cy="457" rx="15" ry="5" fill="#241c20"/>`,
+    restaurant:`<g fill="#ffd27d"><circle class="warm-light" cx="69" cy="185" r="6" opacity=".25"/><circle class="warm-light" cx="333" cy="205" r="5" opacity=".2"/></g>`,
+    kitchen:`<g fill="none" stroke="#edf8f2" stroke-width="3" stroke-linecap="round" opacity=".36"><path class="steam" d="M317 391q-12-13 0-28t0-27"/><path class="steam" d="M336 398q11-15 0-29t1-24"/></g>`,
+    phone:`<g fill="none" stroke="#70d9ec" stroke-width="3" opacity=".35"><circle class="signal" cx="337" cy="220" r="12"/><circle class="signal" cx="337" cy="220" r="22"/></g>`,
+    retail:`<path class="shop-glint" d="M72 102h24l94 410h-34z" fill="#fff" opacity=".14"/>`,
+    market:`<g><path class="flag" d="M98 166h27l-13 24z" fill="#efca73" opacity=".65"/><path class="flag" d="M278 166h27l-13 24z" fill="#d5786e" opacity=".6"/></g>`,
+    transit:`<path class="transit-glint" d="M-10 371h94l34 23H10z" fill="#dcecf4" opacity=".16"/>`,
+    neighborhood:`<rect class="window-glow" x="321" y="294" width="26" height="31" rx="3" fill="#ffd77b" opacity=".42"/>`,
+    weather:`<g stroke="#d8edf4" stroke-width="2" opacity=".3"><path class="rain" d="M84 181l-8 24M118 161l-8 24M302 188l-8 24"/><path class="rain" d="M153 207l-8 24M268 156l-8 24"/></g>`,
+    beach:`<g class="sea-glint" fill="none" stroke="#f8e9b6" stroke-width="3" stroke-linecap="round" opacity=".4"><path d="M36 355h54M282 374h71M108 397h48"/></g>`,
+  };
+  return `<g class="context-motion motion-${profile}">${art[profile]||art.dust}</g>`;
+}
 function sceneBackdrop(id,p,far,mid,near,motion=''){
   const horizon=p.horizon||500;
   const contactY=Math.min(612,horizon+48);
-  return {id,variant:'layered-v3',sky:p.top,ground:p.floor,art:`
+  const motionProfile=sceneMotionProfile(id),lightSide=sceneLightSide(id);
+  const lightBeam=lightSide==='right'
+    ? `<ellipse class="scene-light-beam" cx="304" cy="258" rx="125" ry="365" transform="rotate(12 304 258)" fill="url(#${id}-beam)"/>`
+    : lightSide==='left'
+      ? `<ellipse class="scene-light-beam" cx="96" cy="258" rx="125" ry="365" transform="rotate(-12 96 258)" fill="url(#${id}-beam)"/>`
+      : `<ellipse class="scene-light-beam" cx="200" cy="244" rx="135" ry="350" fill="url(#${id}-beam)"/>`;
+  return {id,variant:'layered-v4',sky:p.top,ground:p.floor,lightColor:p.glow,lightSide,motionProfile,art:`
     <defs>
       <linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.top}"/><stop offset="1" stop-color="${p.bottom}"/></linearGradient>
       <radialGradient id="${id}-edge" cx="50%" cy="40%" r="70%"><stop offset="32%" stop-color="#ffffff" stop-opacity="0"/><stop offset="100%" stop-color="#07101e" stop-opacity=".4"/></radialGradient>
       <radialGradient id="${id}-ground" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${p.glow}" stop-opacity=".34"/><stop offset="100%" stop-color="${p.glow}" stop-opacity="0"/></radialGradient>
-      <radialGradient id="${id}-focus" cx="50%" cy="42%" r="58%"><stop offset="0" stop-color="${p.glow}" stop-opacity=".13"/><stop offset="55%" stop-color="${p.glow}" stop-opacity=".055"/><stop offset="100%" stop-color="${p.glow}" stop-opacity="0"/></radialGradient>
       <linearGradient id="${id}-floor-depth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".025"/><stop offset="1" stop-color="#050b14" stop-opacity=".3"/></linearGradient>
+      <radialGradient id="${id}-beam" cx="50%" cy="22%" r="58%"><stop offset="0" stop-color="${p.glow}" stop-opacity=".15"/><stop offset="45%" stop-color="${p.glow}" stop-opacity=".055"/><stop offset="100%" stop-color="${p.glow}" stop-opacity="0"/></radialGradient>
+      <pattern id="${id}-material" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M3 18h5M15 8h4M18 22h3" stroke="#fff" stroke-opacity=".055" stroke-width="1" stroke-linecap="round"/><circle cx="6" cy="7" r=".8" fill="#fff" fill-opacity=".075"/><circle cx="13" cy="15" r=".55" fill="#07101e" fill-opacity=".12"/></pattern>
     </defs>
     <rect class="scene-base" width="400" height="700" fill="url(#${id}-sky)"/>
     <path class="scene-floor" d="M0 ${horizon}H400V700H0z" fill="${p.floor}"/>
     <path class="scene-floor-depth" d="M0 ${horizon}H400V700H0z" fill="url(#${id}-floor-depth)"/>
+    <path class="scene-material" d="M0 ${horizon}H400V700H0z" fill="url(#${id}-material)"/>
     <path d="M0 ${horizon}H400" stroke="${p.line||'#d9e3ef'}" stroke-opacity=".18" stroke-width="3"/>
     <g class="backdrop-far">${far}</g>
-    <ellipse class="scene-focus" cx="200" cy="300" rx="150" ry="270" fill="url(#${id}-focus)"/>
+    ${lightBeam}
     <g class="backdrop-mid">${mid}</g>
     <g class="backdrop-motion">${motion}</g>
+    ${sceneAtmosphere(motionProfile)}
     <g class="scene-perspective" fill="none" stroke="${p.line||'#d9e3ef'}" stroke-opacity=".07" stroke-width="2">
       <path d="M200 ${horizon}L24 700M200 ${horizon}L118 700M200 ${horizon}L282 700M200 ${horizon}L376 700"/>
       <path d="M0 ${contactY+55}H400M0 ${contactY+118}H400"/>
@@ -2784,12 +2888,14 @@ function modernLowerBodyArt(l,pants,shoes,accent){
   return `<g class="lower-body">
     <path class="hips" d="M66 260h88l-4 38c-12 8-68 8-80 0z" fill="${pants}" stroke="${accent}" stroke-opacity=".55" stroke-width="2.2"/>
     <g class="leg leg-l">
-      <path d="M72 288c9-5 22-6 36-2l-5 98H73c-3-36-5-69-1-96z" fill="${pants}" stroke="#17202c" stroke-opacity=".52" stroke-width="2.2"/>
+      <path d="M72 288c9-5 23-6 36-2l-3 45c2 18 1 36-2 53H73c-3-19-3-37 0-54-4-16-5-31-1-42z" fill="${pants}" stroke="#17202c" stroke-opacity=".52" stroke-width="2.2"/>
+      <path class="knee" d="M76 333q13-5 27 0" fill="none" stroke="#d8e3ef" stroke-opacity=".13" stroke-width="2"/>
       <path d="M74 376h29l3 15-7 10H55c-1-9 5-16 19-25z" fill="${shoes}" stroke="#17202c" stroke-opacity=".68" stroke-width="2.2" stroke-linejoin="round"/>
       <path d="M58 396h43" stroke="#f7fafc" stroke-opacity=".48" stroke-width="2.2" stroke-linecap="round"/>
     </g>
     <g class="leg leg-r">
-      <path d="M112 286c14-4 27-3 36 2 4 27 2 60-1 96h-30z" fill="${pants}" stroke="#17202c" stroke-opacity=".52" stroke-width="2.2"/>
+      <path d="M112 286c13-4 27-3 36 2 4 11 3 26-1 42 3 17 3 35 0 54h-30c-3-17-4-35-2-53z" fill="${pants}" stroke="#17202c" stroke-opacity=".52" stroke-width="2.2"/>
+      <path class="knee" d="M117 333q14-5 28 0" fill="none" stroke="#d8e3ef" stroke-opacity=".13" stroke-width="2"/>
       <path d="M117 376h29c14 9 20 16 19 25h-44l-7-10z" fill="${shoes}" stroke="#17202c" stroke-opacity=".68" stroke-width="2.2" stroke-linejoin="round"/>
       <path d="M121 396h41" stroke="#f7fafc" stroke-opacity=".48" stroke-width="2.2" stroke-linecap="round"/>
     </g>
@@ -2816,18 +2922,17 @@ function modernPersonArt(look, state='idle', cls=''){
 
       <!-- relaxed arms; the right hand sits a little higher for conversation gestures -->
       <g class="arm arm-l">
-        <path d="M69 192c-18 7-26 29-27 65l25 4c1-25 6-43 16-55z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
-        <path class="hand" d="M43 254c6-2 15 0 23 5l-2 22c-5 8-17 7-21-1-3-9-3-18 0-26z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
-        <path d="M47 265c5 3 9 6 12 11M46 271c4 2 7 5 9 8" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="upper-arm"><path d="M72 192c-15 5-24 21-27 43l22 7c4-17 10-29 18-36z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3"/><ellipse cx="57" cy="237" rx="11" ry="8" fill="${clothes}"/></g>
+        <g class="forearm"><path d="M46 234c-4 13-5 27-3 42l22 2c2-15 2-28 2-40z" fill="${clothes}" stroke="${accent}" stroke-opacity=".62" stroke-width="2.1"/><g class="hand"><path d="M43 271c7-3 15-1 22 4v13c-5 9-17 9-22 1-4-6-4-12 0-18z" fill="${skin}" stroke="#7e5947" stroke-opacity=".48" stroke-width="2"/><path d="M47 278c4 1 9 4 13 8M46 283c4 1 7 3 10 6" fill="none" stroke="#b77d62" stroke-width="1.45" stroke-linecap="round"/></g></g>
       </g>
       <g class="arm arm-r">
-        <path d="M151 191c18 7 29 26 33 51l-27 8c-4-20-10-35-20-44z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
-        <path class="hand" d="M161 241c5-5 15-5 21 0 4 5 5 13 2 21h-22l-6-14c1-3 2-5 5-7z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
-        <path d="M164 247c5-2 10-2 15 0M166 252c4-1 8-1 12 1" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="upper-arm"><path d="M148 192c15 5 24 19 28 38l-21 8c-5-15-11-25-20-32z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3"/><ellipse cx="165" cy="232" rx="10" ry="8" fill="${clothes}"/></g>
+        <g class="forearm"><path d="M157 228c10-2 19 4 24 14l-15 13c-5-7-9-13-13-19z" fill="${clothes}" stroke="${accent}" stroke-opacity=".62" stroke-width="2.1"/><g class="hand"><path d="M169 243c6-5 15-4 20 2 4 6 2 14-5 18-8 4-17 0-20-8z" fill="${skin}" stroke="#7e5947" stroke-opacity=".48" stroke-width="2"/><path d="M173 248c5-1 9 1 13 4M171 253c4 0 8 2 11 5" fill="none" stroke="#b77d62" stroke-width="1.45" stroke-linecap="round"/></g></g>
       </g>
 
       <path class="torso" d="M64 288c0-53 7-92 30-106l16 14 16-14c23 14 30 53 30 106-25 10-67 10-92 0z" fill="${clothes}" stroke="${accent}" stroke-opacity=".76" stroke-width="2.5" stroke-linejoin="round"/>
       ${modernOutfitArt(l,clothes,accent)}
+      <g class="body-lighting" pointer-events="none"><path d="M70 211c-5 22-7 48-5 72 7 3 13 4 19 5-3-34-1-63 7-88z" fill="#fff8dd" opacity=".1"/><path d="M139 205c9 24 12 52 10 80-6 2-12 3-18 4 3-33 1-60-6-84z" fill="#07101d" opacity=".13"/><path d="M74 300c-2 29-1 55 2 78h8c-2-29-1-55 2-78z" fill="#fff" opacity=".055"/></g>
 
       <!-- neck and under-chin shadow -->
       <path d="M91 151h38v36c-5 9-33 9-38 0z" fill="${skin}" stroke="#7e5947" stroke-opacity=".35" stroke-width="2"/>
@@ -2841,8 +2946,7 @@ function modernPersonArt(look, state='idle', cls=''){
         <path d="M159 86c10-3 16 4 15 15-1 12-8 20-17 17z" fill="${skin}" stroke="#7e5947" stroke-opacity=".45" stroke-width="2"/>
         <path d="M54 98c5-5 10-3 10 5M166 98c-5-5-10-3-10 5" fill="none" stroke="#bd8067" stroke-width="2" stroke-linecap="round"/>
         <path d="${modernFacePath(l.faceShape)}" fill="${skin}" stroke="#51382e" stroke-opacity=".58" stroke-width="2.6" stroke-linejoin="round"/>
-        <path d="M145 55c10 15 12 35 10 59-2 24-16 43-36 51 23-4 38-24 40-50l2-31c1-22-6-39-18-49z" fill="${skinShadow}" opacity=".34"/>
-        <path d="M77 55c-7 13-10 28-9 43" fill="none" stroke="#ffe0c2" stroke-width="3" stroke-linecap="round" opacity=".68"/>
+        <g class="face-lighting" pointer-events="none"><path d="M145 55c10 15 12 35 10 59-2 24-16 43-36 51 23-4 38-24 40-50l2-31c1-22-6-39-18-49z" fill="${skinShadow}" opacity=".34"/><path d="M77 55c-7 13-10 28-9 43" fill="none" stroke="#ffe0c2" stroke-width="3" stroke-linecap="round" opacity=".68"/></g>
 
         ${modernHairArt(l,hair,skin)}
 
@@ -3023,7 +3127,7 @@ const PRACTICE_SCENES = {
   ],
 };
 
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -4814,7 +4918,8 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   if(timer) timer.textContent=elapsed();
   const avatar=screen.querySelector('.stage-avatar');
   const modern=meta.character?.look?.variant==='modern-v2';
-  if(avatar) avatar.className='stage-avatar '+state_+' char-'+(meta.characterId||'unknown')+(modern?' modern-cast':'');
+  const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS['living-room'];
+  if(avatar) avatar.className='stage-avatar '+state_+' char-'+(meta.characterId||'unknown')+(modern?' modern-cast':'')+' light-'+(bd.lightSide||'left');
   const art=screen.querySelector('.person-art');
   if(art){
     // never silence a mouth mid-word: the live voice classes survive the morph
@@ -4841,7 +4946,7 @@ function stageShell(state_, caption, composer, cue){
   if(updateStageInPlace(sceneKey, state_, cue||state_, caption, composer, pct, meta, history)) return;
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS['living-room'];
   h(`<div class="conversation-screen stage-screen" data-scene="${esc(sceneKey)}">
-    <div class="stage-bg" data-backdrop="${esc(bd.id)}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground}">
+    <div class="stage-bg scene-motion-${esc(bd.motionProfile||'dust')}" data-backdrop="${esc(bd.id)}" data-light="${esc(bd.lightSide||'left')}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground};--scene-light:${bd.lightColor||'#ffffff'}">
       <svg class="backdrop-art backdrop-${esc(bd.id)}" data-art="${esc(bd.id)}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">${bd.art}</svg>
     </div>
     <div class="conversation-top">
@@ -4851,7 +4956,7 @@ function stageShell(state_, caption, composer, cue){
     </div>
     <div class="stage" style="--who:${meta.character.color}">
       <div class="stage-place">${stagePlaceHtml(meta,history)}</div>
-      <div class="stage-avatar ${state_} char-${esc(meta.characterId||'unknown')}${modern?' modern-cast':''}">
+      <div class="stage-avatar ${state_} char-${esc(meta.characterId||'unknown')}${modern?' modern-cast':''} light-${esc(bd.lightSide||'left')}">
         <span class="ring r1"></span><span class="ring r2"></span>
         ${meta.character.look
           ? personArt(meta.character.look, state_)
