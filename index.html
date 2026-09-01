@@ -449,6 +449,12 @@ body{
 @keyframes stageSwap{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}
 .cap-en{direction:ltr;font-size:25px;font-weight:800;line-height:1.35}
 .cap-aid{margin-top:8px;font-size:16px;color:var(--dim)}
+.cap-aid.auto-translation{direction:rtl;max-width:410px;margin:10px auto 0;padding-top:9px;
+  border-top:1px solid rgba(148,163,184,.18);font-size:15.5px;font-weight:600;line-height:1.45;
+  color:#bdc8dc}
+.cap-aid.auto-translation.delayed{opacity:0;transform:translateY(-3px);
+  animation:capTranslationReveal .28s ease .65s forwards}
+@keyframes capTranslationReveal{to{opacity:1;transform:none}}
 .cap-aid.tl{color:var(--amber);font-weight:700}
 .cap-aid[hidden]{display:none}
 .cap-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
@@ -461,6 +467,16 @@ body{
   .stage-screen .stage{--avatar:clamp(112px,20vh,148px);gap:6px;padding-top:8px}
   .stage-screen .stage-caption{padding:12px}
 }
+@media (max-height:620px){
+  .stage-screen .stage{--avatar:clamp(84px,16vh,108px);gap:4px;padding:5px 12px}
+  .stage-place{font-size:12px}.stage-name{font-size:16px}.stage-name span{font-size:11.5px}
+  .stage-status{font-size:13px;padding:6px 11px}
+  .stage-screen .stage-caption{padding:10px 11px;border-radius:15px}
+  .cap-en{font-size:20px;line-height:1.28}
+  .cap-aid.auto-translation{margin-top:7px;padding-top:6px;font-size:14px;line-height:1.38}
+  .cap-actions{margin-top:8px}
+}
+@media (prefers-reduced-motion:reduce){.cap-aid.auto-translation.delayed{animation:none;opacity:1;transform:none}}
 .scene-note{background:rgba(148,163,184,.09);border-inline-start:3px solid rgba(148,163,184,.45);border-radius:10px;padding:10px 12px;font-size:14.5px;color:#c2cde3;font-style:italic;line-height:1.5;margin:10px 0}
 .scene-note.in-log{margin:0 0 14px}
 .story-event{display:flex;align-items:center;gap:8px;direction:rtl;text-align:right;background:rgba(251,191,36,.11);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:8px 10px;margin-bottom:10px;color:#ffe5a2;font-size:13.5px;font-weight:750;line-height:1.4}
@@ -4097,7 +4113,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.7.0';
+const APP_VERSION = '2.7.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -6074,6 +6090,7 @@ function chatBubbleHtml(item,source,index,extraClass=''){
   const meta=conversationMeta(L.idx);
   const who=item.who==='you'?'you':'app';
   const en=ptext(item.line,'en'),he=ptext(item.line,'he'),tl=ptext(item.line,'tl');
+  const autoTranslate=!!L?.isPractice;
   const sourceArg=`'${source}'`;
   return `${storyEventHtml(item.event,'in-log')}<div class="dlg-line ${who==='you'?'me':''} ${extraClass}" id="chat-bubble-${source}-${index}">
     <div class="dlg-avatar" aria-hidden="true">${who==='you'?learnerAvatar():meta.character.avatar}</div>
@@ -6083,11 +6100,11 @@ function chatBubbleHtml(item,source,index,extraClass=''){
         <button class="bubble-action" onclick="replayChatMessage(${sourceArg},${index})" aria-label="השמעת ההודעה">🔊</button>
       </div>
       <div class="dlg-en" dir="ltr" lang="en">${esc(en)}</div>
-      <div class="bubble-help" id="bubble-he-${source}-${index}" ${item.showHe?'':'hidden'}><div class="dlg-he">${esc(he)}</div></div>
+      <div class="bubble-help" id="bubble-he-${source}-${index}" ${autoTranslate||item.showHe?'':'hidden'}><div class="dlg-he">${esc(he)}</div></div>
       <div class="bubble-help" id="bubble-tl-${source}-${index}" ${item.showTl?'':'hidden'}><div class="dlg-tl">${esc(tl)}</div></div>
       <div class="bubble-help-actions">
-        <button class="bubble-action" aria-pressed="${!!item.showHe}" onclick="toggleBubbleAid(${sourceArg},${index},'he',this)">תרגום</button>
-        <button class="bubble-action" aria-pressed="${!!item.showTl}" onclick="toggleBubbleAid(${sourceArg},${index},'tl',this)">איך אומרים?</button>
+        ${autoTranslate?'':`<button class="bubble-action" aria-pressed="${!!item.showHe}" onclick="toggleBubbleAid(${sourceArg},${index},'he',this)">תרגום</button>`}
+        <button class="bubble-action" aria-pressed="${!!item.showTl}" onclick="toggleBubbleAid(${sourceArg},${index},'tl',this)">איך מבטאים?</button>
       </div>
     </div>
   </div>`;
@@ -6186,6 +6203,7 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   if(status){ status.className='stage-status cue-'+cue; status.innerHTML=stageCueHtml(cue,meta.character); }
   swapStageBlock(screen.querySelector('#stageCaption'),caption);
   swapStageBlock(screen.querySelector('.conversation-composer'),composer);
+  requestAnimationFrame(keepStageCaptionVisible);
   return true;
 }
 function stageShell(state_, caption, composer, cue){
@@ -6219,17 +6237,18 @@ function stageShell(state_, caption, composer, cue){
     </div>
     <div class="conversation-composer">${composer}</div>
   </div>`);
+  requestAnimationFrame(keepStageCaptionVisible);
 }
 function captionHtml(line, step, opts={}){
   const en=ptext(line,'en'), he=ptext(line,'he'), tl=ptext(line,'tl');
+  const translationClass=opts.translationDelay===false?'':' delayed';
   return `
     <div class="cap-en" dir="ltr" lang="en">${esc(en)}</div>
-    <div class="cap-aid" id="capHe" ${step?.showHe?'':'hidden'}>${esc(he)}</div>
+    <div class="cap-aid auto-translation${translationClass}" id="capHe" dir="rtl" lang="he">${esc(he)}</div>
     <div class="cap-aid tl" id="capTl" ${step?.showTl?'':'hidden'}>${esc(tl)}</div>
     <div class="cap-actions">
       ${opts.replay!==false?`<button class="bubble-action" onclick="replayStageLine()" aria-label="השמע שוב">🔊</button>`:''}
-      <button class="bubble-action" aria-pressed="${!!step?.showHe}" onclick="toggleCaptionAid('he',this)">תרגום</button>
-      <button class="bubble-action" aria-pressed="${!!step?.showTl}" onclick="toggleCaptionAid('tl',this)">איך אומרים?</button>
+      <button class="bubble-action" aria-pressed="${!!step?.showTl}" onclick="toggleCaptionAid('tl',this)">איך מבטאים?</button>
     </div>`;
 }
 function toggleCaptionAid(kind, button){
@@ -6251,6 +6270,11 @@ function stageCaptionLine(){
   // character said — that is the line the replay button must repeat
   if(step.type==='branchChoice') return [...(L.chat||[])].reverse().find(x=>x.who==='app')?.line || null;
   return step.p || null;
+}
+function keepStageCaptionVisible(){
+  const caption=document.getElementById('stageCaption');
+  if(caption?.querySelector?.('.cap-en')&&caption.scrollIntoView)
+    caption.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
 }
 function replayStageLine(){
   const line=stageCaptionLine();
@@ -6895,7 +6919,11 @@ function renderListen(step){
     const status=document.getElementById('flowStatus');
     if(status) status.textContent=runsOn?meta.character.name+' ממשיך…':'ממשיך בעוד רגע…';
     // an open translation means someone is reading — grant the extra beat
-    scheduleDialogueFlow(()=>next(),readingDelay+((step.showHe||step.showTl)?1800:0));
+    // A short follow-up line used to move on after only 340ms. The permanent
+    // Hebrew needs a real, length-aware reading window even in a flowing turn.
+    const translatedLength=ptext(line,'he').length;
+    const translationReadingDelay=Math.max(2200,Math.min(3800,translatedLength*45));
+    scheduleDialogueFlow(()=>next(),Math.max(readingDelay,translationReadingDelay)+(step.showTl?1800:0));
   };
   const watchdog=()=>{
     if('speechSynthesis' in window&&speechSynthesis.speaking){
@@ -6921,7 +6949,7 @@ function renderBranchChoice(step){
   if(L.isPractice){
     const prev=[...(L.chat||[])].reverse().find(x=>x.who==='app');
     const eventHtml=storyEventHtml(step.event);
-    stageShell('waiting', eventHtml+(prev?captionHtml(prev.line,step):'<div class="cap-typing">מה אפשר לענות?</div>'), composer, 'choosing');
+    stageShell('waiting', eventHtml+(prev?captionHtml(prev.line,step,{translationDelay:false}):'<div class="cap-typing">מה אפשר לענות?</div>'), composer, 'choosing');
   } else {
     dialogueShell(chatMessagesHtml(), composer);
   }
