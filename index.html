@@ -30,6 +30,7 @@
 /* author display rules (e.g. .btn{display:block}) override the browser's
    default [hidden] handling, so hidden must win explicitly */
 [hidden]{display:none!important}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 html,body{height:100%}
 body{
   background:var(--bg);
@@ -298,7 +299,7 @@ body{
    character up or down, up to 49px on every single beat of the conversation.
    Anchored, the person stands still and only the empty space beneath the
    caption changes size. */
-.stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
+.stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:14px 16px;min-height:0;overflow-y:auto;overflow-x:hidden}
 .stage-place{font-size:13px;color:var(--dim);text-align:center}
 .stage-history{background:none;border:none;color:var(--blue);font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
 /* The figure scales with the screen instead of dropping off a cliff: full
@@ -323,6 +324,88 @@ body{
 .stage-avatar.light-left{--shadow-shift:8px;--shadow-skew:-5deg}.stage-avatar.light-right{--shadow-shift:-8px;--shadow-skew:5deg}
 .stage-avatar.light-right .face-lighting,.stage-avatar.light-right .body-lighting{transform:scaleX(-1)}
 .stage-avatar.light-center{--shadow-shift:0px;--shadow-skew:0deg}
+
+/* Authored story actions live in their own layer. The figure never changes
+   layout position: only a limb and the relevant prop move, then the prop's
+   final state stays visible until a later story action changes it. */
+.stage-story-props{position:absolute;inset:0;z-index:4;overflow:visible;pointer-events:none}
+.stage-prop{position:absolute;display:block;overflow:visible;filter:drop-shadow(0 5px 5px rgba(3,8,18,.5));transform-box:border-box;transform-origin:center}
+.prop-brushes{width:34%;height:auto}
+.prop-brushes.at-held{right:-6%;top:52%;transform:rotate(-17deg)}
+.prop-brushes.at-placed{right:-22%;bottom:1%;width:42%;transform:rotate(76deg)}
+.prop-brushes.at-placed.is-placing{animation:storyPlaceBrushes 1.25s cubic-bezier(.2,.72,.24,1) both}
+@keyframes storyPlaceBrushes{
+  0%{transform:translate(-29%,-51%) rotate(-17deg);opacity:1}
+  58%{transform:translate(-10%,-12%) rotate(61deg)}
+  78%{transform:translate(0,4%) rotate(80deg)}
+  100%{transform:translate(0,0) rotate(76deg)}
+}
+.prop-phone{width:23%;min-width:28px;height:auto}
+.prop-phone.at-floor{left:67%;bottom:1%;transform:rotate(68deg) scale(.9)}
+.prop-phone.at-held{right:-8%;top:54%;transform:rotate(-9deg)}
+.prop-phone.at-learner{right:-22%;bottom:5%;width:26%;transform:rotate(9deg)}
+.prop-phone.at-desk{right:-23%;bottom:11%;width:30%;transform:rotate(-3deg)}
+.prop-phone.at-held.is-picking-up{animation:storyPhonePickup 1.35s cubic-bezier(.2,.75,.2,1) both}
+.prop-phone.at-learner.is-handing-over{animation:storyPhoneHandover 1.2s cubic-bezier(.22,.75,.22,1) both}
+.prop-phone.at-desk .phone-body{transform-box:fill-box;transform-origin:center}
+.prop-phone.at-desk.is-going-to-desk .phone-body{animation:storyPhoneDesk 1.35s cubic-bezier(.2,.72,.24,1) both}
+.prop-phone.at-desk.is-going-to-desk .phone-tray{animation:storyTrayArrive .35s ease both}
+@keyframes storyPhonePickup{0%{transform:translate(-78%,110%) rotate(68deg) scale(.9)}52%{transform:translate(-34%,42%) rotate(29deg)}82%{transform:translate(2%,-4%) rotate(-13deg)}100%{transform:translate(0,0) rotate(-9deg)}}
+@keyframes storyPhoneHandover{0%{transform:translate(-48%,-75%) rotate(-9deg)}66%{transform:translate(-9%,-12%) rotate(5deg)}100%{transform:translate(0,0) rotate(9deg)}}
+@keyframes storyPhoneDesk{0%{transform:translate(-48%,-42%) rotate(-6deg)}68%{transform:translate(-9%,-8%) rotate(2deg)}100%{transform:translate(0,0) rotate(0)}}
+@keyframes storyTrayArrive{0%{opacity:0}100%{opacity:1}}
+.prop-bag{right:-24%;bottom:-1%;width:60%;height:auto}
+.prop-bag .shirt-peek{transform-box:fill-box;transform-origin:50% 100%}
+.prop-bag.shirt-red .shirt-peek{fill:#c74455}.prop-bag.shirt-blue .shirt-peek{fill:#3276c9}.prop-bag.shirt-black .shirt-peek{fill:#202633}
+.prop-bag.is-revealing{animation:storyBagArrive .85s cubic-bezier(.22,.78,.3,1) both}
+.prop-bag.is-revealing .shirt-peek{animation:storyShirtReveal 1.05s .38s cubic-bezier(.18,.8,.24,1) both}
+.prop-bag.is-leaving{animation:storyWrongBagOut .85s ease-in both}
+.prop-bag.is-arriving{animation:storyRightBagIn 1.15s .18s cubic-bezier(.2,.78,.22,1) both}
+@keyframes storyBagArrive{0%{opacity:0;transform:translate(-30%,-42%) scale(.65) rotate(-8deg)}70%{opacity:1;transform:translate(-4%,-6%) scale(1.04)}100%{transform:none}}
+@keyframes storyShirtReveal{0%{transform:translateY(24px);opacity:0}70%{transform:translateY(-4px);opacity:1}100%{transform:none;opacity:1}}
+@keyframes storyWrongBagOut{0%{opacity:1;transform:none}100%{opacity:0;transform:translate(115%,-35%) scale(.72) rotate(14deg)}}
+@keyframes storyRightBagIn{0%{opacity:0;transform:translate(-30%,-42%) scale(.7) rotate(-9deg)}72%{opacity:1;transform:translate(-4%,-6%) scale(1.04)}100%{transform:none}}
+
+/* Weather is a persistent world state rather than a timed decoration. Rain
+   keeps moving during the waiting beats and only clears on sun_returns. */
+.stage-bg .backdrop-art{transition:filter .9s ease}
+.stage-bg.has-story-rain .backdrop-art{filter:brightness(.7) saturate(.72) contrast(1.04)}
+.stage-weather-layer{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
+.rain-field,.weather-shade,.returning-sun{position:absolute;inset:0}
+.weather-shade{background:linear-gradient(180deg,rgba(26,42,67,.5),rgba(18,34,55,.22) 55%,rgba(7,18,34,.06))}
+.rain-field i{position:absolute;left:var(--x);top:-14%;width:2px;height:44px;border-radius:999px;background:linear-gradient(180deg,rgba(199,229,255,0),rgba(199,229,255,.82));transform:rotate(10deg);animation:storyRainDrop var(--speed,1.08s) linear var(--d) infinite}
+.rain-field i:nth-of-type(3n){height:31px;opacity:.72}.rain-field i:nth-of-type(4n){height:55px;opacity:.5}
+.rain-field.is-starting{animation:storyRainBegin 1.05s ease both}
+.rain-field.is-clearing{animation:storyRainClear 1.15s ease forwards}
+.returning-sun{background:radial-gradient(circle at 22% 16%,rgba(255,238,151,.72),rgba(255,223,116,.18) 16%,transparent 38%);animation:storySunReturn 1.2s ease both}
+.returning-sun span{position:absolute;left:17%;top:11%;width:42px;height:42px;border-radius:50%;background:#ffe28a;box-shadow:0 0 28px rgba(255,225,134,.72)}
+@keyframes storyRainDrop{0%{transform:translate(-12px,-70px) rotate(10deg);opacity:0}14%{opacity:.82}100%{transform:translate(6vw,115vh) rotate(10deg);opacity:.18}}
+@keyframes storyRainBegin{0%{opacity:0}100%{opacity:1}}
+@keyframes storyRainClear{0%{opacity:1}70%{opacity:.24}100%{opacity:0;transform:translateY(20px)}}
+@keyframes storySunReturn{0%{opacity:0;transform:scale(.82)}100%{opacity:1;transform:none}}
+
+/* The gesture follows the same authored action as the prop. Existing idle or
+   talking motions resume as soon as the action settles on the next screen. */
+.stage-avatar.stage-action-place-brushes .person-art .arm-r{animation:storyArmPlace 1.25s ease-in-out both}
+.stage-avatar.stage-action-place-brushes .person-art .arm-r .forearm{animation:storyForearmPlace 1.25s ease-in-out both}
+.stage-avatar.stage-action-pick-up-phone .person-art .arm-r{animation:storyArmPickup 1.35s ease-in-out both}
+.stage-avatar.stage-action-pick-up-phone .person-art .arm-r .forearm{animation:storyForearmPickup 1.35s ease-in-out both}
+.stage-avatar.stage-action-pick-up-phone .person-art .head{animation:storyLookDown 1.35s ease-in-out both}
+.stage-avatar.stage-action-hand-over-phone .person-art .arm-r,.stage-avatar.stage-action-phone-to-desk .person-art .arm-r{animation:storyArmOffer 1.25s ease-in-out both}
+.stage-avatar.stage-action-hand-over-phone .person-art .arm-r .forearm,.stage-avatar.stage-action-phone-to-desk .person-art .arm-r .forearm{animation:storyForearmOffer 1.25s ease-in-out both}
+.stage-avatar.stage-action-reveal-wrong-bag .person-art .arm-r,.stage-avatar.stage-action-replace-bag .person-art .arm-r{animation:storyArmBag 1.15s ease-in-out both}
+.stage-avatar.stage-action-start-rain .person-art .head{animation:storyRainReact 1s ease-out both}
+.stage-avatar.stage-action-stop-rain .person-art .head{animation:storyLookUp 1.15s ease-out both}
+@keyframes storyArmPlace{0%,100%{transform:rotate(0)}45%{transform:rotate(-8deg) translate(5px,6px)}72%{transform:rotate(-4deg) translate(3px,3px)}}
+@keyframes storyForearmPlace{0%,100%{transform:rotate(0)}48%{transform:rotate(-12deg) translate(4px,5px)}72%{transform:rotate(-6deg) translate(2px,2px)}}
+@keyframes storyArmPickup{0%,100%{transform:rotate(0)}38%{transform:rotate(24deg) translate(5px,8px)}70%{transform:rotate(9deg) translate(2px,2px)}}
+@keyframes storyForearmPickup{0%,100%{transform:rotate(0)}40%{transform:rotate(36deg) translateY(5px)}72%{transform:rotate(12deg)}}
+@keyframes storyLookDown{0%,100%{transform:none}38%{transform:rotate(4deg) translateY(3px)}70%{transform:rotate(1deg)}}
+@keyframes storyArmOffer{0%,100%{transform:rotate(0)}48%{transform:rotate(-9deg) translate(8px,6px)}72%{transform:rotate(-5deg) translate(5px,3px)}}
+@keyframes storyForearmOffer{0%,100%{transform:rotate(0)}48%{transform:rotate(-12deg) translate(5px,5px)}72%{transform:rotate(-6deg) translate(3px,2px)}}
+@keyframes storyArmBag{0%,100%{transform:rotate(0)}44%{transform:rotate(-7deg) translate(6px,7px)}70%{transform:rotate(-3deg) translate(3px,3px)}}
+@keyframes storyRainReact{0%{transform:none}42%{transform:rotate(-4deg) translateY(-3px)}100%{transform:none}}
+@keyframes storyLookUp{0%{transform:none}52%{transform:rotate(-4deg) translateY(-3px)}100%{transform:none}}
 
 /* the drawn cast: breathing, blinking, and a mouth that actually talks */
 .person-art{position:relative;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45))}
@@ -427,7 +510,15 @@ body{
 @keyframes headTalk{0%,100%{transform:rotate(-1.2deg) translateY(0)}50%{transform:rotate(1.2deg) translateY(-2px)}}
 @keyframes headNod{0%,100%{transform:rotate(0) translateY(0)}30%{transform:rotate(2.2deg) translateY(2px)}60%{transform:rotate(-1deg) translateY(0)}}
 @keyframes headIdle{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.6deg)}}
-@media (prefers-reduced-motion:reduce){.person-art *,.stage-bg .ambient,.stage-bg .context-motion *,.stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .scene-light-beam,.stage-bg .scene-ground-light{animation:none!important;transform:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){
+  .person-art *,.stage-bg .ambient,.stage-bg .context-motion *,.stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .scene-light-beam,.stage-bg .scene-ground-light{animation:none!important;transform:none!important;transition:none!important}
+  .stage-story-props *,.stage-weather-layer *{animation:none!important;transition:none!important}
+  .prop-bag.is-leaving,.rain-field.is-clearing{display:none}
+  .rain-field:not(.is-clearing) i:nth-of-type(4n+1){top:8%}
+  .rain-field:not(.is-clearing) i:nth-of-type(4n+2){top:31%}
+  .rain-field:not(.is-clearing) i:nth-of-type(4n+3){top:55%}
+  .rain-field:not(.is-clearing) i:nth-of-type(4n){top:78%}
+}
 .stage-name{font-size:19px;font-weight:850;text-align:center}
 .stage-name span{font-size:13px;font-weight:600;color:var(--dim);font-style:italic}
 /* whose turn it is, readable at a glance rather than as fine print */
@@ -3184,6 +3275,7 @@ const PRACTICE_STORIES = [
     goal:'להירשם לחוג חדש ולהכיר את המדריכה',
     open:'זה השיעור הראשון שלך בחוג. דנה ניגשת עם כרטיס שם ושני מכחולים.',
     ending:'דנה מניחה את כרטיס השם לידך והשיעור מתחיל.',
+    stageInitial:{brushes:'held'},
     beats:[
       {id:'intro',role:'open',ask:{en:"Hello! Welcome to your first art class. What's your name?",he:'שלום! [[ברוך הבא|ברוכה הבאה]] לשיעור האמנות הראשון. איך קוראים לך?',tl:'הֶלוֹ! וֶולְקַם טוּ יוֹר פֶרְסְט אַרְט קְלַאס. וּוַאטְס יוֹר נֵיים?'},options:[
         {id:'name',label:'קוראים לי {name}',answer:{en:'My name is {name}',he:'קוראים לי {name}',tl:'מַיי נֵיים אִיז {name}'},reply:{en:'Thank you! I will make your name card.',he:'תודה! אכין לך כרטיס שם.',tl:'תֶ׳נְק יוּ! אַיי וִויל מֵייק יוֹר נֵיים קַארְד.'}},
@@ -3203,7 +3295,7 @@ const PRACTICE_STORIES = [
           {id:'nice_israel',label:'אני מישראל. נעים להכיר!',answer:{en:"I'm from Israel. Nice to meet you!",he:'אני מישראל. נעים להכיר!',tl:'אַיְים פְרוֹם יִשְׂרָאֵל. נַייס טוּ מִיט יוּ!'},reply:{en:'Nice to meet you too! I will write Israel.',he:'גם לי נעים להכיר! אני ארשום ישראל.',tl:'נַייס טוּ מִיט יוּ טוּ! אַיי וִויל רַייט יִשְׂרָאֵל.'}},
         ]},
       ]},
-      {id:'learner_question',event:{emoji:'🎨',he:'דנה מסיימת את הכרטיס ומניחה לידך שני מכחולים.'},ask:{en:'Before we start, ask me one question.',he:'לפני שנתחיל, [[שאל|שאלי]] אותי שאלה אחת.',tl:'בִּיפוֹר וִוי סְטַארְט, אַסְק מִי וַואן קְוֶוסְצֶ׳ן.'},options:[
+      {id:'learner_question',event:{emoji:'🎨',he:'דנה מסיימת את הכרטיס ומניחה לידך שני מכחולים.'},stageAction:{id:'dana-place-brushes',gesture:'place-brushes',set:{brushes:'placed'}},ask:{en:'Before we start, ask me one question.',he:'לפני שנתחיל, [[שאל|שאלי]] אותי שאלה אחת.',tl:'בִּיפוֹר וִוי סְטַארְט, אַסְק מִי וַואן קְוֶוסְצֶ׳ן.'},options:[
         {id:'ask_name',label:'איך קוראים לך?',answer:{en:"What's your name?",he:'איך קוראים לך?',tl:'וּוַאטְס יוֹר נֵיים?'},reply:{en:'My name is Dana.',he:'קוראים לי דנה.',tl:'מַיי נֵיים אִיז דָאנָה.'},set:{question:'name'}},
         {id:'ask_mood',label:'מה שלומך?',answer:{en:'How are you?',he:'מה שלומך?',tl:'הַאוּ אַר יוּ?'},reply:{en:"I'm good, thanks.",he:'אני בסדר, תודה.',tl:'אַיְים גוּד, תֶ׳נְקְס.'},set:{question:'mood'}},
       ]},
@@ -3441,8 +3533,9 @@ const PRACTICE_STORIES = [
     goal:'להחזיר טלפון שנמצא במעלית',
     open:'דלת המעלית נפתחת. טלפון מונח על הרצפה ליד סם.',
     ending:'דלת המעלית נפתחת שוב. הטלפון נמצא עכשיו במקום בטוח.',
+    stageInitial:{phone:'floor'},
     beats:[
-      {id:'owner',role:'open',event:{emoji:'📱',he:'סם מרים את הטלפון מרצפת המעלית.'},ask:{en:'Excuse me, {name}. Is this your phone?',he:'סליחה, זה הטלפון שלך?',tl:'אֶקְסְקְיוּז מִי. אִיז דִיס יוֹר פוֹן?'},options:[
+      {id:'owner',role:'open',event:{emoji:'📱',he:'סם מרים את הטלפון מרצפת המעלית.'},stageAction:{id:'sam-pick-up-phone',gesture:'pick-up-phone',set:{phone:'held'}},ask:{en:'Excuse me, {name}. Is this your phone?',he:'סליחה, זה הטלפון שלך?',tl:'אֶקְסְקְיוּז מִי. אִיז דִיס יוֹר פוֹן?'},options:[
         {id:'mine',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'I thought so. Let me check the name on the screen.',he:'כך חשבתי. אני רק אבדוק את השם שעל המסך.',tl:'אַיי ת׳וֹט סוֹ. לֶט מִי צֶ׳ק דֶה נֵיים אוֹן דֶה סְקְרִין.'},set:{owner:'mine'}},
         {id:'other',label:'לא',answer:{en:'No',he:'לא',tl:'נוֹ'},reply:{en:'Then someone in the building lost it.',he:'אז מישהו בבניין איבד אותו.',tl:'דֶן סַאמְוַאן אִין דֶה בִּילְדִינְג לוֹסְט אִיט.'},set:{owner:'other'}},
       ]},
@@ -3457,7 +3550,7 @@ const PRACTICE_STORIES = [
         ]},
       ]},
       {id:'action',variants:[
-        {id:'mine',when:{owner:'mine'},event:{emoji:'🤲',he:'השם על המסך מתאים. סם מושיט לך את הטלפון.'},ask:{en:'Here you go. Are you OK?',he:'בבקשה. [[אתה|את]] בסדר?',tl:'הִיר יוּ גוֹ. אַר יוּ אוֹקֵיי?'},options:[
+        {id:'mine',when:{owner:'mine'},event:{emoji:'🤲',he:'השם על המסך מתאים. סם מושיט לך את הטלפון.'},stageAction:{id:'sam-hand-phone-to-learner',gesture:'hand-over-phone',set:{phone:'learner'}},ask:{en:'Here you go. Are you OK?',he:'בבקשה. [[אתה|את]] בסדר?',tl:'הִיר יוּ גוֹ. אַר יוּ אוֹקֵיי?'},options:[
           {id:'yes',label:'תודה! כן',answer:{en:'Thank you! Yes',he:'תודה! כן',tl:'תֶ׳נְק יוּ! יֶס'},reply:{en:"You're welcome. Good!",he:'על לא דבר. יופי!',tl:'יוֹר וֶולְקַם. גוּד!'}},
           {id:'good',label:'תודה! אני בסדר',answer:{en:"Thank you! I'm good, thanks",he:'תודה! אני בסדר, תודה',tl:'תֶ׳נְק יוּ! אַיְים גוּד, תֶ׳נְקְס'},reply:{en:"You're welcome. I am glad.",he:'על לא דבר. אני שמח.',tl:'יוֹר וֶולְקַם. אַיי אַם גְלֶד.'}},
         ]},
@@ -3471,7 +3564,7 @@ const PRACTICE_STORIES = [
           {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'I understand.',he:'אני מבין.',tl:'אַיי אַנְדֶרְסְטֶנְד.'},set:{worried:'yes'}},
           {id:'no',label:'לא',answer:{en:'No',he:'לא',tl:'נוֹ'},reply:{en:'You stayed calm!',he:'[[נשארת רגוע|נשארת רגועה]]!',tl:'יוּ סְטֵייד קַאם!'},set:{worried:'no'}},
         ]},
-        {id:'other',when:{owner:'other'},event:{emoji:'🛎️',he:'אתם מוסרים את הטלפון לעובדת הקבלה, והיא בודקת את רשימת האבידות.'},ask:{en:'The front desk has one report. Could this be the phone?',he:'בדלפק יש דיווח אחד. יכול להיות שזה הטלפון?',tl:'דֶה פְרוֹנְט דֶסְק הֶז וַואן רִיפּוֹרְט. קוּד דִיס בִּי דֶה פוֹן?'},options:[
+        {id:'other',when:{owner:'other'},event:{emoji:'🛎️',he:'אתם מוסרים את הטלפון לעובדת הקבלה, והיא בודקת את רשימת האבידות.'},stageAction:{id:'sam-hand-phone-to-desk',gesture:'phone-to-desk',set:{phone:'desk'}},ask:{en:'The front desk has one report. Could this be the phone?',he:'בדלפק יש דיווח אחד. יכול להיות שזה הטלפון?',tl:'דֶה פְרוֹנְט דֶסְק הֶז וַואן רִיפּוֹרְט. קוּד דִיס בִּי דֶה פוֹן?'},options:[
           {id:'maybe',label:'אולי',answer:{en:'Maybe',he:'אולי',tl:'מֵייבִּי'},reply:{en:'I think so. She will check.',he:'נראה לי שכן. היא תבדוק.',tl:'אַיי תִ׳ינְק סוֹ. שִי וִויל צֶ׳ק.'},set:{report:'maybe'}},
           {id:'unknown',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'No problem. She will keep it safe.',he:'אין בעיה. היא תשמור עליו.',tl:'נוֹ פְּרוֹבְּלֶם. שִי וִויל קִיפּ אִיט סֵייף.'},set:{report:'unknown'}},
         ]},
@@ -3645,6 +3738,7 @@ const PRACTICE_STORIES = [
     goal:'לקנות חולצה ולוודא שקיבלת את הצבע והמחיר שבחרת',
     open:'נינה ניגשת אליך בחנות. [[אתה מחפש|את מחפשת]] חולצה חדשה ורוצה לסגור את הקנייה לבד.',
     ending:'נינה מוסרת לך את החולצה ה{color} במחיר של {price}, הפעם בתוך השקית הנכונה.',
+    stageInitial:{bag:'none'},
     values:{
       color:{
         blue:{en:'blue',he:'כחולה',tl:'בְּלוּ'},
@@ -3672,7 +3766,7 @@ const PRACTICE_STORIES = [
         {id:'no',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'No problem. I will put it in a bag.',he:'אין בעיה. אשים אותה בשקית.',tl:'נוֹ פְּרוֹבְּלֶם. אַיי וִויל פּוּט אִיט אִין אַ בֶּג.'}},
         {id:'perfect',label:'מושלם, תודה!',answer:{en:'Perfect, thank you!',he:'מושלם, תודה!',tl:'פֶּרְפֶקְט, תֶ׳נְק יוּ!'},reply:{en:'One second. I will get your bag.',he:'שנייה אחת. אביא את השקית שלך.',tl:'וַואן סֶקֶנְד. אַיי וִויל גֶט יוֹר בֶּג.'}},
       ]},
-      {id:'wrong_bag',event:{emoji:'🛍️',he:'נינה מסתכלת בתוך השקית ומגלה בה חולצה אדומה.'},ask:{en:'Wait... is this your shirt?',he:'רגע... זאת החולצה שלך?',tl:'וֵייט... אִיז דִיס יוֹר שֶרְט?'},options:[
+      {id:'wrong_bag',event:{emoji:'🛍️',he:'נינה מסתכלת בתוך השקית ומגלה בה חולצה אדומה.'},stageAction:{id:'nina-open-wrong-bag',gesture:'reveal-wrong-bag',set:{bag:'wrong'}},ask:{en:'Wait... is this your shirt?',he:'רגע... זאת החולצה שלך?',tl:'וֵייט... אִיז דִיס יוֹר שֶרְט?'},options:[
         {id:'wanted_color',label:'לא! אני רוצה את ה{color}',answer:{en:'No! I want the {color} one',he:'לא! אני [[רוצה|רוצה]] את ה{color}',tl:'נוֹ! אַיי וּוֹנְט דֶה {color} וַואן'},reply:{en:'You are right. This is the wrong bag.',he:'[[אתה צודק|את צודקת]]. זאת השקית הלא נכונה.',tl:'יוּ אַר רַייט. דִיס אִיז דֶה רוֹנְג בֶּג.'}},
         {id:'red',label:'לא. החולצה אדומה',answer:{en:'No. The shirt is red',he:'לא. החולצה אדומה',tl:'נוֹ. דֶה שֶרְט אִיז רֶד'},reply:{en:'Oh no! Your shirt is {color}, not red.',he:'אוי לא! החולצה שלך {color}, לא אדומה.',tl:'אוֹ נוֹ! יוֹר שֶרְט אִיז {color}, נוֹט רֶד.'}},
       ]},
@@ -3684,7 +3778,7 @@ const PRACTICE_STORIES = [
         {id:'want',label:'אני רוצה את ה{color}',answer:{en:'I want the {color} one',he:'אני [[רוצה|רוצה]] את ה{color}',tl:'אַיי וּוֹנְט דֶה {color} וַואן'},reply:{en:'Right — {color}, not red.',he:'נכון — {color}, לא אדומה.',tl:'רַייט — {color}, נוֹט רֶד.'}},
         {id:'shirt',label:'החולצה {color}',answer:{en:'The shirt is {color}',he:'החולצה {color}',tl:'דֶה שֶרְט אִיז {color}'},reply:{en:'Exactly. This is your shirt.',he:'בדיוק. זאת החולצה שלך.',tl:'אֶגְזַקְטְלִי. דִיס אִיז יוֹר שֶרְט.'}},
       ]},
-      {id:'close',role:'close',ask:{en:'Here is the right bag: the {color} shirt for {price}. Is everything OK now?',he:'הנה השקית הנכונה: החולצה ה{color} ב{price}. הכל בסדר עכשיו?',tl:'הִיר אִיז דֶה רַייט בֶּג: דֶה {color} שֶרְט פוֹר {price}. אִיז אֶבְרִיתִ׳ינְג אוֹקֵיי נַאוּ?'},options:[
+      {id:'close',role:'close',event:{emoji:'✅',he:'נינה מחזירה את השקית הלא נכונה ומניחה לידך את השקית הנכונה.'},stageAction:{id:'nina-replace-with-right-bag',gesture:'replace-bag',set:{bag:'right'}},ask:{en:'Here is the right bag: the {color} shirt for {price}. Is everything OK now?',he:'הנה השקית הנכונה: החולצה ה{color} ב{price}. הכל בסדר עכשיו?',tl:'הִיר אִיז דֶה רַייט בֶּג: דֶה {color} שֶרְט פוֹר {price}. אִיז אֶבְרִיתִ׳ינְג אוֹקֵיי נַאוּ?'},options:[
         {id:'ok',label:'כן, הכל בסדר',answer:{en:'Yes, everything is OK',he:'כן, הכל בסדר',tl:'יֶס, אֶבְרִיתִ׳ינְג אִיז אוֹקֵיי'},reply:{en:'Great. Have a nice day!',he:'מעולה. שיהיה לך יום טוב!',tl:'גְרֵייט. הֶב אַ נַייס דֵיי!'}},
         {id:'perfect',label:'מושלם, תודה!',answer:{en:'Perfect, thank you!',he:'מושלם, תודה!',tl:'פֶּרְפֶקְט, תֶ׳נְק יוּ!'},reply:{en:'You are welcome! Enjoy your {color} shirt.',he:'על לא דבר! [[תתחדש|תתחדשי]] על החולצה ה{color}.',tl:'יוֹר וֶולְקַם! אֶנְג׳וֹי יוֹר {color} שֶרְט.'}},
       ]},
@@ -3763,6 +3857,7 @@ const PRACTICE_STORIES = [
     goal:'להציל את התוכנית לים גם כשפתאום מתחיל גשם',
     open:'מאיה מגיעה עם תיק ומגבת. [[אתם בודקים ואורזים|אתן בודקות ואורזות]] יחד לקראת הים.',
     ending:'אחרי שהגשם חולף, [[אתם ממשיכים|אתן ממשיכות]] לים עם {food} והמגבת ה{towel} שבחרת.',
+    stageInitial:{weather:'sunny'},
     values:{
       food:{
         pizza:{en:'pizza',he:'פיצה',tl:'פִּיצָה'},
@@ -3798,7 +3893,7 @@ const PRACTICE_STORIES = [
         {id:'blue',label:'אני רוצה את הכחולה',answer:{en:'I want the blue one',he:'אני [[רוצה|רוצה]] את הכחולה',tl:'אַיי וּוֹנְט דֶה בְּלוּ וַואן'},reply:{en:'Blue towel. Got it!',he:'מגבת כחולה. הבנתי!',tl:'בְּלוּ טַאוֶול. גוֹט אִיט!'},set:{towel:'blue'}},
         {id:'black',label:'אני רוצה את השחורה',answer:{en:'I want the black one',he:'אני [[רוצה|רוצה]] את השחורה',tl:'אַיי וּוֹנְט דֶה בְּלֶק וַואן'},reply:{en:'Black towel. Good choice!',he:'מגבת שחורה. בחירה טובה!',tl:'בְּלֶק טַאוֶול. גוּד צ׳וֹיס!'},set:{towel:'black'}},
       ]},
-      {id:'rain',event:{emoji:'🌧️',he:'טיפה נופלת על התיק, ואז מתחיל לרדת גשם.'},ask:{en:'Oh no! Look at the sky!',he:'אוי לא! [[תסתכל|תסתכלי]] על השמיים!',tl:'אוֹ נוֹ! לוּק אֶט דֶה סְקַיי!'},options:[
+      {id:'rain',event:{emoji:'🌧️',he:'טיפה נופלת על התיק, ואז מתחיל לרדת גשם.'},stageAction:{id:'maya-rain-starts',gesture:'start-rain',set:{weather:'rain'}},ask:{en:'Oh no! Look at the sky!',he:'אוי לא! [[תסתכל|תסתכלי]] על השמיים!',tl:'אוֹ נוֹ! לוּק אֶט דֶה סְקַיי!'},options:[
         {id:'raining',label:'יורד גשם!',answer:{en:"It's raining!",he:'יורד גשם!',tl:'אִיטְס רֵיינִינְג!'},reply:{en:'Quick — let us stand under that roof.',he:'מהר — [[בוא|בואי]] נעמוד מתחת לגג הזה.',tl:'קְוִויק — לֶט אַס סְטֶנְד אַנְדֶר דֶאט רוּף.'}},
         {id:'cold',label:'קר בחוץ',answer:{en:"It's cold outside",he:'קר בחוץ',tl:'אִיטְס קוֹלְד אַאוּטְסַייד'},reply:{en:'You are right. Let us wait under the roof.',he:'[[אתה צודק|את צודקת]]. [[בוא|בואי]] נחכה מתחת לגג.',tl:'יוּ אַר רַייט. לֶט אַס וֵייט אַנְדֶר דֶה רוּף.'}},
       ]},
@@ -3816,7 +3911,7 @@ const PRACTICE_STORIES = [
           {id:'fun',label:'היה כיף!',answer:{en:'It was fun!',he:'היה כיף!',tl:'אִיט וּוֹז פַאן!'},reply:{en:'Yes! Waiting was not so bad.',he:'כן! ההמתנה לא הייתה כל כך נוראה.',tl:'יֶס! וֵייטִינְג וּוֹז נוֹט סוֹ בַּאד.'}},
         ]},
       ]},
-      {id:'sun_returns',event:{emoji:'☀️',he:'הגשם מפסיק והשמש יוצאת שוב.'},ask:{en:'Look — the sun is out! What now?',he:'[[תראה|תראי]] — השמש בחוץ! מה עכשיו?',tl:'לוּק — דֶה סַאן אִיז אַאוּט! וּוַאט נַאוּ?'},options:[
+      {id:'sun_returns',event:{emoji:'☀️',he:'הגשם מפסיק והשמש יוצאת שוב.'},stageAction:{id:'maya-sun-returns',gesture:'stop-rain',set:{weather:'sunny'}},ask:{en:'Look — the sun is out! What now?',he:'[[תראה|תראי]] — השמש בחוץ! מה עכשיו?',tl:'לוּק — דֶה סַאן אִיז אַאוּט! וּוַאט נַאוּ?'},options:[
         {id:'beach',label:'בואי נלך לים!',answer:{en:"Let's go to the beach!",he:'בואי נלך לים!',tl:'לֶטְס גוֹ טוּ דֶה בִּיץ׳!'},reply:{en:'Yes! The plan is back on.',he:'כן! התוכנית חוזרת.',tl:'יֶס! דֶה פְּלֶן אִיז בֶּק אוֹן.'}},
         {id:'sounds',label:'נשמע טוב!',answer:{en:'Sounds good!',he:'נשמע טוב!',tl:'סַאוּנְדְס גוּד!'},reply:{en:'Great. The beach is waiting for us.',he:'מעולה. הים מחכה לנו.',tl:'גְרֵייט. דֶה בִּיץ׳ אִיז וֵייטִינְג פוֹר אַס.'}},
       ]},
@@ -4113,7 +4208,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.7.2';
+const APP_VERSION = '2.8.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -5538,6 +5633,10 @@ function exitLesson(){
 function stopLessonTimers(keepCheckpoint=true){
   if(L && keepCheckpoint){ pauseLessonClock(); saveLessonCheckpoint(); }
   else if(L && L.timerId){ clearInterval(L.timerId); L.timerId=null; }
+  if(L?.stageCaptionAfterActionTimer){
+    clearTimeout(L.stageCaptionAfterActionTimer);
+    L.stageCaptionAfterActionTimer=null;
+  }
   cancelAutoSpeak();
   invalidateDialogueFlow(false);
   stopRecognition();
@@ -5555,6 +5654,7 @@ function next(){
   if(!current?.chatAdded&&current?.type === 'speak' && current.isDlg && current.p){
     L.chat.push({who:'you',line:current.p,showHe:false,showTl:false}); current.chatAdded=true;
   }
+  if(current?.type==='listen') settlePracticeStageAction(L);
   stopRecognition();
   L.i++; L.tries = 0;
   saveLessonCheckpoint();
@@ -5805,6 +5905,56 @@ function matchesPracticeWhen(when, vars={}){
   if(!when) return true;
   return Object.entries(when).every(([key,value])=>vars[key]===value);
 }
+function initialPracticeStageWorld(storyOrId){
+  const story=typeof storyOrId==='string'?practiceStoryById(storyOrId):storyOrId;
+  const initial=story?.stageInitial;
+  return initial&&typeof initial==='object'&&!Array.isArray(initial)?{...initial}:{};
+}
+function applyPracticeStageMutation(world, set){
+  const next={...(world&&typeof world==='object'&&!Array.isArray(world)?world:{})};
+  if(!set||typeof set!=='object'||Array.isArray(set)) return next;
+  for(const [key,value] of Object.entries(set)){
+    if(['string','number','boolean'].includes(typeof value)) next[key]=value;
+  }
+  return next;
+}
+function ensurePracticeStageWorld(session=L){
+  if(!session) return {};
+  if(!session.stageWorld||typeof session.stageWorld!=='object'||Array.isArray(session.stageWorld)){
+    session.stageWorld=initialPracticeStageWorld(session.practiceStoryId);
+  }
+  if(!Array.isArray(session.stagePlayedActions)) session.stagePlayedActions=[];
+  return session.stageWorld;
+}
+/* A story action is committed only when its spoken beat actually arrives.
+   Its world mutation survives every following screen; the gesture itself is
+   one-shot, so the duplicated event on the answer screen cannot replay it. */
+function enterPracticeStageAction(step, session=L){
+  const action=step?.stageAction;
+  if(!session?.isPractice||!step?.arrived||!action?.id||!action?.gesture) return false;
+  ensurePracticeStageWorld(session);
+  if(session.stagePlayedActions.includes(action.id)) return false;
+  session.stagePlayedActions.push(action.id);
+  session.stageWorld=applyPracticeStageMutation(session.stageWorld,action.set);
+  session.pendingStageAction=action;
+  return true;
+}
+function settlePracticeStageAction(session=L){
+  if(!session) return;
+  if(session.stageCaptionAfterActionTimer){
+    clearTimeout(session.stageCaptionAfterActionTimer);
+    session.stageCaptionAfterActionTimer=null;
+  }
+  session.pendingStageAction=null;
+}
+function practiceStageModel(session=L){
+  const world=session?ensurePracticeStageWorld(session):{};
+  const action=session?.pendingStageAction||null;
+  const color=['blue','black'].includes(session?.practiceVars?.color)
+    ? session.practiceVars.color : 'blue';
+  const key=[world.brushes||'',world.phone||'',world.bag||'',world.weather||'',color,action?.id||'settled'].join('|');
+  return {world:{...world},action,shirtColor:color,key};
+}
 function resolvePracticeBeat(storyOrId, beatIndex, vars={}){
   const story=typeof storyOrId==='string'?practiceStoryById(storyOrId):storyOrId;
   const beat=story?.beats?.[beatIndex];
@@ -5816,6 +5966,7 @@ function resolvePracticeBeat(storyOrId, beatIndex, vars={}){
   return {
     id:beat.id, role:variant.role||beat.role||'mid', variantId:variant.id||'base',
     ask:variant.ask, options:variant.options, event:variant.event||beat.event||null,
+    stageAction:variant.stageAction||beat.stageAction||null,
   };
 }
 function applyPracticeChoice(vars, option){
@@ -5848,6 +5999,7 @@ function materializePracticeBeat(beatIndex, session=L){
   session.steps[at]={
     type:'listen',line:beat.ask,isBranchAsk:true,roundIndex:beatIndex,
     practiceBeatId:beat.id,practiceVariantId:beat.variantId,event:beat.event,
+    stageAction:beat.stageAction,
   };
   session.steps[at+1]={
     type:'branchChoice',options:beat.options,roundIndex:beatIndex,
@@ -5970,6 +6122,7 @@ function startPractice(){
     steps, i:0, isReplay:true, isPractice:true, practiceMeta:session.meta,
     practiceTopicId:session.story.id, practiceSceneId:session.sceneId,
     practiceStoryId:session.story.id, practiceVars:{}, practiceDecisions:[],
+    stageWorld:initialPracticeStageWorld(session.story), stagePlayedActions:[], pendingStageAction:null,
     practiceRoundCount:session.story.beats.length,
     tries:0, attempts:0, rec:null, timerId:null,
     elapsedBeforeMs:0, activeSince:Date.now(), chat:[], warmupIds:[],
@@ -6083,7 +6236,7 @@ function chatItem(source,index){
 }
 function storyEventHtml(event,extraClass=''){
   if(!event?.he) return '';
-  return `<div class="story-event ${extraClass}"><span class="event-emoji">${esc(event.emoji||'⚡')}</span><span>${esc(fillProfileText(event.he,'he'))}</span></div>`;
+  return `<div class="story-event ${extraClass}"><span class="event-emoji" aria-hidden="true">${esc(event.emoji||'⚡')}</span><span>${esc(fillProfileText(event.he,'he'))}</span></div>`;
 }
 function chatBubbleHtml(item,source,index,extraClass=''){
   if(!item||!item.line) return '';
@@ -6161,6 +6314,66 @@ function setStageCue(cue){
 function stagePlaceHtml(meta, history){
   return `${meta.placeEmoji} ${esc(meta.place)}${history?` · <button class="stage-history" onclick="openChatHistory()">📜 מה נאמר עד עכשיו</button>`:''}`;
 }
+function safeStageClass(value){
+  return String(value||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+}
+function stageActionClass(model){
+  const gesture=safeStageClass(model?.action?.gesture);
+  return gesture?' stage-action-'+gesture:'';
+}
+function stageBrushesHtml(position, gesture){
+  const moving=position==='placed'&&gesture==='place-brushes'?' is-placing':'';
+  return `<svg class="stage-prop prop-brushes at-${position}${moving}" viewBox="0 0 62 78" aria-hidden="true">
+    <g class="brush brush-one" transform="rotate(-7 24 39)"><rect x="20" y="18" width="7" height="48" rx="3.5" fill="#f3c85d"/><path d="M19 20l2-13h6l2 13z" fill="#3b2b22"/><path d="M21 14h6" stroke="#e7b44e" stroke-width="2"/></g>
+    <g class="brush brush-two" transform="translate(17 3) rotate(8 24 39)"><rect x="20" y="18" width="7" height="48" rx="3.5" fill="#d98b45"/><path d="M19 20l1-13h8l1 13z" fill="#a7556e"/><path d="M21 14h6" stroke="#f2c565" stroke-width="2"/></g>
+  </svg>`;
+}
+function stagePhoneHtml(position, gesture){
+  const motion=gesture==='pick-up-phone'?' is-picking-up'
+    :gesture==='hand-over-phone'?' is-handing-over'
+    :gesture==='phone-to-desk'?' is-going-to-desk':'';
+  return `<svg class="stage-prop prop-phone at-${position}${motion}" viewBox="0 0 50 74" aria-hidden="true">
+    ${position==='desk'?'<path class="phone-tray" d="M1 63h48l-5 9H6z" fill="#c8a46d" stroke="#614832" stroke-width="2.4"/>':''}
+    <g class="phone-body"><rect x="5" y="2" width="40" height="66" rx="8" fill="#111827" stroke="#9eb4d1" stroke-width="2.5"/><rect x="9" y="8" width="32" height="50" rx="4" fill="#5ab4d8"/><path d="M11 39c9-9 18-13 28-12v29H11z" fill="#77d4b0" opacity=".72"/><rect x="19" y="5" width="12" height="2.5" rx="1" fill="#c9d7e8"/><circle cx="25" cy="63" r="2.3" fill="#c9d7e8"/></g>
+  </svg>`;
+}
+function stageBagHtml(kind, color, extra=''){
+  const shirt=kind==='wrong'?'red':color;
+  const check=kind==='right'?'<path class="bag-check" d="M59 68l7 7 15-18" fill="none" stroke="#d9ffe8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>':'';
+  return `<svg class="stage-prop prop-bag bag-${kind} shirt-${shirt}${extra}" viewBox="0 0 96 108" aria-hidden="true">
+    <path class="bag-handle" d="M27 39c0-22 42-22 42 0" fill="none" stroke="#d8b884" stroke-width="7" stroke-linecap="round"/>
+    <path class="shirt-peek" d="M28 23l12-8 8 7 8-7 13 8-6 22H34z"/>
+    <path class="bag-body" d="M14 37h68l8 62H7z" fill="#efe0bf" stroke="#9d7649" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M17 43h62" stroke="#fff8e7" stroke-width="3" opacity=".75"/>
+    ${check}
+  </svg>`;
+}
+function stagePropsHtml(model){
+  const world=model?.world||{},gesture=model?.action?.gesture||'';
+  const props=[];
+  if(world.brushes==='held'||world.brushes==='placed') props.push(stageBrushesHtml(world.brushes,gesture));
+  if(['floor','held','learner','desk'].includes(world.phone)) props.push(stagePhoneHtml(world.phone,gesture));
+  if(world.bag==='wrong') props.push(stageBagHtml('wrong','red',gesture==='reveal-wrong-bag'?' is-revealing':''));
+  if(world.bag==='right'){
+    if(gesture==='replace-bag') props.push(stageBagHtml('wrong','red',' is-leaving'));
+    props.push(stageBagHtml('right',model.shirtColor,gesture==='replace-bag'?' is-arriving':''));
+  }
+  return props.join('');
+}
+function stageRainDropsHtml(){
+  return '<i style="--x:4%;--d:-.3s;--speed:.92s"></i><i style="--x:12%;--d:-1.1s;--speed:1.08s"></i><i style="--x:21%;--d:-.7s;--speed:.83s"></i><i style="--x:29%;--d:-1.5s;--speed:1.16s"></i><i style="--x:38%;--d:-.1s;--speed:.96s"></i><i style="--x:47%;--d:-1.25s;--speed:1.12s"></i><i style="--x:56%;--d:-.55s;--speed:.86s"></i><i style="--x:65%;--d:-1.7s;--speed:1.18s"></i><i style="--x:73%;--d:-.85s;--speed:1.02s"></i><i style="--x:81%;--d:-.2s;--speed:.88s"></i><i style="--x:89%;--d:-1.35s;--speed:1.14s"></i><i style="--x:96%;--d:-.65s;--speed:.94s"></i>';
+}
+function stageWeatherHtml(model){
+  const weather=model?.world?.weather,gesture=model?.action?.gesture||'';
+  if(gesture==='stop-rain') return `<div class="rain-field is-clearing"><span class="weather-shade"></span>${stageRainDropsHtml()}</div><div class="returning-sun" aria-hidden="true"><span></span></div>`;
+  if(weather==='rain') return `<div class="rain-field${gesture==='start-rain'?' is-starting':''}"><span class="weather-shade"></span>${stageRainDropsHtml()}</div>`;
+  return '';
+}
+function syncStageVisualBlock(el, key, html){
+  if(!el||el.dataset.visualKey===key) return;
+  el.dataset.visualKey=key;
+  el.innerHTML=html;
+}
 function swapStageBlock(el, html){
   if(!el) return;
   const changed=el.__stageHtml!==html;
@@ -6187,7 +6400,13 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   const avatar=screen.querySelector('.stage-avatar');
   const modern=meta.character?.look?.variant==='modern-v2';
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS['living-room'];
-  if(avatar) avatar.className='stage-avatar '+state_+' char-'+(meta.characterId||'unknown')+(modern?' modern-cast':'')+' light-'+(bd.lightSide||'left');
+  const stageVisual=practiceStageModel(L);
+  const rainy=stageVisual.world.weather==='rain';
+  const bg=screen.querySelector('.stage-bg');
+  if(bg) bg.className='stage-bg scene-motion-'+(bd.motionProfile||'dust')+(rainy?' has-story-rain':'');
+  syncStageVisualBlock(screen.querySelector('#stageWeather'),stageVisual.key,stageWeatherHtml(stageVisual));
+  if(avatar) avatar.className='stage-avatar '+state_+' char-'+(meta.characterId||'unknown')+(modern?' modern-cast':'')+' light-'+(bd.lightSide||'left')+stageActionClass(stageVisual);
+  syncStageVisualBlock(screen.querySelector('#stageStoryProps'),stageVisual.key,stagePropsHtml(stageVisual));
   const art=screen.querySelector('.person-art');
   if(art){
     // never silence a mouth mid-word: the live voice classes survive the morph
@@ -6214,10 +6433,14 @@ function stageShell(state_, caption, composer, cue){
   const sceneKey=(meta.characterId||'')+'|'+(meta.bg||'');
   if(updateStageInPlace(sceneKey, state_, cue||state_, caption, composer, pct, meta, history)) return;
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS['living-room'];
+  const stageVisual=practiceStageModel(L);
+  const rainy=stageVisual.world.weather==='rain';
   h(`<div class="conversation-screen stage-screen" data-scene="${esc(sceneKey)}">
-    <div class="stage-bg scene-motion-${esc(bd.motionProfile||'dust')}" data-backdrop="${esc(bd.id)}" data-light="${esc(bd.lightSide||'left')}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground};--scene-light:${bd.lightColor||'#ffffff'}">
+    <div class="stage-bg scene-motion-${esc(bd.motionProfile||'dust')}${rainy?' has-story-rain':''}" data-backdrop="${esc(bd.id)}" data-light="${esc(bd.lightSide||'left')}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground};--scene-light:${bd.lightColor||'#ffffff'}">
       <svg class="backdrop-art backdrop-${esc(bd.id)}" data-art="${esc(bd.id)}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">${bd.art}</svg>
+      <div class="stage-weather-layer" id="stageWeather" data-visual-key="${esc(stageVisual.key)}">${stageWeatherHtml(stageVisual)}</div>
     </div>
+    <div class="sr-only" id="stageEventAnnouncer" aria-live="polite" aria-atomic="true"></div>
     <div class="conversation-top">
       <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהתרגול">✕</button>
       <div class="pbar" role="progressbar" aria-label="התקדמות בשיחה" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
@@ -6225,11 +6448,12 @@ function stageShell(state_, caption, composer, cue){
     </div>
     <div class="stage" style="--who:${meta.character.color}">
       <div class="stage-place">${stagePlaceHtml(meta,history)}</div>
-      <div class="stage-avatar ${state_} char-${esc(meta.characterId||'unknown')}${modern?' modern-cast':''} light-${esc(bd.lightSide||'left')}">
+      <div class="stage-avatar ${state_} char-${esc(meta.characterId||'unknown')}${modern?' modern-cast':''} light-${esc(bd.lightSide||'left')}${stageActionClass(stageVisual)}">
         <span class="ring r1"></span><span class="ring r2"></span>
         ${meta.character.look
           ? personArt(meta.character.look, state_)
           : `<span class="face" aria-hidden="true">${meta.character.avatar}</span>`}
+        <div class="stage-story-props" id="stageStoryProps" data-visual-key="${esc(stageVisual.key)}" aria-hidden="true">${stagePropsHtml(stageVisual)}</div>
       </div>
       <div class="stage-name">${esc(meta.character.name)}${meta.role?` <span>· ${esc(meta.role)}</span>`:''}</div>
       <div class="stage-status cue-${cue||state_}" id="stageStatus">${stageCueHtml(cue||state_, meta.character)}</div>
@@ -6271,10 +6495,38 @@ function stageCaptionLine(){
   if(step.type==='branchChoice') return [...(L.chat||[])].reverse().find(x=>x.who==='app')?.line || null;
   return step.p || null;
 }
-function keepStageCaptionVisible(){
+function keepStageCaptionVisible(force=false){
+  const action=L?.pendingStageAction;
+  // requestAnimationFrame passes a numeric timestamp; only an explicit true
+  // may bypass the action-first delay.
+  if(action&&force!==true){
+    const session=L,actionId=action.id;
+    clearTimeout(session.stageCaptionAfterActionTimer);
+    session.stageCaptionAfterActionTimer=setTimeout(()=>{
+      session.stageCaptionAfterActionTimer=null;
+      if(L===session&&L.pendingStageAction?.id===actionId) keepStageCaptionVisible(true);
+    },1400);
+    return;
+  }
   const caption=document.getElementById('stageCaption');
   if(caption?.querySelector?.('.cap-en')&&caption.scrollIntoView)
     caption.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+}
+function keepStageActionVisible(){
+  const avatar=document.querySelector('.stage-screen .stage-avatar');
+  if(avatar?.scrollIntoView) avatar.scrollIntoView({block:'start',inline:'nearest',behavior:'auto'});
+}
+function announceStageEvent(event){
+  const announcer=document.getElementById('stageEventAnnouncer');
+  if(!announcer) return;
+  const text=event?.he?fillProfileText(event.he,'he'):'';
+  if(announcer.dataset.eventText===text) return;
+  announcer.dataset.eventText=text;
+  announcer.textContent='';
+  if(!text) return;
+  requestAnimationFrame(()=>{
+    if(document.getElementById('stageEventAnnouncer')===announcer) announcer.textContent=text;
+  });
 }
 function replayStageLine(){
   const line=stageCaptionLine();
@@ -6884,6 +7136,7 @@ function renderListen(step){
   const continuing=L.steps[L.i-1]?.type==='listen';
   const runsOn=L.steps[L.i+1]?.type==='listen';
   if(continuing) step.arrived=true;
+  const stageActionStarted=L.isPractice&&step.arrived?enterPracticeStageAction(step,L):false;
   const current=step.arrived?{who:'app',line,showHe:!!step.showHe,showTl:!!step.showTl}:null;
   const typing=`<div class="dlg-line typing-line"><div class="dlg-avatar" aria-hidden="true">${meta.character.avatar}</div><div class="dlg-bubble voice-note">🎙️ ${esc(meta.character.name)} שולח הודעה<span class="vdots"><i></i><i></i><i></i></span></div></div>`;
   // No pause and no skip: the conversation just flows, like a real one.
@@ -6901,6 +7154,8 @@ function renderListen(step){
         : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
       composer,
       step.arrived?'speaking':'incoming');
+    if(stageActionStarted) requestAnimationFrame(keepStageActionVisible);
+    announceStageEvent(step.arrived?step.event:null);
   } else {
     dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
   }
