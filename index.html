@@ -427,6 +427,19 @@ body{
 .prop-robot.is-revealing .robot-toy{animation:storyRobotReveal 2.05s cubic-bezier(.18,.78,.22,1) both}
 .prop-robot.is-lighting .robot-eye{animation:storyRobotLight 2.1s ease-in-out both}
 .prop-robot.is-lighting .robot-toy{animation:storyRobotBounce 2.1s cubic-bezier(.2,.76,.24,1) both}
+.prop-story-card{right:-27%;bottom:3%;width:54%;min-height:92px;padding:10px 10px 9px;border-radius:18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;
+  color:#f8fbff;background:linear-gradient(145deg,var(--prop-a,#396a91),var(--prop-b,#243a64));
+  border:2px solid rgba(255,255,255,.42);box-shadow:0 13px 28px rgba(3,10,24,.4),inset 0 1px rgba(255,255,255,.24)}
+.prop-story-card .story-prop-face{width:100%;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.prop-story-card .story-prop-icon{font-size:38px;line-height:1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.28))}
+.prop-story-card .story-prop-label{max-width:118px;font-size:12px;font-weight:900;line-height:1.2;text-align:center;
+  letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+.prop-story-card.is-changing{animation:storyGenericPropChange 2.05s cubic-bezier(.18,.78,.22,1) both}
+.prop-story-card.is-revealing{animation:storyGenericPropReveal 2.05s cubic-bezier(.18,.78,.22,1) both}
+.prop-story-card.is-changing .story-prop-face{position:absolute;inset:8px 7px}
+.prop-story-card.is-changing .story-prop-before{animation:storyGenericPropBefore 2.05s cubic-bezier(.18,.78,.22,1) both}
+.prop-story-card.is-changing .story-prop-after{animation:storyGenericPropAfter 2.05s cubic-bezier(.18,.78,.22,1) both}
 .stage-bg.has-story-ball .ball-shadow,.stage-bg.has-story-connection .signal,.stage-bg.has-story-connection .phone-signal{opacity:0!important;animation:none!important}
 @keyframes storyPropRise{0%,18%{opacity:0;transform:translate(14%,28%) scale(.72) rotate(7deg)}52%{opacity:1;transform:translate(-2%,-4%) scale(1.04)}76%,100%{opacity:1;transform:none}}
 @keyframes storyPropExit{0%,44%{opacity:1;transform:none}78%,100%{opacity:0;transform:translate(118%,-22%) scale(.7) rotate(13deg)}}
@@ -450,10 +463,15 @@ body{
 @keyframes storyRobotReveal{0%,28%{opacity:0;transform:translateY(44px) scale(.72)}58%{opacity:1;transform:translateY(-7px) scale(1.05)}78%,100%{opacity:1;transform:none}}
 @keyframes storyRobotLight{0%,22%,100%{opacity:1;transform:scale(1)}35%,48%,62%,75%{opacity:.25;transform:scale(.82)}42%,55%,69%,86%{opacity:1;transform:scale(1.18)}}
 @keyframes storyRobotBounce{0%,100%{transform:none}42%{transform:translateY(-6px) rotate(-2deg)}62%{transform:translateY(1px) rotate(2deg)}78%{transform:translateY(-2px)}}
+@keyframes storyGenericPropChange{0%,18%{opacity:.35;transform:translate(34%,-22%) scale(.7) rotate(7deg)}48%{opacity:1;transform:translate(-4%,-5%) scale(1.08) rotate(-3deg)}74%{transform:translate(2%,1%) scale(.98) rotate(1deg)}100%{opacity:1;transform:none}}
+@keyframes storyGenericPropReveal{0%,18%{opacity:0;transform:translate(82%,-30%) scale(.54) rotate(14deg)}57%{opacity:1;transform:translate(-5%,-4%) scale(1.09) rotate(-3deg)}78%{transform:translate(2%,1%) scale(.98) rotate(1deg)}100%{opacity:1;transform:none}}
+@keyframes storyGenericPropBefore{0%,32%{opacity:1;transform:none}61%,100%{opacity:0;transform:translate(54%,-24%) scale(.58) rotate(13deg)}}
+@keyframes storyGenericPropAfter{0%,43%{opacity:0;transform:translate(-46%,28%) scale(.55) rotate(-10deg)}72%{opacity:1;transform:translate(2%,-3%) scale(1.08) rotate(2deg)}100%{opacity:1;transform:none}}
 
 /* Weather is a persistent world state rather than a timed decoration. Rain
    keeps moving during the waiting beats and only clears on sun_returns. */
 .stage-bg.has-story-rain .backdrop-art{filter:brightness(.7) saturate(.72) contrast(1.04)}
+.stage-bg.has-kitchen-blackout .backdrop-art{filter:brightness(.34) saturate(.5) contrast(1.08)}
 .stage-weather-layer{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
 .rain-field,.weather-shade,.returning-sun{position:absolute;inset:0}
 .weather-shade{background:linear-gradient(180deg,rgba(26,42,67,.5),rgba(18,34,55,.22) 55%,rgba(7,18,34,.06))}
@@ -698,7 +716,7 @@ body{
 
 /* The camera only shifts by one or two percent. It reads as focus and depth,
    not as a moving page, and captions never take part in the transform. */
-.stage-bg .backdrop-art{transform-origin:50% 100%;transition:transform 1s cubic-bezier(.2,.72,.25,1)}
+.stage-bg .backdrop-art{transform-origin:50% 100%;transition:transform 1s cubic-bezier(.2,.72,.25,1),filter .9s ease}
 .stage-camera-close .backdrop-art{transform:scale(1.012)}
 .stage-camera-focus .backdrop-art{transform:translateY(.5%) scale(1.018)}
 .stage-camera-pan .backdrop-art{transform:translateX(-1%) scale(1.014)}
@@ -819,6 +837,7 @@ body{
   .stage-action-pick-up-phone .held-phone-art{opacity:1!important}
   .stage-action-return-photo .held-photo-art,.stage-action-lose-ball .held-ball-art,.stage-action-score-ball .held-ball-art{opacity:0!important}
   .stage-action-catch-photo .held-photo-art,.stage-action-recover-ball .held-ball-art{opacity:1!important}
+  .prop-story-card.is-changing .story-prop-before{display:none}.prop-story-card.is-changing .story-prop-after{opacity:1!important;transform:none!important}
   .stage-moment-fx{display:none}
   .rain-field:not(.is-clearing) i:nth-of-type(4n+1){top:8%}
   .rain-field:not(.is-clearing) i:nth-of-type(4n+2){top:31%}
@@ -4342,6 +4361,744 @@ const PRACTICE_STORIES = [
       ]},
     ],
   },
+
+  {
+    id:'maya_window_light', min:1, sceneIds:['feelings#1'],
+    goal:'לגלות מה יוצר את כתם האור שרוקד על הקיר',
+    open:'[[אתה נכנס|את נכנסת]] לסלון של מאיה. היא מסיטה מעט את הווילון כדי להכניס אור לחדר.',
+    ending:'מאיה משאירה את המראה הקטנה ליד החלון, וכתם אור עגול נשאר על הקיר.',
+    stageInitial:{storyProp:'ready'},
+    stageProp:{beforeIcon:'🪟',afterIcon:'🪞',beforeLabel:'קרן שמש ליד הווילון',afterLabel:'המראה הקטנה',colorA:'#f1c453',colorB:'#6786a6'},
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hi, {name}! How are you today?',he:'היי! מה שלומך היום?',tl:'הַיי! הַאוּ אַר יוּ טוּדֵיי?'},options:[
+        {id:'good',label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:'Good! The sun is finally out.',he:'יופי! סוף סוף השמש יצאה.',tl:'גוּד! דֶה סַאן אִיז פַיינַאלִי אַאוּט.'}},
+        {id:'ask_back',label:'אני בסדר, תודה. מה שלומך?',answer:{en:"I'm good, thanks. How are you?",he:'אני בסדר, תודה. מה שלומך?',tl:'אַיְים גוּד, תֶ׳נְקְס. הַאוּ אַר יוּ?'},reply:{en:"I'm good too, thanks. The sun is finally out.",he:'גם אני בסדר, תודה. סוף סוף השמש יצאה.',tl:'אַיְים גוּד טוּ, תֶ׳נְקְס. דֶה סַאן אִיז פַיינַאלִי אַאוּט.'}},
+      ]},
+      {id:'moving_light',event:{emoji:'✨',he:'כתם אור קטן מופיע פתאום על הקיר ומתחיל לנוע מצד לצד.'},ask:{en:'Look—a little light is moving on the wall!',he:'[[תסתכל|תסתכלי]]—כתם אור קטן זז על הקיר!',tl:'לוּק — אַ לִיטֶל לַייט אִיז מוּבִינְג אוֹן דֶה וֹול!'},options:[
+        {id:'see',label:'אני רואה אותו!',answer:{en:'I see it!',he:'אני רואה אותו!',tl:'אַיי סִי אִיט!'},reply:{en:"It keeps moving. Let's see where it comes from.",he:'הוא ממשיך לזוז. [[בוא|בואי]] נראה מאיפה הוא מגיע.',tl:'אִיט קִיפְּס מוּבִינְג. לֶטְס סִי וֶּר אִיט קַאמְז פְרוֹם.'},set:{clue:'light'}},
+        {id:'sun',label:'זאת השמש!',answer:{en:'It is the sun!',he:'זאת השמש!',tl:'אִיט אִיז דֶה סַאן!'},reply:{en:"You're right. Maybe the sun is making it.",he:'נכון. אולי השמש יוצרת אותו.',tl:'יוֹר רַייט. מֵייבִּי דֶה סַאן אִיז מֵייקִינְג אִיט.'},set:{clue:'sun'}},
+      ]},
+      {id:'find_mirror',stageAction:{id:'maya-finds-sun-mirror',gesture:'story-prop-change',motion:'present',set:{storyProp:'changed'}},variants:[
+        {id:'followed_light',when:{clue:'light'},event:{emoji:'🪞',he:'מאיה עוקבת אחרי כתם האור ומוצאת מראה קטנה שמציצה מתחת לספר ליד החלון.'},ask:{en:'We found it! The sun is shining on this little mirror. What do you see?',he:'מצאנו! השמש מאירה על המראה הקטנה הזאת. מה [[אתה רואה|את רואה]]?',tl:'וִוי פַאוּנְד אִיט! דֶה סַאן אִיז שַׁיינִינְג אוֹן דִיס לִיטֶל מִירֶר. וּוַאט דוּ יוּ סִי?'},options:[
+          {id:'see_sun',label:'אני רואה את השמש',answer:{en:'I see the sun',he:'אני רואה את השמש',tl:'אַיי סִי דֶה סַאן'},reply:{en:'That is it—the mirror is sending sunlight to the wall.',he:'זה זה—המראה מחזירה את אור השמש אל הקיר.',tl:'דֶאט אִיז אִיט — דֶה מִירֶר אִיז סֶנְדִינְג סַאנְלַייט טוּ דֶה וֹול.'}},
+          {id:'sun_here',label:'אני רואה אותו',answer:{en:'I see it',he:'אני רואה אותו',tl:'אַיי סִי אִיט'},reply:{en:'Exactly—the mirror is sending it to the wall.',he:'בדיוק—המראה מחזירה אותו אל הקיר.',tl:'אִיגְזַקְטְלִי — דֶה מִירֶר אִיז סֶנְדִינְג אִיט טוּ דֶה וֹול.'}},
+        ]},
+        {id:'followed_sun',when:{clue:'sun'},event:{emoji:'🪞',he:'מאיה מסתכלת ליד החלון ומוצאת מראה קטנה שמציצה מתחת לספר.'},ask:{en:'You were right! The sun is shining on this little mirror. What do you see?',he:'צדקת! השמש מאירה על המראה הקטנה הזאת. מה [[אתה רואה|את רואה]]?',tl:'יוּ וֶר רַייט! דֶה סַאן אִיז שַׁיינִינְג אוֹן דִיס לִיטֶל מִירֶר. וּוַאט דוּ יוּ סִי?'},options:[
+          {id:'see_sun',label:'אני רואה את השמש',answer:{en:'I see the sun',he:'אני רואה את השמש',tl:'אַיי סִי דֶה סַאן'},reply:{en:'That is it—the mirror is sending sunlight to the wall.',he:'זה זה—המראה מחזירה את אור השמש אל הקיר.',tl:'דֶאט אִיז אִיט — דֶה מִירֶר אִיז סֶנְדִינְג סַאנְלַייט טוּ דֶה וֹול.'}},
+          {id:'sun_here',label:'אני רואה אותו',answer:{en:'I see it',he:'אני רואה אותו',tl:'אַיי סִי אִיט'},reply:{en:'Exactly—the mirror is sending it to the wall.',he:'בדיוק—המראה מחזירה אותו אל הקיר.',tl:'אִיגְזַקְטְלִי — דֶה מִירֶר אִיז סֶנְדִינְג אִיט טוּ דֶה וֹול.'}},
+        ]},
+      ]},
+      {id:'place_mirror',role:'close',event:{emoji:'☀️',he:'מאיה מסובבת מעט את המראה. כתם האור נעצר בדיוק מעל התמונה שעל הקיר.'},ask:{en:'Now the light is still. How does it look?',he:'עכשיו כתם האור עומד במקום. איך הוא נראה?',tl:'נַאוּ דֶה לַייט אִיז סְטִיל. הַאוּ דַאז אִיט לוּק?'},options:[
+        {id:'nice',label:'זה יפה',answer:{en:'It is nice',he:'זה יפה',tl:'אִיט אִיז נַייס'},reply:{en:'I think so too. The room has its own little sun.',he:'גם אני חושבת. עכשיו יש לחדר שמש קטנה משלו.',tl:'אַיי תִ׳ינְק סוֹ טוּ. דֶה רוּם הֶז אִיטְס אוֹן לִיטֶל סַאן.'}},
+        {id:'good',label:'יפה כאן',answer:{en:'It is nice here',he:'יפה כאן',tl:'אִיט אִיז נַייס הִיר'},reply:{en:'I think so too. I will leave the mirror here.',he:'גם אני חושבת. אני אשאיר את המראה כאן.',tl:'אַיי תִ׳ינְק סוֹ טוּ. אַיי וִויל לִיב דֶה מִירֶר הִיר.'}},
+      ]},
+    ],
+  },
+
+  {
+    id:'ben_old_camera', min:2, sceneIds:['greet#2'],
+    goal:'לגלות אם מצלמה ישנה מהשוק עדיין עובדת ולהחליט מי ישמור את התמונה',
+    open:'בן עומד ליד המזרקה בכיכר ומנקה אבק ממצלמה ישנה שקנה בדוכן סמוך.',
+    ending:'התמונה נשארת {photoPlace}, ובן מחזיר את המצלמה הישנה לתיק.',
+    stageInitial:{storyProp:'ready'},
+    stageProp:{beforeIcon:'📷',afterIcon:'🖼️',beforeLabel:'המצלמה הישנה',afterLabel:'התמונה שהודפסה',colorA:'#6a5040',colorB:'#35556b'},
+    values:{
+      photoPlace:{
+        ben:{en:'with Ben',he:'אצל בן',tl:'וִית׳ בֶּן'},
+        learner:{en:'with you',he:'אצלך',tl:'וִית׳ יוּ'},
+      },
+    },
+    beats:[
+      {id:'old_camera',role:'open',ask:{en:'Hi, {name}! I found something old at the market.',he:'היי! מצאתי משהו ישן בשוק.',tl:'הַיי! אַיי פַאוּנְד סַאמְתִ׳ינְג אוֹלְד אֶט דֶה מַרְקֶט.'},options:[
+        {id:'hello',label:'שלום!',answer:{en:'Hello!',he:'שלום!',tl:'הֶלוֹ!'},reply:{en:"Hello! Look—it's an old camera. I don't know if it works.",he:'שלום! [[תסתכל|תסתכלי]]—זאת מצלמה ישנה. אני לא יודע אם היא עובדת.',tl:'הֶלוֹ! לוּק — אִיטְס אַן אוֹלְד קַאמֶרָה. אַיי דוֹנְט נוֹאוּ אִיף אִיט וּוֹרְקְס.'}},
+        {id:'hi',label:'היי!',answer:{en:'Hi!',he:'היי!',tl:'הַיי!'},reply:{en:"Hi! Look—it's an old camera. I don't know if it works.",he:'היי! [[תסתכל|תסתכלי]]—זאת מצלמה ישנה. אני לא יודע אם היא עובדת.',tl:'הַיי! לוּק — אִיטְס אַן אוֹלְד קַאמֶרָה. אַיי דוֹנְט נוֹאוּ אִיף אִיט וּוֹרְקְס.'}},
+      ]},
+      {id:'accidental_photo',event:{emoji:'⚡',he:'בן מניח את המצלמה על שפת המזרקה. נורה קטנה מהבהבת, נשמע קליק וקצה של דף לבן מתחיל לצאת.'},ask:{en:'Oh! The timer took a photo of us.',he:'אוי! הטיימר צילם תמונה של שנינו.',tl:'אוֹ! דֶה טַיימֶר טוּק אַ פוֹטוֹ אוֹף אַס.'},options:[
+        {id:'wow',label:'וואו!',answer:{en:'Wow!',he:'וואו!',tl:'וַואוּ!'},reply:{en:'I know! We did not even touch the button.',he:'לגמרי! אפילו לא נגענו בכפתור.',tl:'אַיי נוֹאוּ! וִוי דִיד נוֹט אִיבֶן טַאץ׳ דֶה בַּאטֶן.'},set:{reaction:'wow'}},
+        {id:'question',label:'מה זה?',answer:{en:'What is that?',he:'מה זה?',tl:'וּוַאט אִיז דֶאט?'},reply:{en:'A photo is coming out of the camera. We did not even touch the button.',he:'תמונה יוצאת מהמצלמה. אפילו לא נגענו בכפתור.',tl:'אַ פוֹטוֹ אִיז קַאמִינְג אַאוּט אוֹף דֶה קַאמֶרָה. וִוי דִיד נוֹט אִיבֶן טַאץ׳ דֶה בַּאטֶן.'},set:{reaction:'question'}},
+      ]},
+      {id:'photo_appears',stageAction:{id:'ben-camera-prints-photo',gesture:'story-prop-change',motion:'present',set:{storyProp:'changed'}},variants:[
+        {id:'wow',when:{reaction:'wow'},event:{emoji:'🖼️',he:'דף לבן מחליק מהמצלמה, ולאט מופיעה עליו תמונה של שניכם.'},ask:{en:'Here it comes—an instant photo of both of us. How does it look?',he:'הנה היא יוצאת—תמונה מיידית של שנינו. איך היא נראית?',tl:'הִיר אִיט קַאמְז — אַן אִינְסְטֶנְט פוֹטוֹ אוֹף בּוֹת׳ אוֹף אַס. הַאוּ דַאז אִיט לוּק?'},options:[
+          {id:'nice',label:'היא יפה',answer:{en:'It is nice',he:'היא יפה',tl:'אִיט אִיז נַייס'},reply:{en:'It is. We both look surprised.',he:'נכון. שנינו נראים מופתעים.',tl:'אִיט אִיז. וִוי בּוֹת׳ לוּק סֶרְפְּרַייזְד.'}},
+          {id:'love',label:'אני אוהב אותה',answer:{en:'I love it',he:'אני [[אוהב|אוהבת]] אותה',tl:'אַיי לַאב אִיט'},reply:{en:'Me too. The surprise made it better.',he:'גם אני. ההפתעה הפכה אותה לטובה יותר.',tl:'מִי טוּ. דֶה סֶרְפְּרַייז מֵייד אִיט בֶּטֶר.'}},
+        ]},
+        {id:'question',when:{reaction:'question'},event:{emoji:'🖼️',he:'דף לבן מחליק מהמצלמה, ולאט מופיעה עליו תמונה של שניכם.'},ask:{en:'This camera prints the photo right away. How does it look?',he:'המצלמה הזאת מדפיסה את התמונה מיד. איך היא נראית?',tl:'דִיס קַאמֶרָה פְּרִינְטְס דֶה פוֹטוֹ רַייט אַוֵויי. הַאוּ דַאז אִיט לוּק?'},options:[
+          {id:'nice',label:'היא יפה',answer:{en:'It is nice',he:'היא יפה',tl:'אִיט אִיז נַייס'},reply:{en:'It is. We both look surprised.',he:'נכון. שנינו נראים מופתעים.',tl:'אִיט אִיז. וִוי בּוֹת׳ לוּק סֶרְפְּרַייזְד.'}},
+          {id:'love',label:'אני אוהב אותה',answer:{en:'I love it',he:'אני [[אוהב|אוהבת]] אותה',tl:'אַיי לַאב אִיט'},reply:{en:'Me too. The surprise made it better.',he:'גם אני. ההפתעה הפכה אותה לטובה יותר.',tl:'מִי טוּ. דֶה סֶרְפְּרַייז מֵייד אִיט בֶּטֶר.'}},
+        ]},
+      ]},
+      {id:'photo_owner',role:'close',event:{emoji:'🌈',he:'הצבעים מתחזקים לאט, עד שהתמונה של שניכם ברורה לגמרי.'},ask:{en:'I need to get home now. The photo is ready—who should keep it?',he:'אני צריך לחזור הביתה עכשיו. התמונה מוכנה—אצל מי היא תישאר?',tl:'אַיי נִיד טוּ גֶט הוֹם נַאוּ. דֶה פוֹטוֹ אִיז רֶדִי — הוּ שוּד קִיפּ אִיט?'},options:[
+        {id:'ben',label:'היא בשבילך',answer:{en:'It is for you',he:'היא בשבילך',tl:'אִיט אִיז פוֹר יוּ'},reply:{en:'Thank you. I will keep it safe. See you later!',he:'תודה. אני אשמור עליה. נתראה אחר כך!',tl:'תֶ׳נְק יוּ. אַיי וִויל קִיפּ אִיט סֵייף. סִי יוּ לֵייטֶר!'},set:{photoPlace:'ben'}},
+        {id:'learner',label:'היא בשבילי',answer:{en:'It is for me',he:'היא בשבילי',tl:'אִיט אִיז פוֹר מִי'},reply:{en:'Of course. Here you go. See you later!',he:'כמובן. הנה, [[קח|קחי]]. נתראה אחר כך!',tl:'אוֹף קוֹרְס. הִיר יוּ גוֹ. סִי יוּ לֵייטֶר!'},set:{photoPlace:'learner'}},
+      ]},
+    ],
+  },
+
+  {
+    id:'sam_boxes_at_door', min:3, sceneIds:['help#1'],
+    goal:'לעזור לסם להכניס ארגזים דרך דלת הבניין',
+    open:'סם עומד בחניית הבניין עם שני ארגזים ותיק שמונח מעליהם. הדלת מתחילה להיסגר.',
+    ending:'הארגזים והתיק מונחים בבטחה בתוך הבניין, והדלת נסגרת מאחורי סם.',
+    stageInitial:{storyProp:'ready'},
+    stageProp:{beforeIcon:'📦',afterIcon:'✅',beforeLabel:'הארגזים ליד הדלת',afterLabel:'הכול נכנס בבטחה',colorA:'#8a643c',colorB:'#4e3828'},
+    beats:[
+      {id:'offer',role:'open',ask:{en:'Hello, {name}. This bag is heavy. Can you help me?',he:'שלום. התיק הזה כבד. [[אתה יכול|את יכולה]] לעזור לי?',tl:'הֶלוֹ. דִיס בֶּג אִיז הֶבִי. קֶן יוּ הֶלְפּ מִי?'},options:[
+        {id:'carry',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you. I will carry the boxes; please take the bag.',he:'תודה. אני אסחוב את הארגזים; בבקשה [[קח|קחי]] את התיק.',tl:'תֶ׳נְק יוּ. אַיי וִויל קֶרִי דֶה בּוֹקְסֶז; פְּלִיז טֵייק דֶה בֶּג.'},set:{canCarry:true}},
+        {id:'cannot',label:'לא, סליחה',answer:{en:'No, sorry',he:'לא, סליחה',tl:'נוֹ, סוֹרִי'},reply:{en:"That's OK. I will carry the bag with the boxes.",he:'זה בסדר. אני אסחוב את התיק יחד עם הארגזים.',tl:'דֶאטְס אוֹקֵיי. אַיי וִויל קֶרִי דֶה בֶּג וִית׳ דֶה בּוֹקְסֶז.'},set:{canCarry:false}},
+      ]},
+      {id:'slipping_bag',variants:[
+        {id:'carry',when:{canCarry:true},event:{emoji:'👜',he:'כשהדלת ממשיכה להיסגר, התיק מתחיל להחליק מראש הארגז.'},ask:{en:'Quick—the bag is slipping! Have you got it?',he:'מהר—התיק מחליק! תפסת אותו?',tl:'קְוִיק — דֶה בֶּג אִיז סְלִיפִּינְג! הֶב יוּ גוֹט אִיט?'},options:[
+          {id:'yes',label:'כן, תפסתי אותו',answer:{en:'Yes, I have it',he:'כן, תפסתי אותו',tl:'יֶס, אַיי הֶב אִיט'},reply:{en:'Thank you. Now I can carry the boxes.',he:'תודה. עכשיו אני יכול לסחוב את הארגזים.',tl:'תֶ׳נְק יוּ. נַאוּ אַיי קֶן קֶרִי דֶה בּוֹקְסֶז.'}},
+          {id:'help',label:'התיק אצלי',answer:{en:'I have the bag',he:'התיק אצלי',tl:'אַיי הֶב דֶה בֶּג'},reply:{en:'Great. Now I can carry the boxes.',he:'מעולה. עכשיו אני יכול לסחוב את הארגזים.',tl:'גְרֵייט. נַאוּ אַיי קֶן קֶרִי דֶה בּוֹקְסֶז.'}},
+        ]},
+        {id:'door',when:{canCarry:false},event:{emoji:'👜',he:'התיק מתחיל להחליק. סם תופס אותו בכתף, אבל הדלת כמעט נסגרת.'},ask:{en:'I have the bag now. Can you help with the door?',he:'התיק אצלי עכשיו. [[אתה יכול|את יכולה]] לעזור עם הדלת?',tl:'אַיי הֶב דֶה בֶּג נַאוּ. קֶן יוּ הֶלְפּ וִית׳ דֶה דוֹר?'},options:[
+          {id:'help',label:'כן, אני יכול לעזור',answer:{en:'Yes, I can help',he:'כן, אני [[יכול|יכולה]] לעזור',tl:'יֶס, אַיי קֶן הֶלְפּ'},reply:{en:'Thank you. Please open it.',he:'תודה. בבקשה [[פתח|פתחי]] אותה.',tl:'תֶ׳נְק יוּ. פְּלִיז אוֹפֶּן אִיט.'}},
+          {id:'problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great. Please open it.',he:'מעולה. בבקשה [[פתח|פתחי]] אותה.',tl:'גְרֵייט. פְּלִיז אוֹפֶּן אִיט.'}},
+        ]},
+      ]},
+      {id:'through_door',variants:[
+        {id:'carry',when:{canCarry:true},event:{emoji:'🚪',he:'[[אתה מחזיק|את מחזיקה]] את התיק בזמן שסם דוחף את הדלת עם הכתף.'},ask:{en:'Can you hold the bag for one more moment?',he:'[[אתה יכול|את יכולה]] להחזיק את התיק עוד רגע?',tl:'קֶן יוּ הוֹלְד דֶה בֶּג פוֹר וַואן מוֹר מוֹמֶנְט?'},options:[
+          {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Good. We are almost inside.',he:'יופי. כמעט נכנסנו.',tl:'גוּד. וִוי אַר אוֹלְמוֹסְט אִינְסַייד.'}},
+          {id:'problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great. We are almost inside.',he:'מעולה. כמעט נכנסנו.',tl:'גְרֵייט. וִוי אַר אוֹלְמוֹסְט אִינְסַייד.'}},
+        ]},
+        {id:'door',when:{canCarry:false},event:{emoji:'🚪',he:'[[אתה פותח|את פותחת]] את הדלת לרווחה, וסם מתקרב אליה עם כל הדברים.'},ask:{en:'Can you keep the door open for one more moment?',he:'[[אתה יכול|את יכולה]] להשאיר את הדלת פתוחה עוד רגע?',tl:'קֶן יוּ קִיפּ דֶה דוֹר אוֹפֶּן פוֹר וַואן מוֹר מוֹמֶנְט?'},options:[
+          {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Thank you. I am coming through now.',he:'תודה. אני עובר עכשיו.',tl:'תֶ׳נְק יוּ. אַיי אַם קַאמִינְג תְ׳רוּ נַאוּ.'}},
+          {id:'problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great. I am coming through now.',he:'מעולה. אני עובר עכשיו.',tl:'גְרֵייט. אַיי אַם קַאמִינְג תְ׳רוּ נַאוּ.'}},
+        ]},
+      ]},
+      {id:'set_down',stageAction:{id:'sam-sets-boxes-inside',gesture:'story-prop-change',motion:'reach-low',set:{storyProp:'changed'}},event:{emoji:'📦',he:'סם מניח את שני הארגזים ואת התיק על הרצפה ונושם לרווחה.'},ask:{en:'Everything is here now. Thank you!',he:'הכול כאן עכשיו. תודה!',tl:'אֶבְרִיתִ׳ינְג אִיז הִיר נַאוּ. תֶ׳נְק יוּ!'},options:[
+        {id:'welcome',label:'על לא דבר',answer:{en:"You're welcome",he:'על לא דבר',tl:'יוֹר וֶולְקַם'},reply:{en:'You were a big help.',he:'עזרת לי מאוד.',tl:'יוּ וֶר אַ בִּיג הֶלְפּ.'}},
+        {id:'problem',label:'אין בעיה',answer:{en:'No problem',he:'אין בעיה',tl:'נוֹ פְּרוֹבְּלֶם'},reply:{en:'You made this much easier.',he:'הפכת את זה להרבה יותר קל.',tl:'יוּ מֵייד דִיס מַאץ׳ אִיזִיֶר.'}},
+      ]},
+      {id:'close',role:'close',ask:{en:'I need to take these upstairs now. Goodbye!',he:'אני צריך לקחת את הדברים למעלה עכשיו. להתראות!',tl:'אַיי נִיד טוּ טֵייק דִיז אַפְּסְטֶרְז נַאוּ. גוּדְבַּיי!'},options:[
+        {id:'goodbye',label:'להתראות!',answer:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'},reply:{en:'Goodbye, {name}!',he:'להתראות!',tl:'גוּדְבַּיי!'}},
+        {id:'care',label:'שמור על עצמך!',answer:{en:'Take care!',he:'שמור על עצמך!',tl:'טֵייק קֶר!'},reply:{en:'Thank you. You too!',he:'תודה. גם [[אתה|את]]!',tl:'תֶ׳נְק יוּ. יוּ טוּ!'}},
+      ]},
+    ],
+  },
+
+  {
+    id:'maya_slow_english', min:4, sceneIds:['likes#0'],
+    goal:'לעזור למאיה לתרגל הקלטה קצרה באנגלית בדרך שנוחה לכם',
+    open:'מאיה מורידה את האוזניות. בטלפון שלה מתנגנת הקלטה קצרה באנגלית, אבל היא נגמרת מהר מדי.',
+    ending:'מאיה מכניסה את הטלפון לכיס וניגשת לשיעור, עם תזכורת שבפעם הבאה תמשיכו {mode}.',
+    stageInitial:{storyProp:'ready'},
+    stageProp:{beforeIcon:'⏩',afterIcon:'🎧',beforeLabel:'הקלטה מהירה',afterLabel:'התוכנית לפעם הבאה',colorA:'#6553a6',colorB:'#352d69'},
+    values:{
+      mode:{
+        slowly:{en:'slowly',he:'לאט',tl:'סְלוֹלִי'},
+        together:{en:'together',he:'ביחד',tl:'טוּגֶדֶר'},
+      },
+    },
+    beats:[
+      {id:'understand',role:'open',ask:{en:'Hi, {name}. Do you understand this English?',he:'היי. [[אתה מבין|את מבינה]] את האנגלית הזאת?',tl:'הַיי. דוּ יוּ אַנְדֶרְסְטֶנְד דִיס אִינְגְלִיש?'},options:[
+        {id:'yes',label:'כן, אני מבין',answer:{en:'Yes, I understand',he:'כן, אני [[מבין|מבינה]]',tl:'יֶס, אַיי אַנְדֶרְסְטֶנְד'},reply:{en:"Great. Let's try it one more time.",he:'מעולה. [[בוא|בואי]] ננסה אותה עוד פעם.',tl:'גְרֵייט. לֶטְס טְרַיי אִיט וַואן מוֹר טַיים.'},set:{understands:true}},
+        {id:'no',label:'לא, אני לא מבין',answer:{en:"No, I don't understand",he:'לא, אני לא [[מבין|מבינה]]',tl:'נוֹ, אַיי דוֹנְט אַנְדֶרְסְטֶנְד'},reply:{en:'No problem. We can make it easier.',he:'אין בעיה. אפשר להפוך אותה לקלה יותר.',tl:'נוֹ פְּרוֹבְּלֶם. וִוי קֶן מֵייק אִיט אִיזִיֶר.'},set:{understands:false}},
+      ]},
+      {id:'choose_mode',variants:[
+        {id:'understood',when:{understands:true},event:{emoji:'⏩',he:'מאיה מפעילה שוב את ההקלטה. המילים רצות מהר, והיא עוצרת אותה באמצע.'},ask:{en:'Would you like to hear it slowly, or say the lines together?',he:'[[תרצה|תרצי]] לשמוע אותה לאט, או שנגיד את השורות ביחד?',tl:'וּוּד יוּ לַייק טוּ הִיר אִיט סְלוֹלִי, אוֹר סֵיי דֶה לַיינְז טוּגֶדֶר?'},options:[
+          {id:'slowly',label:'לאט, בבקשה',answer:{en:'Slowly, please',he:'לאט, בבקשה',tl:'סְלוֹלִי, פְּלִיז'},reply:{en:'Good idea. I will slow it down.',he:'רעיון טוב. אני אאט אותה.',tl:'גוּד אַיידִיאָה. אַיי וִויל סְלוֹאוּ אִיט דַאוּן.'},set:{mode:'slowly'}},
+          {id:'together',label:'בואי נתרגל ביחד',answer:{en:"Let's practice together",he:'בואי נתרגל ביחד',tl:'לֶטְס פְּרַקְטִיס טוּגֶדֶר'},reply:{en:'Good idea. I will say “Hello,” and you answer.',he:'רעיון טוב. אני אגיד „שלום”, ואז תורך לענות.',tl:'גוּד אַיידִיאָה. אַיי וִויל סֵיי “הֶלוֹ,” אֶנְד דֶן יוּ אַנְסֶר.'},set:{mode:'together'}},
+        ]},
+        {id:'not_understood',when:{understands:false},event:{emoji:'🎚️',he:'מאיה פותחת את בקרת המהירות ומניחה את הטלפון ביניכם.'},ask:{en:'Should I play it slowly, or should we say the lines together?',he:'אשמיע אותה לאט, או שנגיד את השורות ביחד?',tl:'שוּד אַיי פְּלֵיי אִיט סְלוֹלִי, אוֹר שוּד וִוי סֵיי דֶה לַיינְז טוּגֶדֶר?'},options:[
+          {id:'slowly',label:'לאט, בבקשה',answer:{en:'Slowly, please',he:'לאט, בבקשה',tl:'סְלוֹלִי, פְּלִיז'},reply:{en:'Good idea. I will slow it down.',he:'רעיון טוב. אני אאט אותה.',tl:'גוּד אַיידִיאָה. אַיי וִויל סְלוֹאוּ אִיט דַאוּן.'},set:{mode:'slowly'}},
+          {id:'together',label:'בואי נתרגל ביחד',answer:{en:"Let's practice together",he:'בואי נתרגל ביחד',tl:'לֶטְס פְּרַקְטִיס טוּגֶדֶר'},reply:{en:'Good idea. I will say “Hello,” and you answer.',he:'רעיון טוב. אני אגיד „שלום”, ואז תורך לענות.',tl:'גוּד אַיידִיאָה. אַיי וִויל סֵיי “הֶלוֹ,” אֶנְד דֶן יוּ אַנְסֶר.'},set:{mode:'together'}},
+        ]},
+      ]},
+      {id:'practice_line',stageAction:{id:'maya-starts-chosen-practice',gesture:'story-prop-change',motion:'present',set:{storyProp:'changed'}},variants:[
+        {id:'slowly',when:{mode:'slowly'},event:{emoji:'🐢',he:'מאיה לוחצת על כפתור ההאטה. ההקלטה אומרת בבירור: “Hello. How are you?”'},ask:{en:'What did it say?',he:'מה נאמר בהקלטה?',tl:'וּוַאט דִיד אִיט סֵיי?'},options:[
+          {id:'full',label:'שלום. מה שלומך?',answer:{en:'Hello. How are you?',he:'שלום. מה שלומך?',tl:'הֶלוֹ. הַאוּ אַר יוּ?'},reply:{en:'Exactly. You heard the whole line.',he:'בדיוק. שמעת את כל המשפט.',tl:'אִיגְזַקְטְלִי. יוּ הֶרְד דֶה הוֹל לַיין.'}},
+          {id:'question',label:'מה שלומך?',answer:{en:'How are you?',he:'מה שלומך?',tl:'הַאוּ אַר יוּ?'},reply:{en:'Right. That was the second part.',he:'נכון. זה היה החלק השני.',tl:'רַייט. דֶאט וּוֹז דֶה סֶקֶנְד פַּארְט.'}},
+        ]},
+        {id:'together',when:{mode:'together'},event:{emoji:'📱',he:'מאיה עוצרת את ההקלטה, מניחה את הטלפון ביניכם ואומרת: „שלום”.'},ask:{en:'Your turn—what do you say?',he:'עכשיו תורך—מה [[אתה אומר|את אומרת]]?',tl:'יוֹר טֶרְן — וּוַאט דוּ יוּ סֵיי?'},options:[
+          {id:'hello',label:'שלום!',answer:{en:'Hello!',he:'שלום!',tl:'הֶלוֹ!'},reply:{en:'Good! That was clear.',he:'יופי! זה היה ברור.',tl:'גוּד! דֶאט וּוֹז קְלִיר.'}},
+          {id:'hi',label:'היי!',answer:{en:'Hi!',he:'היי!',tl:'הַיי!'},reply:{en:'Good! That was clear.',he:'יופי! זה היה ברור.',tl:'גוּד! דֶאט וּוֹז קְלִיר.'}},
+        ]},
+      ]},
+      {id:'check',variants:[
+        {id:'slowly',when:{mode:'slowly'},ask:{en:'Is it easier now at the slower speed?',he:'עכשיו קל יותר במהירות האיטית?',tl:'אִיז אִיט אִיזִיֶר נַאוּ אֶט דֶה סְלוֹאֶר סְפִּיד?'},options:[
+          {id:'easy',label:'כן, זה קל',answer:{en:'Yes, it is easy',he:'כן, זה קל',tl:'יֶס, אִיט אִיז אִיזִי'},reply:{en:'Great. We will keep this speed.',he:'מעולה. נשמור על המהירות הזאת.',tl:'גְרֵייט. וִוי וִויל קִיפּ דִיס סְפִּיד.'}},
+          {id:'not_yet',label:'לא, אני לא מבין',answer:{en:"No, I don't understand",he:'לא, אני לא [[מבין|מבינה]]',tl:'נוֹ, אַיי דוֹנְט אַנְדֶרְסְטֶנְד'},reply:{en:'That is OK. We can try one short line next time.',he:'זה בסדר. בפעם הבאה ננסה משפט קצר אחד.',tl:'דֶאט אִיז אוֹקֵיי. וִוי קֶן טְרַיי וַואן שוֹרְט לַיין נֶקְסְט טַיים.'}},
+        ]},
+        {id:'together',when:{mode:'together'},ask:{en:'Is it easier when we practice together?',he:'קל יותר כשאנחנו מתרגלים ביחד?',tl:'אִיז אִיט אִיזִיֶר וֶון וִוי פְּרַקְטִיס טוּגֶדֶר?'},options:[
+          {id:'easy',label:'כן, זה קל',answer:{en:'Yes, it is easy',he:'כן, זה קל',tl:'יֶס, אִיט אִיז אִיזִי'},reply:{en:'Great. We will do it this way again.',he:'מעולה. נעשה את זה כך שוב.',tl:'גְרֵייט. וִוי וִויל דוּ אִיט דִיס וֵיי אַגֵין.'}},
+          {id:'not_yet',label:'לא, אני לא מבין',answer:{en:"No, I don't understand",he:'לא, אני לא [[מבין|מבינה]]',tl:'נוֹ, אַיי דוֹנְט אַנְדֶרְסְטֶנְד'},reply:{en:'That is OK. We can take one shorter line next time.',he:'זה בסדר. בפעם הבאה ניקח שורה קצרה יותר.',tl:'דֶאט אִיז אוֹקֵיי. וִוי קֶן טֵייק וַואן שוֹרְטֶר לַיין נֶקְסְט טַיים.'}},
+        ]},
+      ]},
+      {id:'close',role:'close',event:{emoji:'🎵',he:'צליל הפתיחה של שיעור המוזיקה נשמע במסדרון. מאיה שומרת בטלפון תזכורת: להמשיך {mode}.'},ask:{en:'Music class is starting. I saved our plan for next time. Goodbye!',he:'שיעור המוזיקה מתחיל. שמרתי את התוכנית שלנו לפעם הבאה. להתראות!',tl:'מְיוּזִיק קְלַאס אִיז סְטַארְטִינְג. אַיי סֵייבְד אַאוּר פְּלֶאן פוֹר נֶקְסְט טַיים. גוּדְבַּיי!'},options:[
+        {id:'goodbye',label:'להתראות!',answer:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'},reply:{en:'Goodbye. See you after class!',he:'להתראות. נתראה אחרי השיעור!',tl:'גוּדְבַּיי. סִי יוּ אַפְטֶר קְלַאס!'}},
+        {id:'care',label:'שמרי על עצמך!',answer:{en:'Take care!',he:'שמרי על עצמך!',tl:'טֵייק קֶר!'},reply:{en:'Thank you. See you after class!',he:'תודה. נתראה אחרי השיעור!',tl:'תֶ׳נְק יוּ. סִי יוּ אַפְטֶר קְלַאס!'}},
+      ]},
+    ],
+  },
+
+{
+    id:'tom_recess_ball', min:10, sceneIds:['feelings#0'],
+    goal:'לעזור לטום להציל את ההפסקה כשהכדור מתקלקל ולבחור יחד תוכנית אחרת',
+    open:'בהפסקה טום מתיישב לידך על המדרגות עם כדורסל ביד. הוא נראה קצת עייף ומשועמם.',
+    ending:'הכדור יצא משימוש, אבל במקום שההפסקה תיהרס טום עובר איתך ל{activity}, ואז הפעמון מצלצל.',
+    stageInitial:{ball:'held'},
+    values:{
+      activity:{
+        music:{en:'music',he:'מוזיקה',tl:'מְיוּזִיק'},
+        games:{en:'games',he:'משחקים',tl:'גֵיימְס'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hi, {name}. How are you today?',he:'היי! מה שלומך היום?',tl:'הַיי! הַאוּ אַר יוּ טוּדֵיי?'},options:[
+        {id:'good',label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:'Good. I am a little bored today.',he:'יופי. קצת משעמם לי היום.',tl:'גוּד. אַיי אַם אַ לִיטֶל בּוֹרְד טוּדֵיי.'},set:{learnerMood:'good'}},
+        {id:'tired',label:'אני [[עייף|עייפה]]',answer:{en:"I'm tired",he:'אני [[עייף|עייפה]]',tl:'אַיְים טַאיֶרְד'},reply:{en:'Me too. Maybe we can make this break better.',he:'גם אני. אולי נוכל לשפר את ההפסקה הזאת.',tl:'מִי טוּ. מֵייבִּי וִוי קֶן מֵייק דִיס בְּרֵייק בֶּטֶר.'},set:{learnerMood:'tired'}},
+      ]},
+      {id:'quick_game',ask:{en:'Do you want one quick game before class?',he:'[[אתה רוצה|את רוצה]] משחק קצר אחד לפני השיעור?',tl:'דוּ יוּ וּוֹנְט וַואן קְוִויק גֵיים בִּיפוֹר קְלַאס?'},options:[
+        {id:'yes',label:'כן!',answer:{en:'Yes!',he:'כן!',tl:'יֶס!'},reply:{en:'Great. I only need to put some air in the ball.',he:'מעולה. אני רק צריך להוסיף קצת אוויר לכדור.',tl:'גְרֵייט. אַיי אוֹנְלִי נִיד טוּ פּוּט סַאם אֵייר אִין דֶה בּוֹל.'}},
+        {id:'maybe',label:'אולי',answer:{en:'Maybe',he:'אולי',tl:'מֵייבִּי'},reply:{en:'That is fair. Let me check the ball first.',he:'בסדר גמור. קודם אבדוק את הכדור.',tl:'דֶאט אִיז פֵייר. לֶט מִי צֶ׳ק דֶה בּוֹל פֶרְסְט.'}},
+      ]},
+      {id:'ball_rolls',event:{emoji:'💨',he:'ברגע שטום לוחץ על הכדור נשמע „פששש”. האוויר יוצא ממנו, והוא משתטח ומתגלגל הצדה.'},stageAction:{id:'tom-recess-ball-rolls',gesture:'lose-ball',motion:'react',set:{ball:'lost'}},ask:{en:'Oh no! The ball has no air. Can you help me save the break?',he:'אוי לא! אין אוויר בכדור. [[אתה יכול|את יכולה]] לעזור לי להציל את ההפסקה?',tl:'אוֹ נוֹ! דֶה בּוֹל הֶז נוֹ אֵייר. קֶן יוּ הֶלְפּ מִי סֵייב דֶה בְּרֵייק?'},options:[
+        {id:'help',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thanks. We need a new idea without the ball.',he:'תודה. אנחנו צריכים רעיון חדש בלי הכדור.',tl:'תֶ׳נְקְס. וִוי נִיד אַ נְיוּ אַיידִיאָה וִידַאוּט דֶה בּוֹל.'},set:{searchHelp:'help'}},
+        {id:'unsure',label:'אני לא [[יודע|יודעת]], סליחה',answer:{en:"I don't know, sorry",he:'אני לא [[יודע|יודעת]], סליחה',tl:'אַיי דוֹנְט נוֹאוּ, סוֹרִי'},reply:{en:'That is OK. We can think of another plan together.',he:'זה בסדר. נוכל לחשוב יחד על תוכנית אחרת.',tl:'דֶאט אִיז אוֹקֵיי. וִוי קֶן תִ׳ינְק אוֹב אַנַאדֶר פְּלֶן טוּגֶדֶר.'},set:{searchHelp:'together'}},
+      ]},
+      {id:'search',variants:[
+        {id:'help',when:{searchHelp:'help'},ask:{en:'Thanks for helping. What do you do when you are bored?',he:'תודה על העזרה. מה [[אתה עושה|את עושה]] כשמשעמם לך?',tl:'תֶ׳נְקְס פוֹר הֶלְפִּינְג. וּוַאט דוּ יוּ דוּ וֶון יוּ אַר בּוֹרְד?'},options:[
+          {id:'music',label:'אני [[מקשיב|מקשיבה]] למוזיקה',answer:{en:'I listen to music',he:'אני [[מקשיב|מקשיבה]] למוזיקה',tl:'אַיי לִיסֶן טוּ מְיוּזִיק'},reply:{en:'Music can save this break. I have headphones.',he:'מוזיקה יכולה להציל את ההפסקה. יש לי אוזניות.',tl:'מְיוּזִיק קֶן סֵייב דִיס בְּרֵייק. אַיי הֶב הֶדְפוֹנְז.'},set:{activity:'music'}},
+          {id:'games',label:'אני [[משחק|משחקת]] משחקים',answer:{en:'I play games',he:'אני [[משחק|משחקת]] משחקים',tl:'אַיי פְּלֵיי גֵיימְס'},reply:{en:'Good idea. We can play a game without the ball.',he:'רעיון טוב. נוכל לשחק בלי הכדור.',tl:'גוּד אַיידִיאָה. וִוי קֶן פְּלֵיי אַ גֵיים וִידַאוּט דֶה בּוֹל.'},set:{activity:'games'}},
+        ]},
+        {id:'together',when:{searchHelp:'together'},ask:{en:'Let us think together. What do you do when you are bored?',he:'בוא נחשוב יחד. מה [[אתה עושה|את עושה]] כשמשעמם לך?',tl:'לֶט אַס תִ׳ינְק טוּגֶדֶר. וּוַאט דוּ יוּ דוּ וֶון יוּ אַר בּוֹרְד?'},options:[
+          {id:'music',label:'אני [[מקשיב|מקשיבה]] למוזיקה',answer:{en:'I listen to music',he:'אני [[מקשיב|מקשיבה]] למוזיקה',tl:'אַיי לִיסֶן טוּ מְיוּזִיק'},reply:{en:'That works. I have headphones in my bag.',he:'זה מתאים. יש לי אוזניות בתיק.',tl:'דֶאט וֶרְקְס. אַיי הֶב הֶדְפוֹנְז אִין מַיי בֶּג.'},set:{activity:'music'}},
+          {id:'games',label:'אני [[משחק|משחקת]] משחקים',answer:{en:'I play games',he:'אני [[משחק|משחקת]] משחקים',tl:'אַיי פְּלֵיי גֵיימְס'},reply:{en:'That works. We can make up a game on the steps.',he:'זה מתאים. נוכל להמציא משחק על המדרגות.',tl:'דֶאט וֶרְקְס. וִוי קֶן מֵייק אַפּ אַ גֵיים אוֹן דֶה סְטֶפְּס.'},set:{activity:'games'}},
+        ]},
+      ]},
+      {id:'found',variants:[
+        {id:'music',when:{activity:'music'},ask:{en:'I found my headphones. Shall we listen for the last few minutes?',he:'מצאתי את האוזניות. נקשיב בדקות האחרונות?',tl:'אַיי פַאוּנְד מַיי הֶדְפוֹנְז. שֶל וִוי לִיסֶן פוֹר דֶה לַאסְט פְיוּ מִינִיטְס?'},options:[
+          {id:'yes',label:'כן, בבקשה',answer:{en:'Yes, please',he:'כן, בבקשה',tl:'יֶס, פְּלִיז'},reply:{en:'Great. I found a short song for us.',he:'מעולה. מצאתי שיר קצר בשבילנו.',tl:'גְרֵייט. אַיי פַאוּנְד אַ שוֹרְט סוֹנְג פוֹר אַס.'}},
+          {id:'music',label:'בוא נקשיב למוזיקה',answer:{en:"Let's listen to music",he:'[[בוא|בואי]] נקשיב למוזיקה',tl:'לֶטְס לִיסֶן טוּ מְיוּזִיק'},reply:{en:'Perfect. I know a short song.',he:'מושלם. אני מכיר שיר קצר.',tl:'פֶּרְפֶקְט. אַיי נוֹאוּ אַ שוֹרְט סוֹנְג.'}},
+        ]},
+        {id:'games',when:{activity:'games'},ask:{en:'We can play right here on the steps. Shall we start?',he:'אפשר לשחק כאן על המדרגות. נתחיל?',tl:'וִוי קֶן פְּלֵיי רַייט הִיר אוֹן דֶה סְטֶפְּס. שֶל וִוי סְטַארְט?'},options:[
+          {id:'yes',label:'כן, בבקשה',answer:{en:'Yes, please',he:'כן, בבקשה',tl:'יֶס, פְּלִיז'},reply:{en:'Great. I have a quick game in mind.',he:'מעולה. יש לי משחק קצר בראש.',tl:'גְרֵייט. אַיי הֶב אַ קְוִיק גֵיים אִין מַיינְד.'}},
+          {id:'games',label:'בוא נשחק',answer:{en:"Let's play",he:'[[בוא|בואי]] נשחק',tl:'לֶטְס פְּלֵיי'},reply:{en:'Perfect. We can start right here.',he:'מושלם. אפשר להתחיל ממש כאן.',tl:'פֶּרְפֶקְט. וִוי קֶן סְטַארְט רַייט הִיר.'}},
+        ]},
+      ]},
+      {id:'last_minutes',ask:{en:'The broken ball did not ruin the break. How do you feel now?',he:'הכדור המקולקל לא הרס את ההפסקה. איך [[אתה מרגיש|את מרגישה]] עכשיו?',tl:'דֶה בְּרוֹקֶן בּוֹל דִיד נוֹט רוּאִין דֶה בְּרֵייק. הַאוּ דוּ יוּ פִיל נַאוּ?'},options:[
+        {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה',answer:{en:'I feel great',he:'אני [[מרגיש|מרגישה]] מעולה',tl:'אַיי פִיל גְרֵייט'},reply:{en:'Me too. A new plan made the difference.',he:'גם אני. התוכנית החדשה שינתה הכול.',tl:'מִי טוּ. אַ נְיוּ פְּלֶן מֵייד דֶה דִיפְרֶנְס.'}},
+        {id:'happy',label:'אני [[שמח|שמחה]]',answer:{en:"I'm happy",he:'אני [[שמח|שמחה]]',tl:'אַיְים הֶפִּי'},reply:{en:'Good. I am not bored anymore.',he:'יופי. כבר לא משעמם לי.',tl:'גוּד. אַיי אַם נוֹט בּוֹרְד אֶנִימוֹר.'}},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'good',when:{learnerMood:'good'},ask:{en:'The bell is ringing. Shall we go to class?',he:'הפעמון מצלצל. נלך לשיעור?',tl:'דֶה בֶּל אִיז רִינְגִינְג. שֶל וִוי גוֹ טוּ קְלַאס?'},options:[
+          {id:'good',label:'כן!',answer:{en:'Yes!',he:'כן!',tl:'יֶס!'},reply:{en:'Great. We made the last few minutes count.',he:'מעולה. ניצלנו היטב את הדקות האחרונות.',tl:'גְרֵייט. וִוי מֵייד דֶה לַאסְט פְיוּ מִינִיטְס קַאוּנְט.'}},
+          {id:'great',label:'בוא נלך',answer:{en:"Let's go",he:'[[בוא|בואי]] נלך',tl:'לֶטְס גוֹ'},reply:{en:'Right behind you. See you in class!',he:'אני אחריך. נתראה בשיעור!',tl:'רַייט בִּיהַיינְד יוּ. סִי יוּ אִין קְלַאס!'}},
+        ]},
+        {id:'tired',when:{learnerMood:'tired'},ask:{en:'The bell is ringing. Do you want to walk to class together?',he:'הפעמון מצלצל. [[אתה רוצה|את רוצה]] ללכת יחד לשיעור?',tl:'דֶה בֶּל אִיז רִינְגִינְג. דוּ יוּ וּוֹנְט טוּ וּוֹק טוּ קְלַאס טוּגֶדֶר?'},options:[
+          {id:'good',label:'כן!',answer:{en:'Yes!',he:'כן!',tl:'יֶס!'},reply:{en:'Great. We made the last few minutes count.',he:'מעולה. ניצלנו היטב את הדקות האחרונות.',tl:'גְרֵייט. וִוי מֵייד דֶה לַאסְט פְיוּ מִינִיטְס קַאוּנְט.'}},
+          {id:'great',label:'בוא נלך',answer:{en:"Let's go",he:'[[בוא|בואי]] נלך',tl:'לֶטְס גוֹ'},reply:{en:'Right behind you. See you in class!',he:'אני אחריך. נתראה בשיעור!',tl:'רַייט בִּיהַיינְד יוּ. סִי יוּ אִין קְלַאס!'}},
+        ]},
+      ]},
+    ],
+  },
+
+  {
+    id:'maya_kitchen_mixup', min:11, sceneIds:['food#1'],
+    goal:'לעזור למאיה לעצור כיור שעולה, לפתוח את הניקוז ולנקות את המים בבטחה',
+    open:'מאיה מסדרת את המטבח. בתחתית הכיור מונח מכסה פלסטיק שטוח, ועל השיש מחכים כוסות נקיות ושתי מגבות.',
+    ending:'הניקוז פתוח, אין מים עומדים בכיור, והמטבח מסודר שוב. מאיה נותנת לך {reward} כפי שהבטיחה.',
+    stageProp:{beforeIcon:'🚰🫧',afterIcon:'🚰✅',beforeLabel:'הניקוז חסום והכיור מלא',afterLabel:'הניקוז פתוח והמים ירדו',colorA:'#437b8d',colorB:'#294d5c'},
+    values:{
+      reward:{
+        water:{en:'a cup of water',he:'כוס מים',tl:'אַ קַאפ אוֹב ווֹטֶר'},
+        snack:{en:'a snack',he:'חטיף',tl:'אַ סְנֶק'},
+      },
+      cleanup:{
+        maya:{en:'Maya wipes the few drops from the counter while you put the wet lid in the drying rack.',he:'מאיה מנגבת את הטיפות מהשיש בזמן ש[[אתה מניח|את מניחה]] את המכסה הרטוב במתקן הייבוש.',tl:'מַאיָה וַוייפְּס דֶה פְיוּ דְרוֹפְּס פְרוֹם דֶה קַאוּנְטֶר וַואיְל יוּ פּוּט דֶה וֶט לִיד אִין דֶה דְרַיִינְג רֶק.'},
+        learner:{en:'You wipe the few drops from the counter while Maya puts the wet lid in the drying rack.',he:'[[אתה מנגב|את מנגבת]] את הטיפות מהשיש בזמן שמאיה מניחה את המכסה הרטוב במתקן הייבוש.',tl:'יוּ וַוייפּ דֶה פְיוּ דְרוֹפְּס פְרוֹם דֶה קַאוּנְטֶר וַואיְל מַאיָה פּוּטְס דֶה וֶט לִיד אִין דֶה דְרַיִינְג רֶק.'},
+        counterFirst:{en:'You dry the counter first and then wipe the water from the floor.',he:'אתם מנגבים קודם את השיש ואחר כך את המים שעל הרצפה.',tl:'יוּ דְרַיי דֶה קַאוּנְטֶר פֶרְסְט אֶנְד דֶן וַוייפּ דֶה ווֹטֶר פְרוֹם דֶה פְלוֹר.'},
+        floorFirst:{en:'You dry the floor first and then wipe the water from the counter.',he:'אתם מנגבים קודם את הרצפה ואחר כך את המים שעל השיש.',tl:'יוּ דְרַיי דֶה פְלוֹר פֶרְסְט אֶנְד דֶן וַוייפּ דֶה ווֹטֶר פְרוֹם דֶה קַאוּנְטֶר.'},
+      },
+    },
+    beats:[
+      {id:'open',role:'open',ask:{en:'Hi, {name}. I am cleaning the kitchen before I get you something. Are you thirsty or hungry?',he:'היי. אני מסדרת את המטבח לפני שאביא לך משהו. [[אתה צמא|את צמאה]] או [[רעב|רעבה]]?',tl:'הַיי. אַיי אַם קְלִינִינְג דֶה קִיצֶ׳ן בִּיפוֹר אַיי גֶט יוּ סַאמְתִ׳ינְג. אַר יוּ תֶ׳רְסְטִי אוֹר הַאנְגְרִי?'},options:[
+        {id:'water',label:'אני [[צמא|צמאה]]',answer:{en:"I'm thirsty",he:'אני [[צמא|צמאה]]',tl:'אַיְים תֶ׳רְסְטִי'},reply:{en:'Of course. I will bring you water as soon as the sink is clear.',he:'כמובן. אביא לך מים ברגע שהכיור יהיה פנוי.',tl:'אוֹף קוֹרְס. אַיי וִויל בְּרִינְג יוּ ווֹטֶר אֶז סוּן אֶז דֶה סִינְק אִיז קְלִיר.'},set:{reward:'water'}},
+        {id:'snack',label:'אני [[רעב|רעבה]]',answer:{en:"I'm hungry",he:'אני [[רעב|רעבה]]',tl:'אַיְים הַאנְגְרִי'},reply:{en:'I have a snack for you. Let me finish at the sink first.',he:'יש לי חטיף בשבילך. קודם אסיים ליד הכיור.',tl:'אַיי הֶב אַ סְנֶק פוֹר יוּ. לֶט מִי פִינִיש אֶט דֶה סִינְק פֶרְסְט.'},set:{reward:'snack'}},
+      ]},
+      {id:'choose_task',ask:{en:'While I rinse this bowl, can you put the clean cups on the shelf or bring me the kitchen towels?',he:'בזמן שאשטוף את הקערה הזאת, [[אתה יכול|את יכולה]] לסדר את הכוסות הנקיות על המדף או להביא לי את מגבות המטבח?',tl:'וַואיְל אַיי רִינְס דִיס בּוֹל, קֶן יוּ פּוּט דֶה קְלִין קַאפְּס אוֹן דֶה שֶלְף אוֹר בְּרִינְג מִי דֶה קִיצֶ׳ן טַאוֶולְז?'},options:[
+        {id:'cups',label:'אסדר את הכוסות',answer:{en:"Let's do this",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ דִיס'},reply:{en:'Thank you. The shelf is right beside the sink.',he:'תודה. המדף נמצא ממש ליד הכיור.',tl:'תֶ׳נְק יוּ. דֶה שֶלְף אִיז רַייט בִּיסַייד דֶה סִינְק.'},set:{task:'cups'}},
+        {id:'towels',label:'אביא את המגבות',answer:{en:"Let's do that",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ דֶאט'},reply:{en:'Thank you. They are on the counter behind you.',he:'תודה. הן על השיש מאחוריך.',tl:'תֶ׳נְק יוּ. דֵיי אַר אוֹן דֶה קַאוּנְטֶר בִּיהַיינְד יוּ.'},set:{task:'towels'}},
+      ]},
+      {id:'lid_blocks',stageAction:{id:'maya-sink-water-rises',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},variants:[
+        {id:'cups',when:{task:'cups'},event:{emoji:'🫧',he:'בזמן ש[[אתה מסדר|את מסדרת]] את הכוסות על המדף ליד הכיור, זרם המים מסובב את מכסה הפלסטיק שבתחתית. הוא נצמד לפתח הניקוז והמים עולים במהירות.'},ask:{en:'Quick—the lid is blocking the drain. You are beside the tap—can you turn it off, or should I?',he:'מהר—המכסה חוסם את הניקוז. [[אתה עומד|את עומדת]] ליד הברז—[[אתה יכול|את יכולה]] לסגור אותו, או שאני אסגור?',tl:'קְוִיק — דֶה לִיד אִיז בְּלוֹקִינְג דֶה דְרֵיין. יוּ אַר בִּיסַייד דֶה טֶפּ — קֶן יוּ טֶרְן אִיט אוֹף, אוֹר שוּד אַיי?'},options:[
+          {id:'maya',label:'את, בבקשה',answer:{en:'You, please',he:'את, בבקשה',tl:'יוּ, פְּלִיז'},reply:{en:'All right. Put the cups down while I reach across.',he:'בסדר. [[הנח|הניחי]] את הכוסות בזמן שאושיט יד לברז.',tl:'אוֹל רַייט. פּוּט דֶה קַאפְּס דַאוּן וַואיְל אַיי רִיץ׳ אַקְרוֹס.'},set:{stopper:'maya'}},
+          {id:'learner',label:'אני [[יכול|יכולה]] לעזור',answer:{en:'I can help',he:'אני [[יכול|יכולה]] לעזור',tl:'אַיי קֶן הֶלְפּ'},reply:{en:'Good. The tap is right beside you.',he:'טוב. הברז ממש לידך.',tl:'גוּד. דֶה טֶפּ אִיז רַייט בִּיסַייד יוּ.'},set:{stopper:'learner'}},
+        ]},
+        {id:'towels',when:{task:'towels'},event:{emoji:'🫧',he:'כש[[אתה חוזר|את חוזרת]] עם המגבות, זרם המים מסובב את מכסה הפלסטיק שבתחתית. הוא נצמד לפתח הניקוז והמים מתחילים לעבור את שפת הכיור.'},ask:{en:'Quick—the lid is blocking the drain. Can you turn off the tap, or should I?',he:'מהר—המכסה חוסם את הניקוז. [[אתה יכול|את יכולה]] לסגור את הברז, או שאני אסגור?',tl:'קְוִיק — דֶה לִיד אִיז בְּלוֹקִינְג דֶה דְרֵיין. קֶן יוּ טֶרְן אוֹף דֶה טֶפּ, אוֹר שוּד אַיי?'},options:[
+          {id:'maya',label:'את, בבקשה',answer:{en:'You, please',he:'את, בבקשה',tl:'יוּ, פְּלִיז'},reply:{en:'All right. Put one towel under the edge while I close the tap.',he:'בסדר. [[שים|שימי]] מגבת אחת מתחת לשפה בזמן שאסגור את הברז.',tl:'אוֹל רַייט. פּוּט וַואן טַאוֶול אַנְדֶר דֶה אֶדְג׳ וַואיְל אַיי קְלוֹז דֶה טֶפּ.'},set:{stopper:'maya'}},
+          {id:'learner',label:'אני [[יכול|יכולה]] לעזור',answer:{en:'I can help',he:'אני [[יכול|יכולה]] לעזור',tl:'אַיי קֶן הֶלְפּ'},reply:{en:'Thank you. Put one towel under the edge, then turn it off.',he:'תודה. [[שים|שימי]] מגבת אחת מתחת לשפה ואז [[סגור|סגרי]] את הברז.',tl:'תֶ׳נְק יוּ. פּוּט וַואן טַאוֶול אַנְדֶר דֶה אֶדְג׳, דֶן טֶרְן אִיט אוֹף.'},set:{stopper:'learner'}},
+        ]},
+      ]},
+      {id:'choose_tool',variants:[
+        {id:'cups_learner',when:{task:'cups',stopper:'learner'},event:{emoji:'🚰',he:'[[אתה סוגר|את סוגרת]] את הברז מיד. מאיה מוציאה את הקערה, והמים נעצרים רגע לפני שהם נשפכים.'},ask:{en:'The water stopped, but the lid is stuck over the drain. Should we lift it with the tongs or a spoon?',he:'המים נעצרו, אבל המכסה תקוע מעל הניקוז. נרים אותו במלקחיים או בכף?',tl:'דֶה ווֹטֶר סְטוֹפְּט, בַּט דֶה לִיד אִיז סְטַאק אוֹבֶר דֶה דְרֵיין. שוּד וִוי לִיפְט אִיט וִית׳ דֶה טוֹנְגְז אוֹר אַ סְפּוּן?'},options:[
+          {id:'tongs',label:'במלקחיים',answer:{en:'This, please',he:'בזה, בבקשה',tl:'דִיס, פְּלִיז'},reply:{en:'Good choice. They can grip the edge.',he:'בחירה טובה. הם יכולים לאחוז בשפה.',tl:'גוּד צ׳וֹיס. דֵיי קֶן גְרִיפּ דֶה אֶדְג׳.'},set:{tool:'tongs'}},
+          {id:'spoon',label:'בכף',answer:{en:'That, please',he:'בזה, בבקשה',tl:'דֶאט, פְּלִיז'},reply:{en:'All right. We can slide it under the edge.',he:'בסדר. אפשר להחליק אותה מתחת לשפה.',tl:'אוֹל רַייט. וִוי קֶן סְלַייד אִיט אַנְדֶר דֶה אֶדְג׳.'},set:{tool:'spoon'}},
+        ]},
+        {id:'cups_maya',when:{task:'cups',stopper:'maya'},event:{emoji:'💧',he:'מאיה מושיטה יד מעליך וסוגרת את הברז. בזמן ש[[אתה מניח|את מניחה]] את הכוסות, כמה טיפות עוברות את שפת הכיור ונוחתות על השיש.'},ask:{en:'The water stopped, but the lid is stuck over the drain. Should we lift it with the tongs or a spoon?',he:'המים נעצרו, אבל המכסה תקוע מעל הניקוז. נרים אותו במלקחיים או בכף?',tl:'דֶה ווֹטֶר סְטוֹפְּט, בַּט דֶה לִיד אִיז סְטַאק אוֹבֶר דֶה דְרֵיין. שוּד וִוי לִיפְט אִיט וִית׳ דֶה טוֹנְגְז אוֹר אַ סְפּוּן?'},options:[
+          {id:'tongs',label:'במלקחיים',answer:{en:'This, please',he:'בזה, בבקשה',tl:'דִיס, פְּלִיז'},reply:{en:'Good choice. They can grip the edge.',he:'בחירה טובה. הם יכולים לאחוז בשפה.',tl:'גוּד צ׳וֹיס. דֵיי קֶן גְרִיפּ דֶה אֶדְג׳.'},set:{tool:'tongs'}},
+          {id:'spoon',label:'בכף',answer:{en:'That, please',he:'בזה, בבקשה',tl:'דֶאט, פְּלִיז'},reply:{en:'All right. We can slide it under the edge.',he:'בסדר. אפשר להחליק אותה מתחת לשפה.',tl:'אוֹל רַייט. וִוי קֶן סְלַייד אִיט אַנְדֶר דֶה אֶדְג׳.'},set:{tool:'spoon'}},
+        ]},
+        {id:'towels_maya',when:{task:'towels',stopper:'maya'},event:{emoji:'🧻',he:'מאיה סוגרת את הברז בזמן ש[[אתה מניח|את מניחה]] מגבת מתחת לשפת הכיור. המגבת תופסת את המים, והרצפה נשארת יבשה.'},ask:{en:'The water stopped, but the lid is stuck over the drain. Should we lift it with the tongs or a spoon?',he:'המים נעצרו, אבל המכסה תקוע מעל הניקוז. נרים אותו במלקחיים או בכף?',tl:'דֶה ווֹטֶר סְטוֹפְּט, בַּט דֶה לִיד אִיז סְטַאק אוֹבֶר דֶה דְרֵיין. שוּד וִוי לִיפְט אִיט וִית׳ דֶה טוֹנְגְז אוֹר אַ סְפּוּן?'},options:[
+          {id:'tongs',label:'במלקחיים',answer:{en:'This, please',he:'בזה, בבקשה',tl:'דִיס, פְּלִיז'},reply:{en:'Good choice. They can grip the edge.',he:'בחירה טובה. הם יכולים לאחוז בשפה.',tl:'גוּד צ׳וֹיס. דֵיי קֶן גְרִיפּ דֶה אֶדְג׳.'},set:{tool:'tongs'}},
+          {id:'spoon',label:'בכף',answer:{en:'That, please',he:'בזה, בבקשה',tl:'דֶאט, פְּלִיז'},reply:{en:'All right. We can slide it under the edge.',he:'בסדר. אפשר להחליק אותה מתחת לשפה.',tl:'אוֹל רַייט. וִוי קֶן סְלַייד אִיט אַנְדֶר דֶה אֶדְג׳.'},set:{tool:'spoon'}},
+        ]},
+        {id:'towels_learner',when:{task:'towels',stopper:'learner'},event:{emoji:'🧻',he:'[[אתה מניח|את מניחה]] מגבת מתחת לשפת הכיור ואז סוגר את הברז. המגבת תופסת את המים, ומאיה מוציאה את הקערה בלי שהרצפה תירטב.'},ask:{en:'The water stopped, but the lid is stuck over the drain. Should we lift it with the tongs or a spoon?',he:'המים נעצרו, אבל המכסה תקוע מעל הניקוז. נרים אותו במלקחיים או בכף?',tl:'דֶה ווֹטֶר סְטוֹפְּט, בַּט דֶה לִיד אִיז סְטַאק אוֹבֶר דֶה דְרֵיין. שוּד וִוי לִיפְט אִיט וִית׳ דֶה טוֹנְגְז אוֹר אַ סְפּוּן?'},options:[
+          {id:'tongs',label:'במלקחיים',answer:{en:'This, please',he:'בזה, בבקשה',tl:'דִיס, פְּלִיז'},reply:{en:'Good choice. They can grip the edge.',he:'בחירה טובה. הם יכולים לאחוז בשפה.',tl:'גוּד צ׳וֹיס. דֵיי קֶן גְרִיפּ דֶה אֶדְג׳.'},set:{tool:'tongs'}},
+          {id:'spoon',label:'בכף',answer:{en:'That, please',he:'בזה, בבקשה',tl:'דֶאט, פְּלִיז'},reply:{en:'All right. We can slide it under the edge.',he:'בסדר. אפשר להחליק אותה מתחת לשפה.',tl:'אוֹל רַייט. וִוי קֶן סְלַייד אִיט אַנְדֶר דֶה אֶדְג׳.'},set:{tool:'spoon'}},
+        ]},
+      ]},
+      {id:'drain_opens',stageAction:{id:'maya-sink-drain-opens',gesture:'story-prop-change',motion:'present',set:{storyProp:'changed'}},variants:[
+        {id:'tongs',when:{tool:'tongs'},event:{emoji:'✅',he:'מאיה אוחזת במלקחיים בשפת המכסה ומרימה אותו ישר למעלה. המים יורדים במהירות אל הניקוז, ורק כמה טיפות נשארות על השיש.'},ask:{en:'The drain is open, and there are only a few drops. Should I dry them?',he:'הניקוז פתוח ונשארו רק כמה טיפות. שאני אנגב אותן?',tl:'דֶה דְרֵיין אִיז אוֹפֶּן, אֶנְד דֶר אַר אוֹנְלִי אַ פְיוּ דְרוֹפְּס. שוּד אַיי דְרַיי דֶם?'},options:[
+          {id:'maya',label:'כן, בבקשה',answer:{en:'Yes, please',he:'כן, בבקשה',tl:'יֶס, פְּלִיז'},reply:{en:'All right. You can put the wet lid in the drying rack.',he:'בסדר. [[אתה יכול|את יכולה]] להניח את המכסה הרטוב במתקן הייבוש.',tl:'אוֹל רַייט. יוּ קֶן פּוּט דֶה וֶט לִיד אִין דֶה דְרַיִינְג רֶק.'},set:{cleanup:'maya'}},
+          {id:'learner',label:'אני [[יכול|יכולה]] לעזור',answer:{en:'I can help',he:'אני [[יכול|יכולה]] לעזור',tl:'אַיי קֶן הֶלְפּ'},reply:{en:'Thank you. I will put the wet lid in the drying rack.',he:'תודה. אני אניח את המכסה הרטוב במתקן הייבוש.',tl:'תֶ׳נְק יוּ. אַיי וִויל פּוּט דֶה וֶט לִיד אִין דֶה דְרַיִינְג רֶק.'},set:{cleanup:'learner'}},
+        ]},
+        {id:'spoon',when:{tool:'spoon'},event:{emoji:'💦',he:'מאיה מחליקה את הכף מתחת למכסה ומרימה אותו. המכסה קופץ הצדה, המים יורדים לניקוז וכמה מהם ניתזים על השיש ועל הרצפה.'},ask:{en:'The counter and floor are wet. Which should we dry first?',he:'השיש והרצפה רטובים. מה ננגב קודם?',tl:'דֶה קַאוּנְטֶר אֶנְד פְלוֹר אַר וֶט. וִויץ׳ שוּד וִוי דְרַיי פֶרְסְט?'},options:[
+          {id:'counter',label:'קודם את השיש',answer:{en:"Let's do this",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ דִיס'},reply:{en:'Good. We will dry the counter and then the floor.',he:'טוב. ננגב את השיש ואחר כך את הרצפה.',tl:'גוּד. וִוי וִויל דְרַיי דֶה קַאוּנְטֶר אֶנְד דֶן דֶה פְלוֹר.'},set:{cleanup:'counterFirst'}},
+          {id:'floor',label:'קודם את הרצפה',answer:{en:"Let's do that",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ דֶאט'},reply:{en:'All right. We will make the floor safe first.',he:'בסדר. קודם נדאג שהרצפה תהיה בטוחה.',tl:'אוֹל רַייט. וִוי וִויל מֵייק דֶה פְלוֹר סֵייף פֶרְסְט.'},set:{cleanup:'floorFirst'}},
+        ]},
+      ]},
+      {id:'clean_and_test',event:{emoji:'✨',he:'{cleanup}'},ask:{en:'Everything is dry now. Should I test the drain with a little water?',he:'הכול יבש עכשיו. לבדוק את הניקוז עם מעט מים?',tl:'אֶבְרִיתִ׳ינְג אִיז דְרַיי נַאוּ. שוּד אַיי טֶסְט דֶה דְרֵיין וִית׳ אַ לִיטֶל ווֹטֶר?'},options:[
+        {id:'yes',label:'כן, בבקשה',answer:{en:'Yes, please',he:'כן, בבקשה',tl:'יֶס, פְּלִיז'},reply:{en:'Good idea. I will run only a small stream.',he:'רעיון טוב. אפתח רק זרם קטן.',tl:'גוּד אַיידִיאָה. אַיי וִויל רַאן אוֹנְלִי אַ סְמוֹל סְטְרִים.'},set:{test:'yes'}},
+        {id:'no',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'No problem. I will leave the tap off for now.',he:'אין בעיה. אשאיר בינתיים את הברז סגור.',tl:'נוֹ פְּרוֹבְּלֶם. אַיי וִויל לִיב דֶה טֶפּ אוֹף פוֹר נַאוּ.'},set:{test:'no'}},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'water_yes',when:{reward:'water',test:'yes'},event:{emoji:'🥤',he:'מאיה פותחת זרם דק. המים יורדים מיד בניקוז, ואז היא ממלאת כוס נקייה ומגישה לך.'},ask:{en:'The drain works, and here is the water I promised you.',he:'הניקוז עובד, והנה המים שהבטחתי לך.',tl:'דֶה דְרֵיין וֶרְקְס, אֶנְד הִיר אִיז דֶה ווֹטֶר אַיי פְּרוֹמִיסְט יוּ.'},options:[
+          {id:'thank_you',label:'תודה לך!',answer:{en:'Thank you!',he:'תודה לך!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. Thank you for helping me save the kitchen.',he:'בשמחה. תודה שעזרת לי להציל את המטבח.',tl:'יוֹר וֶולְקַם. תֶ׳נְק יוּ פוֹר הֶלְפִּינְג מִי סֵייב דֶה קִיצֶ׳ן.'}},
+          {id:'thanks',label:'תודה!',answer:{en:'Thanks!',he:'תודה!',tl:'תֶ׳נְקְס!'},reply:{en:'And thank you for staying calm. Enjoy your water!',he:'ותודה [[שנשארת רגוע|שנשארת רגועה]]. [[תהנה|תהני]] מהמים!',tl:'אֶנְד תֶ׳נְק יוּ פוֹר סְטֵיִינְג קַאם. אֶנְג׳וֹי יוֹר ווֹטֶר!'}},
+        ]},
+        {id:'water_no',when:{reward:'water',test:'no'},event:{emoji:'🥤',he:'מאיה משאירה את הברז סגור, מוציאה בקבוק מים מהמקרר וממלאת לך כוס נקייה.'},ask:{en:'The tap can stay off, and here is the water I promised you.',he:'הברז יכול להישאר סגור, והנה המים שהבטחתי לך.',tl:'דֶה טֶפּ קֶן סְטֵיי אוֹף, אֶנְד הִיר אִיז דֶה ווֹטֶר אַיי פְּרוֹמִיסְט יוּ.'},options:[
+          {id:'thank_you',label:'תודה לך!',answer:{en:'Thank you!',he:'תודה לך!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. Thank you for helping me save the kitchen.',he:'בשמחה. תודה שעזרת לי להציל את המטבח.',tl:'יוֹר וֶולְקַם. תֶ׳נְק יוּ פוֹר הֶלְפִּינְג מִי סֵייב דֶה קִיצֶ׳ן.'}},
+          {id:'thanks',label:'תודה!',answer:{en:'Thanks!',he:'תודה!',tl:'תֶ׳נְקְס!'},reply:{en:'And thank you for staying calm. Enjoy your water!',he:'ותודה [[שנשארת רגוע|שנשארת רגועה]]. [[תהנה|תהני]] מהמים!',tl:'אֶנְד תֶ׳נְק יוּ פוֹר סְטֵיִינְג קַאם. אֶנְג׳וֹי יוֹר ווֹטֶר!'}},
+        ]},
+        {id:'snack_yes',when:{reward:'snack',test:'yes'},event:{emoji:'🍪',he:'מאיה פותחת זרם דק, רואה שהמים יורדים מיד בניקוז, סוגרת את הברז ומביאה לך את החטיף מהארון.'},ask:{en:'The drain works, and here is the snack I promised you.',he:'הניקוז עובד, והנה החטיף שהבטחתי לך.',tl:'דֶה דְרֵיין וֶרְקְס, אֶנְד הִיר אִיז דֶה סְנֶק אַיי פְּרוֹמִיסְט יוּ.'},options:[
+          {id:'thank_you',label:'תודה לך!',answer:{en:'Thank you!',he:'תודה לך!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. Thank you for helping me save the kitchen.',he:'בשמחה. תודה שעזרת לי להציל את המטבח.',tl:'יוֹר וֶולְקַם. תֶ׳נְק יוּ פוֹר הֶלְפִּינְג מִי סֵייב דֶה קִיצֶ׳ן.'}},
+          {id:'thanks',label:'תודה!',answer:{en:'Thanks!',he:'תודה!',tl:'תֶ׳נְקְס!'},reply:{en:'And thank you for staying calm. Enjoy your snack!',he:'ותודה [[שנשארת רגוע|שנשארת רגועה]]. [[תהנה|תהני]] מהחטיף!',tl:'אֶנְד תֶ׳נְק יוּ פוֹר סְטֵיִינְג קַאם. אֶנְג׳וֹי יוֹר סְנֶק!'}},
+        ]},
+        {id:'snack_no',when:{reward:'snack',test:'no'},event:{emoji:'🍪',he:'מאיה משאירה את הברז סגור ומביאה לך את החטיף מהארון.'},ask:{en:'The tap can stay off, and here is the snack I promised you.',he:'הברז יכול להישאר סגור, והנה החטיף שהבטחתי לך.',tl:'דֶה טֶפּ קֶן סְטֵיי אוֹף, אֶנְד הִיר אִיז דֶה סְנֶק אַיי פְּרוֹמִיסְט יוּ.'},options:[
+          {id:'thank_you',label:'תודה לך!',answer:{en:'Thank you!',he:'תודה לך!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. Thank you for helping me save the kitchen.',he:'בשמחה. תודה שעזרת לי להציל את המטבח.',tl:'יוֹר וֶולְקַם. תֶ׳נְק יוּ פוֹר הֶלְפִּינְג מִי סֵייב דֶה קִיצֶ׳ן.'}},
+          {id:'thanks',label:'תודה!',answer:{en:'Thanks!',he:'תודה!',tl:'תֶ׳נְקְס!'},reply:{en:'And thank you for staying calm. Enjoy your snack!',he:'ותודה [[שנשארת רגוע|שנשארת רגועה]]. [[תהנה|תהני]] מהחטיף!',tl:'אֶנְד תֶ׳נְק יוּ פוֹר סְטֵיִינְג קַאם. אֶנְג׳וֹי יוֹר סְנֶק!'}},
+        ]},
+      ]},
+    ],
+  },
+
+  {
+    id:'nina_market_gift', min:14, sceneIds:['shopping#1'],
+    goal:'לבחור מתנה בשוק ולקבל החלטה אמיתית כשהמחיר משתנה במבצע סוף היום',
+    open:'השוק עומד להיסגר. נינה מסדרת את דוכן המתנות, ועל השולחן נשארו כוס מצוירת ומנורה קטנה.',
+    ending:'שלט מבצע סוף היום נשאר מוצג. {outcome}',
+    stageProp:{beforeIcon:'🪧',afterIcon:'🏷️',beforeLabel:'מחיר רגיל — 20 דולר',afterLabel:'מבצע סוף יום — 10 דולר',colorA:'#9a653f',colorB:'#4b3327'},
+    values:{
+      recipient:{
+        mom:{en:'your mom',he:'אמא שלך',tl:'יוֹר מַאם'},
+        dad:{en:'your dad',he:'אבא שלך',tl:'יוֹר דֶאד'},
+      },
+      gift:{
+        cup:{en:'painted cup',he:'הכוס המצוירת',tl:'פֵּיינְטֶד קַאפ'},
+        lamp:{en:'small lamp',he:'המנורה הקטנה',tl:'סְמוֹל לֶאמְפּ'},
+      },
+      alternative:{
+        cup:{en:'painted cup',he:'הכוס המצוירת',tl:'פֵּיינְטֶד קַאפ'},
+        lamp:{en:'small lamp',he:'המנורה הקטנה',tl:'סְמוֹל לֶאמְפּ'},
+      },
+      outcome:{
+        selected:{en:'The gift you chose is wrapped and ready.',he:'המתנה שבחרת נארזה ומוכנה.',tl:'דֶה גִיפְט יוּ צ׳וֹז אִיז רֶאפְּט אֶנְד רֶדִי.'},
+        alternative:{en:'The other gift is wrapped and ready.',he:'המתנה השנייה נארזה ומוכנה.',tl:'דֶה אַדֶר גִיפְט אִיז רֶאפְּט אֶנְד רֶדִי.'},
+        none:{en:'You leave without buying, and Nina respects your decision.',he:'אתם נפרדים בלי קנייה, ונינה מכבדת את ההחלטה שלך.',tl:'יוּ לִיב וִידַאוּט בַּיִינְג, אֶנְד נִינָה רִיסְפֶּקְטְס יוֹר דִיסִיז׳ן.'},
+      },
+    },
+    beats:[
+      {id:'welcome',role:'open',ask:{en:'Hi! I am closing soon, but you still have time. Can I help you find a gift?',he:'היי! אני סוגרת בקרוב, אבל עדיין יש זמן. אפשר לעזור לך למצוא מתנה?',tl:'הַיי! אַיי אַם קְלוֹזִינְג סוּן, בַּט יוּ סְטִיל הֶב טַיים. קֶן אַיי הֶלְפּ יוּ פַיינְד אַ גִיפְט?'},options:[
+        {id:'looking',label:'רק [[מסתכל|מסתכלת]], תודה',answer:{en:'Just looking, thanks',he:'רק [[מסתכל|מסתכלת]], תודה',tl:'גַ׳סְט לוּקִינְג, תֶ׳נְקְס'},reply:{en:'Of course. Take a look; I can help when you are ready.',he:'כמובן. [[תסתכל|תסתכלי]] בנחת; אני כאן כשתהיה [[מוכן|מוכנה]].',tl:'אוֹב קוֹרְס. טֵייק אַ לוּק; אַיי קֶן הֶלְפּ וֶון יוּ אַר רֶדִי.'}},
+        {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Great. I have two small gifts left on the table.',he:'מעולה. נשארו לי שתי מתנות קטנות על השולחן.',tl:'גְרֵייט. אַיי הֶב טוּ סְמוֹל גִיפְטְס לֶפְט אוֹן דֶה טֵייבֶּל.'}},
+      ]},
+      {id:'recipient',ask:{en:'If you find something you like, who would the gift be for?',he:'אם תמצא משהו שמוצא חן בעיניך, למי תהיה המתנה?',tl:'אִיף יוּ פַיינְד סַאמְתִ׳ינְג יוּ לַייק, הוּ וּוּד דֶה גִיפְט בִּי פוֹר?'},options:[
+        {id:'mom',label:'אמא שלי',answer:{en:'My mom',he:'אמא שלי',tl:'מַיי מַאם'},reply:{en:'Then let us find something your mom will enjoy.',he:'אז נמצא משהו שאמא שלך תשמח לקבל.',tl:'דֶן לֶט אַס פַיינְד סַאמְתִ׳ינְג יוֹר מַאם וִויל אֶנְג׳וֹי.'},set:{recipient:'mom'}},
+        {id:'dad',label:'אבא שלי',answer:{en:'My dad',he:'אבא שלי',tl:'מַיי דֶאד'},reply:{en:'Then let us find something your dad will enjoy.',he:'אז נמצא משהו שאבא שלך ישמח לקבל.',tl:'דֶן לֶט אַס פַיינְד סַאמְתִ׳ינְג יוֹר דֶאד וִויל אֶנְג׳וֹי.'},set:{recipient:'dad'}},
+      ]},
+      {id:'choose_gift',ask:{en:'I have a painted cup and a small lamp. Which one do you like?',he:'יש לי כוס מצוירת ומנורה קטנה. איזו מהן מוצאת חן בעיניך?',tl:'אַיי הֶב אַ פֵּיינְטֶד קַאפ אֶנְד אַ סְמוֹל לֶאמְפּ. וִויץ׳ וַואן דוּ יוּ לַייק?'},options:[
+        {id:'cup',label:'זאת — הכוס המצוירת',answer:{en:'This one',he:'זאת',tl:'דִיס וַואן'},reply:{en:'Good choice. The painted cup was made here at the market.',he:'בחירה טובה. הכוס המצוירת נוצרה כאן בשוק.',tl:'גוּד צ׳וֹיס. דֶה פֵּיינְטֶד קַאפ וּוֹז מֵייד הִיר אֶט דֶה מַרְקֶט.'},set:{gift:'cup',alternative:'lamp'}},
+        {id:'lamp',label:'ההיא — המנורה הקטנה',answer:{en:'That one',he:'ההיא',tl:'דֶאט וַואן'},reply:{en:'Good choice. The small lamp gives a warm light.',he:'בחירה טובה. המנורה הקטנה נותנת אור חמים.',tl:'גוּד צ׳וֹיס. דֶה סְמוֹל לֶאמְפּ גִיבְז אַ וּוֹרְם לַייט.'},set:{gift:'lamp',alternative:'cup'}},
+      ]},
+      {id:'regular_price',ask:{en:'The {gift} costs twenty dollars. What do you think?',he:'{gift} עולה עשרים דולר. מה דעתך?',tl:'דֶה {gift} קוֹסְטְס טְוֶנְטִי דּוֹלֶרְז. וּוַאט דוּ יוּ תִ׳ינְק?'},options:[
+        {id:'take',label:'אני אקח את זה',answer:{en:"I'll take it",he:'אני אקח את זה',tl:'אַיְיל טֵייק אִיט'},reply:{en:'All right. I will set it aside for you.',he:'בסדר. אשמור אותה בצד בשבילך.',tl:'אוֹל רַייט. אַיי וִויל סֶט אִיט אַסַייד פוֹר יוּ.'},set:{decision:'take'}},
+        {id:'expensive',label:'זה יקר מדי',answer:{en:"It's too expensive",he:'זה יקר מדי',tl:'אִיטְס טוּ אֶקְסְפֶּנְסִיב'},reply:{en:'I understand. Let me check the closing-time prices before you decide.',he:'אני מבינה. אבדוק את מחירי הסגירה לפני שתחליט.',tl:'אַיי אַנְדֶרְסְטֶנְד. לֶט מִי צֶ׳ק דֶה קְלוֹזִינְג טַיים פְּרַייסִיז בִּיפוֹר יוּ דִיסַייד.'},set:{decision:'expensive'}},
+      ]},
+      {id:'sale_sign',event:{emoji:'🪧',he:'כשנינה מזיזה בד מקופל מקצה הדוכן, מחליק מתחתיו שלט ישן: ״מבצע סוף יום״. המחיר הרגיל, 20 דולר, עדיין מופיע עליו.'},stageAction:{id:'nina-reveals-end-day-sign',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Wait — this sign was under the cloth. The end-of-day sale starts now.',he:'רגע — השלט הזה היה מתחת לבד. מבצע סוף היום מתחיל עכשיו.',tl:'וֵייט — דִיס סַיין וּוֹז אַנְדֶר דֶה קְלוֹת׳. דֶה אֶנְד אוֹב דֵיי סֵייל סְטַארְטְס נַאוּ.'},options:[
+        {id:'wow',label:'וואו!',answer:{en:'Wow!',he:'וואו!',tl:'וַואוּ!'},reply:{en:'Yes — lucky timing. I only need to turn the sign over.',he:'כן — תזמון מצוין. אני רק צריכה להפוך את השלט.',tl:'יֶס — לַאקִי טַיימִינְג. אַיי אוֹנְלִי נִיד טוּ טֶרְן דֶה סַיין אוֹבֶר.'}},
+        {id:'better',label:'זה יותר טוב',answer:{en:"That's better",he:'זה יותר טוב',tl:'דֶאטְס בֶּטֶר'},reply:{en:'Much better. Let me show you the new price.',he:'הרבה יותר טוב. אראה לך את המחיר החדש.',tl:'מַאץ׳ בֶּטֶר. לֶט מִי שוֹאוּ יוּ דֶה נְיוּ פְּרַייס.'}},
+      ]},
+      {id:'new_price',event:{emoji:'🏷️',he:'נינה הופכת את השלט. בצדו השני כתוב: ״מבצע סוף יום — 10 דולר״.'},stageAction:{id:'nina-flips-end-day-price',gesture:'story-prop-change',motion:'swap',set:{storyProp:'changed'}},variants:[
+        {id:'take',when:{decision:'take'},ask:{en:'The sign says ten dollars now. Do you still want the {gift}, or would you like the {alternative}?',he:'עכשיו כתוב על השלט עשרה דולר. עדיין [[אתה רוצה|את רוצה]] את {gift}, או [[שתעדיף|שתעדיפי]] את {alternative}?',tl:'דֶה סַיין סֶז טֶן דּוֹלֶרְז נַאוּ. דוּ יוּ סְטִיל וּוֹנְט דֶה {gift}, אוֹר וּוּד יוּ לַייק דֶה {alternative}?'},options:[
+          {id:'selected',label:'אני אקח את זה',answer:{en:"I'll take it",he:'אני אקח את זה',tl:'אַיְיל טֵייק אִיט'},reply:{en:'Great. I will wrap the {gift} now.',he:'מעולה. אארוז עכשיו את {gift}.',tl:'גְרֵייט. אַיי וִויל רֶאפ דֶה {gift} נַאוּ.'},set:{finalDecision:'selected'}},
+          {id:'alternative',label:'אני רוצה את האפשרות השנייה',answer:{en:'I want another one',he:'אני רוצה את האפשרות השנייה',tl:'אַיי וּוֹנְט אַנַאדֶר וַואן'},reply:{en:'Of course. Let us look at the {alternative} instead.',he:'כמובן. נסתכל במקום זה על {alternative}.',tl:'אוֹב קוֹרְס. לֶט אַס לוּק אֶט דֶה {alternative} אִינְסְטֶד.'},set:{finalDecision:'alternative'}},
+        ]},
+        {id:'expensive',when:{decision:'expensive'},ask:{en:'The {gift} is ten dollars now. What do you think?',he:'עכשיו {gift} עולה עשרה דולר. מה דעתך?',tl:'דֶה {gift} אִיז טֶן דּוֹלֶרְז נַאוּ. וּוַאט דוּ יוּ תִ׳ינְק?'},options:[
+          {id:'selected',label:'אני אקח את זה',answer:{en:"I'll take it",he:'אני אקח את זה',tl:'אַיְיל טֵייק אִיט'},reply:{en:'Great. I will wrap the {gift} now.',he:'מעולה. אארוז עכשיו את {gift}.',tl:'גְרֵייט. אַיי וִויל רֶאפ דֶה {gift} נַאוּ.'},set:{finalDecision:'selected'}},
+          {id:'leave',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'That is fine. The sale is here if you change your mind.',he:'זה בסדר. המבצע כאן אם תשנה את דעתך.',tl:'דֶאט אִיז פַיין. דֶה סֵייל אִיז הִיר אִיף יוּ צֵ׳יינְג׳ יוֹר מַיינְד.'},set:{finalDecision:'leave'}},
+        ]},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'selected',when:{finalDecision:'selected'},ask:{en:'The {gift} for {recipient} is wrapped and ready. Anything else?',he:'{gift} בשביל {recipient} ארוזה ומוכנה. עוד משהו?',tl:'דֶה {gift} פוֹר {recipient} אִיז רֶאפְּט אֶנְד רֶדִי. אֶנִיתִ׳ינְג אֶלְס?'},options:[
+          {id:'thank_you',label:'תודה!',answer:{en:'Thank you!',he:'תודה!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. I hope the gift makes them smile.',he:'בשמחה. אני מקווה שהמתנה תשמח אותם.',tl:'יוֹר וֶולְקַם. אַיי הוֹפ דֶה גִיפְט מֵייקְס דֶם סְמַייל.'},set:{outcome:'selected'}},
+          {id:'goodbye',label:'תודה, להתראות!',answer:{en:'Thanks! Goodbye!',he:'תודה! להתראות!',tl:'תֶ׳נְקְס! גוּדְבַּיי!'},reply:{en:'Goodbye! You arrived just in time for the sale.',he:'להתראות! הגעת בדיוק בזמן למבצע.',tl:'גוּדְבַּיי! יוּ אַרַייבְד גַ׳סְט אִין טַיים פוֹר דֶה סֵייל.'},set:{outcome:'selected'}},
+        ]},
+        {id:'alternative',when:{finalDecision:'alternative'},ask:{en:'The {alternative} is also ten dollars. Should I wrap it for {recipient}?',he:'גם {alternative} עולה עשרה דולר. לארוז אותה בשביל {recipient}?',tl:'דֶה {alternative} אִיז אוֹלְסוֹ טֶן דּוֹלֶרְז. שוּד אַיי רֶאפ אִיט פוֹר {recipient}?'},options:[
+          {id:'take',label:'אני אקח את זה',answer:{en:"I'll take it",he:'אני אקח את זה',tl:'אַיְיל טֵייק אִיט'},reply:{en:'Perfect. I will wrap the other gift for you.',he:'מושלם. אארוז בשבילך את המתנה השנייה.',tl:'פֶּרְפֶקְט. אַיי וִויל רֶאפ דֶה אַדֶר גִיפְט פוֹר יוּ.'},set:{outcome:'alternative'}},
+          {id:'no',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'No problem. You can leave it this time.',he:'אין בעיה. הפעם אפשר לוותר.',tl:'נוֹ פְּרוֹבְּלֶם. יוּ קֶן לִיב אִיט דִיס טַיים.'},set:{outcome:'none'}},
+        ]},
+        {id:'leave',when:{finalDecision:'leave'},ask:{en:'That is fine. Would you like to look at the other gifts before I close?',he:'זה בסדר. [[תרצה|תרצי]] להסתכל על שאר המתנות לפני שאסגור?',tl:'דֶאט אִיז פַיין. וּוּד יוּ לַייק טוּ לוּק אֶט דֶה אַדֶר גִיפְטְס בִּיפוֹר אַיי קְלוֹז?'},options:[
+          {id:'looking',label:'רק [[מסתכל|מסתכלת]], תודה',answer:{en:'Just looking, thanks',he:'רק [[מסתכל|מסתכלת]], תודה',tl:'גַ׳סְט לוּקִינְג, תֶ׳נְקְס'},reply:{en:'Of course. Take one last look before the market closes.',he:'כמובן. אפשר להסתכל עוד פעם אחת לפני שהשוק נסגר.',tl:'אוֹב קוֹרְס. טֵייק וַואן לַאסְט לוּק בִּיפוֹר דֶה מַרְקֶט קְלוֹזִיז.'},set:{outcome:'none'}},
+          {id:'no',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'No problem. Thank you for stopping by.',he:'אין בעיה. תודה שעצרת בדוכן.',tl:'נוֹ פְּרוֹבְּלֶם. תֶ׳נְק יוּ פוֹר סְטוֹפִּינְג בַּיי.'},set:{outcome:'none'}},
+        ]},
+      ]},
+    ],
+  },
+
+  {
+    id:'maya_courtyard_change', min:17, sceneIds:['plans#1'],
+    goal:'להציל עציץ יבש בחצר, למצוא פתרון למזלף דולף ולהשקות אותו',
+    open:'מאיה כורעת ליד עציץ נבול בחצר. האדמה יבשה, ומזלף ישן מונח ליד הקיר.',
+    ending:'העציץ מקבל {amount} בעזרת {solution}, ומאיה משאירה אותו בצל כדי שיתאושש.',
+    stageProp:{beforeIcon:'🪣💧',afterIcon:'🪴💦',beforeLabel:'המזלף דולף',afterLabel:'העציץ קיבל מים',colorA:'#477b84',colorB:'#294e55'},
+    values:{
+      solution:{
+        tape:{en:'the tape',he:'הסרט הדביק',tl:'דֶה טֵייפ'},
+        cup:{en:'the cup',he:'הכוס',tl:'דֶה קַאפ'},
+      },
+      amount:{
+        one:{en:'one cup of water',he:'כוס מים אחת',tl:'וַואן קַאפ אוֹב ווֹטֶר'},
+        two:{en:'two cups of water',he:'שתי כוסות מים',tl:'טוּ קַאפְּס אוֹב ווֹטֶר'},
+      },
+    },
+    beats:[
+      {id:'open',role:'open',ask:{en:'Hi, {name}. This plant looks very dry. Can you help me save it?',he:'היי. העציץ הזה נראה יבש מאוד. [[אתה יכול|את יכולה]] לעזור לי להציל אותו?',tl:'הַיי. דִיס פְּלַאנְט לוּקְס וֶרִי דְרַיי. קֶן יוּ הֶלְפּ מִי סֵייב אִיט?'},options:[
+        {id:'no_problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you. The leaves are soft, and the soil looks dry.',he:'תודה. העלים רכים, והאדמה נראית יבשה.',tl:'תֶ׳נְק יוּ. דֶה לִיבְז אַר סוֹפְט, אֶנְד דֶה סוֹיְל לוּקְס דְרַיי.'}},
+        {id:'help',label:'בטח. אני [[יכול|יכולה]] לעזור',answer:{en:'Of course. I can help',he:'בטח. אני [[יכול|יכולה]] לעזור',tl:'אוֹב קוֹרְס. אַיי קֶן הֶלְפּ'},reply:{en:'Great. Let us help it before the sun gets stronger.',he:'מעולה. נעזור לו לפני שהשמש תתחזק.',tl:'גְרֵייט. לֶט אַס הֶלְפּ אִיט בִּיפוֹר דֶה סַאן גֶטְס סְטְרוֹנְגֶר.'}},
+      ]},
+      {id:'first_plan',ask:{en:'Should we bring water first, or move the plant into the shade?',he:'קודם להביא מים, או להעביר את העציץ לצל?',tl:'שוּד וִוי בְּרִינְג ווֹטֶר פֶרְסְט, אוֹר מוּב דֶה פְּלַאנְט אִינְטוּ דֶה שֵייד?'},options:[
+        {id:'water',label:'[[בוא|בואי]] נביא קצת מים',answer:{en:"Let's bring some water",he:'[[בוא|בואי]] נביא קצת מים',tl:'לֶטְס בְּרִינְג סַאם ווֹטֶר'},reply:{en:'Good. The watering can is by the wall.',he:'יופי. המזלף ליד הקיר.',tl:'גוּד. דֶה ווֹטֶרִינְג קֶן אִיז בַּיי דֶה וּוֹל.'},set:{plan:'water'}},
+        {id:'shade',label:'[[בוא|בואי]] נעביר אותו לשם',answer:{en:"Let's take it over there",he:'[[בוא|בואי]] נעביר אותו לשם',tl:'לֶטְס טֵייק אִיט אוֹבֶר דֶר'},reply:{en:'Good idea. Let us move the pot under the tree first.',he:'רעיון טוב. קודם נעביר את העציץ מתחת לעץ.',tl:'גוּד אַיידִיאָה. לֶט אַס מוּב דֶה פּוֹט אַנְדֶר דֶה טְרִי פֶרְסְט.'},set:{plan:'shade'}},
+      ]},
+      {id:'leak',stageAction:{id:'maya-watering-can-leaks',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},variants:[
+      {id:'water',when:{plan:'water'},event:{emoji:'💧',he:'מאיה מרימה את המזלף ליד הקיר. עוד לפני שהיא מגיעה לעציץ, זרם מים יוצא מחור קטן בצד ונשפך על הרצפה.'},ask:{en:'The water is leaking from the side. Can you see the small hole?',he:'המים דולפים מהצד. [[אתה רואה|את רואה]] את החור הקטן?',tl:'דֶה ווֹטֶר אִיז לִיקִינְג פְרוֹם דֶה סַייד. קֶן יוּ סִי דֶה סְמוֹל הוֹל?'},options:[
+        {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Right — the water is coming out there.',he:'נכון — המים יוצאים משם.',tl:'רַייט — דֶה ווֹטֶר אִיז קַאמִינְג אַאוּט דֶר.'}},
+        {id:'unknown',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'Look here — the watering can has a small hole.',he:'[[תסתכל|תסתכלי]] כאן — יש חור קטן במזלף.',tl:'לוּק הִיר — דֶה ווֹטֶרִינְג קֶן הֶז אַ סְמוֹל הוֹל.'}},
+        ]},
+      {id:'shade',when:{plan:'shade'},event:{emoji:'💧',he:'אחרי שאתם מעבירים את העציץ מתחת לעץ, מאיה מרימה את המזלף. המים מיד דולפים מחור קטן ונשפכים ליד העציץ.'},ask:{en:'The plant is in the shade, but the water is leaking. Can you see the small hole?',he:'העציץ בצל, אבל המים דולפים. [[אתה רואה|את רואה]] את החור הקטן?',tl:'דֶה פְּלַאנְט אִיז אִין דֶה שֵייד, בַּט דֶה ווֹטֶר אִיז לִיקִינְג. קֶן יוּ סִי דֶה סְמוֹל הוֹל?'},options:[
+        {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Right — the water is coming out there.',he:'נכון — המים יוצאים משם.',tl:'רַייט — דֶה ווֹטֶר אִיז קַאמִינְג אַאוּט דֶר.'}},
+        {id:'unknown',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'Look here — the watering can has a small hole.',he:'[[תסתכל|תסתכלי]] כאן — יש חור קטן במזלף.',tl:'לוּק הִיר — דֶה ווֹטֶרִינְג קֶן הֶז אַ סְמוֹל הוֹל.'}},
+        ]},
+      ]},
+      {id:'choose_solution',ask:{en:'We need to stop the leak or carry the water another way. Where should we look?',he:'צריך לעצור את הדליפה או להעביר את המים בדרך אחרת. איפה נחפש?',tl:'וִוי נִיד טוּ סְטוֹפּ דֶה לִיק אוֹר קֶרִי דֶה ווֹטֶר אַנַאדֶר וֵיי. וֶר שוּד וִוי לוּק?'},options:[
+        {id:'bench',label:'[[בוא|בואי]] נחפש ליד הספסל',answer:{en:"Let's look near the bench",he:'[[בוא|בואי]] נחפש ליד הספסל',tl:'לֶטְס לוּק נִיר דֶה בֶּנְץ׳'},reply:{en:'Good. Let us check around the bench.',he:'יופי. נבדוק מסביב לספסל.',tl:'גוּד. לֶט אַס צֶ׳ק אַרַאוּנְד דֶה בֶּנְץ׳.'},set:{solution:'tape'}},
+        {id:'upstairs',label:'[[בוא|בואי]] נעלה',answer:{en:"Let's go up",he:'[[בוא|בואי]] נעלה',tl:'לֶטְס גוֹ אַפּ'},reply:{en:'All right. I remember a plastic cup upstairs.',he:'בסדר. אני זוכרת שיש כוס פלסטיק למעלה.',tl:'אוֹל רַייט. אַיי רִימֶמְבֶּר אַ פְּלַאסְטִיק קַאפ אַפְּסְטֶרְז.'},set:{solution:'cup'}},
+      ]},
+      {id:'find_solution',variants:[
+        {id:'tape',when:{solution:'tape'},event:{emoji:'🧰',he:'מאיה כורעת ליד הספסל ומוצאת מתחתיו גליל קטן של סרט דביק.'},ask:{en:'I found some tape. Do you think it can stop the leak?',he:'מצאתי סרט דביק. נראה לך שהוא יכול לעצור את הדליפה?',tl:'אַיי פַאוּנְד סַאם טֵייפ. דוּ יוּ תִ׳ינְק אִיט קֶן סְטוֹפּ דֶה לִיק?'},options:[
+          {id:'can',label:'אני [[חושב|חושבת]] שהוא יכול',answer:{en:'I think it can',he:'אני [[חושב|חושבת]] שהוא יכול',tl:'אַיי תִ׳ינְק אִיט קֶן'},reply:{en:'Me too. Let us wrap it tightly around the hole.',he:'גם אני. נעטוף אותו היטב סביב החור.',tl:'מִי טוּ. לֶט אַס רֶאפ אִיט טַייטְלִי אַרַאוּנְד דֶה הוֹל.'}},
+          {id:'maybe',label:'אולי',answer:{en:'Maybe',he:'אולי',tl:'מֵייבִּי'},reply:{en:'Let us try it carefully. We can use the cup if it fails.',he:'ננסה בזהירות. אם זה לא יעבוד, נוכל להשתמש בכוס.',tl:'לֶט אַס טְרַיי אִיט קֶרְפוּלִי. וִוי קֶן יוּז דֶה קַאפ אִיף אִיט פֵיילְז.'}},
+        ]},
+        {id:'cup',when:{solution:'cup'},event:{emoji:'🥤',he:'מאיה עולה במהירות וחוזרת עם כוס פלסטיק גדולה שלא נוזלת.'},ask:{en:'I found a plastic cup. Should we use it instead of the watering can?',he:'מצאתי כוס פלסטיק. נשתמש בה במקום במזלף?',tl:'אַיי פַאוּנְד אַ פְּלַאסְטִיק קַאפ. שוּד וִוי יוּז אִיט אִינְסְטֶד אוֹב דֶה ווֹטֶרִינְג קֶן?'},options:[
+          {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Good. We can carry the water without losing it.',he:'יופי. נוכל להעביר את המים בלי לאבד אותם.',tl:'גוּד. וִוי קֶן קֶרִי דֶה ווֹטֶר וִידַאוּט לוּזִינְג אִיט.'}},
+          {id:'maybe',label:'אולי',answer:{en:'Maybe',he:'אולי',tl:'מֵייבִּי'},reply:{en:'Let us try it. The cup has no hole.',he:'ננסה. אין חור בכוס.',tl:'לֶט אַס טְרַיי אִיט. דֶה קַאפ הֶז נוֹ הוֹל.'}},
+        ]},
+      ]},
+      {id:'make_solution',variants:[
+        {id:'tape',when:{solution:'tape'},event:{emoji:'🩹',he:'מאיה עוטפת את החור בסרט הדביק ומוסיפה מעט מים למזלף. עכשיו צריך לבדוק אם התיקון יחזיק בדרך לעציץ.'},ask:{en:'The tape is in place. Ready to carry the water to the plant and test it?',he:'הסרט במקום. [[מוכן|מוכנה]] לקחת את המים לעציץ ולבדוק אותו?',tl:'דֶה טֵייפ אִיז אִין פְּלֵייס. רֶדִי טוּ קֶרִי דֶה ווֹטֶר טוּ דֶה פְּלַאנְט אֶנְד טֶסְט אִיט?'},options:[
+          {id:'ready',label:'אני [[מוכן|מוכנה]]',answer:{en:"I'm ready",he:'אני [[מוכן|מוכנה]]',tl:'אַיְים רֶדִי'},reply:{en:'Great. We will carry it carefully.',he:'מעולה. ניקח אותו בזהירות.',tl:'גְרֵייט. וִוי וִויל קֶרִי אִיט קֶרְפוּלִי.'}},
+          {id:'do_it',label:'[[בוא|בואי]] נעשה את זה',answer:{en:"Let's do it",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ אִיט'},reply:{en:'Good. We will move slowly and watch the taped spot.',he:'יופי. נתקדם לאט ונשים לב למקום שהודבק.',tl:'גוּד. וִוי וִויל מוּב סְלוֹאוּלִי אֶנְד ווֹטְש דֶה טֵייפְּט סְפּוֹט.'}},
+        ]},
+        {id:'cup',when:{solution:'cup'},event:{emoji:'🥤',he:'מאיה מניחה את המזלף הדולף בצד וממלאה את כוס הפלסטיק עד הקצה.'},ask:{en:'The cup has no leak. Ready to water the plant?',he:'הכוס לא דולפת. [[מוכן|מוכנה]] להשקות את העציץ?',tl:'דֶה קַאפ הֶז נוֹ לִיק. רֶדִי טוּ ווֹטֶר דֶה פְּלַאנְט?'},options:[
+          {id:'ready',label:'אני [[מוכן|מוכנה]]',answer:{en:"I'm ready",he:'אני [[מוכן|מוכנה]]',tl:'אַיְים רֶדִי'},reply:{en:'Great. Bring the cup close to the soil.',he:'מעולה. נקרב את הכוס לאדמה.',tl:'גְרֵייט. בְּרִינְג דֶה קַאפ קְלוֹז טוּ דֶה סוֹיְל.'}},
+          {id:'do_it',label:'[[בוא|בואי]] נעשה את זה',answer:{en:"Let's do it",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ אִיט'},reply:{en:'Good. We will pour slowly, close to the soil.',he:'יופי. נשפוך לאט, קרוב לאדמה.',tl:'גוּד. וִוי וִויל פּוֹר סְלוֹאוּלִי, קְלוֹז טוּ דֶה סוֹיְל.'}},
+        ]},
+      ]},
+      {id:'amount',event:{emoji:'🪴',he:'מאיה נוגעת באדמה. היא יבשה גם עמוק יותר, אבל העציץ קטן וצריך להשקות אותו בהדרגה.'},ask:{en:'The soil is very dry. One cup or two?',he:'האדמה יבשה מאוד. כוס אחת או שתיים?',tl:'דֶה סוֹיְל אִיז וֶרִי דְרַיי. וַואן קַאפ אוֹר טוּ?'},options:[
+        {id:'one',label:'אחת',answer:{en:'One',he:'אחת',tl:'וַואן'},reply:{en:'All right. We will start with one cup and watch the soil.',he:'בסדר. נתחיל בכוס אחת ונראה איך האדמה מגיבה.',tl:'אוֹל רַייט. וִוי וִויל סְטַארְט וִית׳ וַואן קַאפ אֶנְד ווֹטְש דֶה סוֹיְל.'},set:{amount:'one'}},
+        {id:'two',label:'שתיים',answer:{en:'Two',he:'שתיים',tl:'טוּ'},reply:{en:'Good. We will pour two cups slowly.',he:'יופי. נשפוך שתי כוסות לאט.',tl:'גוּד. וִוי וִויל פּוֹר טוּ קַאפְּס סְלוֹאוּלִי.'},set:{amount:'two'}},
+      ]},
+      {id:'close',role:'close',stageAction:{id:'maya-waters-courtyard-plant',gesture:'story-prop-change',motion:'present',set:{storyProp:'changed'}},variants:[
+        {id:'one',when:{amount:'one'},event:{emoji:'💦',he:'מאיה מביאה את המים לעציץ בלי לאבד אף טיפה בדרך ומשקה אותו בכוס אחת. המים נספגים, ואחד העלים מתרומם מעט.'},ask:{en:'One cup was enough for now. How does the plant look?',he:'כוס אחת הספיקה לעכשיו. איך העציץ נראה?',tl:'וַואן קַאפ וּוֹז אִינַאף פוֹר נַאוּ. הַאוּ דַאז דֶה פְּלַאנְט לוּק?'},options:[
+          {id:'better',label:'הוא נראה יותר טוב',answer:{en:'It looks better',he:'הוא נראה יותר טוב',tl:'אִיט לוּקְס בֶּטֶר'},reply:{en:'It does. We will leave it in the shade and check it later.',he:'נכון. נשאיר אותו בצל ונבדוק אותו מאוחר יותר.',tl:'אִיט דַאז. וִוי וִויל לִיב אִיט אִין דֶה שֵייד אֶנְד צֶ׳ק אִיט לֵייטֶר.'}},
+          {id:'good',label:'הוא נראה טוב',answer:{en:'It looks good',he:'הוא נראה טוב',tl:'אִיט לוּקְס גוּד'},reply:{en:'Yes. The leaves already look stronger. We will leave it in the shade.',he:'כן. העלים כבר נראים חזקים יותר. נשאיר אותו בצל.',tl:'יֶס. דֶה לִיבְז אוֹלְרֶדִי לוּק סְטְרוֹנְגֶר. וִוי וִויל לִיב אִיט אִין דֶה שֵייד.'}},
+        ]},
+        {id:'two',when:{amount:'two'},event:{emoji:'💦',he:'מאיה מביאה את המים לעציץ בלי לאבד אף טיפה בדרך ומשקה אותו בשתי כוסות, עם הפסקה קצרה ביניהן. האדמה סופגת את המים והעלים מתרוממים מעט.'},ask:{en:'The dry soil took both cups. How does the plant look now?',he:'האדמה היבשה ספגה את שתי הכוסות. איך העציץ נראה עכשיו?',tl:'דֶה דְרַיי סוֹיְל טוּק בּוֹת׳ קַאפְּס. הַאוּ דַאז דֶה פְּלַאנְט לוּק נַאוּ?'},options:[
+          {id:'better',label:'הוא נראה יותר טוב',answer:{en:'It looks better',he:'הוא נראה יותר טוב',tl:'אִיט לוּקְס בֶּטֶר'},reply:{en:'It does. We will leave it in the shade and check it later.',he:'נכון. נשאיר אותו בצל ונבדוק אותו מאוחר יותר.',tl:'אִיט דַאז. וִוי וִויל לִיב אִיט אִין דֶה שֵייד אֶנְד צֶ׳ק אִיט לֵייטֶר.'}},
+          {id:'good',label:'הוא נראה טוב',answer:{en:'It looks good',he:'הוא נראה טוב',tl:'אִיט לוּקְס גוּד'},reply:{en:'Yes. The leaves already look stronger. We will leave it in the shade.',he:'כן. העלים כבר נראים חזקים יותר. נשאיר אותו בצל.',tl:'יֶס. דֶה לִיבְז אוֹלְרֶדִי לוּק סְטְרוֹנְגֶר. וִוי וִויל לִיב אִיט אִין דֶה שֵייד.'}},
+        ]},
+      ]},
+    ],
+  },
+
+  {
+    id:'sam_dropped_key', min:18, sceneIds:['help#1'],
+    goal:'לעזור לסם להתכונן לרכיבה, למצוא את מפתח מנעול האופניים שנפל ולצאת לדרך',
+    open:'סם עומד בחניה ליד האופניים הנעולים שלו. הוא רוצה לצאת לרכיבה קצרה לפני שמחשיך.',
+    ending:'המנעול בתיק, המפתח בכיס, וסם מתחיל לרכוב איתך לכיוון {destination}.',
+    stageProp:{beforeIcon:'🔑🚲',afterIcon:'🚲🔓',beforeLabel:'מפתח המנעול נפל מתחת לאופניים',afterLabel:'המנעול פתוח והמפתח בכיס',colorA:'#756043',colorB:'#3e3428'},
+    values:{
+      destination:{
+        park:{en:'the park',he:'הפארק',tl:'דֶה פַּארְק'},
+        school:{en:'school',he:'בית הספר',tl:'סְקוּל'},
+      },
+      gear:{
+        water:{en:'my water bottle',he:'בקבוק המים שלי',tl:'מַיי ווֹטֶר בּוֹטֶל'},
+        phone:{en:'my phone',he:'הטלפון שלי',tl:'מַיי פוֹן'},
+      },
+    },
+    beats:[
+      {id:'open',role:'open',ask:{en:"Hi, {name}. I'm getting my bike ready for a short ride, but it is still locked. Can you help me?",he:'היי. אני מכין את האופניים לרכיבה קצרה, אבל הם עדיין נעולים. [[אתה יכול|את יכולה]] לעזור לי?',tl:'הַיי. אַיְים גֶטִינְג מַיי בַּייק רֶדִי פוֹר אַ שוֹרְט רַייד, בַּאט אִיט אִיז סְטִיל לוֹקְט. קֶן יוּ הֶלְפּ מִי?'},options:[
+        {id:'no_problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thanks. I want to leave before it gets dark.',he:'תודה. אני רוצה לצאת לפני שמחשיך.',tl:'תֶ׳נְקְס. אַיי וּוֹנְט טוּ לִיב בִּיפוֹר אִיט גֶטְס דַארְק.'}},
+        {id:'can_help',label:'בטח, אני יכול לעזור',answer:{en:'Of course. I can help',he:'בטח. אני [[יכול|יכולה]] לעזור',tl:'אוֹף קוֹרְס. אַיי קֶן הֶלְפּ'},reply:{en:"Great. First, let's decide where to ride.",he:'מעולה. קודם נחליט לאן לרכוב.',tl:'גְרֵייט. פֶרְסְט, לֶטְס דִיסַייד וֶור טוּ רַייד.'}},
+      ]},
+      {id:'choose_destination',ask:{en:'Should we ride to the park or to school?',he:'נרכב לפארק או לבית הספר?',tl:'שוּד וִוי רַייד טוּ דֶה פַּארְק אוֹר טוּ סְקוּל?'},options:[
+        {id:'park',label:'לפארק, בבקשה',answer:{en:'The park, please',he:'לפארק, בבקשה',tl:'דֶה פַּארְק, פְּלִיז'},reply:{en:'Good choice. The path through the park is quiet.',he:'בחירה טובה. השביל בפארק שקט.',tl:'גוּד צ׳וֹיס. דֶה פַּאת׳ תְ׳רוּ דֶה פַּארְק אִיז קְוַאיֶט.'},set:{destination:'park'}},
+        {id:'school',label:'לבית הספר, בבקשה',answer:{en:'School, please',he:'לבית הספר, בבקשה',tl:'סְקוּל, פְּלִיז'},reply:{en:'All right. The road to school is short.',he:'בסדר. הדרך לבית הספר קצרה.',tl:'אוֹל רַייט. דֶה רוֹד טוּ סְקוּל אִיז שוֹרְט.'},set:{destination:'school'}},
+      ]},
+      {id:'choose_gear',ask:{en:'Before I unlock the bike, what should I put away first: the water bottle or my phone?',he:'לפני שאפתח את המנעול, מה לשים במקום קודם: את בקבוק המים או את הטלפון?',tl:'בִּיפוֹר אַיי אַנְלוֹק דֶה בַּייק, וּוַאט שוּד אַיי פּוּט אַוֵויי פֶרְסְט: דֶה ווֹטֶר בּוֹטֶל אוֹר מַיי פוֹן?'},options:[
+        {id:'water',label:'את המים, בבקשה',answer:{en:'Water, please',he:'את המים, בבקשה',tl:'ווֹטֶר, פְּלִיז'},reply:{en:"Good. I'll put the bottle in its holder.",he:'טוב. אשים את הבקבוק במתקן שלו.',tl:'גוּד. אַייל פּוּט דֶה בּוֹטֶל אִין אִיטְס הוֹלְדֶר.'},set:{gear:'water'}},
+        {id:'phone',label:'את הטלפון, בבקשה',answer:{en:'The phone, please',he:'את הטלפון, בבקשה',tl:'דֶה פוֹן, פְּלִיז'},reply:{en:"Good. I'll put the phone in the small bike bag.",he:'טוב. אשים את הטלפון בתיק הקטן של האופניים.',tl:'גוּד. אַייל פּוּט דֶה פוֹן אִין דֶה סְמוֹל בַּייק בֶּג.'},set:{gear:'phone'}},
+      ]},
+      {id:'secure_gear',variants:[
+        {id:'water',when:{gear:'water'},event:{emoji:'💧',he:'סם דוחף את בקבוק המים היטב לתוך המתקן, ואז בודק שהטלפון בטוח בכיס.'},ask:{en:'My water bottle is secure, and my phone is in my pocket. Shall I unlock the bike now?',he:'בקבוק המים מאובטח והטלפון בכיס. לפתוח עכשיו את מנעול האופניים?',tl:'מַיי ווֹטֶר בּוֹטֶל אִיז סִיקְיוּר, אֶנְד מַיי פוֹן אִיז אִין מַיי פּוֹקֶט. שֶל אַיי אַנְלוֹק דֶה בַּייק נַאוּ?'},options:[
+          {id:'yes',label:'כן, בבקשה',answer:{en:'Yes, please',he:'כן, בבקשה',tl:'יֶס, פְּלִיז'},reply:{en:'Good. The lock is under the seat.',he:'יופי. המנעול נמצא מתחת למושב.',tl:'גוּד. דֶה לוֹק אִיז אַנְדֶר דֶה סִיט.'}},
+          {id:'do_it',label:'בוא נעשה את זה',answer:{en:"Let's do it",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ אִיט'},reply:{en:'All right. I have the lock key in my pocket.',he:'בסדר. מפתח המנעול נמצא בכיס שלי.',tl:'אוֹל רַייט. אַיי הֶב דֶה לוֹק קִי אִין מַיי פּוֹקֶט.'}},
+        ]},
+        {id:'phone',when:{gear:'phone'},event:{emoji:'📱',he:'סם סוגר היטב את תיק האופניים הקטן סביב הטלפון, ואז בודק שבקבוק המים יציב במתקן.'},ask:{en:'My phone is secure, and my water bottle is in its holder. Shall I unlock the bike now?',he:'הטלפון מאובטח ובקבוק המים במתקן. לפתוח עכשיו את מנעול האופניים?',tl:'מַיי פוֹן אִיז סִיקְיוּר, אֶנְד מַיי ווֹטֶר בּוֹטֶל אִיז אִין אִיטְס הוֹלְדֶר. שֶל אַיי אַנְלוֹק דֶה בַּייק נַאוּ?'},options:[
+          {id:'yes',label:'כן, בבקשה',answer:{en:'Yes, please',he:'כן, בבקשה',tl:'יֶס, פְּלִיז'},reply:{en:'Good. The lock is under the seat.',he:'יופי. המנעול נמצא מתחת למושב.',tl:'גוּד. דֶה לוֹק אִיז אַנְדֶר דֶה סִיט.'}},
+          {id:'do_it',label:'בוא נעשה את זה',answer:{en:"Let's do it",he:'[[בוא|בואי]] נעשה את זה',tl:'לֶטְס דוּ אִיט'},reply:{en:'All right. I have the lock key in my pocket.',he:'בסדר. מפתח המנעול נמצא בכיס שלי.',tl:'אוֹל רַייט. אַיי הֶב דֶה לוֹק קִי אִין מַיי פּוֹקֶט.'}},
+        ]},
+      ]},
+      {id:'key_falls',event:{emoji:'🔑',he:'סם מייצב את האופניים ביד אחת ומוציא את מפתח המנעול מהכיס. הגלגל הקדמי מסתובב, ידו נוגעת בכידון והמפתח נופל, פוגע בדוושה ונעלם מתחת לאופניים.'},stageAction:{id:'sam-key-falls-story-prop',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Oh no — my lock key fell under the bike. Did you see where it went?',he:'אוי לא — מפתח המנעול נפל מתחת לאופניים. ראית לאן הוא הגיע?',tl:'אוֹ נוֹ — מַיי לוֹק קִי פֶל אַנְדֶר דֶה בַּייק. דִיד יוּ סִי וֶור אִיט וֶנְט?'},options:[
+        {id:'there',label:'הוא שם',answer:{en:"It's over there",he:'הוא שם',tl:'אִיטְס אוֹבֶר דֶר'},reply:{en:'I saw it move too, but it disappeared under the bike.',he:'גם אני ראיתי אותו זז, אבל הוא נעלם מתחת לאופניים.',tl:'אַיי סוֹ אִיט מוּב טוּ, בַּט אִיט דִיסַפִּירְד אַנְדֶר דֶה בַּייק.'}},
+        {id:'unknown',label:'אני לא יודע',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:"That's OK. It is small, so let's look carefully.",he:'זה בסדר. הוא קטן, אז נחפש בזהירות.',tl:'דֶאטְס אוֹקֵיי. אִיט אִיז סְמוֹל, סוֹ לֶטְס לוּק קֶרְפוּלִי.'}},
+      ]},
+      {id:'choose_search',ask:{en:'Should we look by the back wheel or by the wall first?',he:'נחפש קודם ליד הגלגל האחורי או ליד הקיר?',tl:'שוּד וִוי לוּק בַּיי דֶה בֶּק וִויל אוֹר בַּיי דֶה וּוֹל פֶרְסְט?'},options:[
+        {id:'wheel',label:'ליד הגלגל',answer:{en:"Let's look here",he:'[[בוא|בואי]] נחפש כאן, ליד הגלגל',tl:'לֶטְס לוּק הִיר'},reply:{en:'Good. Hold the bike still while I look near the wheel.',he:'טוב. [[החזק|החזיקי]] את האופניים בזמן שאחפש ליד הגלגל.',tl:'גוּד. הוֹלְד דֶה בַּייק סְטִיל וַואִיל אַיי לוּק נִיר דֶה וִויל.'},set:{search:'wheel'}},
+        {id:'wall',label:'ליד הקיר',answer:{en:"Let's look over there",he:'[[בוא|בואי]] נחפש שם, ליד הקיר',tl:'לֶטְס לוּק אוֹבֶר דֶר'},reply:{en:'OK. I will check the wall, and you can watch the bike.',he:'בסדר. אני אבדוק ליד הקיר, ו[[אתה תשמור|את תשמרי]] על האופניים.',tl:'אוֹקֵיי. אַיי וִויל צֶ׳ק דֶה וּוֹל, אֶנְד יוּ קֶן וּוֹטְש דֶה בַּייק.'},set:{search:'wall'}},
+      ]},
+      {id:'find_key',stageAction:{id:'sam-recovers-key-story-prop',gesture:'story-prop-change',motion:'reach-low',set:{storyProp:'changed'}},variants:[
+        {id:'wheel',when:{search:'wheel'},event:{emoji:'🔓',he:'[[אתה מבחין|את מבחינה]] בנצנוץ מתחת לגלגל האחורי ומצביע עליו. סם מתכופף, שולף את המפתח, פותח את המנעול ומכניס את המפתח לכיס הסגור.'},ask:{en:'There it is! The bike is unlocked, and the key is safe. Ready to go to {destination}?',he:'הנה הוא! האופניים פתוחים והמפתח בטוח. [[מוכן|מוכנה]] לצאת לכיוון {destination}?',tl:'דֶר אִיט אִיז! דֶה בַּייק אִיז אַנְלוֹקְט, אֶנְד דֶה קִי אִיז סֵייף. רֶדִי טוּ גוֹ טוּ {destination}?'},options:[
+          {id:'ready',label:'כן, אני מוכן',answer:{en:"Yes, I'm ready",he:'כן, אני [[מוכן|מוכנה]]',tl:'יֶס, אַיְים רֶדִי'},reply:{en:'Great. You found it quickly.',he:'מעולה. מצאת אותו מהר.',tl:'גְרֵייט. יוּ פַאוּנְד אִיט קְוִיקְלִי.'}},
+          {id:'go',label:'בוא נצא',answer:{en:"Let's go",he:'[[בוא|בואי]] נצא',tl:'לֶטְס גוֹ'},reply:{en:'Yes. We can start now.',he:'כן. אפשר לצאת עכשיו.',tl:'יֶס. וִוי קֶן סְטַארְט נַאוּ.'}},
+        ]},
+        {id:'wall',when:{search:'wall'},event:{emoji:'🔓',he:'ליד הקיר אין מפתח. כשסם מסובב את האופניים אל האור, המפתח מנצנץ מתחת לגלגל האחורי. הוא מרים אותו, פותח את המנעול ומכניס את המפתח לכיס הסגור.'},ask:{en:'Nothing by the wall, but the light showed it under the back wheel. Ready to go to {destination}?',he:'אין מפתח ליד הקיר, אבל האור גילה אותו מתחת לגלגל האחורי. [[מוכן|מוכנה]] לצאת לכיוון {destination}?',tl:'נַאתִ׳ינְג בַּיי דֶה וּוֹל, בַּאט דֶה לַייט שוֹד אִיט אַנְדֶר דֶה בֶּק וִויל. רֶדִי טוּ גוֹ טוּ {destination}?'},options:[
+          {id:'ready',label:'כן, אני מוכן',answer:{en:"Yes, I'm ready",he:'כן, אני [[מוכן|מוכנה]]',tl:'יֶס, אַיְים רֶדִי'},reply:{en:'Great. We found it in the end.',he:'מעולה. בסוף מצאנו אותו.',tl:'גְרֵייט. וִוי פַאוּנְד אִיט אִין דֶה אֶנְד.'}},
+          {id:'go',label:'בוא נצא',answer:{en:"Let's go",he:'[[בוא|בואי]] נצא',tl:'לֶטְס גוֹ'},reply:{en:'Yes. The bike is ready now.',he:'כן. האופניים מוכנים עכשיו.',tl:'יֶס. דֶה בַּייק אִיז רֶדִי נַאוּ.'}},
+        ]},
+      ]},
+      {id:'close',role:'close',ask:{en:'I have {gear}, the key is in my pocket, and the bike is ready. Thank you for helping me!',he:'יש לי {gear}, המפתח בכיס והאופניים מוכנים. תודה שעזרת לי!',tl:'אַיי הֶב {gear}, דֶה קִי אִיז אִין מַיי פּוֹקֶט, אֶנְד דֶה בַּייק אִיז רֶדִי. תֶ׳נְק יוּ פוֹר הֶלְפִּינְג מִי!'},options:[
+        {id:'welcome',label:'על לא דבר',answer:{en:"You're welcome",he:'על לא דבר',tl:'יוֹר וֶולְקַם'},reply:{en:'Now we can enjoy the ride to {destination}.',he:'עכשיו אפשר ליהנות מהרכיבה לכיוון {destination}.',tl:'נַאוּ וִוי קֶן אֶנְג׳וֹי דֶה רַייד טוּ {destination}.'}},
+        {id:'happy',label:'אני שמח לעזור',answer:{en:"I'm happy to help",he:'אני [[שמח|שמחה]] לעזור',tl:'אַיְים הֶפִּי טוּ הֶלְפּ'},reply:{en:"And I'm happy you are coming with me. Let's go!",he:'ואני שמח שבאת איתי. יוצאים!',tl:'אֶנְד אַיְים הֶפִּי יוּ אַר קַאמִינְג וִית׳ מִי. לֶטְס גוֹ!'}},
+      ]},
+    ],
+  },
+  {
+    id:'tom_presentation_card', min:20, sceneIds:['feelings#0'],
+    goal:'לעזור לטום להירגע, להחזיר את כרטיס ההצגה ולעשות חזרה אחרונה',
+    open:'בהפסקה טום יושב על מדרגות בית הספר עם כרטיס קטן ביד. בעוד כמה דקות הוא צריך לדבר באנגלית מול הכיתה.',
+    ending:'טום נכנס לכיתה עם הכרטיס „{opening}” ביד, אחרי {support}.',
+    stageProp:{beforeIcon:'🗒️💨',afterIcon:'🗒️✅',beforeLabel:'הכרטיס עף ליד הלוח',afterLabel:'הכרטיס שוב אצל טום',colorA:'#3d6d98',colorB:'#253f64'},
+    values:{
+      support:{
+        music:{en:'listening to music',he:'האזנה למוזיקה',tl:'לִיסֶנִינְג טוּ מְיוּזִיק'},
+        practice:{en:'practicing together',he:'תרגול משותף',tl:'פְּרַקְטִיסִינְג טוּגֶדֶר'},
+      },
+      opening:{
+        hello:{en:'Hello! My name is Tom.',he:'שלום! קוראים לי טום.',tl:'הֶלוֹ! מַיי נֵיים אִיז טוֹם.'},
+        morning:{en:"Good morning. I'm Tom.",he:'בוקר טוב. אני טום.',tl:'גוּד מוֹרְנִינְג. אַיְים טוֹם.'},
+      },
+    },
+    beats:[
+      {id:'open',role:'open',ask:{en:'Hi, {name}. How are you today?',he:'היי. מה שלומך היום?',tl:'הַיי. הַאוּ אַר יוּ טוּדֵיי?'},options:[
+        {id:'good',label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:'Good. I am happy you are here.',he:'יופי. אני שמח שהגעת.',tl:'גוּד. אַיי אַם הֶפִּי יוּ אַר הִיר.'}},
+        {id:'tired',label:'אני עייף, אבל בסדר',answer:{en:"I'm tired, but I'm OK",he:'אני [[עייף|עייפה]], אבל בסדר',tl:'אַיְים טַיירְד, בַּאט אַיְים אוֹקֵיי'},reply:{en:'I understand. Thank you for sitting with me.',he:'אני מבין. תודה שהתיישבת איתי.',tl:'אַיי אַנְדֶרְסְטֶנְד. תֶ׳נְק יוּ פוֹר סִיטִינְג וִית׳ מִי.'}},
+      ]},
+      {id:'problem',ask:{en:'I have an English presentation after the break, and I am worried. Can you help me?',he:'יש לי הצגה באנגלית אחרי ההפסקה ואני דואג. [[אתה יכול|את יכולה]] לעזור לי?',tl:'אַיי הֶב אַן אִינְגְלִיש פְּרֶזֶנְטֵיישֶן אַפְטֶר דֶה בְּרֵייק, אֶנְד אַיי אַם וֶורִיד. קֶן יוּ הֶלְפּ מִי?'},options:[
+        {id:'can_help',label:'אני יכול לעזור',answer:{en:'I can help',he:'אני [[יכול|יכולה]] לעזור',tl:'אַיי קֶן הֶלְפּ'},reply:{en:'Thank you. My hands are shaking.',he:'תודה. הידיים שלי רועדות.',tl:'תֶ׳נְק יוּ. מַיי הֶנְדְז אַר שֵייקִינְג.'}},
+        {id:'no_problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thanks. I need one good idea.',he:'תודה. אני צריך רעיון טוב אחד.',tl:'תֶ׳נְקְס. אַיי נִיד וַאן גוּד אַיידִיאָה.'}},
+      ]},
+      {id:'choose_support',ask:{en:'What should we do first?',he:'מה נעשה קודם?',tl:'וּוַאט שוּד וִוי דוּ פֶרְסְט?'},options:[
+        {id:'music',label:'בוא נקשיב למוזיקה',answer:{en:"Let's listen to music",he:'[[בוא|בואי]] נקשיב למוזיקה',tl:'לֶטְס לִיסֶן טוּ מְיוּזִיק'},reply:{en:'Good idea. One quiet song can help me.',he:'רעיון טוב. שיר שקט אחד יכול לעזור לי.',tl:'גוּד אַיידִיאָה. וַאן קְוַאיֶט סוֹנְג קֶן הֶלְפּ מִי.'},set:{support:'music'}},
+        {id:'practice',label:'בוא נתרגל יחד',answer:{en:"Let's practice together",he:'[[בוא|בואי]] נתרגל יחד',tl:'לֶטְס פְּרַקְטִיס טוּגֶדֶר'},reply:{en:'Yes. Saying it once will help.',he:'כן. להגיד את זה פעם אחת יעזור.',tl:'יֶס. סֵיינְג אִיט וַאנְס וִויל הֶלְפּ.'},set:{support:'practice'}},
+      ]},
+      {id:'after_support',variants:[
+        {id:'music',when:{support:'music'},ask:{en:'The music helped. Can we practice now?',he:'המוזיקה עזרה. אפשר לתרגל עכשיו?',tl:'דֶה מְיוּזִיק הֶלְפְּט. קֶן וִוי פְּרַקְטִיס נַאוּ?'},options:[
+          {id:'practice',label:'כן, בוא נתרגל',answer:{en:"Yes, let's practice",he:'כן, [[בוא|בואי]] נתרגל',tl:'יֶס, לֶטְס פְּרַקְטִיס'},reply:{en:'Great. My first line is on this card.',he:'מעולה. משפט הפתיחה שלי כתוב על הכרטיס הזה.',tl:'גְרֵייט. מַיי פֶרְסְט לַיין אִיז אוֹן דִיס קַארְד.'}},
+          {id:'course',label:'בטח',answer:{en:'Of course',he:'בטח',tl:'אוֹף קוֹרְס'},reply:{en:'Thanks. Let me look at my card.',he:'תודה. תן לי להסתכל בכרטיס.',tl:'תֶ׳נְקְס. לֶט מִי לוּק אֶט מַיי קַארְד.'}},
+        ]},
+        {id:'practice',when:{support:'practice'},ask:{en:'Good. Can you listen while I read from my card?',he:'טוב. [[אתה יכול|את יכולה]] להקשיב בזמן שאני קורא מהכרטיס?',tl:'גוּד. קֶן יוּ לִיסֶן וַואִיל אַיי רִיד פְרוֹם מַיי קַארְד?'},options:[
+          {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Thanks. My first line is right here.',he:'תודה. משפט הפתיחה שלי נמצא כאן.',tl:'תֶ׳נְקְס. מַיי פֶרְסְט לַיין אִיז רַייט הִיר.'}},
+          {id:'course',label:'בטח',answer:{en:'Of course',he:'בטח',tl:'אוֹף קוֹרְס'},reply:{en:'Great. I am holding the card now.',he:'מעולה. הכרטיס ביד שלי עכשיו.',tl:'גְרֵייט. אַיי אַם הוֹלְדִינְג דֶה קַארְד נַאוּ.'}},
+        ]},
+      ]},
+      {id:'card_flies',event:{emoji:'💨',he:'משב רוח מעיף את כרטיס ההצגה מידו של טום. הוא מסתובב באוויר ונוחת ליד הלוח.'},stageAction:{id:'tom-card-flies-story-prop',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Oh no — my card! Can you see it?',he:'אוי לא — הכרטיס שלי! [[אתה רואה|את רואה]] אותו?',tl:'אוֹ נוֹ — מַיי קַארְד! קֶן יוּ סִי אִיט?'},options:[
+        {id:'see',label:'אני רואה אותו',answer:{en:'I can see it',he:'אני [[רואה|רואה]] אותו',tl:'אַיי קֶן סִי אִיט'},reply:{en:'Good! Please keep your eyes on it.',he:'יופי! בבקשה אל [[תאבד|תאבדי]] אותו מהעיניים.',tl:'גוּד! פְּלִיז קִיפּ יוֹר אַייז אוֹן אִיט.'}},
+        {id:'there',label:'הוא שם',answer:{en:"It's over there",he:'הוא שם',tl:'אִיטְס אוֹבֶר דֶר'},reply:{en:'You are right. It is by the board.',he:'[[אתה צודק|את צודקת]]. הוא ליד הלוח.',tl:'יוּ אַר רַייט. אִיט אִיז בַּיי דֶה בּוֹרְד.'}},
+      ]},
+      {id:'recover_card',event:{emoji:'🗒️',he:'טום רץ שני צעדים, תופס את הכרטיס לפני שיעוף שוב וחוזר למדרגות.'},stageAction:{id:'tom-recovers-card-story-prop',gesture:'story-prop-change',motion:'catch',set:{storyProp:'changed'}},ask:{en:'I have it! Which first line sounds better?',he:'הכרטיס אצלי! איזה משפט פתיחה נשמע טוב יותר?',tl:'אַיי הֶב אִיט! וִויץ׳ פֶרְסְט לַיין סַאוּנְדְז בֶּטֶר?'},options:[
+        {id:'hello',label:'שלום! קוראים לי טום',answer:{en:'Hello! My name is Tom',he:'שלום! קוראים לי טום',tl:'הֶלוֹ! מַיי נֵיים אִיז טוֹם'},reply:{en:'Clear and friendly. I like it.',he:'ברור וידידותי. אני אוהב את זה.',tl:'קְלִיר אֶנְד פְרֶנְדְלִי. אַיי לַייק אִיט.'},set:{opening:'hello'}},
+        {id:'morning',label:'בוקר טוב. אני טום',answer:{en:"Good morning. I'm Tom",he:'בוקר טוב. אני טום',tl:'גוּד מוֹרְנִינְג. אַיְים טוֹם'},reply:{en:'That sounds clear. I will use it.',he:'זה נשמע ברור. אשתמש בזה.',tl:'דֶאט סַאוּנְדְז קְלִיר. אַיי וִויל יוּז אִיט.'},set:{opening:'morning'}},
+      ]},
+      {id:'rehearse_opening',ask:{en:'{opening} How did that sound?',he:'{opening} איך זה נשמע?',tl:'{opening} הַאוּ דִיד דֶאט סַאוּנְד?'},options:[
+        {id:'great',label:'היה מעולה',answer:{en:'It was great',he:'היה מעולה',tl:'אִיט וּוֹז גְרֵייט'},reply:{en:'Really? That makes me feel better.',he:'באמת? זה גורם לי להרגיש טוב יותר.',tl:'רִילִי? דֶאט מֵייקְס מִי פִיל בֶּטֶר.'}},
+        {id:'very_good',label:'טוב מאוד',answer:{en:'Very good',he:'טוב מאוד',tl:'וֶרִי גוּד'},reply:{en:'Thank you. I will say it just like that.',he:'תודה. אגיד את זה בדיוק כך.',tl:'תֶ׳נְק יוּ. אַיי וִויל סֵיי אִיט גַ׳סְט לַייק דֶאט.'}},
+      ]},
+      {id:'bell',event:{emoji:'🔔',he:'הפעמון מצלצל מתוך בית הספר. טום מכניס את הכרטיס לכיס וקם.'},variants:[
+        {id:'music',when:{support:'music'},ask:{en:'The bell is ringing. The music helped me. Am I ready?',he:'הפעמון מצלצל. המוזיקה עזרה לי. אני מוכן?',tl:'דֶה בֶּל אִיז רִינְגִינְג. דֶה מְיוּזִיק הֶלְפְּט מִי. אַם אַיי רֶדִי?'},options:[
+          {id:'can',label:'אתה יכול לעשות את זה',answer:{en:'You can do it',he:'אתה יכול לעשות את זה',tl:'יוּ קֶן דוּ אִיט'},reply:{en:'I can. I feel much better now.',he:'אני יכול. אני מרגיש הרבה יותר טוב עכשיו.',tl:'אַיי קֶן. אַיי פִיל מַאץ׳ בֶּטֶר נַאוּ.'}},
+          {id:'believe',label:'אני מאמין בך',answer:{en:'I believe in you',he:'אני [[מאמין|מאמינה]] בך',tl:'אַיי בֶּלִיב אִין יוּ'},reply:{en:'Thank you. I will remember that.',he:'תודה. אני אזכור את זה.',tl:'תֶ׳נְק יוּ. אַיי וִויל רִימֶמְבֶּר דֶאט.'}},
+        ]},
+        {id:'practice',when:{support:'practice'},ask:{en:'The bell is ringing. Practicing together helped me. Am I ready?',he:'הפעמון מצלצל. התרגול יחד עזר לי. אני מוכן?',tl:'דֶה בֶּל אִיז רִינְגִינְג. פְּרַקְטִיסִינְג טוּגֶדֶר הֶלְפְּט מִי. אַם אַיי רֶדִי?'},options:[
+          {id:'can',label:'אתה יכול לעשות את זה',answer:{en:'You can do it',he:'אתה יכול לעשות את זה',tl:'יוּ קֶן דוּ אִיט'},reply:{en:'I can. The practice made a big difference.',he:'אני יכול. התרגול עשה הבדל גדול.',tl:'אַיי קֶן. דֶה פְּרַקְטִיס מֵייד אַ בִּיג דִיפְרֶנְס.'}},
+          {id:'believe',label:'אני מאמין בך',answer:{en:'I believe in you',he:'אני [[מאמין|מאמינה]] בך',tl:'אַיי בֶּלִיב אִין יוּ'},reply:{en:'Thank you. I will remember that.',he:'תודה. אני אזכור את זה.',tl:'תֶ׳נְק יוּ. אַיי וִויל רִימֶמְבֶּר דֶאט.'}},
+        ]},
+      ]},
+      {id:'close',role:'close',ask:{en:'Thank you. I am going into class now.',he:'תודה. אני נכנס עכשיו לכיתה.',tl:'תֶ׳נְק יוּ. אַיי אַם גוֹאִינְג אִינְטוּ קְלַאס נַאוּ.'},options:[
+        {id:'welcome',label:'על לא דבר',answer:{en:"You're welcome",he:'על לא דבר',tl:'יוֹר וֶולְקַם'},reply:{en:'See you after the presentation!',he:'נתראה אחרי ההצגה!',tl:'סִי יוּ אַפְטֶר דֶה פְּרֶזֶנְטֵיישֶן!'}},
+        {id:'problem',label:'אין בעיה',answer:{en:'No problem',he:'אין בעיה',tl:'נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thanks again. I am ready now!',he:'תודה שוב. אני מוכן עכשיו!',tl:'תֶ׳נְקְס אַגֵין. אַיי אַם רֶדִי נַאוּ!'}},
+      ]},
+    ],
+  },
+
+  {
+    id:'maya_kitchen_blackout', min:22, sceneIds:['food#1'],
+    goal:'להכין עם מאיה ארוחת הפתעה ולהסתדר בזמן הפסקת חשמל קצרה',
+    open:'מאיה מחכה במטבח. אחותה חוזרת הביתה בקרוב, ומאיה רוצה להכין לה ארוחת יום הולדת בהפתעה.',
+    ending:'האור דולק שוב. מאיה מניחה את הארוחה שבחרתם ({meal}) {place}, ורגע אחר כך נשמע צלצול בדלת.',
+    stageProp:{beforeIcon:'🌑🔦',afterIcon:'💡🍽️',beforeLabel:'הפסקת חשמל קצרה',afterLabel:'האור חזר והאוכל מוכן',colorA:'#4d526d',colorB:'#282c43'},
+    values:{
+      meal:{
+        pizza:{en:'pizza',he:'פיצה',tl:'פִּיצָה'},
+        burger:{en:'burger',he:'המבורגר',tl:'בֶּרְגֶר'},
+      },
+      place:{
+        here:{en:'here',he:'כאן',tl:'הִיר'},
+        there:{en:'over there',he:'שם',tl:'אוֹבֶר דֶר'},
+      },
+    },
+    beats:[
+      {id:'open',role:'open',ask:{en:'Hi, {name}! My sister comes home soon. Can you help me make a surprise dinner?',he:'היי! אחותי חוזרת הביתה בקרוב. [[אתה יכול|את יכולה]] לעזור לי להכין ארוחת הפתעה?',tl:'הַיי! מַיי סִיסְטֶר קַאמְז הוֹם סוּן. קֶן יוּ הֶלְפּ מִי מֵייק אַ סֶרְפְּרַייז דִינֶר?'},options:[
+        {id:'no_problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great! She does not know about it.',he:'מעולה! היא לא יודעת על זה.',tl:'גְרֵייט! שִי דַאז נוֹט נוֹאוּ אַבַּאוּט אִיט.'}},
+        {id:'can_help',label:'בטח, אני יכול לעזור',answer:{en:'Of course. I can help',he:'בטח. אני [[יכול|יכולה]] לעזור',tl:'אוֹף קוֹרְס. אַיי קֶן הֶלְפּ'},reply:{en:'Thank you. We have time if we start now.',he:'תודה. יש לנו זמן אם נתחיל עכשיו.',tl:'תֶ׳נְק יוּ. וִוי הֶב טַיים אִיף וִוי סְטַארְט נַאוּ.'}},
+      ]},
+      {id:'choose_meal',ask:{en:'What should we make: pizza or a burger?',he:'מה נכין: פיצה או המבורגר?',tl:'וּוַאט שוּד וִוי מֵייק: פִּיצָה אוֹר אַ בֶּרְגֶר?'},options:[
+        {id:'pizza',label:'אני רוצה פיצה',answer:{en:'I want pizza',he:'אני [[רוצה|רוצה]] פיצה',tl:'אַיי וּוֹנְט פִּיצָה'},reply:{en:'Pizza is her favorite. Good choice.',he:'פיצה היא האוכל האהוב עליה. בחירה טובה.',tl:'פִּיצָה אִיז הֶר פֵייבוֹרִיט. גוּד צ׳וֹיס.'},set:{meal:'pizza'}},
+        {id:'burger',label:'בוא נכין המבורגר',answer:{en:"Let's make a burger",he:'[[בוא|בואי]] נכין המבורגר',tl:'לֶטְס מֵייק אַ בֶּרְגֶר'},reply:{en:'A burger will be a fun surprise.',he:'המבורגר יהיה הפתעה כיפית.',tl:'אַ בֶּרְגֶר וִויל בִּי אַ פַאן סֶרְפְּרַייז.'},set:{meal:'burger'}},
+      ]},
+      {id:'choose_drink',ask:{en:'Should we put water on the table now?',he:'נשים עכשיו מים על השולחן?',tl:'שוּד וִוי פּוּט ווֹטֶר אוֹן דֶה טֵייבֶּל נַאוּ?'},options:[
+        {id:'water',label:'מים, בבקשה',answer:{en:'Water, please',he:'מים, בבקשה',tl:'ווֹטֶר, פְּלִיז'},reply:{en:'Good. I will put cold water on the table.',he:'טוב. אשים מים קרים על השולחן.',tl:'גוּד. אַיי וִויל פּוּט קוֹלְד ווֹטֶר אוֹן דֶה טֵייבֶּל.'},set:{drink:'water'}},
+        {id:'none',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'No problem. We can ask her later.',he:'אין בעיה. נוכל לשאול אותה אחר כך.',tl:'נוֹ פְּרוֹבְּלֶם. וִוי קֶן אַסְק הֶר לֵייטֶר.'},set:{drink:'none'}},
+      ]},
+      {id:'start_cooking',event:{emoji:'🍽️',he:'מאיה מתחילה להכין {meal}, מסדרת שתי צלחות ומפעילה את הטיימר.'},ask:{en:'The {meal} is cooking. What should we do while we wait?',he:'התחלנו להכין {meal}. מה נעשה בזמן שמחכים?',tl:'דֶה {meal} אִיז קוּקִינְג. וּוַאט שוּד וִוי דוּ וַואִיל וִוי וֵייט?'},options:[
+        {id:'music',label:'בוא נקשיב למוזיקה',answer:{en:"Let's listen to music",he:'[[בוא|בואי]] נקשיב למוזיקה',tl:'לֶטְס לִיסֶן טוּ מְיוּזִיק'},reply:{en:'Quiet music is perfect. We will hear her when she arrives.',he:'מוזיקה שקטה מתאימה. נשמע אותה כשהיא תגיע.',tl:'קְוַאיֶט מְיוּזִיק אִיז פֶּרְפֶקְט. וִוי וִויל הִיר הֶר וֶן שִי אַרַייבְז.'}},
+        {id:'talk',label:'בוא נדבר',answer:{en:"Let's talk",he:'[[בוא|בואי]] נדבר',tl:'לֶטְס טוֹק'},reply:{en:'Good. We can talk while the food cooks.',he:'טוב. אפשר לדבר בזמן שהאוכל מתבשל.',tl:'גוּד. וִוי קֶן טוֹק וַואִיל דֶה פוּד קוּקְס.'}},
+      ]},
+      {id:'blackout',event:{emoji:'🔦',he:'האורות מהבהבים ונכבים. גם מסך הטיימר מחשיך — זאת הפסקת חשמל קצרה.'},stageAction:{id:'maya-kitchen-blackout-story-prop',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'The power is out. What should we do?',he:'יש הפסקת חשמל. מה נעשה?',tl:'דֶה פַּאוּאֶר אִיז אַאוּט. וּוַאט שוּד וִוי דוּ?'},options:[
+        {id:'wait',label:'בוא נחכה ליד החלון',answer:{en:"Let's wait",he:'[[בוא|בואי]] נחכה ליד החלון',tl:'לֶטְס וֵייט'},reply:{en:'OK. The food is covered and still warm. Let us stand by the window.',he:'בסדר. האוכל מכוסה ועדיין חם. נעמוד ליד החלון.',tl:'אוֹקֵיי. דֶה פוּד אִיז קַאבֶרְד אֶנְד סְטִיל וּוֹרְם. לֶט אַס סְטֶנְד בַּיי דֶה וִוינְדוֹאוּ.'},set:{lightPlan:'wait'}},
+        {id:'phone',label:'יש לי טלפון',answer:{en:'I have my phone',he:'יש לי טלפון',tl:'אַיי הֶב מַיי פוֹן'},reply:{en:'Great. Turn on the phone light so we can check the food.',he:'מעולה. [[הדלק|הדליקי]] את הפנס בטלפון כדי שנוכל לבדוק את האוכל.',tl:'גְרֵייט. טֶרְן אוֹן דֶה פוֹן לַייט סוֹ וִוי קֶן צֶ׳ק דֶה פוּד.'},set:{lightPlan:'phone'}},
+      ]},
+      {id:'handle_dark',variants:[
+        {id:'wait',when:{lightPlan:'wait'},ask:{en:'There is light from the window. Can you see the covered food?',he:'יש אור מהחלון. [[אתה רואה|את רואה]] את האוכל המכוסה?',tl:'דֶר אִיז לַייט פְרוֹם דֶה וִוינְדוֹאוּ. קֶן יוּ סִי דֶה קַאבֶרְד פוּד?'},options:[
+          {id:'see',label:'כן, אני רואה אותו',answer:{en:'Yes, I can see it',he:'כן, אני [[רואה|רואה]] אותו',tl:'יֶס, אַיי קֶן סִי אִיט'},reply:{en:'Good. It is still warm, and the cover is in place.',he:'יופי. הוא עדיין חם והמכסה במקום.',tl:'גוּד. אִיט אִיז סְטִיל וּוֹרְם, אֶנְד דֶה קַאבֶר אִיז אִין פְּלֵייס.'}},
+          {id:'maybe',label:'אולי',answer:{en:'Maybe',he:'אולי',tl:'מֵייבִּי'},reply:{en:'Stay by the window. I will check it carefully.',he:'[[תישאר|תישארי]] ליד החלון. אני אבדוק אותו בזהירות.',tl:'סְטֵיי בַּיי דֶה וִוינְדוֹאוּ. אַיי וִויל צֶ׳ק אִיט קֶרְפוּלִי.'}},
+        ]},
+        {id:'phone',when:{lightPlan:'phone'},ask:{en:'The phone light is on. Can you help me check the food?',he:'הפנס בטלפון דולק. [[אתה יכול|את יכולה]] לעזור לי לבדוק את האוכל?',tl:'דֶה פוֹן לַייט אִיז אוֹן. קֶן יוּ הֶלְפּ מִי צֶ׳ק דֶה פוּד?'},options:[
+          {id:'no_problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thanks. It is still warm and safe.',he:'תודה. האוכל עדיין חם ובטוח.',tl:'תֶ׳נְקְס. אִיט אִיז סְטִיל וּוֹרְם אֶנְד סֵייף.'}},
+          {id:'can_help',label:'אני יכול לעזור',answer:{en:'I can help',he:'אני [[יכול|יכולה]] לעזור',tl:'אַיי קֶן הֶלְפּ'},reply:{en:'Perfect. Keep the light on the food.',he:'מושלם. [[כוון|כווני]] את האור אל האוכל.',tl:'פֶּרְפֶקְט. קִיפּ דֶה לַייט אוֹן דֶה פוּד.'}},
+        ]},
+      ]},
+      {id:'power_returns',event:{emoji:'✨',he:'אחרי רגע קצר החשמל חוזר. מאיה מכוונת מחדש את הטיימר, וכעבור כמה דקות הוא מצלצל — הארוחה שבחרתם ({meal}) מוכנה.'},stageAction:{id:'maya-kitchen-power-returns-story-prop',gesture:'story-prop-change',motion:'celebrate',set:{storyProp:'changed'}},ask:{en:'The lights are back, and the {meal} is ready! How does it look?',he:'האור חזר והארוחה מוכנה: {meal}! איך זה נראה?',tl:'דֶה לַייטְס אַר בֶּק, אֶנְד דֶה {meal} אִיז רֶדִי! הַאוּ דַאז אִיט לוּק?'},options:[
+        {id:'great',label:'זה נראה מעולה',answer:{en:'It looks great',he:'זה נראה מעולה',tl:'אִיט לוּקְס גְרֵייט'},reply:{en:'Yes! The surprise dinner is saved.',he:'כן! הצלנו את ארוחת ההפתעה.',tl:'יֶס! דֶה סֶרְפְּרַייז דִינֶר אִיז סֵייבְד.'}},
+        {id:'tasty',label:'זה נראה טעים',answer:{en:'It looks tasty',he:'זה נראה טעים',tl:'אִיט לוּקְס טֵייסְטִי'},reply:{en:'It smells good too.',he:'גם הריח נהדר.',tl:'אִיט סְמֶלְז גוּד טוּ.'}},
+      ]},
+      {id:'set_table',ask:{en:'The table is ready. Should the food go here or over there?',he:'השולחן מוכן. לשים את האוכל כאן או שם?',tl:'דֶה טֵייבֶּל אִיז רֶדִי. שוּד דֶה פוּד גוֹ הִיר אוֹר אוֹבֶר דֶר?'},options:[
+        {id:'here',label:'כאן, בבקשה',answer:{en:'Here, please',he:'כאן, בבקשה',tl:'הִיר, פְּלִיז'},reply:{en:'Here is perfect. She will see it at once.',he:'כאן מושלם. היא תראה את זה מיד.',tl:'הִיר אִיז פֶּרְפֶקְט. שִי וִויל סִי אִיט אֶט וַאנְס.'},set:{place:'here'}},
+        {id:'there',label:'שם, בבקשה',answer:{en:'Over there, please',he:'שם, בבקשה',tl:'אוֹבֶר דֶר, פְּלִיז'},reply:{en:'Good. It stays hidden until she comes in.',he:'טוב. זה יישאר מוסתר עד שהיא תיכנס.',tl:'גוּד. אִיט סְטֵייז הִידֶן אַנְטִיל שִי קַאמְז אִין.'},set:{place:'there'}},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'water',when:{drink:'water'},ask:{en:'The {meal} and cold water are ready, and the lights are back. Ready for the surprise?',he:'האוכל שבחרנו ({meal}) והמים הקרים מוכנים, והאור חזר. [[מוכן|מוכנה]] להפתעה?',tl:'דֶה {meal} אֶנְד קוֹלְד ווֹטֶר אַר רֶדִי, אֶנְד דֶה לַייטְס אַר בֶּק. רֶדִי פוֹר דֶה סֶרְפְּרַייז?'},options:[
+          {id:'ready',label:'כן, אני מוכן',answer:{en:"Yes, I'm ready",he:'כן, אני [[מוכן|מוכנה]]',tl:'יֶס, אַיְים רֶדִי'},reply:{en:'Quiet — I hear her coming up the stairs!',he:'בשקט — אני שומעת אותה עולה במדרגות!',tl:'קְוַאיֶט — אַיי הִיר הֶר קַאמִינְג אַפּ דֶה סְטֶרְז!'}},
+          {id:'sounds',label:'נשמע טוב',answer:{en:'Sounds good',he:'נשמע טוב',tl:'סַאוּנְדְז גוּד'},reply:{en:'Perfect. I hear her outside!',he:'מושלם. אני שומעת אותה בחוץ!',tl:'פֶּרְפֶקְט. אַיי הִיר הֶר אַאוּטְסַייד!'}},
+        ]},
+        {id:'none',when:{drink:'none'},ask:{en:'The {meal} is ready, and the lights are back. Ready for the surprise?',he:'האוכל שבחרנו ({meal}) מוכן והאור חזר. [[מוכן|מוכנה]] להפתעה?',tl:'דֶה {meal} אִיז רֶדִי, אֶנְד דֶה לַייטְס אַר בֶּק. רֶדִי פוֹר דֶה סֶרְפְּרַייז?'},options:[
+          {id:'ready',label:'כן, אני מוכן',answer:{en:"Yes, I'm ready",he:'כן, אני [[מוכן|מוכנה]]',tl:'יֶס, אַיְים רֶדִי'},reply:{en:'Quiet — I hear her coming up the stairs!',he:'בשקט — אני שומעת אותה עולה במדרגות!',tl:'קְוַאיֶט — אַיי הִיר הֶר קַאמִינְג אַפּ דֶה סְטֶרְז!'}},
+          {id:'sounds',label:'נשמע טוב',answer:{en:'Sounds good',he:'נשמע טוב',tl:'סַאוּנְדְז גוּד'},reply:{en:'Perfect. I hear her outside!',he:'מושלם. אני שומעת אותה בחוץ!',tl:'פֶּרְפֶקְט. אַיי הִיר הֶר אַאוּטְסַייד!'}},
+        ]},
+      ]},
+    ],
+  },
+
+  {
+    id:'nina_market_rolling_apples', min:25, sceneIds:['shopping#1'],
+    goal:'לקנות תפוחים בשוק ולעזור לנינה לאסוף אותם כשהשקית נקרעת',
+    open:'לקראת סגירת השוק נינה מסדרת את דוכן הפירות. נשארו שתי ערימות תפוחים ושקיות נייר אחרונות.',
+    ending:'נינה מוסרת לך {bags} של תפוחים {apple}. השקית החדשה שלמה וכל הפירות חזרו פנימה.',
+    stageProp:{beforeIcon:'🍎💨',afterIcon:'🛍️✅',beforeLabel:'שני תפוחים התגלגלו',afterLabel:'שקית חדשה וחזקה',colorA:'#a65a43',colorB:'#60372f'},
+    values:{
+      apple:{
+        red:{en:'red',he:'אדומים',tl:'רֶד'},
+        green:{en:'green',he:'ירוקים',tl:'גְרִין'},
+      },
+      bags:{
+        one:{en:'one full bag',he:'שקית מלאה אחת',tl:'וַאן פוּל בֶּג'},
+        two:{en:'two full bags',he:'שתי שקיות מלאות',tl:'טוּ פוּל בֶּגְז'},
+      },
+    },
+    beats:[
+      {id:'open',role:'open',ask:{en:'Hello, {name}! I am closing soon. What are you looking for?',he:'שלום! אני סוגרת בקרוב. מה [[אתה מחפש|את מחפשת]]?',tl:'הֶלוֹ! אַיי אַם קְלוֹזִינְג סוּן. וּוַאט אַר יוּ לוּקִינְג פוֹר?'},options:[
+        {id:'food',label:'אני מחפש אוכל',answer:{en:"I'm looking for food",he:'אני [[מחפש|מחפשת]] אוכל',tl:'אַיְים לוּקִינְג פוֹר פוּד'},reply:{en:'You came at the right time. These apples are fresh.',he:'הגעת בזמן הנכון. התפוחים האלה טריים.',tl:'יוּ קֵיים אֶט דֶה רַייט טַיים. דִיז אַפֶּלְז אַר פְרֶש.'}},
+        {id:'family',label:'אני רוצה משהו למשפחה שלי',answer:{en:'I want something for my family',he:'אני [[רוצה|רוצה]] משהו למשפחה שלי',tl:'אַיי וּוֹנְט סַאמְתִ׳ינְג פוֹר מַיי פֶמִילִי'},reply:{en:'Apples are easy to share with everyone.',he:'קל לחלוק תפוחים עם כולם.',tl:'אַפֶּלְז אַר אִיזִי טוּ שֶר וִית׳ אֶבְרִיוַואן.'}},
+      ]},
+      {id:'choose_apples',ask:{en:'Which kind would you like: red or green?',he:'איזה סוג [[תרצה|תרצי]]: אדום או ירוק?',tl:'וִויץ׳ קַיינְד וּוּד יוּ לַייק: רֶד אוֹר גְרִין?'},options:[
+        {id:'red',label:'אדומים, בבקשה',answer:{en:'Red, please',he:'אדומים, בבקשה',tl:'רֶד, פְּלִיז'},reply:{en:'The red apples are sweet today.',he:'התפוחים האדומים מתוקים היום.',tl:'דֶה רֶד אַפֶּלְז אַר סְוִויט טוּדֵיי.'},set:{apple:'red'}},
+        {id:'green',label:'ירוקים, בבקשה',answer:{en:'Green, please',he:'ירוקים, בבקשה',tl:'גְרִין, פְּלִיז'},reply:{en:'The green apples are fresh and cold.',he:'התפוחים הירוקים טריים וקרים.',tl:'דֶה גְרִין אַפֶּלְז אַר פְרֶש אֶנְד קוֹלְד.'},set:{apple:'green'}},
+      ]},
+      {id:'choose_amount',ask:{en:'Do you want one bag or two bags?',he:'[[אתה רוצה|את רוצה]] שקית אחת או שתי שקיות?',tl:'דוּ יוּ וּוֹנְט וַאן בֶּג אוֹר טוּ בֶּגְז?'},options:[
+        {id:'one',label:'אחת, בבקשה',answer:{en:'One, please',he:'אחת, בבקשה',tl:'וַאן, פְּלִיז'},reply:{en:'One full bag. That is ten shekels.',he:'שקית מלאה אחת. זה עשרה שקלים.',tl:'וַאן פוּל בֶּג. דֶאט אִיז טֶן שֶקֶלְז.'},set:{bags:'one'}},
+        {id:'two',label:'שתיים, בבקשה',answer:{en:'Two, please',he:'שתיים, בבקשה',tl:'טוּ, פְּלִיז'},reply:{en:'Two full bags. That is twenty shekels.',he:'שתי שקיות מלאות. זה עשרים שקלים.',tl:'טוּ פוּל בֶּגְז. דֶאט אִיז טְוֶונְטִי שֶקֶלְז.'},set:{bags:'two'}},
+      ]},
+      {id:'confirm_price',ask:{en:'The {apple} apples are ready. Is that price OK?',he:'התפוחים ה{apple} מוכנים. המחיר בסדר?',tl:'דֶה {apple} אַפֶּלְז אַר רֶדִי. אִיז דֶאט פְּרַייס אוֹקֵיי?'},options:[
+        {id:'sounds',label:'נשמע טוב',answer:{en:'Sounds good',he:'נשמע טוב',tl:'סַאוּנְדְז גוּד'},reply:{en:'Great. I will close the bag.',he:'מעולה. אסגור את השקית.',tl:'גְרֵייט. אַיי וִויל קְלוֹז דֶה בֶּג.'}},
+        {id:'deal',label:'זאת עסקה טובה',answer:{en:"That's a good deal",he:'זאת עסקה טובה',tl:'דֶאטְס אַ גוּד דִיל'},reply:{en:"I'm glad you think so.",he:'אני שמחה שכך [[אתה חושב|את חושבת]].',tl:'אַיְים גְלֶאד יוּ תִ׳ינְק סוֹ.'}},
+      ]},
+      {id:'anything_else',ask:{en:'Would you like anything else before I close?',he:'[[תרצה|תרצי]] עוד משהו לפני שאסגור?',tl:'וּוּד יוּ לַייק אֶנִיתִ׳ינְג אֶלְס בִּיפוֹר אַיי קְלוֹז?'},options:[
+        {id:'none',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'All right. Then your order is complete.',he:'בסדר. אז ההזמנה שלך הושלמה.',tl:'אוֹל רַייט. דֶן יוֹר אוֹרְדֶר אִיז קַמְפְּלִיט.'},set:{extra:'none'}},
+        {id:'water',label:'מים, בבקשה',answer:{en:'Water, please',he:'מים, בבקשה',tl:'ווֹטֶר, פְּלִיז'},reply:{en:'Of course. I will add a cold bottle.',he:'כמובן. אוסיף בקבוק קר.',tl:'אוֹף קוֹרְס. אַיי וִויל אַד אַ קוֹלְד בּוֹטֶל.'},set:{extra:'water'}},
+      ]},
+      {id:'bag_breaks',event:{emoji:'🍎',he:'נינה מרימה שקית מהדלפק. התחתית נקרעת, אבל היא תופסת את רוב התפוחים. רק שניים חומקים: אחד נעצר לידך והשני מתגלגל לעבר המעבר.'},stageAction:{id:'nina-apples-roll-story-prop',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Oh no! Two apples rolled away. Can you help me?',he:'אוי לא! שני תפוחים התגלגלו. [[אתה יכול|את יכולה]] לעזור לי?',tl:'אוֹ נוֹ! טוּ אַפֶּלְז רוֹלְד אַוֵויי. קֶן יוּ הֶלְפּ מִי?'},options:[
+        {id:'no_problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you. One is close, but the other is still moving.',he:'תודה. אחד קרוב, אבל השני עדיין מתגלגל.',tl:'תֶ׳נְק יוּ. וַאן אִיז קְלוֹס, בַּאט דֶה אַדֶר אִיז סְטִיל מוּבִינְג.'}},
+        {id:'can_help',label:'אני יכול לעזור',answer:{en:'I can help',he:'אני [[יכול|יכולה]] לעזור',tl:'אַיי קֶן הֶלְפּ'},reply:{en:'Great. I will get a stronger bag.',he:'מעולה. אני אביא שקית חזקה יותר.',tl:'גְרֵייט. אַיי וִויל גֶט אַ סְטְרוֹנְגֶר בֶּג.'}},
+      ]},
+      {id:'choose_pickup',ask:{en:'One apple is by you, and the other is rolling toward the aisle. Which one first?',he:'תפוח אחד לידך והשני מתגלגל לעבר המעבר. איזה ניקח קודם?',tl:'וַאן אַפֶּל אִיז בַּיי יוּ, אֶנְד דֶה אַדֶר אִיז רוֹלִינְג טוּוֹרְד דֶה אַייל. וִויץ׳ וַאן פֶרְסְט?'},options:[
+        {id:'near',label:'את הקרוב אליי',answer:{en:"Let's get this one",he:'[[בוא|בואי]] ניקח את זה שלידי',tl:'לֶטְס גֶט דִיס וַאן'},reply:{en:'Good. You get that one, and I will run for the other.',he:'טוב. [[קח|קחי]] את הקרוב, ואני ארוץ אל השני.',tl:'גוּד. יוּ גֶט דֶאט וַאן, אֶנְד אַיי וִויל רַאן פוֹר דֶה אַדֶר.'},set:{pickup:'near'}},
+        {id:'far',label:'את זה שמתגלגל למעבר',answer:{en:"Let's get that one",he:'[[בוא|בואי]] ניקח את זה שמתגלגל למעבר',tl:'לֶטְס גֶט דֶאט וַאן'},reply:{en:'Good. You stop that one, and I will pick up the near one.',he:'טוב. [[עצור|עצרי]] את הרחוק, ואני ארים את הקרוב.',tl:'גוּד. יוּ סְטוֹפּ דֶאט וַאן, אֶנְד אַיי וִויל פִּיק אַפּ דֶה נִיר וַאן.'},set:{pickup:'far'}},
+      ]},
+      {id:'new_bag',stageAction:{id:'nina-packs-apples-story-prop',gesture:'story-prop-change',motion:'swap',set:{storyProp:'changed'}},variants:[
+        {id:'near',when:{pickup:'near'},event:{emoji:'🛍️',he:'[[אתה מרים|את מרימה]] את התפוח הקרוב. נינה משיגה את השני רגע לפני שהוא מתגלגל מתחת לדוכן הבא, ומכניסה את שניהם לשקית כפולה.'},ask:{en:'You got the near one, and I caught the far one. Is everything here?',he:'[[אתה הרמת|את הרמת]] את הקרוב ואני תפסתי את הרחוק. הכול כאן?',tl:'יוּ גוֹט דֶה נִיר וַאן, אֶנְד אַיי קוֹט דֶה פַאר וַאן. אִיז אֶבְרִיתִ׳ינְג הִיר?'},options:[
+          {id:'yes',label:'כן, הכול כאן',answer:{en:'Yes, everything is here',he:'כן, הכול כאן',tl:'יֶס, אֶבְרִיתִ׳ינְג אִיז הִיר'},reply:{en:'Perfect. This bag is strong enough.',he:'מושלם. השקית הזאת חזקה מספיק.',tl:'פֶּרְפֶקְט. דִיס בֶּג אִיז סְטְרוֹנְג אִינַאף.'}},
+          {id:'think',label:'אני חושב שכן',answer:{en:'I think so',he:'אני [[חושב|חושבת]] שכן',tl:'אַיי תִ׳ינְק סוֹ'},reply:{en:'I counted them too. We have them all.',he:'גם אני ספרתי. כולם כאן.',tl:'אַיי קַאוּנְטֶד דֶם טוּ. וִוי הֶב דֶם אוֹל.'}},
+        ]},
+        {id:'far',when:{pickup:'far'},event:{emoji:'🛍️',he:'[[אתה עוצר|את עוצרת]] את התפוח הרחוק לפני שהוא מגיע למעבר. נינה מרימה את הקרוב, ומכניסה את שניהם לשקית כפולה.'},ask:{en:'You stopped the far one, and I picked up the near one. Is everything here?',he:'[[אתה עצרת|את עצרת]] את הרחוק ואני הרמתי את הקרוב. הכול כאן?',tl:'יוּ סְטוֹפְּט דֶה פַאר וַאן, אֶנְד אַיי פִּיקְט אַפּ דֶה נִיר וַאן. אִיז אֶבְרִיתִ׳ינְג הִיר?'},options:[
+          {id:'yes',label:'כן, הכול כאן',answer:{en:'Yes, everything is here',he:'כן, הכול כאן',tl:'יֶס, אֶבְרִיתִ׳ינְג אִיז הִיר'},reply:{en:'Perfect. This bag is strong enough.',he:'מושלם. השקית הזאת חזקה מספיק.',tl:'פֶּרְפֶקְט. דִיס בֶּג אִיז סְטְרוֹנְג אִינַאף.'}},
+          {id:'think',label:'אני חושב שכן',answer:{en:'I think so',he:'אני [[חושב|חושבת]] שכן',tl:'אַיי תִ׳ינְק סוֹ'},reply:{en:'I counted them too. We have them all.',he:'גם אני ספרתי. כולם כאן.',tl:'אַיי קַאוּנְטֶד דֶם טוּ. וִוי הֶב דֶם אוֹל.'}},
+        ]},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'water',when:{extra:'water'},ask:{en:'Here you go—{bags} of {apple} apples and water. Your order is ready.',he:'בבקשה—{bags} של תפוחים {apple} ומים. ההזמנה מוכנה.',tl:'הִיר יוּ גוֹ — {bags} אוֹב {apple} אַפְּלְז אֶנְד ווֹטֶר. יוֹר אוֹרְדֶר אִיז רֶדִי.'},options:[
+          {id:'no',label:'תודה!',answer:{en:'Thank you!',he:'תודה!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. Have a nice day!',he:'על לא דבר. שיהיה לך יום טוב!',tl:'יוֹר וֶולְקַם. הֶב אַ נַייס דֵיי!'}},
+          {id:'all',label:'תודה, להתראות!',answer:{en:'Thanks! Goodbye!',he:'תודה! להתראות!',tl:'תֶ׳נְקְס! גוּדְבַּיי!'},reply:{en:'Goodbye! Enjoy the apples.',he:'להתראות! [[תהנה|תהני]] מהתפוחים.',tl:'גוּדְבַּיי! אֶנְג׳וֹי דֶה אַפְּלְז.'}},
+        ]},
+        {id:'none',when:{extra:'none'},ask:{en:'Here you go—{bags} of {apple} apples. Your order is ready.',he:'בבקשה—{bags} של תפוחים {apple}. ההזמנה מוכנה.',tl:'הִיר יוּ גוֹ — {bags} אוֹב {apple} אַפְּלְז. יוֹר אוֹרְדֶר אִיז רֶדִי.'},options:[
+          {id:'no',label:'תודה!',answer:{en:'Thank you!',he:'תודה!',tl:'תֶ׳נְק יוּ!'},reply:{en:'You are welcome. Have a nice day!',he:'על לא דבר. שיהיה לך יום טוב!',tl:'יוֹר וֶולְקַם. הֶב אַ נַייס דֵיי!'}},
+          {id:'all',label:'תודה, להתראות!',answer:{en:'Thanks! Goodbye!',he:'תודה! להתראות!',tl:'תֶ׳נְקְס! גוּדְבַּיי!'},reply:{en:'Goodbye! Enjoy the apples.',he:'להתראות! [[תהנה|תהני]] מהתפוחים.',tl:'גוּדְבַּיי! אֶנְג׳וֹי דֶה אַפְּלְז.'}},
+        ]},
+      ]},
+    ],
+  },
 ];
 
 /* A conversation is directed, not randomly animated. Each authored beat has
@@ -4408,6 +5165,62 @@ const PRACTICE_STAGE_DIRECTIONS = {
     hello:['welcome','playful'], mood:['curious','present'], robot_word:['present','encourage'],
     robot_answer:['playful','celebrate'],
   },
+  maya_window_light:{
+    hello:['welcome','warm'], moving_light:['surprise','curious'], find_mirror:['search','present'],
+    place_mirror:['playful','warm'],
+  },
+  ben_old_camera:{
+    old_camera:['welcome','present'], accidental_photo:['surprise','concern'], photo_appears:['inspect','celebrate'],
+    photo_owner:['inspect','offer'],
+  },
+  sam_boxes_at_door:{
+    offer:['concern','relief'], slipping_bag:['surprise','concern'], through_door:['focus','encourage'],
+    set_down:['relief','agree'], close:['farewell','farewell'],
+  },
+  maya_slow_english:{
+    understand:['curious','agree'], choose_mode:['consider','agree'], practice_line:['present','playful'],
+    check:['curious','agree'], close:['farewell','farewell'],
+  },
+  tom_recess_ball:{
+    hello:['welcome','agree'], quick_game:['curious','agree'], ball_rolls:['surprise','concern'],
+    search:['search','encourage'], found:['inspect','celebrate'], last_minutes:['consider','agree'],
+    close:['relief','farewell'],
+  },
+  maya_kitchen_mixup:{
+    open:['welcome','agree'], choose_task:['consider','agree'], lid_blocks:['surprise','concern'],
+    choose_tool:['focus','encourage'], drain_opens:['inspect','relief'], clean_and_test:['focus','present'],
+    close:['relief','warm'],
+  },
+  nina_market_gift:{
+    welcome:['welcome','agree'], recipient:['curious','agree'], choose_gift:['present','consider'],
+    regular_price:['explain','consider'], sale_sign:['surprise','celebrate'], new_price:['present','decide'],
+    close:['offer','farewell'],
+  },
+  maya_courtyard_change:{
+    open:['concern','agree'], first_plan:['consider','decide'], leak:['surprise','concern'],
+    choose_solution:['search','agree'], find_solution:['inspect','relief'], make_solution:['focus','encourage'],
+    amount:['curious','agree'], close:['relief','warm'],
+  },
+  sam_dropped_key:{
+    open:['welcome','agree'], choose_destination:['curious','agree'], choose_gear:['consider','agree'],
+    secure_gear:['inspect','relief'], key_falls:['surprise','concern'], choose_search:['search','agree'],
+    find_key:['inspect','relief'], close:['celebrate','farewell'],
+  },
+  tom_presentation_card:{
+    open:['welcome','agree'], problem:['concern','relief'], choose_support:['consider','agree'],
+    after_support:['curious','encourage'], card_flies:['surprise','search'], recover_card:['inspect','relief'],
+    rehearse_opening:['focus','encourage'], bell:['surprise','proud'], close:['proud','farewell'],
+  },
+  maya_kitchen_blackout:{
+    open:['welcome','agree'], choose_meal:['offer','agree'], choose_drink:['offer','agree'],
+    start_cooking:['present','agree'], blackout:['surprise','concern'], handle_dark:['inspect','agree'],
+    power_returns:['celebrate','relief'], set_table:['present','agree'], close:['warm','farewell'],
+  },
+  nina_market_rolling_apples:{
+    open:['welcome','agree'], choose_apples:['present','agree'], choose_amount:['curious','agree'],
+    confirm_price:['consider','agree'], anything_else:['offer','agree'], bag_breaks:['surprise','concern'],
+    choose_pickup:['point','agree'], new_bag:['inspect','relief'], close:['offer','farewell'],
+  },
 };
 
 const STAGE_DIRECTION_PRESETS = {
@@ -4462,6 +5275,8 @@ const STAGE_ACTION_DURATIONS_MS = {
   'dog-reunion':2200,
   'reveal-robot':2050,
   'robot-lights':2100,
+  'story-prop-reveal':2050,
+  'story-prop-change':2050,
 };
 
 function practiceStageActionDuration(action){
@@ -4731,7 +5546,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.9.1';
+const APP_VERSION = '2.10.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -4862,6 +5677,9 @@ function ptext(p,field,spoken=false){ return fillProfileText(p?.[field]||'',fiel
 
 /* ---------------- state ---------------- */
 const STORE_KEY = 'speakEnglishV1';
+// The shuffle bag has its own tiny record. Ordinary lesson/profile saves can
+// never overwrite this key, which closes a read/write race across open tabs.
+const PRACTICE_CYCLE_KEY = 'speakEnglishPracticeCycleV1';
 const SESSION_STEP_TYPES = new Set([
   'intro','learn','speak','quiz','listenQuiz','order','dlgIntro','listen',
   'branchChoice','branchPending','done',
@@ -4872,6 +5690,7 @@ function load(){
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
     if(s && typeof s === 'object'){
       const out = Object.assign(defaults(), s);
+      out.schemaVersion=3;
       out.name = typeof out.name === 'string' ? out.name.slice(0,20) : '';
       out.profile = normalizeProfile(out.profile);
       out.onboarded = !!out.onboarded;
@@ -4885,6 +5704,16 @@ function load(){
         ? out.practiceRecentChars.filter(x=>typeof x === 'string').slice(-6) : [];
       out.practiceRecentStories = Array.isArray(out.practiceRecentStories)
         ? out.practiceRecentStories.filter(x=>typeof x === 'string').slice(-8) : [];
+      const hadStoryCycle=Array.isArray(s.practiceStorySeen);
+      out.practiceStorySeen=normalizePracticeStoryIds(out.practiceStorySeen);
+      out.practiceStoryEpoch=Math.max(0,Math.floor(Number(out.practiceStoryEpoch)||0));
+      out.practiceStoryCatalog=normalizePracticeStoryIds(out.practiceStoryCatalog);
+      if(!out.practiceStoryCatalog.length){
+        out.practiceStoryCatalog=availablePracticeStories(out.completed).map(story=>story.id);
+      }
+      // A learner upgrading from the recency-only selector should continue
+      // from the conversations already seen, not be handed one of them again.
+      if(!hadStoryCycle) out.practiceStorySeen=normalizePracticeStoryIds(out.practiceRecentStories);
       out.missions = normalizeMissions(out.missions);
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
@@ -4900,22 +5729,56 @@ function load(){
       out.session = validSavedSession(out.session) ? out.session : null;
       if(out.session && ((!out.session.isReplay && out.session.idx!==out.completed) ||
         (out.session.isReplay && out.session.idx>=out.completed))) out.session=null;
+      const dedicatedCycle=readPracticeCycleStore();
+      if(dedicatedCycle){
+        const mergedCycle=mergePracticeStoryCycles(out,dedicatedCycle);
+        out.practiceStoryEpoch=mergedCycle.epoch;
+        out.practiceStorySeen=mergedCycle.seen;
+        out.practiceStoryCatalog=mergedCycle.catalog;
+      }
       return out;
     }
   }catch(e){}
-  return defaults();
+  const out=defaults(),dedicatedCycle=readPracticeCycleStore();
+  if(dedicatedCycle){
+    const mergedCycle=mergePracticeStoryCycles(out,dedicatedCycle);
+    out.practiceStoryEpoch=mergedCycle.epoch;
+    out.practiceStorySeen=mergedCycle.seen;
+    out.practiceStoryCatalog=mergedCycle.catalog;
+  }
+  return out;
 }
 function defaults(){
   return {
-    schemaVersion:2, name:'', onboarded:false, completed:0, streak:0,
+    schemaVersion:3, name:'', onboarded:false, completed:0, streak:0,
     profile:defaultProfile(),
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
+    practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[],
     missions:{},
     profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
     progressUpdatedAt:0, practiceRecentUpdatedAt:0, sessionUpdatedAt:0, finishedRuns:[],
   };
+}
+function readPracticeCycleStore(){
+  try{
+    const value=JSON.parse(localStorage.getItem(PRACTICE_CYCLE_KEY));
+    return value&&typeof value==='object'&&!Array.isArray(value)?value:null;
+  }catch(e){ return null; }
+}
+function persistPracticeStoryCycle(){
+  try{
+    localStorage.setItem(PRACTICE_CYCLE_KEY,JSON.stringify({
+      schemaVersion:1,
+      completed:Math.max(0,Math.floor(Number(state.completed)||0)),
+      practiceStoryEpoch:Math.max(0,Math.floor(Number(state.practiceStoryEpoch)||0)),
+      practiceStorySeen:normalizePracticeStoryIds(state.practiceStorySeen),
+      practiceStoryCatalog:normalizePracticeStoryIds(state.practiceStoryCatalog),
+      updatedAt:Date.now(),
+    }));
+    return true;
+  }catch(e){ return false; }
 }
 function normalizeReviewMeta(raw, hardIds=[]){
   const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
@@ -5007,7 +5870,7 @@ function practiceRecencyStamp(value){
   if(explicit) return explicit;
   // States saved before the dedicated stamp existed only have the broad
   // progress stamp. Use it once for migration when there is recency to keep.
-  const hasRecent=['practiceRecent','practiceRecentChars','practiceRecentStories']
+  const hasRecent=['practiceRecent','practiceRecentChars','practiceRecentStories','practiceStorySeen']
     .some(field=>Array.isArray(value?.[field])&&value[field].length);
   return hasRecent?Math.max(0,Number(value?.progressUpdatedAt)||0):0;
 }
@@ -5019,8 +5882,18 @@ function rememberFinishedRun(runId){
 }
 function reconcileStoredProgress(){
   try{
-    const stored=JSON.parse(localStorage.getItem(STORE_KEY));
-    if(!stored || typeof stored !== 'object') return;
+    const mainStored=JSON.parse(localStorage.getItem(STORE_KEY));
+    const dedicatedCycle=readPracticeCycleStore();
+    if((!mainStored||typeof mainStored!=='object')&&!dedicatedCycle) return;
+    const stored=mainStored&&typeof mainStored==='object'?{...mainStored}:{};
+    if(dedicatedCycle){
+      const mergedCycle=mergePracticeStoryCycles(stored,dedicatedCycle);
+      stored.practiceStoryEpoch=mergedCycle.epoch;
+      stored.practiceStorySeen=mergedCycle.seen;
+      stored.practiceStoryCatalog=mergedCycle.catalog;
+      // `completed` in the practice-only record is catalog context. Course
+      // progress remains authoritative in the main state record.
+    }
 
     const storedProfileTs=Math.max(0,Number(stored.profileUpdatedAt)||0);
     if(storedProfileTs>(Number(state.profileUpdatedAt)||0)){
@@ -5072,6 +5945,10 @@ function reconcileStoredProgress(){
     state.practiceRecent=mergeRecent(stored.practiceRecent, state.practiceRecent, 6, storedPracticeIsNewer);
     state.practiceRecentChars=mergeRecent(stored.practiceRecentChars, state.practiceRecentChars, 6, storedPracticeIsNewer);
     state.practiceRecentStories=mergeRecent(stored.practiceRecentStories, state.practiceRecentStories, 8, storedPracticeIsNewer);
+    const mergedStoryCycle=mergePracticeStoryCycles(state,stored);
+    state.practiceStoryEpoch=mergedStoryCycle.epoch;
+    state.practiceStorySeen=mergedStoryCycle.seen;
+    state.practiceStoryCatalog=mergedStoryCycle.catalog;
     state.practiceRecentUpdatedAt=Math.max(localPracticeTs,storedPracticeTs);
     state.missions=mergeMissions(stored.missions, state.missions);
     state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
@@ -5853,6 +6730,7 @@ function setMic(on, btn){ state.micEnabled = on; touchState('settingsUpdatedAt')
 function resetAll(){
   if(confirm('בטוח לאפס את כל ההתקדמות? אי אפשר לבטל את זה.')){
     localStorage.removeItem(STORE_KEY);
+    localStorage.removeItem(PRACTICE_CYCLE_KEY);
     state = defaults();
     document.querySelector('.overlay')?.remove();
     renderOnboarding();
@@ -6592,26 +7470,110 @@ function materializePracticeBeat(beatIndex, session=L){
   };
   return true;
 }
+function normalizePracticeStoryIds(values){
+  const known=new Set(PRACTICE_STORIES.map(story=>story.id));
+  return [...new Set((Array.isArray(values)?values:[])
+    .filter(id=>typeof id==='string'&&known.has(id)))].slice(-PRACTICE_STORIES.length);
+}
+function availablePracticeStories(completed=state.completed){
+  return PRACTICE_STORIES.filter(story=>completed>=story.min&&
+    Array.isArray(story.beats)&&story.beats.length&&story.sceneIds?.some(id=>practiceSceneById(id)));
+}
+function practiceStoryCycleState(value){
+  const epoch=Math.max(0,Math.floor(Number(value?.practiceStoryEpoch)||0));
+  const seen=normalizePracticeStoryIds(value?.practiceStorySeen);
+  let catalog=normalizePracticeStoryIds(value?.practiceStoryCatalog);
+  // States written before the catalog snapshot existed still know their
+  // completed lesson. Reconstruct the active catalog once during migration.
+  if(!catalog.length){
+    catalog=availablePracticeStories(Math.max(0,Math.floor(Number(value?.completed)||0)))
+      .map(story=>story.id);
+  }
+  return {epoch,seen,catalog};
+}
+function mergePracticeStoryCycles(localValue,storedValue){
+  const local=practiceStoryCycleState(localValue),stored=practiceStoryCycleState(storedValue);
+  if(local.epoch===stored.epoch){
+    return {
+      epoch:local.epoch,
+      seen:normalizePracticeStoryIds([...stored.seen,...local.seen]),
+      catalog:normalizePracticeStoryIds([...stored.catalog,...local.catalog]),
+    };
+  }
+  const higher=local.epoch>stored.epoch?local:stored;
+  const lower=higher===local?stored:local;
+  const higherCatalog=new Set(higher.catalog);
+  // Usually an older cycle's consumed cards must stay behind. The exception
+  // is a catalog that expanded in that older tab after the newer cycle began;
+  // otherwise an already-started conversation could become eligible again.
+  const lowerCatalog=new Set(lower.catalog);
+  const lowerExpandedCatalog=higher.catalog.every(id=>lowerCatalog.has(id))&&
+    lower.catalog.some(id=>!higherCatalog.has(id));
+  // If the older epoch belongs to a strictly larger (newly unlocked)
+  // catalog, carry its whole consumed set. Skipping a card once is safer than
+  // repeating a conversation that another tab has already started.
+  const carriedSeen=lowerExpandedCatalog
+    ?lower.seen
+    :lower.seen.filter(id=>!higherCatalog.has(id));
+  return {
+    epoch:higher.epoch,
+    seen:normalizePracticeStoryIds([...higher.seen,...carriedSeen]),
+    catalog:normalizePracticeStoryIds([...higher.catalog,...lower.catalog]),
+  };
+}
+/* One cycle is a real shuffle bag: a story enters `seen` when its session
+   starts and cannot return until every currently unlocked story has appeared.
+   Keeping the consumed set rather than a pre-shuffled queue lets two tabs
+   union their progress without either one silently putting a story back. */
+function remainingPracticeStories(available){
+  const activeIds=new Set(available.map(story=>story.id));
+  state.practiceStoryCatalog=normalizePracticeStoryIds([
+    ...(state.practiceStoryCatalog||[]),...activeIds,
+  ]);
+  state.practiceStorySeen=normalizePracticeStoryIds(state.practiceStorySeen)
+    .filter(id=>activeIds.has(id));
+  let remaining=available.filter(story=>!state.practiceStorySeen.includes(story.id));
+  if(!remaining.length){
+    state.practiceStoryEpoch=Math.max(0,Math.floor(Number(state.practiceStoryEpoch)||0))+1;
+    state.practiceStorySeen=[];
+    state.practiceStoryCatalog=available.map(story=>story.id);
+    remaining=available.slice();
+  }
+  return remaining;
+}
+/* Short encounters remain useful refreshers, but at an advanced level they
+   should not displace the substantial stories. Spread one quick encounter
+   through roughly every five slots while the shuffle bag still guarantees
+   that none of them repeats before the whole active catalog is exhausted. */
+function practiceStoryLengthPool(stories,available,completed=state.completed){
+  const targetTurns=Math.min(7,4+Math.floor(completed/6));
+  const full=stories.filter(story=>story.beats.length>=targetTurns);
+  const quick=stories.filter(story=>story.beats.length<targetTurns);
+  if(!full.length||!quick.length) return stories;
+  const active=Array.isArray(available)?available:stories;
+  const quickIds=new Set(active.filter(story=>story.beats.length<targetTurns).map(story=>story.id));
+  const activeIds=new Set(active.map(story=>story.id));
+  const seen=normalizePracticeStoryIds(state.practiceStorySeen).filter(id=>activeIds.has(id));
+  const seenQuick=seen.filter(id=>quickIds.has(id)).length;
+  // Distribute the quick cards evenly across this exact catalog instead of
+  // leaving several of them bunched together at the end of a cycle.
+  const quickDue=Math.floor((seen.length+1)*quickIds.size/Math.max(1,active.length))>seenQuick;
+  return quickDue?quick:full;
+}
 function buildPracticeSession(){
   // Another open tab may have started a conversation since this page last
   // rendered. Pull that recency history in before choosing, not after.
   reconcileStoredProgress();
-  const eligible=PRACTICE_STORIES.filter(story=>state.completed>=story.min&&
-    Array.isArray(story.beats)&&story.beats.length&&story.sceneIds?.some(id=>practiceSceneById(id)));
-  if(!eligible.length) return null;
-  /* As the learner advances, prefer the fuller stories. Early four-turn arcs
-     are useful with a tiny vocabulary, but should not replace a substantial
-     conversation late in the course. Keep at least two candidates whenever
-     possible so length never comes at the cost of immediate repetition. */
-  const targetTurns=Math.min(7,4+Math.floor(state.completed/6));
-  const longer=eligible.filter(story=>story.beats.length>=targetTurns);
-  const available=longer.length>=2?longer:eligible;
+  const available=availablePracticeStories();
+  if(!available.length) return null;
+  const remaining=remainingPracticeStories(available);
   /* Pick the authored story first, so a story with more background variants
      is not accidentally shown more often. Only then pick a compatible scene.
      Story, person and place each have their own recency memory. */
+  const lengthPool=practiceStoryLengthPool(remaining,available);
   const recentStories=recentlySeen(state.practiceRecentStories,available.length);
-  let storyPool=available.filter(story=>!recentStories.has(story.id));
-  if(!storyPool.length) storyPool=available;
+  let storyPool=lengthPool.filter(story=>!recentStories.has(story.id));
+  if(!storyPool.length) storyPool=lengthPool;
   const recentChars=recentlySeen(state.practiceRecentChars,new Set(available.flatMap(story=>
     story.sceneIds.map(practiceSceneById).filter(Boolean).map(row=>row.charId))).size);
   const freshPersonStories=storyPool.filter(story=>story.sceneIds.map(practiceSceneById).filter(Boolean)
@@ -6675,25 +7637,48 @@ function mergeRecent(stored, local, limit=6, storedIsNewer=false){
    walked out of is still one you have just seen, and 'another conversation'
    must not hand it straight back. */
 function rememberPracticeRun(sceneId, charId, storyId){
+  // Close the small gap between choosing and recording: another tab may have
+  // consumed a different card from this same cycle in the meantime.
+  reconcileStoredProgress();
+  const before={
+    practiceRecent:[...(state.practiceRecent||[])],
+    practiceRecentChars:[...(state.practiceRecentChars||[])],
+    practiceRecentStories:[...(state.practiceRecentStories||[])],
+    practiceStorySeen:[...(state.practiceStorySeen||[])],
+    practiceRecentUpdatedAt:state.practiceRecentUpdatedAt,
+    progressUpdatedAt:state.progressUpdatedAt,
+  };
   state.practiceRecent = pushRecent(state.practiceRecent, sceneId);
   state.practiceRecentChars = pushRecent(state.practiceRecentChars, charId);
-  if(storyId) state.practiceRecentStories = pushRecent(state.practiceRecentStories, storyId, 8);
+  if(storyId){
+    state.practiceRecentStories = pushRecent(state.practiceRecentStories, storyId, 8);
+    state.practiceStorySeen=normalizePracticeStoryIds([...(state.practiceStorySeen||[]),storyId]);
+  }
   touchState('practiceRecentUpdatedAt');
   touchState('progressUpdatedAt');
+  const cycleSaved=persistPracticeStoryCycle();
+  if(!cycleSaved){
+    Object.assign(state,before);
+    return false;
+  }
   save();
+  return true;
 }
 function countPracticeRun(){
   state.practiceCount = (state.practiceCount || 0) + 1;
   touchState('progressUpdatedAt');
   save();
 }
-function startPractice(){
-  if(L){
-    if(!confirm('יש שיעור פתוח. לצאת ממנו ולעבור לתרגול שיחה?')) return;
-    stopLessonTimers(true); L=null;
-  }
+function beginPracticeSession(){
+  // A second tap can wait behind the cross-tab lock. If the first tap already
+  // opened a session, do not replace it when the queued callback arrives.
+  if(L) return false;
   const session = buildPracticeSession();
-  if(!session){ toast('צריך לסיים שיעור אחד לפני שנפתח תרגול שיחה 🙂'); return; }
+  if(!session){ toast('צריך לסיים שיעור אחד לפני שנפתח תרגול שיחה 🙂'); return false; }
+  if(!rememberPracticeRun(session.sceneId,session.charId,session.story.id)){
+    toast('לא הצלחנו לשמור את מחזור השיחות. כדאי לנסות שוב.');
+    return false;
+  }
   const steps = [{type:'practiceIntro'}];
   session.story.beats.forEach((_,roundIndex)=>{
     steps.push({type:'practiceBeatPending',roundIndex});
@@ -6715,14 +7700,42 @@ function startPractice(){
     runId:'practice-'+Date.now().toString(36),
   };
   materializePracticeBeat(0,L);
-  rememberPracticeRun(session.sceneId, session.charId, session.story.id);
   renderStep();
   startLessonClock();
+  return true;
+}
+function startPractice(){
+  if(L){
+    if(!confirm('יש שיעור פתוח. לצאת ממנו ולעבור לתרגול שיחה?')) return;
+    stopLessonTimers(true); L=null;
+  }
+  // Web Locks makes choosing + recording one critical section across tabs.
+  // Older browsers keep the synchronous fallback and still reconcile storage
+  // immediately before both operations.
+  if(navigator.locks?.request){
+    let enteredLock=false;
+    const recoverLockFailure=()=>{
+      if(!enteredLock) return beginPracticeSession();
+      toast('לא הצלחנו לפתוח את השיחה. כדאי לנסות שוב.');
+      return false;
+    };
+    try{
+      const locked=navigator.locks.request('speak-english-practice-story',{mode:'exclusive'},()=>{
+        enteredLock=true;
+        return beginPracticeSession();
+      });
+      return Promise.resolve(locked).catch(recoverLockFailure);
+    }catch(e){ return recoverLockFailure(); }
+  }
+  return beginPracticeSession();
 }
 function renderPracticeIntro(){
   if(L.isRehearsal) return renderRehearsalIntro();
   const meta = conversationMeta(L.idx);
   const turns = L.practiceRoundCount || L.steps.filter(s=>s.type==='branchChoice').length;
+  const activeStories=availablePracticeStories();
+  const activeIds=new Set(activeStories.map(story=>story.id));
+  const cycleSeen=normalizePracticeStoryIds(state.practiceStorySeen).filter(id=>activeIds.has(id)).length;
   playerShell(`
     <div class="step-label">🗣️ תרגול שיחה חופשי</div>
     <h2>${esc(meta.placeEmoji)} ${esc(meta.place)}</h2>
@@ -6731,6 +7744,7 @@ function renderPracticeIntro(){
       <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${esc(meta.role||'')}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
+    <div class="chip" style="display:inline-flex;margin:0 auto 12px">🔀 מחזור גיוון: ${cycleSeen} מתוך ${activeStories.length} · אין חזרה לפני כולן</div>
     ${meta.sceneOpen?`<div class="scene-note">${esc(fillProfileText(meta.sceneOpen,'he'))}</div>`:''}
     <p class="sub">${turns} תורות, רק ממה שכבר למדת. אין ציון ואין לחץ — פשוט שיחה.<br>הסיטואציות מתחלפות לפי מה שכבר למדת 🔀</p>
     <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
@@ -6931,7 +7945,8 @@ function stageBackdropMomentClasses(direction){
 function stageWorldClasses(model){
   const world=model?.world||{};
   return (model?.storyId==='tom_last_shot'?' has-story-ball':'')+
-    (['bad','message'].includes(world.connection)?' has-story-connection':'');
+    (['bad','message'].includes(world.connection)?' has-story-connection':'')+
+    (model?.storyId==='maya_kitchen_blackout'&&world.storyProp==='ready'?' has-kitchen-blackout':'');
 }
 function stageHeldObjectClasses(model){
   const world=model?.world||{},gesture=model?.action?.gesture||'';
@@ -7063,6 +8078,22 @@ function stageRobotHtml(state, extra=''){
     ${awake?`<g class="robot-toy"><path d="M56 8v10" stroke="#d8e4ef" stroke-width="4"/><circle cx="56" cy="7" r="5" fill="#67d7c1"/><rect x="29" y="18" width="54" height="43" rx="10" fill="#d9e5ee" stroke="#476276" stroke-width="3"/><circle class="robot-eye eye-l" cx="44" cy="37" r="6" fill="${lit?'#65ef9e':'#5dbad0'}"/><circle class="robot-eye eye-r" cx="68" cy="37" r="6" fill="${lit?'#65ef9e':'#5dbad0'}"/><path d="M43 51h26" stroke="#476276" stroke-width="3" stroke-linecap="round"/><path d="M29 32H18v22M83 32h11v22" fill="none" stroke="#d9e5ee" stroke-width="8" stroke-linecap="round"/></g>`:''}
   </svg>`;
 }
+function stageStoryPropHtml(model){
+  const story=practiceStoryById(model?.storyId),spec=story?.stageProp;
+  const state_=model?.world?.storyProp,gesture=model?.action?.gesture||'';
+  if(!spec||!state_) return '';
+  const changed=state_==='changed';
+  const changing=gesture==='story-prop-change';
+  const revealing=gesture==='story-prop-reveal';
+  const face=(kind,icon,label)=>`<span class="story-prop-face story-prop-${kind}"><span class="story-prop-icon">${esc(icon||'✨')}</span><span class="story-prop-label">${esc(label||'')}</span></span>`;
+  const content=changing
+    ?face('before',spec.beforeIcon||spec.afterIcon,spec.beforeLabel||spec.afterLabel)+
+      face('after',spec.afterIcon||spec.beforeIcon,spec.afterLabel||spec.beforeLabel)
+    :face(changed?'after':'before',
+      changed?(spec.afterIcon||spec.beforeIcon):(spec.beforeIcon||spec.afterIcon),
+      changed?(spec.afterLabel||spec.beforeLabel):(spec.beforeLabel||spec.afterLabel));
+  return `<div class="stage-prop prop-story-card story-prop-${changed?'changed':'ready'}${changing?' is-changing':revealing?' is-revealing':''}" style="--prop-a:${esc(spec.colorA||'#396a91')};--prop-b:${esc(spec.colorB||'#243a64')}" aria-hidden="true">${content}</div>`;
+}
 function stagePropsHtml(model){
   const world=model?.world||{},gesture=model?.action?.gesture||'';
   const props=[];
@@ -7099,6 +8130,7 @@ function stagePropsHtml(model){
   if(model?.storyId==='maya_lost_dog') props.push(stageDogHtml('friend','small','gold'));
   if(world.lostDog&&world.lostDog!=='none') props.push(stageDogHtml(world.lostDog,model.dogSize,model.dogCollar,gesture==='dog-appears'?' is-arriving':gesture==='inspect-dog'?' is-inspected':gesture==='dog-reunion'?' is-reuniting':''));
   if(world.robot) props.push(stageRobotHtml(world.robot,gesture==='reveal-robot'?' is-revealing':gesture==='robot-lights'?' is-lighting':''));
+  if(world.storyProp) props.push(stageStoryPropHtml(model));
   return props.join('');
 }
 function stageRainDropsHtml(){

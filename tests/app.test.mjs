@@ -8,11 +8,14 @@ const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const inline = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 if (!inline) throw new Error('inline app script not found');
 
-function runtime(seed = new Map()) {
+function runtime(seed = new Map(), options = {}) {
   const app = { innerHTML: '' };
   const localStorage = {
     getItem: key => seed.has(key) ? seed.get(key) : null,
-    setItem: (key, value) => seed.set(key, String(value)),
+    setItem: (key, value) => {
+      if (options.failSetItem?.(key, value)) throw new Error(`injected setItem failure for ${key}`);
+      seed.set(key, String(value));
+    },
     removeItem: key => seed.delete(key),
   };
   const document = {
@@ -35,7 +38,7 @@ function runtime(seed = new Map()) {
   };
   const context = vm.createContext({
     console, document, window, localStorage,
-    navigator: {}, location: { reload() {} },
+    navigator: options.navigator || {}, location: { reload() {} },
     confirm: () => true,
     setTimeout, clearTimeout, setInterval, clearInterval,
     requestAnimationFrame: fn => setTimeout(fn, 0),
@@ -58,6 +61,8 @@ function runtime(seed = new Map()) {
       stageDirectionModel, stageDirectionClasses, stageBackdropMomentClasses,
       stageActionClass, stageHeldObjectClasses, stageWorldClasses,
       stagePropsHtml, stageWeatherHtml, syncStageVisualBlock,
+      availablePracticeStories, remainingPracticeStories, practiceStoryLengthPool, normalizePracticeStoryIds,
+      practiceStoryCycleState, mergePracticeStoryCycles,
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
@@ -68,7 +73,7 @@ function runtime(seed = new Map()) {
     };
   `;
   vm.runInContext(inline + expose, context, { filename: 'index-inline.js' });
-  return { api: context.__test, seed, app };
+  return { api: context.__test, seed, app, context };
 }
 
 test('course content remains intact', () => {
@@ -112,8 +117,27 @@ test('old local state migrates without losing progress', () => {
   assert.deepEqual([...state.lastWarmupIds], []);
   assert.deepEqual([...state.finishedRuns], []);
   assert.deepEqual([...state.practiceRecentStories], ['morning_robot']);
+  assert.deepEqual([...state.practiceStorySeen], ['morning_robot']);
+  assert.equal(state.practiceStoryEpoch, 0);
   assert.equal(state.practiceRecentUpdatedAt, 1234);
   assert.equal(state.session, null);
+});
+
+test('practice shuffle-bag migration removes duplicates and unknown stories', () => {
+  const seed = new Map([['speakEnglishV1', JSON.stringify({
+    schemaVersion: 2, onboarded: true, completed: 30,
+    practiceStorySeen: ['morning_robot', 'missing_story', 'morning_robot', 'first_art_class', null],
+    practiceStoryEpoch: 4.9,
+  })]]);
+  const { api } = runtime(seed);
+  const state = api.getState();
+  assert.equal(state.schemaVersion, 3);
+  assert.deepEqual([...state.practiceStorySeen], ['morning_robot', 'first_art_class']);
+  assert.equal(state.practiceStoryEpoch, 4);
+  assert.deepEqual(
+    Array.from(api.normalizePracticeStoryIds(['first_art_class', 'nope', 'first_art_class', 'morning_robot'])),
+    ['first_art_class', 'morning_robot'],
+  );
 });
 
 test('speech matching respects order and negation', () => {
@@ -357,15 +381,27 @@ test('a lesson conversation reads as one coherent exchange', () => {
 
 const EXPECTED_PRACTICE_STORIES = [
   ['morning_robot', 1, 4],
+  ['maya_window_light', 1, 4],
   ['first_art_class', 2, 5],
+  ['ben_old_camera', 2, 4],
+  ['sam_boxes_at_door', 3, 5],
+  ['maya_slow_english', 4, 5],
   ['phone_in_elevator', 5, 6],
   ['family_photo_wind', 6, 6],
   ['school_activity', 7, 7],
   ['lost_bag', 10, 7],
+  ['tom_recess_ball', 10, 7],
+  ['maya_kitchen_mixup', 11, 7],
   ['restaurant_mixup', 12, 7],
+  ['nina_market_gift', 14, 7],
   ['broken_phone_plan', 17, 8],
+  ['maya_courtyard_change', 17, 8],
+  ['sam_dropped_key', 18, 8],
   ['tom_last_shot', 19, 9],
+  ['tom_presentation_card', 20, 9],
+  ['maya_kitchen_blackout', 22, 9],
   ['nina_wrong_bag', 23, 8],
+  ['nina_market_rolling_apples', 25, 9],
   ['maya_lost_dog', 26, 10],
   ['maya_rainy_beach', 29, 10],
 ];
@@ -647,19 +683,38 @@ test('authored story text respects the learner gender, including remembered valu
   api.setLesson(null);
 });
 
-test('free practice unlocks whole stories and rotates recent stories', () => {
+test('free practice catalog only grows and exhausts every story before repeating', () => {
   const { api } = runtime();
-  for (const completed of [0, 1, 2, 5, 6, 7, 10, 12, 17, 19, 23, 26, 29, 30]) {
+  const milestones = [0, ...new Set(api.PRACTICE_STORIES.map(story => story.min)), api.LESSONS.length]
+    .sort((a, b) => a - b);
+  let previousIds = new Set();
+  for (const completed of milestones) {
     const state = api.defaults();
     state.onboarded = true;
     state.completed = completed;
     api.setState(state);
     const eligible = api.PRACTICE_STORIES.filter(story => story.min <= completed);
+    const available = Array.from(api.availablePracticeStories(completed));
+    const availableIds = new Set(available.map(story => story.id));
+    assert.ok(available.length >= previousIds.size,
+      `completed ${completed}: active catalog shrank from ${previousIds.size} to ${available.length}`);
+    for (const id of previousIds) assert.ok(availableIds.has(id),
+      `completed ${completed}: previously active story ${id} disappeared`);
+    assert.deepEqual(
+      Array.from(availableIds).sort(),
+      Array.from(eligible, story => story.id).sort(),
+      `completed ${completed}: active catalog drifted from the unlock rules`,
+    );
     const session = api.buildPracticeSession();
     if (!eligible.length) {
       assert.equal(session, null);
+      previousIds = availableIds;
       continue;
     }
+    const remaining = Array.from(api.remainingPracticeStories(available));
+    const lengthPool = Array.from(api.practiceStoryLengthPool(remaining, completed));
+    assert.ok(lengthPool.length > 0 && lengthPool.every(story => remaining.includes(story)),
+      `completed ${completed}: length preference escaped the active shuffle bag`);
     assert.ok(eligible.includes(session.story), `completed ${completed}: selected a locked story`);
     assert.equal(session.storyId, session.story.id);
     assert.equal(session.turns, session.story.beats, `${session.storyId}: mixed in unrelated turns`);
@@ -667,25 +722,37 @@ test('free practice unlocks whole stories and rotates recent stories', () => {
     assert.equal(session.meta.mission, session.story.goal);
     if (completed >= 18) assert.ok(session.turns.length >= 7,
       `completed ${completed}: late-course practice should be a substantial conversation`);
+    previousIds = availableIds;
   }
 
   const state = api.defaults();
   state.onboarded = true;
   state.completed = 30;
   api.setState(state);
+  const activeIds = Array.from(api.availablePracticeStories(), story => story.id);
+  assert.equal(activeIds.length, 24);
   const storyIds = [];
-  for (let run = 0; run < 24; run++) {
+  for (let run = 0; run < activeIds.length * 2; run++) {
     const session = api.buildPracticeSession();
     assert.ok(session);
-    assert.ok(!storyIds.slice(-6).includes(session.storyId),
-      `story repeated inside the recency window: ${storyIds.join(' → ')} → ${session.storyId}`);
     api.rememberPracticeRun(session.sceneId, session.charId, session.storyId);
     storyIds.push(session.storyId);
     assert.equal(api.getState().practiceRecentStories.at(-1), session.storyId);
     assert.ok(api.getState().practiceRecentStories.length <= 8);
     assert.equal(new Set(api.getState().practiceRecentStories).size, api.getState().practiceRecentStories.length);
   }
-  assert.equal(new Set(storyIds.slice(0, 7)).size, 7, 'the first seven conversations should all be different stories');
+  const expected = activeIds.slice().sort();
+  for (let cycle = 0; cycle < 2; cycle++) {
+    const selected = storyIds.slice(cycle * activeIds.length, (cycle + 1) * activeIds.length);
+    assert.equal(new Set(selected).size, activeIds.length,
+      `cycle ${cycle + 1}: a story repeated before the bag was exhausted`);
+    assert.deepEqual(selected.slice().sort(), expected,
+      `cycle ${cycle + 1}: not every active story appeared exactly once`);
+  }
+  assert.notEqual(storyIds[activeIds.length - 1], storyIds[activeIds.length],
+    'the first story of a new cycle must not immediately repeat the previous cycle\'s final story');
+  assert.equal(api.getState().practiceStoryEpoch, 1);
+  assert.deepEqual(Array.from(api.getState().practiceStorySeen).sort(), expected);
 });
 
 test('story rotation reconciles a conversation started in another tab', () => {
@@ -701,17 +768,278 @@ test('story rotation reconciles a conversation started in another tab', () => {
 
   const first = firstTab.api.buildPracticeSession();
   firstTab.api.rememberPracticeRun(first.sceneId, first.charId, first.storyId);
+  assert.equal(firstTab.api.getState().practiceStoryEpoch, 0);
+  assert.deepEqual(Array.from(firstTab.api.getState().practiceStorySeen), [first.storyId]);
   const second = staleTab.api.buildPracticeSession();
   assert.notEqual(second.storyId, first.storyId, 'a stale tab repeated the story just opened elsewhere');
   assert.equal(staleTab.api.getState().practiceRecentStories.at(-1), first.storyId);
+  assert.equal(staleTab.api.getState().practiceRecentChars.at(-1), first.charId);
+  assert.equal(staleTab.api.getState().practiceRecent.at(-1), first.sceneId);
+  assert.ok(staleTab.api.getState().practiceStorySeen.includes(first.storyId));
 
   staleTab.api.rememberPracticeRun(second.sceneId, second.charId, second.storyId);
+  const persisted = JSON.parse(seed.get('speakEnglishV1'));
+  assert.equal(persisted.practiceStoryEpoch, 0);
+  assert.deepEqual(new Set(persisted.practiceStorySeen), new Set([first.storyId, second.storyId]));
+  assert.equal(persisted.practiceRecentStories.at(-1), second.storyId);
+  assert.equal(persisted.practiceRecentChars.at(-1), second.charId);
+  assert.equal(persisted.practiceRecent.at(-1), second.sceneId);
   const third = firstTab.api.buildPracticeSession();
   assert.notEqual(third.storyId, second.storyId);
   assert.deepEqual(
     Array.from(firstTab.api.getState().practiceRecentStories.slice(-2)),
     [first.storyId, second.storyId],
   );
+  assert.deepEqual(
+    new Set(firstTab.api.getState().practiceStorySeen),
+    new Set([first.storyId, second.storyId]),
+  );
+});
+
+test('same-epoch shuffle bags union divergent stories from two tabs', () => {
+  const seed = new Map();
+  const firstTab = runtime(seed);
+  const secondTab = runtime(seed);
+  const [firstId, secondId] = firstTab.api.PRACTICE_STORIES.slice(0, 2).map(story => story.id);
+  for (const [tab, storyId, timestamp] of [
+    [firstTab, firstId, 100],
+    [secondTab, secondId, 101],
+  ]) {
+    const state = tab.api.defaults();
+    state.completed = 30;
+    state.practiceStoryEpoch = 7;
+    state.practiceStorySeen = [storyId];
+    state.practiceRecentUpdatedAt = timestamp;
+    tab.api.setState(state);
+  }
+
+  firstTab.api.save();
+  secondTab.api.save();
+  const persisted = JSON.parse(seed.get('speakEnglishV1'));
+  assert.equal(persisted.practiceStoryEpoch, 7);
+  assert.deepEqual(new Set(persisted.practiceStorySeen), new Set([firstId, secondId]));
+});
+
+test('an unlocked story consumed in an older epoch survives a newer smaller-catalog epoch', () => {
+  const { api } = runtime();
+  const beforeUnlock = Array.from(api.availablePracticeStories(17), story => story.id);
+  const afterUnlock = Array.from(api.availablePracticeStories(18), story => story.id);
+  const newlyUnlocked = afterUnlock.filter(id => !beforeUnlock.includes(id));
+  assert.deepEqual(newlyUnlocked, ['sam_dropped_key']);
+
+  const higherEpoch = api.defaults();
+  higherEpoch.completed = 17;
+  higherEpoch.practiceStoryEpoch = 8;
+  higherEpoch.practiceStoryCatalog = beforeUnlock.slice();
+  higherEpoch.practiceStorySeen = [beforeUnlock[0]];
+
+  const lowerEpoch = api.defaults();
+  lowerEpoch.completed = 18;
+  lowerEpoch.practiceStoryEpoch = 7;
+  lowerEpoch.practiceStoryCatalog = afterUnlock.slice();
+  lowerEpoch.practiceStorySeen = [beforeUnlock[1], newlyUnlocked[0]];
+
+  for (const merged of [
+    api.mergePracticeStoryCycles(higherEpoch, lowerEpoch),
+    api.mergePracticeStoryCycles(lowerEpoch, higherEpoch),
+  ]) {
+    assert.equal(merged.epoch, 8);
+    assert.deepEqual(new Set(merged.catalog), new Set(afterUnlock));
+    assert.ok(merged.seen.includes(beforeUnlock[0]), 'the newer cycle must keep its own consumed story');
+    assert.ok(merged.seen.includes(newlyUnlocked[0]),
+      'a story absent from the newer cycle catalog must not be resurrected after another tab consumed it');
+    assert.ok(merged.seen.includes(beforeUnlock[1]),
+      'a strict-superset older catalog must conservatively carry its whole consumed set');
+  }
+
+  const [a, b, c] = afterUnlock.slice(0, 3);
+  for (const merged of [
+    api.mergePracticeStoryCycles(
+      { completed: 18, practiceStoryEpoch: 10, practiceStoryCatalog: [a, b], practiceStorySeen: [a] },
+      { completed: 18, practiceStoryEpoch: 2, practiceStoryCatalog: [a, b, c], practiceStorySeen: [b, c] },
+    ),
+    api.mergePracticeStoryCycles(
+      { completed: 18, practiceStoryEpoch: 2, practiceStoryCatalog: [a, b, c], practiceStorySeen: [b, c] },
+      { completed: 18, practiceStoryEpoch: 10, practiceStoryCatalog: [a, b], practiceStorySeen: [a] },
+    ),
+  ]) {
+    assert.equal(merged.epoch, 10);
+    assert.deepEqual(new Set(merged.catalog), new Set([a, b, c]));
+    assert.deepEqual(new Set(merged.seen), new Set([a, b, c]),
+      'A/B/C regression: lower strict-superset catalog must retain B even though the higher catalog already knew it');
+  }
+
+  const migrated = api.practiceStoryCycleState({
+    completed: 18, practiceStoryEpoch: 7, practiceStorySeen: newlyUnlocked,
+  });
+  assert.deepEqual(new Set(migrated.catalog), new Set(afterUnlock),
+    'states saved before catalog snapshots should reconstruct the catalog from lesson progress');
+});
+
+test('startPractice reserves story selection through the shared Web Lock when available', async () => {
+  const calls = [];
+  const seed = new Map();
+  const locks = {
+    request(name, options, callback) {
+      calls.push({ name, options });
+      return Promise.resolve().then(callback);
+    },
+  };
+  const { api } = runtime(seed, { navigator: { locks } });
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 1;
+  api.setState(state);
+
+  const pending = api.startPractice();
+  assert.equal(api.getLesson(), null, 'selection should wait until the exclusive lock callback runs');
+  const started = await pending;
+  const lesson = api.getLesson();
+  const seenCount = api.getState().practiceStorySeen.length;
+  const reservedStoryId = lesson?.practiceStoryId;
+  const dedicatedCycle = JSON.parse(seed.get('speakEnglishPracticeCycleV1'));
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+
+  assert.equal(started, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].name, 'speak-english-practice-story');
+  assert.equal(calls[0].options.mode, 'exclusive');
+  assert.ok(lesson?.isPractice);
+  assert.equal(seenCount, 1,
+    'the selected story must be recorded before the lock callback completes');
+  assert.ok(dedicatedCycle.practiceStorySeen.includes(reservedStoryId),
+    'the lock callback must persist its reservation in the practice-only store');
+});
+
+test('a failure after entering the Web Lock does not retry outside it or consume a second story', async () => {
+  let callbackRuns = 0;
+  const locks = {
+    request(_name, _options, callback) {
+      return Promise.resolve().then(() => {
+        callbackRuns++;
+        return callback();
+      });
+    },
+  };
+  const seed = new Map();
+  const { api, context } = runtime(seed, { navigator: { locks } });
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  api.setState(state);
+  vm.runInContext(`
+    toast = () => {};
+    initialPracticeVars = () => { throw new Error('injected post-reservation failure'); };
+  `, context);
+
+  assert.equal(await api.startPractice(), false);
+  assert.equal(callbackRuns, 1);
+  assert.equal(api.getLesson(), null);
+  assert.equal(api.getState().practiceStorySeen.length, 1,
+    'the rejected lock callback must not run beginPracticeSession a second time');
+  assert.equal(api.getState().practiceRecentStories.length, 1);
+  const dedicated = JSON.parse(seed.get('speakEnglishPracticeCycleV1'));
+  assert.deepEqual(new Set(dedicated.practiceStorySeen), new Set(api.getState().practiceStorySeen));
+});
+
+test('practice-only catalog context never promotes course completion', () => {
+  const seed = new Map();
+  const bootstrap = runtime(seed);
+  const main = bootstrap.api.defaults();
+  main.onboarded = true;
+  main.completed = 1;
+  seed.set('speakEnglishV1', JSON.stringify(main));
+  const fullCatalog = Array.from(bootstrap.api.availablePracticeStories(30), story => story.id);
+  seed.set('speakEnglishPracticeCycleV1', JSON.stringify({
+    schemaVersion: 1,
+    completed: 30,
+    practiceStoryEpoch: 4,
+    practiceStorySeen: [fullCatalog.at(-1)],
+    practiceStoryCatalog: fullCatalog,
+  }));
+
+  const fresh = runtime(seed);
+  assert.equal(fresh.api.getState().completed, 1, 'load must trust course progress from the main record');
+  fresh.api.save();
+  assert.equal(fresh.api.getState().completed, 1, 'reconciliation must not import dedicated catalog context');
+  assert.equal(JSON.parse(seed.get('speakEnglishV1')).completed, 1,
+    'saving after reconciliation must not persist an invented course jump');
+});
+
+test('a failed practice-only write rolls back every reservation field and opens no session', () => {
+  const seed = new Map();
+  const { api, context } = runtime(seed, {
+    failSetItem: key => key === 'speakEnglishPracticeCycleV1',
+  });
+  vm.runInContext('toast = () => {}', context);
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  const activeIds = Array.from(api.availablePracticeStories(30), story => story.id);
+  state.practiceRecent = ['greet#0'];
+  state.practiceRecentChars = ['tom'];
+  state.practiceRecentStories = [activeIds[0]];
+  state.practiceStorySeen = [activeIds[0]];
+  state.practiceStoryCatalog = activeIds.slice();
+  state.practiceStoryEpoch = 3;
+  state.practiceRecentUpdatedAt = 101;
+  state.progressUpdatedAt = 202;
+  api.setState(state);
+  api.save();
+  const before = {
+    practiceRecent: Array.from(api.getState().practiceRecent),
+    practiceRecentChars: Array.from(api.getState().practiceRecentChars),
+    practiceRecentStories: Array.from(api.getState().practiceRecentStories),
+    practiceStorySeen: Array.from(api.getState().practiceStorySeen),
+    practiceStoryCatalog: Array.from(api.getState().practiceStoryCatalog),
+    practiceStoryEpoch: api.getState().practiceStoryEpoch,
+    practiceRecentUpdatedAt: api.getState().practiceRecentUpdatedAt,
+    progressUpdatedAt: api.getState().progressUpdatedAt,
+  };
+
+  assert.equal(api.startPractice(), false);
+  assert.equal(api.getLesson(), null);
+  assert.deepEqual({
+    practiceRecent: Array.from(api.getState().practiceRecent),
+    practiceRecentChars: Array.from(api.getState().practiceRecentChars),
+    practiceRecentStories: Array.from(api.getState().practiceRecentStories),
+    practiceStorySeen: Array.from(api.getState().practiceStorySeen),
+    practiceStoryCatalog: Array.from(api.getState().practiceStoryCatalog),
+    practiceStoryEpoch: api.getState().practiceStoryEpoch,
+    practiceRecentUpdatedAt: api.getState().practiceRecentUpdatedAt,
+    progressUpdatedAt: api.getState().progressUpdatedAt,
+  }, before);
+  assert.equal(seed.has('speakEnglishPracticeCycleV1'), false);
+  const persistedMain = JSON.parse(seed.get('speakEnglishV1'));
+  assert.deepEqual(persistedMain.practiceStorySeen, before.practiceStorySeen,
+    'a rejected reservation must not leak into the main state record');
+});
+
+test('the practice-only reservation survives a stale whole-state overwrite', () => {
+  const seed = new Map();
+  const currentTab = runtime(seed);
+  const initial = currentTab.api.defaults();
+  initial.onboarded = true;
+  initial.completed = 30;
+  currentTab.api.setState(initial);
+  currentTab.api.save();
+  const staleMainState = seed.get('speakEnglishV1');
+
+  const first = currentTab.api.buildPracticeSession();
+  currentTab.api.rememberPracticeRun(first.sceneId, first.charId, first.storyId);
+  const dedicated = JSON.parse(seed.get('speakEnglishPracticeCycleV1'));
+  assert.ok(dedicated.practiceStorySeen.includes(first.storyId));
+
+  // Models an unrelated tab that read the old main object before the practice
+  // reservation and finished its whole-object write afterwards.
+  seed.set('speakEnglishV1', staleMainState);
+  const freshTab = runtime(seed);
+  assert.ok(freshTab.api.getState().practiceStorySeen.includes(first.storyId),
+    'the practice-only record must remain authoritative after a stale main-store write');
+  const second = freshTab.api.buildPracticeSession();
+  assert.notEqual(second.storyId, first.storyId,
+    'a stale unrelated save must not put the reserved story back into the bag');
 });
 
 test('unrelated progress from a stale tab cannot reorder recent stories', () => {
@@ -729,12 +1057,25 @@ test('unrelated progress from a stale tab cannot reorder recent stories', () => 
   currentTab.api.rememberPracticeRun(second.sceneId, second.charId, second.storyId);
   assert.notEqual(second.storyId, first.storyId);
 
+  // Move the current tab into a newer cycle. A stale ordinary-progress save
+  // must not resurrect the old cycle's consumed set.
+  const protectedEpoch = 7;
+  const protectedSeen = [second.storyId];
+  currentTab.api.getState().practiceStoryEpoch = protectedEpoch;
+  currentTab.api.getState().practiceStorySeen = protectedSeen.slice();
+  currentTab.api.getState().practiceRecentUpdatedAt += 10;
+  currentTab.api.save();
+
   // This tab only changed ordinary lesson/mission progress after it became
   // stale; it did not start another practice conversation.
   staleTab.api.getState().progressUpdatedAt = currentTab.api.getState().progressUpdatedAt + 1000;
   staleTab.api.save();
   const persisted = JSON.parse(seed.get('speakEnglishV1'));
   assert.deepEqual(persisted.practiceRecentStories.slice(-2), [first.storyId, second.storyId]);
+  assert.equal(persisted.practiceRecentChars.at(-1), second.charId);
+  assert.equal(persisted.practiceRecent.at(-1), second.sceneId);
+  assert.equal(persisted.practiceStoryEpoch, protectedEpoch);
+  assert.deepEqual(persisted.practiceStorySeen, protectedSeen);
   assert.equal(persisted.practiceRecentUpdatedAt, currentTab.api.getState().practiceRecentUpdatedAt);
 });
 
@@ -943,6 +1284,7 @@ test('authored stage actions are narrated, unique and use the supported world co
     'catch-photo', 'return-photo', 'choose-activity', 'confirm-activity',
     'signal-breaks', 'message-arrives', 'lose-ball', 'recover-ball', 'score-ball',
     'dog-appears', 'inspect-dog', 'dog-reunion', 'reveal-robot', 'robot-lights',
+    'story-prop-change', 'story-prop-reveal',
   ]);
   const motions = new Set(['reach-low', 'present', 'swap', 'catch', 'offer', 'react', 'celebrate']);
   const worldValues = {
@@ -958,8 +1300,10 @@ test('authored stage actions are narrated, unique and use the supported world co
     ball: new Set(['held', 'lost', 'scored']),
     lostDog: new Set(['none', 'spotted', 'identified', 'reunited']),
     robot: new Set(['bag', 'awake', 'lit']),
+    storyProp: new Set(['ready', 'changed']),
   };
   const ids = [];
+  const authoredActionIds = new Set();
   const locations = new Map();
   const actionStories = new Set();
 
@@ -970,6 +1314,7 @@ test('authored stage actions are narrated, unique and use the supported world co
     for (const beat of story.beats) for (const variant of storyVariants(beat)) {
       const action = variant.stageAction || beat.stageAction;
       if (!action) continue;
+      authoredActionIds.add(action.id);
       const location = `${story.id}/${beat.id}`;
       assert.ok(variant.event || beat.event, `${location}: a visible action needs matching narration`);
       assert.ok(typeof action.id === 'string' && action.id.trim(), `${story.id}/${beat.id}: missing action id`);
@@ -992,7 +1337,10 @@ test('authored stage actions are narrated, unique and use the supported world co
   }
 
   assert.equal(new Set(ids).size, ids.length, 'stage action ids must be globally unique');
-  assert.equal(ids.length, 27);
+  assert.equal(ids.length, authoredActionIds.size,
+    'the action count must follow the authored catalog instead of a stale fixed total');
+  assert.ok(ids.length >= api.PRACTICE_STORIES.length,
+    'every story needs an action, and richer stories may contain more than one');
   assert.equal(actionStories.size, api.PRACTICE_STORIES.length, 'every randomly selected story needs a physical event');
   for (const [id, location] of locations) {
     const [storyId, beatId] = location.split('/');
@@ -1148,6 +1496,35 @@ test('every story world renders a persistent prop and held objects share the han
   for (const [storyId, world, vars, expected] of renderCases) {
     assert.match(api.stagePropsHtml(modelFor(storyId, world, vars)), expected, `${storyId}: missing final prop`);
   }
+  const genericPropStories = api.PRACTICE_STORIES.filter(story => story.stageProp);
+  assert.ok(genericPropStories.length > 0, 'the expanded catalog needs generic persistent story props');
+  for (const story of genericPropStories) {
+    const ready = api.stagePropsHtml(modelFor(story.id, { storyProp: 'ready' }));
+    assert.match(ready, /prop-story-card[^>]*story-prop-ready/,
+      `${story.id}: generic prop should render in its initial state`);
+    assert.ok(ready.includes(story.stageProp.beforeIcon) && ready.includes(story.stageProp.beforeLabel),
+      `${story.id}: generic prop lost its authored initial content`);
+
+    const revealing = api.stagePropsHtml(modelFor(story.id, { storyProp: 'ready' }, {}, {
+      id: `${story.id}-test-reveal`, gesture: 'story-prop-reveal', motion: 'present',
+    }));
+    assert.match(revealing, /story-prop-ready is-revealing/,
+      `${story.id}: a prop introduced mid-story needs its one-shot reveal class`);
+
+    const changing = api.stagePropsHtml(modelFor(story.id, { storyProp: 'changed' }, {}, {
+      id: `${story.id}-test-change`, gesture: 'story-prop-change', motion: 'present',
+    }));
+    assert.match(changing, /story-prop-changed is-changing/,
+      `${story.id}: generic prop change needs its transition class`);
+
+    const settled = api.stagePropsHtml(modelFor(story.id, { storyProp: 'changed' }));
+    assert.match(settled, /prop-story-card[^>]*story-prop-changed/,
+      `${story.id}: changed generic prop should persist after its action settles`);
+    assert.doesNotMatch(settled, /is-changing/,
+      `${story.id}: settled generic prop must not replay its one-shot animation`);
+    assert.ok(settled.includes(story.stageProp.afterIcon) && settled.includes(story.stageProp.afterLabel),
+      `${story.id}: generic prop lost its authored changed content`);
+  }
   assert.match(api.stageWeatherHtml(modelFor('maya_rainy_beach', { weather: 'rain' })), /rain-field/);
   const dogPair = api.stagePropsHtml(modelFor('maya_lost_dog', { lostDog: 'spotted' }, { size: 'small', collar: 'blue' }));
   assert.match(dogPair, /dog-friend/);
@@ -1272,7 +1649,7 @@ test('stage action markup updates independently and has a reduced-motion final s
     'reduced motion should jump directly to resolved props and sunny weather');
   const reduced = html.match(/@media \(prefers-reduced-motion:reduce\)\{([\s\S]*?)\n\}/)?.[1] || '';
   assert.ok(reduced, 'stage animation needs a reduced-motion contract');
-  assert.doesNotMatch(reduced, /transform:none!important/,
+  assert.doesNotMatch(reduced, /\.person-art[^\{]*\{[^\}]*transform\s*:\s*none!important/,
     'reduced motion must preserve static SVG joints and character accessories');
   assert.match(reduced, /\.stage-moment-fx\{display:none\}/);
 

@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const inline = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 if (!inline) throw new Error('inline app script not found');
 
@@ -48,7 +48,7 @@ function runtime(seed = new Map()) {
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, validSavedSession, normalize, matchDetails, matchScore,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
-      PRACTICE_TOPICS, PRACTICE_CAST, PRACTICE_SCENES, PRACTICE_BACKDROPS, buildPracticeSession, personArt,
+      PRACTICE_TOPICS, PRACTICE_STORIES, PRACTICE_CAST, PRACTICE_SCENES, PRACTICE_BACKDROPS, buildPracticeSession, personArt,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
       manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -86,7 +86,7 @@ test('all seven conversation characters keep the modern layered SVG contract', (
       assert.match(root, new RegExp(`data-character="${id}"`));
       assert.match(root, new RegExp(`data-palette="${id}"`));
       assert.match(root, /data-viseme="rest"/);
-      assert.match(root, /viewBox="0 0 220 270"/);
+      assert.match(root, /viewBox="0 0 220 410"/);
 
       for (const hook of singleHooks)
         assert.equal(classCount(svg, hook), 1, `${id}/${stageState} needs one ${hook} hook`);
@@ -221,7 +221,7 @@ test('every conversation backdrop keeps a safe, distinct, bounded depth-layer co
 
   for (const [id, backdrop] of Object.entries(api.PRACTICE_BACKDROPS)) {
     assert.equal(backdrop.id, id);
-    assert.equal(backdrop.variant, 'layered-v2');
+    assert.equal(backdrop.variant, 'layered-v4');
     assert.match(backdrop.sky, /^#[0-9a-f]{6}$/i);
     assert.match(backdrop.ground, /^#[0-9a-f]{6}$/i);
     assert.equal(classCount(backdrop.art, 'backdrop-far'), 1, `${id} needs one far layer`);
@@ -257,7 +257,7 @@ test('every conversation backdrop keeps a safe, distinct, bounded depth-layer co
 
 test('the stage mounts full-height backdrop SVGs and respects reduced motion', () => {
   assert.match(html,
-    /<div class="stage-bg" data-backdrop="\$\{esc\(bd\.id\)\}"[^>]*>/);
+    /<div class="stage-bg scene-motion-[^"]*" data-backdrop="\$\{esc\(bd\.id\)\}"[^>]*>/);
   assert.match(html,
     /<svg class="backdrop-art backdrop-\$\{esc\(bd\.id\)\}" data-art="\$\{esc\(bd\.id\)\}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">/);
 
@@ -266,8 +266,12 @@ test('the stage mounts full-height backdrop SVGs and respects reduced motion', (
   assert.match(svgRule, /inset:0/);
   assert.match(svgRule, /width:100%/);
   assert.match(svgRule, /height:100%/);
-  assert.match(html,
-    /@media \(prefers-reduced-motion:reduce\)[\s\S]{0,240}\.stage-bg \.ambient\{[^}]*animation:none!important[^}]*transform:none!important/);
+  const reduced = html.match(/@media \(prefers-reduced-motion:reduce\)\{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.match(reduced, /\.stage-bg \.ambient/);
+  assert.match(reduced, /animation:none!important/);
+  assert.match(reduced, /transition:none!important/);
+  assert.doesNotMatch(reduced, /\.stage-bg \.ambient[^\{]*\{[^\}]*transform:none!important/,
+    'reduced motion must keep the backdrop at its authored static position');
 });
 
 test('course content remains intact', () => {
@@ -511,19 +515,26 @@ test('a lesson conversation reads as one coherent exchange', () => {
 
 test('a free practice conversation keeps a natural arc', () => {
   const { api } = runtime();
-  const roleOf = turn => turn.role || 'mid';
+  const variantsOf = beat => Array.isArray(beat.variants) ? beat.variants : [beat];
 
   // A farewell line belongs only to a closing turn — anywhere else the
   // character says goodbye and then keeps talking, which is exactly the
   // 'Have a nice day!' followed by 'How are you?' bug this guards against.
-  for (const topic of api.PRACTICE_TOPICS) {
-    for (const turn of topic.turns) {
-      if (roleOf(turn) === 'close') continue;
-      for (const option of turn.options) {
-        assert.doesNotMatch(option.reply.en, /\b(goodbye|bye|have a nice day)\b/i,
-          `topic ${topic.id}: "${option.reply.en}" says goodbye mid-conversation`);
+  for (const story of api.PRACTICE_STORIES) {
+    story.beats.forEach((beat, beatIndex) => {
+      for (const variant of variantsOf(beat)) {
+        const role = variant.role || beat.role || 'mid';
+        const expected = beatIndex === 0 ? 'open' :
+          beatIndex === story.beats.length - 1 ? 'close' : 'mid';
+        assert.equal(role, expected,
+          `${story.id}/${beat.id}: ${role} turn appears where ${expected} belongs`);
+        if (role === 'close') continue;
+        for (const option of variant.options) {
+          assert.doesNotMatch(option.reply.en, /\b(goodbye|bye|have a nice day)\b/i,
+            `${story.id}/${beat.id}: "${option.reply.en}" says goodbye mid-conversation`);
+        }
       }
-    }
+    });
   }
 
   for (const completed of [1, 2, 5, 9, 14, 20, 30]) {
@@ -534,28 +545,14 @@ test('a free practice conversation keeps a natural arc', () => {
       api.setState(state);
       const session = api.buildPracticeSession();
       if (!session) continue;
-      assert.ok(session.turns.length >= 1);
+      assert.ok(session.story.beats.length >= 1);
+      assert.equal(session.turns, session.story.beats,
+        'a story must keep its own authored turns instead of mixing in filler');
       assert.equal(new Set(session.turns).size, session.turns.length);
-      const roles = session.turns.map(roleOf);
-      roles.forEach((role, n) => {
-        if (role === 'open') assert.equal(n, 0,
-          `${session.topic.id} (completed ${completed}): a greeting ${n} turns into the conversation`);
-        if (role === 'close') assert.equal(n, roles.length - 1,
-          `${session.topic.id} (completed ${completed}): a goodbye before the conversation is over`);
-      });
-      // the chosen topic's middles keep their authored order, so a turn
-      // never presupposes one that has not happened yet
-      const ownOrder = [...session.turns]
-        .filter(turn => session.topic.turns.includes(turn) && roleOf(turn) === 'mid')
-        .map(turn => session.topic.turns.indexOf(turn));
-      assert.deepEqual(ownOrder, [...ownOrder].sort((a, b) => a - b));
-      // a context-bound turn never drifts into another topic's conversation
-      session.turns.forEach(turn => {
-        if (!session.topic.turns.includes(turn)) assert.ok(!turn.stay,
-          `"${turn.ask.en}" needs its own topic's context but drifted into ${session.topic.id}`);
-      });
-      // and nothing not yet taught is ever asked for
-      session.turns.forEach(turn => assert.ok(completed >= turn.min));
+      assert.ok(completed >= session.story.min,
+        `${session.story.id} unlocked before lesson ${session.story.min}`);
+      assert.ok(session.story.sceneIds.includes(session.sceneId),
+        `${session.story.id} drifted into an unrelated scene`);
     }
   }
 });
@@ -839,16 +836,16 @@ test('a completed speaking result resumes without requiring the phrase again', (
 });
 
 test('PWA update code is versioned and does not clear local progress', () => {
-  const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
+  const sw = fs.readFileSync(new URL('./service-worker.js', import.meta.url), 'utf8');
   assert.match(sw, /CACHE_PREFIX\s*=\s*'speak-english-'/);
-  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v6'/);
+  assert.match(sw, /CACHE_NAME\s*=\s*'speak-english-v\d+'/);
   assert.match(sw, /SKIP_WAITING/);
   assert.match(html, /updateViaCache:'none'/);
   assert.doesNotMatch(sw, /localStorage/);
 });
 
 test('service worker preserves network success, offline fallback, and unrelated caches', async () => {
-  const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
+  const sw = fs.readFileSync(new URL('./service-worker.js', import.meta.url), 'utf8');
   const handlers = {};
   const deleted = [];
   let offline = false;
