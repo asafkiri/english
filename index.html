@@ -844,6 +844,9 @@ body{
    glide in while the figure keeps breathing behind them */
 .stage-swap{animation:stageSwap .3s ease both}
 @keyframes stageSwap{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stage-caption.stage-swap:has(.cap-sequence){animation:none}
+.stage-caption.stage-swap:has(.cap-sequence) .cap-current{animation:capCurrentEnter .3s ease both}
+@keyframes capCurrentEnter{from{opacity:.28;transform:translateY(5px)}to{opacity:1;transform:none}}
 .cap-en{direction:ltr;font-size:25px;font-weight:800;line-height:1.35}
 .cap-aid{margin-top:8px;font-size:16px;color:var(--dim)}
 .cap-aid.auto-translation{direction:rtl;max-width:410px;margin:10px auto 0;padding-top:9px;
@@ -855,22 +858,50 @@ body{
 .cap-aid.tl{color:var(--amber);font-weight:700}
 .cap-aid[hidden]{display:none}
 .cap-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.cap-sequence{display:grid;gap:11px}
+.cap-previous{padding:9px 10px;border:1px solid rgba(148,163,184,.2);border-radius:13px;
+  background:rgba(148,163,184,.075);direction:ltr;text-align:center}
+.cap-previous-copy{min-width:0}.cap-turn-label{direction:rtl;text-align:right;font-size:12.5px;font-weight:850;
+  color:#91a1be;line-height:1.2;margin-bottom:4px}
+.cap-current .cap-turn-label{color:var(--blue);margin:0 2px 6px}
+.cap-previous-en{direction:ltr;font-size:18px;font-weight:750;line-height:1.32;color:#dde5f4}
+.cap-previous-he{direction:rtl;margin-top:4px;font-size:14.5px;font-weight:600;line-height:1.38;color:#aebbd2}
 .cap-typing{font-size:16px;color:var(--dim);display:flex;align-items:center;justify-content:center;gap:6px}
 .cap-intent{font-size:23px;font-weight:800;line-height:1.35}
 .cap-intent-note{font-size:13.5px;color:var(--dim);margin-top:6px}
 .cap-sent{font-size:18px;font-weight:700;color:var(--green)}
+@media (min-height:701px) and (max-height:960px){
+  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(118px,19vh,158px)}
+}
+@media (min-height:701px) and (max-height:760px){
+  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(112px,18vh,146px)}
+}
+@media (max-width:390px){
+  .cap-sequence{gap:8px}.cap-previous{padding:8px 9px}
+  .cap-previous-en{font-size:17px}.cap-previous-he{font-size:14px}
+  .cap-actions{gap:6px}
+}
+@media (max-width:350px){
+  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(106px,18vh,138px)}
+  .cap-previous-en{font-size:16.5px}.cap-previous-he{font-size:13.5px}
+}
 @media (max-height:700px){
   .cap-en{font-size:22px}.cap-intent{font-size:20px}
   .stage-screen .stage{--avatar:clamp(112px,20vh,148px);gap:6px;padding-top:8px}
+  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(108px,18vh,136px)}
   .stage-screen .stage-caption{padding:12px}
 }
 @media (max-height:620px){
   .stage-screen .stage{--avatar:clamp(108px,19vh,124px);gap:4px;padding:5px 12px}
+  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(104px,17vh,116px)}
   .stage-place{font-size:12px}.stage-name{font-size:16px}.stage-name span{font-size:11.5px}
   .stage-status{font-size:13px;padding:6px 11px}
   .stage-screen .stage-caption{padding:10px 11px;border-radius:15px}
   .cap-en{font-size:20px;line-height:1.28}
   .cap-aid.auto-translation{margin-top:7px;padding-top:6px;font-size:14px;line-height:1.38}
+  .cap-sequence{gap:8px}.cap-previous{padding:7px 8px;gap:7px}
+  .cap-previous-en{font-size:16.5px}.cap-previous-he{font-size:13.5px;margin-top:3px}
+  .cap-current .cap-turn-label{margin-bottom:4px}
   .cap-actions{margin-top:8px}
 }
 @media (prefers-reduced-motion:reduce){.cap-aid.auto-translation.delayed{animation:none;opacity:1;transform:none}}
@@ -4700,7 +4731,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.9.0';
+const APP_VERSION = '2.9.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7188,9 +7219,43 @@ function captionHtml(line, step, opts={}){
     <div class="cap-aid auto-translation${translationClass}" id="capHe" dir="rtl" lang="he">${esc(he)}</div>
     <div class="cap-aid tl" id="capTl" ${step?.showTl?'':'hidden'}>${esc(tl)}</div>
     <div class="cap-actions">
+      ${opts.previousReplay?`<button class="bubble-action" onclick="replayStageLine('previous')" aria-label="השמע שוב את המשפט הקודם">קודם 🔊</button>`:''}
       ${opts.replay!==false?`<button class="bubble-action" onclick="replayStageLine()" aria-label="השמע שוב">🔊</button>`:''}
       <button class="bubble-action" aria-pressed="${!!step?.showTl}" onclick="toggleCaptionAid('tl',this)">איך מבטאים?</button>
     </div>`;
+}
+/* A reply followed immediately by the character's next question is one
+   natural turn. Keep that reply in working memory instead of replacing it:
+   only the adjacent pair is shown, so older or learner-separated messages
+   never grow into a second chat history inside the stage. */
+function stageCaptionSequence(){
+  const step=L?.steps?.[L.i];
+  const currentIndex=step?.type==='listen'?L.i:step?.type==='branchChoice'?L.i-1:-1;
+  const current=L?.steps?.[currentIndex];
+  if(currentIndex<0||current?.type!=='listen'||!current.line) return [];
+  const previous=L.steps[currentIndex-1];
+  return previous?.type==='listen'&&previous.line?[previous,current]:[current];
+}
+function stagePreviousCaptionHtml(item){
+  const en=ptext(item.line,'en'),he=ptext(item.line,'he');
+  return `<div class="cap-previous" data-caption-role="previous">
+    <div class="cap-previous-copy">
+      <div class="cap-turn-label">קודם</div>
+      <div class="cap-previous-en" dir="ltr" lang="en">${esc(en)}</div>
+      <div class="cap-previous-he" dir="rtl" lang="he">${esc(he)}</div>
+    </div>
+  </div>`;
+}
+function stageCaptionHtml(line,step,opts={}){
+  const sequence=stageCaptionSequence();
+  if(sequence.length<2) return captionHtml(line,step,opts);
+  return `<div class="cap-sequence">
+    ${stagePreviousCaptionHtml(sequence[0])}
+    <div class="cap-current" data-caption-role="current">
+      <div class="cap-turn-label">עכשיו</div>
+      ${captionHtml(line,step,{...opts,previousReplay:true})}
+    </div>
+  </div>`;
 }
 function toggleCaptionAid(kind, button){
   const step=L?.steps?.[L.i];
@@ -7209,7 +7274,9 @@ function stageCaptionLine(){
   if(step.type==='listen') return step.line;
   // while choosing an answer the caption still shows the last thing the
   // character said — that is the line the replay button must repeat
-  if(step.type==='branchChoice') return [...(L.chat||[])].reverse().find(x=>x.who==='app')?.line || null;
+  if(step.type==='branchChoice') return L.steps[L.i-1]?.type==='listen'
+    ? L.steps[L.i-1].line
+    : [...(L.chat||[])].reverse().find(x=>x.who==='app')?.line || null;
   return step.p || null;
 }
 function keepStageCaptionVisible(force=false){
@@ -7245,8 +7312,9 @@ function announceStageEvent(event){
     if(document.getElementById('stageEventAnnouncer')===announcer) announcer.textContent=text;
   });
 }
-function replayStageLine(){
-  const line=stageCaptionLine();
+function replayStageLine(which='current'){
+  const sequence=stageCaptionSequence();
+  const line=which==='previous'&&sequence.length>1?sequence[0].line:stageCaptionLine();
   if(!line) return;
   replayHoldingFlow(ptext(line,'en',true));
 }
@@ -7867,7 +7935,7 @@ function renderListen(step){
     const eventHtml=storyEventHtml(step.event);
     stageShell(step.arrived?'speaking':'waiting',
       step.arrived
-        ? eventHtml+captionHtml(line,step)
+        ? eventHtml+stageCaptionHtml(line,step)
         : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
       composer,
       step.arrived?'speaking':'incoming',
@@ -7924,9 +7992,9 @@ function renderBranchChoice(step){
       ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranch(${i})">${esc(fillProfileText(o.label,'he'))}</button>`).join('')}
     </div>`;
   if(L.isPractice){
-    const prev=[...(L.chat||[])].reverse().find(x=>x.who==='app');
+    const currentLine=stageCaptionLine();
     const eventHtml=storyEventHtml(step.event);
-    stageShell('waiting', eventHtml+(prev?captionHtml(prev.line,step,{translationDelay:false}):'<div class="cap-typing">מה אפשר לענות?</div>'), composer, 'choosing');
+    stageShell('waiting', eventHtml+(currentLine?stageCaptionHtml(currentLine,step,{translationDelay:false}):'<div class="cap-typing">מה אפשר לענות?</div>'), composer, 'choosing');
   } else {
     dialogueShell(chatMessagesHtml(), composer);
   }

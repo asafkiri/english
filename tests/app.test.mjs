@@ -61,7 +61,8 @@ function runtime(seed = new Map()) {
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
-      manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, captionHtml, chatMessagesHtml,
+      manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, stageCaptionSequence,
+      stageCaptionHtml, captionHtml, chatMessagesHtml,
       keepStageCaptionVisible,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -796,6 +797,70 @@ test('free-practice captions keep Hebrew visible but let English lead', () => {
   assert.doesNotMatch(history, /id="bubble-he-history-0"[^>]*hidden/,
     'practice history should keep the translation visible too');
   assert.doesNotMatch(history, /toggleBubbleAid\('history',0,'he'/);
+  api.setLesson(null);
+});
+
+test('a consecutive reply and question stay together until the learner answers', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  api.setState(state);
+  const stale = { en: 'STALE BOT LINE', he: 'משפט ישן', tl: 'סְטֵייל' };
+  const learner = { en: 'LEARNER TURN', he: 'תור הלומד', tl: 'לֶרְנֶר' };
+  const first = { en: 'FIRST RUN ON LINE', he: 'המשפט הראשון נשאר', tl: 'פֶרְסְט' };
+  const second = { en: 'SECOND RUN ON LINE', he: 'המשפט השני מוצג', tl: 'סֶקֶנְד' };
+  const lesson = {
+    idx: 0, i: 3, isReplay: true, isPractice: true,
+    steps: [
+      { type: 'listen', line: stale, arrived: true, chatAdded: true },
+      { type: 'speak', p: learner, isDlg: true, chatAdded: true },
+      { type: 'listen', line: first, arrived: true, chatAdded: true },
+      { type: 'listen', line: second, arrived: true },
+      { type: 'branchChoice', options: [{ label: 'תשובה א' }, { label: 'תשובה ב' }] },
+    ],
+    chat: [{ who: 'app', line: stale }, { who: 'you', line: learner }, { who: 'app', line: first }],
+    practiceStoryId: 'first_art_class', practiceVars: {}, practiceDecisions: [],
+    practiceMeta: {
+      characterId: 'dana', character: { name: 'דנה', avatar: '🎨', color: '#38bdf8', f: true },
+      placeEmoji: '🎨', place: 'בחוג', mission: 'לדבר באנגלית', role: 'מדריכה', bg: 'art-studio',
+    },
+    stageWorld: api.initialPracticeStageWorld('first_art_class'), stagePlayedActions: [], pendingStageAction: null,
+    elapsedBeforeMs: 0, activeSince: Date.now(), chatExpanded: false,
+    tries: 0, attempts: 0, rec: null, timerId: null, runId: 'caption-sequence-test',
+  };
+  api.setLesson(lesson);
+
+  lesson.i = 2;
+  assert.deepEqual(Array.from(api.stageCaptionSequence(), item => item.line.en), [first.en],
+    'a learner turn must break the caption sequence');
+  lesson.i = 3;
+  assert.deepEqual(Array.from(api.stageCaptionSequence(), item => item.line.en), [first.en, second.en]);
+  api.renderStep();
+  for (const value of [first.en, first.he, second.en, second.he]) assert.ok(app.innerHTML.includes(value));
+  assert.ok(app.innerHTML.indexOf(first.en) < app.innerHTML.indexOf(second.en));
+  assert.ok(!app.innerHTML.includes(stale.en), 'older lines must remain in history rather than accumulating on stage');
+  assert.equal((app.innerHTML.match(/auto-translation delayed/g) || []).length, 1,
+    'only the newly spoken line should reveal its translation after English');
+  assert.equal((app.innerHTML.match(/id="capHe"/g) || []).length, 1);
+  assert.equal((app.innerHTML.match(/id="capTl"/g) || []).length, 1);
+  assert.match(app.innerHTML, /onclick="replayStageLine\('previous'\)"/,
+    'the retained sentence needs its own replay control');
+  assert.match(html, /\.stage-caption\.stage-swap:has\(\.cap-sequence\)\{animation:none\}/,
+    'the retained sentence should not fade out and back when the next one arrives');
+  assert.match(html, /@media \(min-height:701px\) and \(max-height:960px\)[\s\S]*\.stage-screen \.stage:has\(\.cap-sequence\)/,
+    'the stacked caption should make room on the learner\'s 932px-tall phone');
+
+  api.next();
+  assert.equal(lesson.i, 4);
+  for (const value of [first.en, first.he, second.en, second.he]) assert.ok(app.innerHTML.includes(value));
+  assert.ok(!app.innerHTML.includes(stale.en));
+  assert.equal((app.innerHTML.match(/auto-translation delayed/g) || []).length, 0,
+    'neither sentence should flash away again while choosing an answer');
+  assert.equal((app.innerHTML.match(/id="capHe"/g) || []).length, 1);
+  assert.equal((app.innerHTML.match(/id="capTl"/g) || []).length, 1);
+
+  api.stopLessonTimers(false);
   api.setLesson(null);
 });
 
