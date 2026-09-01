@@ -46,12 +46,15 @@ function runtime(seed = new Map()) {
     ;globalThis.__test = {
       UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
-      defaults, load, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
+      defaults, load, save, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
-      PRACTICE_TOPICS, PRACTICE_SCENES, buildPracticeSession, rememberPracticeRun,
+      PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES,
+      practiceStoryById, practiceSceneById, matchesPracticeWhen, resolvePracticeBeat,
+      applyPracticeChoice, fillPracticeStoryTokens, fillProfileText, materializePracticeBeat,
+      buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
-      manualMicDone, answerListenQuiz, chooseBranch, notePractice, stageCaptionLine,
+      manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, chatMessagesHtml,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -86,6 +89,7 @@ test('old local state migrates without losing progress', () => {
   const seed = new Map([['speakEnglishV1', JSON.stringify({
     name: 'נועם', onboarded: true, completed: 12.8, streak: 6,
     slowSpeech: false, micEnabled: true, hard: ['1:2', '1:2', null],
+    practiceRecentStories: ['morning_robot'], progressUpdatedAt: 1234,
   })]]);
   const { api } = runtime(seed);
   const state = api.getState();
@@ -98,6 +102,8 @@ test('old local state migrates without losing progress', () => {
   assert.equal(state.reviewMeta['1:2'].lapses, 0);
   assert.deepEqual([...state.lastWarmupIds], []);
   assert.deepEqual([...state.finishedRuns], []);
+  assert.deepEqual([...state.practiceRecentStories], ['morning_robot']);
+  assert.equal(state.practiceRecentUpdatedAt, 1234);
   assert.equal(state.session, null);
 });
 
@@ -340,95 +346,489 @@ test('a lesson conversation reads as one coherent exchange', () => {
   }
 });
 
-test('a free practice conversation keeps a natural arc', () => {
-  const { api } = runtime();
-  const roleOf = turn => turn.role || 'mid';
+const EXPECTED_PRACTICE_STORIES = [
+  ['morning_robot', 1, 4],
+  ['first_art_class', 2, 5],
+  ['phone_in_elevator', 5, 6],
+  ['family_photo_wind', 6, 6],
+  ['school_activity', 7, 7],
+  ['lost_bag', 10, 7],
+  ['restaurant_mixup', 12, 7],
+  ['broken_phone_plan', 17, 8],
+  ['tom_last_shot', 19, 9],
+  ['nina_wrong_bag', 23, 8],
+  ['maya_lost_dog', 26, 10],
+  ['maya_rainy_beach', 29, 10],
+];
 
-  // A farewell line belongs only to a closing turn — anywhere else the
-  // character says goodbye and then keeps talking, which is exactly the
-  // 'Have a nice day!' followed by 'How are you?' bug this guards against.
-  for (const topic of api.PRACTICE_TOPICS) {
-    for (const turn of topic.turns) {
-      if (roleOf(turn) === 'close') continue;
-      for (const option of turn.options) {
-        assert.doesNotMatch(option.reply.en, /\b(goodbye|bye|have a nice day)\b/i,
-          `topic ${topic.id}: "${option.reply.en}" says goodbye mid-conversation`);
+const PROFILE_PLACEHOLDERS = new Set(['name', 'age', 'interest', 'food', 'color', 'animal']);
+
+function storyVariants(beat) {
+  return Array.isArray(beat.variants) ? beat.variants : [beat];
+}
+
+function assertTrilingual(line, where) {
+  assert.ok(line && typeof line === 'object', `${where}: missing line`);
+  for (const field of ['en', 'he', 'tl']) {
+    assert.ok(typeof line[field] === 'string' && line[field].trim(), `${where}: missing ${field}`);
+  }
+}
+
+function englishWords(value) {
+  return String(value).toLowerCase().replace(/\{[a-z][a-z0-9_]*\}/gi, ' ').match(/[a-z']+/g) || [];
+}
+
+function learnedEnglishByCompleted(api) {
+  const seen = new Set(['and', 'a', 'the', 'i', 'it', 'is', 'you', 'my', 'to', 'too', 'or']);
+  const learned = [new Set(seen)];
+  for (let idx = 0; idx < api.LESSONS.length; idx++) {
+    for (const line of [...api.LESSONS[idx].phrases, ...api.LESSONS[idx].dialogue]) {
+      englishWords(line.en).forEach(word => seen.add(word));
+    }
+    for (const round of api.conversationRounds(idx)) {
+      englishWords(round.ask.en).forEach(word => seen.add(word));
+      for (const option of round.options) {
+        englishWords(option.answer.en).forEach(word => seen.add(word));
+        englishWords(option.reply.en).forEach(word => seen.add(word));
       }
     }
+    learned.push(new Set(seen));
   }
+  return learned;
+}
 
-  for (const completed of [1, 2, 5, 9, 14, 20, 30]) {
-    for (let attempt = 0; attempt < 30; attempt++) {
-      const state = api.defaults();
-      state.onboarded = true;
-      state.completed = completed;
-      api.setState(state);
-      const session = api.buildPracticeSession();
-      if (!session) continue;
-      assert.ok(session.turns.length >= 1);
-      assert.equal(new Set(session.turns).size, session.turns.length);
-      const roles = session.turns.map(roleOf);
-      roles.forEach((role, n) => {
-        if (role === 'open') assert.equal(n, 0,
-          `${session.topic.id} (completed ${completed}): a greeting ${n} turns into the conversation`);
-        if (role === 'close') assert.equal(n, roles.length - 1,
-          `${session.topic.id} (completed ${completed}): a goodbye before the conversation is over`);
-      });
-      // the chosen topic's middles keep their authored order, so a turn
-      // never presupposes one that has not happened yet
-      const ownOrder = [...session.turns]
-        .filter(turn => session.topic.turns.includes(turn) && roleOf(turn) === 'mid')
-        .map(turn => session.topic.turns.indexOf(turn));
-      assert.deepEqual(ownOrder, [...ownOrder].sort((a, b) => a - b));
-      // a context-bound turn never drifts into another topic's conversation
-      session.turns.forEach(turn => {
-        if (!session.topic.turns.includes(turn)) assert.ok(!turn.stay,
-          `"${turn.ask.en}" needs its own topic's context but drifted into ${session.topic.id}`);
-      });
-      // and nothing not yet taught is ever asked for
-      session.turns.forEach(turn => assert.ok(completed >= turn.min));
-    }
+function normalizedEcho(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9']+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function fillStoryLine(api, story, vars, value, field = 'en') {
+  return api.fillPracticeStoryTokens(value || '', field, story.id, vars);
+}
+
+function futureStorySignature(api, story, startAt, initialVars) {
+  let vars = { ...initialVars };
+  const signature = [];
+  for (let i = startAt; i < story.beats.length; i++) {
+    const beat = api.resolvePracticeBeat(story, i, vars);
+    if (!beat) return 'UNRESOLVED';
+    signature.push(beat.variantId, fillStoryLine(api, story, vars, beat.ask.en));
+    if (beat.event) signature.push(fillStoryLine(api, story, vars, beat.event.he, 'he'));
+    const option = beat.options[0];
+    vars = api.applyPracticeChoice(vars, option);
+    signature.push(
+      fillStoryLine(api, story, vars, option.answer.en),
+      fillStoryLine(api, story, vars, option.reply.en),
+    );
   }
+  signature.push(fillStoryLine(api, story, vars, story.ending, 'he'));
+  return JSON.stringify(signature);
+}
+
+test('every authored free-practice path is complete, coherent and learned', () => {
+  const { api } = runtime();
+  const taught = learnedEnglishByCompleted(api);
+  const actualCatalog = [...api.PRACTICE_STORIES]
+    .sort((a, b) => a.min - b.min)
+    .map(story => [story.id, story.min, story.beats.length]);
+  assert.deepEqual(actualCatalog, EXPECTED_PRACTICE_STORIES);
+  assert.equal(new Set(api.PRACTICE_STORIES.map(story => story.id)).size, api.PRACTICE_STORIES.length);
+
+  for (const story of api.PRACTICE_STORIES) {
+    assert.equal(api.practiceStoryById(story.id), story);
+    assert.ok(Number.isInteger(story.min) && story.min >= 1 && story.min <= api.LESSONS.length);
+    assert.ok(story.goal && story.open && story.ending, `${story.id}: needs a goal, opening and ending`);
+    assert.ok(Array.isArray(story.sceneIds) && story.sceneIds.length, `${story.id}: needs a scene`);
+    story.sceneIds.forEach(sceneId => assert.ok(api.practiceSceneById(sceneId),
+      `${story.id}: unknown scene ${sceneId}`));
+    assert.equal(new Set(story.beats.map(beat => beat.id)).size, story.beats.length,
+      `${story.id}: duplicate beat id`);
+
+    for (const [key, values] of Object.entries(story.values || {})) {
+      assert.ok(values && typeof values === 'object' && !Array.isArray(values), `${story.id}: bad values.${key}`);
+      for (const [valueId, line] of Object.entries(values)) assertTrilingual(line,
+        `${story.id}: values.${key}.${valueId}`);
+    }
+
+    const allStoryText = JSON.stringify(story);
+    for (const token of allStoryText.matchAll(/\{([a-z][a-z0-9_]*)\}/gi)) {
+      const key = token[1];
+      assert.ok(PROFILE_PLACEHOLDERS.has(key) || story.values?.[key],
+        `${story.id}: unknown token {${key}}`);
+    }
+
+    story.beats.forEach((beat, beatIndex) => {
+      const variants = storyVariants(beat);
+      const conditionalIds = variants.filter(variant => variant.when).map(variant => variant.id);
+      assert.equal(new Set(conditionalIds).size, conditionalIds.length,
+        `${story.id} beat ${beat.id}: duplicate conditional variant id`);
+      variants.forEach((variant, variantIndex) => {
+        assertTrilingual(variant.ask, `${story.id} beat ${beat.id} variant ${variant.id || variantIndex} ask`);
+        if (variant.event) assert.ok(typeof variant.event.he === 'string' && variant.event.he.trim(),
+          `${story.id} beat ${beat.id}: event needs Hebrew narration`);
+        assert.ok(Array.isArray(variant.options) && variant.options.length >= 2,
+          `${story.id} beat ${beat.id}: every variant needs at least two choices`);
+        assert.equal(new Set(variant.options.map(option => option.id)).size, variant.options.length,
+          `${story.id} beat ${beat.id}: duplicate option id`);
+        for (const [key, value] of Object.entries(variant.when || {})) {
+          assert.ok(['string', 'number', 'boolean'].includes(typeof value),
+            `${story.id} beat ${beat.id}: when.${key} must be primitive`);
+        }
+        variant.options.forEach((option, optionIndex) => {
+          assert.ok(option.id && option.label, `${story.id} beat ${beat.id} option ${optionIndex}: missing id/label`);
+          assertTrilingual(option.answer, `${story.id} beat ${beat.id} option ${option.id} answer`);
+          assertTrilingual(option.reply, `${story.id} beat ${beat.id} option ${option.id} reply`);
+          for (const [key, value] of Object.entries(option.set || {})) {
+            assert.ok(['string', 'number', 'boolean'].includes(typeof value),
+              `${story.id} beat ${beat.id}: set.${key} must be primitive`);
+            if (story.values?.[key]) assert.ok(story.values[key][value],
+              `${story.id} beat ${beat.id}: set.${key}=${value} has no display value`);
+            const later = JSON.stringify(story.beats.slice(beatIndex + 1));
+            const usedByCondition = story.beats.slice(beatIndex + 1).some(laterBeat =>
+              storyVariants(laterBeat).some(laterVariant =>
+                Object.prototype.hasOwnProperty.call(laterVariant.when || {}, key)));
+            const usedByToken = later.includes(`{${key}}`) || String(story.ending).includes(`{${key}}`);
+            assert.ok(usedByCondition || usedByToken,
+              `${story.id} beat ${beat.id}: set.${key} is never remembered later`);
+          }
+        });
+      });
+    });
+
+    const variantHits = new Set();
+    let pathCount = 0;
+    let rememberedChoiceComparisons = 0;
+    const walk = (beatIndex, vars, eventCount, previousReply, priorEnglish) => {
+      if (beatIndex === story.beats.length) {
+        pathCount++;
+        assert.ok(eventCount > 0, `${story.id}: every complete path needs a story event`);
+        const ending = fillStoryLine(api, story, vars, story.ending, 'he');
+        for (const key of Object.keys(story.values || {})) assert.doesNotMatch(ending, new RegExp(`\\{${key}\\}`),
+          `${story.id}: ending uses {${key}} before it is set`);
+        return;
+      }
+
+      const resolved = api.resolvePracticeBeat(story, beatIndex, vars);
+      assert.ok(resolved, `${story.id} beat ${beatIndex}: no variant for ${JSON.stringify(vars)}`);
+      const expectedRole = beatIndex === 0 ? 'open' : beatIndex === story.beats.length - 1 ? 'close' : 'mid';
+      assert.equal(resolved.role, expectedRole, `${story.id} beat ${beatIndex}: wrong conversation role`);
+      const variants = storyVariants(story.beats[beatIndex]);
+      const rawIndex = variants.findIndex(variant => variant.ask === resolved.ask && variant.options === resolved.options);
+      assert.ok(rawIndex >= 0, `${story.id} beat ${beatIndex}: resolver drifted outside its story`);
+      const expected = variants.find(variant => variant.when && api.matchesPracticeWhen(variant.when, vars)) ||
+        variants.find(variant => !variant.when);
+      assert.equal(variants[rawIndex], expected, `${story.id} beat ${beatIndex}: wrong conditional variant`);
+      variantHits.add(`${beatIndex}:${rawIndex}`);
+
+      const renderedAsk = fillStoryLine(api, story, vars, resolved.ask.en);
+      for (const key of Object.keys(story.values || {})) assert.doesNotMatch(renderedAsk, new RegExp(`\\{${key}\\}`),
+        `${story.id} beat ${beatIndex}: ask uses {${key}} before it is set`);
+      const echo = normalizedEcho(previousReply);
+      const nextAsk = normalizedEcho(renderedAsk);
+      if (echo.split(' ').length >= 2) assert.ok(nextAsk !== echo && !nextAsk.startsWith(`${echo} `),
+        `${story.id} beat ${beatIndex}: repeats the prior reply "${previousReply}" as the next line`);
+
+      for (let left = 0; left < resolved.options.length; left++) {
+        for (let right = left + 1; right < resolved.options.length; right++) {
+          const a = resolved.options[left], b = resolved.options[right];
+          if (JSON.stringify(a.set || {}) === JSON.stringify(b.set || {})) continue;
+          rememberedChoiceComparisons++;
+          const afterA = api.applyPracticeChoice(vars, a);
+          const afterB = api.applyPracticeChoice(vars, b);
+          assert.notEqual(
+            futureStorySignature(api, story, beatIndex + 1, afterA),
+            futureStorySignature(api, story, beatIndex + 1, afterB),
+            `${story.id} beat ${beatIndex}: ${a.id}/${b.id} stores a choice but never changes a later turn`,
+          );
+        }
+      }
+
+      resolved.options.forEach(option => {
+        const beforeVars = JSON.stringify(vars);
+        const beforeOption = JSON.stringify(option);
+        const nextVars = api.applyPracticeChoice(vars, option);
+        assert.equal(JSON.stringify(vars), beforeVars, `${story.id}: applyPracticeChoice mutated its input`);
+        assert.equal(JSON.stringify(option), beforeOption, `${story.id}: applyPracticeChoice mutated authored data`);
+        for (const [key, value] of Object.entries(option.set || {})) assert.equal(nextVars[key], value);
+
+        const answer = fillStoryLine(api, story, nextVars, option.answer.en);
+        const reply = fillStoryLine(api, story, nextVars, option.reply.en);
+        for (const key of Object.keys(story.values || {})) {
+          assert.doesNotMatch(answer, new RegExp(`\\{${key}\\}`),
+            `${story.id} beat ${beatIndex}: answer uses {${key}} before it is set`);
+          assert.doesNotMatch(reply, new RegExp(`\\{${key}\\}`),
+            `${story.id} beat ${beatIndex}: reply uses {${key}} before it is set`);
+        }
+        englishWords(answer).forEach(word => assert.ok(taught[story.min].has(word),
+          `${story.id} (min ${story.min}) asks for untaught "${word}" in "${answer}"`));
+        if (/\bnice to meet you too\b/i.test(answer)) {
+          assert.match(`${priorEnglish} ${renderedAsk}`, /\bnice to meet you\b/i,
+            `${story.id} beat ${beatIndex}: learner says "too" before the other person says nice to meet you`);
+        }
+        assert.doesNotMatch(reply, /\?\s*$/, `${story.id} beat ${beatIndex}: reply asks a question nobody can answer`);
+        if (beatIndex < story.beats.length - 1) {
+          for (const line of [renderedAsk, answer, reply]) assert.doesNotMatch(line,
+            /\b(goodbye|bye|have a nice day)\b/i,
+            `${story.id} beat ${beatIndex}: "${line}" ends the conversation too early`);
+        }
+        walk(beatIndex + 1, nextVars, eventCount + (resolved.event ? 1 : 0), reply,
+          `${priorEnglish} ${renderedAsk} ${answer} ${reply}`);
+      });
+    };
+
+    walk(0, {}, 0, '', '');
+    assert.ok(pathCount > 0 && pathCount < 200_000, `${story.id}: unreasonable path count ${pathCount}`);
+    assert.ok(rememberedChoiceComparisons > 0, `${story.id}: no choice affects a later turn`);
+    story.beats.forEach((beat, beatIndex) => storyVariants(beat).forEach((variant, variantIndex) => {
+      if (variant.when) assert.ok(variantHits.has(`${beatIndex}:${variantIndex}`),
+        `${story.id} beat ${beatIndex}: conditional variant ${variant.id || variantIndex} is unreachable`);
+    }));
+  }
+  assert.equal(api.practiceStoryById('not-a-real-story'), null);
 });
 
-test('free practice rotates the person you talk to, not just the scene', () => {
+test('story values win over profile placeholders with the same name', () => {
   const { api } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+  const profileFallback = { food: 'pizza', color: 'blue', animal: 'dogs', interest: 'music' };
+  for (const story of api.PRACTICE_STORIES) {
+    for (const key of Object.keys(story.values || {}).filter(name => name in profileFallback)) {
+      const chosen = Object.keys(story.values[key]).find(valueId =>
+        story.values[key][valueId].en !== profileFallback[key]);
+      if (!chosen) continue;
+      api.setLesson({ practiceStoryId: story.id, practiceVars: { [key]: chosen } });
+      assert.equal(api.ptext({ en: `{${key}}` }, 'en'), story.values[key][chosen].en,
+        `${story.id}: {${key}} was replaced by the profile instead of the story choice`);
+    }
+  }
+  api.setLesson(null);
+});
 
-  for (const completed of [1, 2, 5, 8, 12, 20, 30]) {
-    // everyone the learner could meet at this point in the course
-    const pool = api.PRACTICE_TOPICS
-      .filter(t => completed >= t.min && t.turns.some(turn => completed >= turn.min))
-      .flatMap(t => api.PRACTICE_SCENES[t.id] || []);
-    const cast = new Set(pool.map(scene => scene.who));
+test('authored story text respects the learner gender, including remembered values', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.profile.gender = 'female';
+  api.setState(state);
+  api.setLesson({ practiceStoryId: 'tom_last_shot', practiceVars: { cheer: 'believe' } });
+  assert.equal(api.fillProfileText('{cheer}', 'he'), 'אני מאמינה בך');
+  assert.equal(api.fillProfileText('האם [[אתה מוכן|את מוכנה]]?', 'he'), 'האם את מוכנה?');
+  assert.equal(api.fillProfileText('[[בוא|בואי]] איתי', 'he'), 'בואי איתי');
+  const benClose = api.PRACTICE_STORIES.find(story => story.id === 'family_photo_wind')
+    .beats.find(beat => beat.id === 'return_photo');
+  assert.equal(api.fillProfileText(benClose.options.find(option => option.id === 'care').answer.he, 'he'),
+    'תודה! שמור על עצמך!', 'the learner addresses Ben, so Ben stays masculine');
+  const tomContact = api.PRACTICE_STORIES.find(story => story.id === 'broken_phone_plan')
+    .beats.find(beat => beat.id === 'contact');
+  assert.equal(api.fillProfileText(tomContact.options.find(option => option.id === 'tom_texts').answer.he, 'he'),
+    'שלח לי הודעה', 'the learner addresses Tom, so Tom stays masculine');
+  const rainyBeach = api.PRACTICE_STORIES.find(story => story.id === 'maya_rainy_beach');
+  assert.match(api.fillProfileText(rainyBeach.open, 'he'), /אתן בודקות ואורזות/);
+  for (const story of api.PRACTICE_STORIES) {
+    const authored = JSON.stringify(story);
+    assert.doesNotMatch(authored, /\[\[\[\[/, `${story.id}: malformed gender marker`);
+    assert.doesNotMatch(authored, /נ\[\[תראה/, `${story.id}: changed the neutral word נתראה`);
+  }
+  api.setLesson(null);
+});
 
+test('free practice unlocks whole stories and rotates recent stories', () => {
+  const { api } = runtime();
+  for (const completed of [0, 1, 2, 5, 6, 7, 10, 12, 17, 19, 23, 26, 29, 30]) {
     const state = api.defaults();
     state.onboarded = true;
     state.completed = completed;
     api.setState(state);
-
-    const people = [];
-    const places = [];
-    for (let run = 0; run < 14; run++) {
-      const session = api.buildPracticeSession();
-      assert.ok(session, `completed ${completed}: practice should be available`);
-      // exactly what startPractice does — recorded as the conversation opens,
-      // so walking out of one still counts as having seen it
-      api.rememberPracticeRun(session.sceneId, session.charId);
-      people.push(session.charId);
-      places.push(session.sceneId);
+    const eligible = api.PRACTICE_STORIES.filter(story => story.min <= completed);
+    const session = api.buildPracticeSession();
+    if (!eligible.length) {
+      assert.equal(session, null);
+      continue;
     }
-
-    for (let i = 1; i < people.length; i++) {
-      if (cast.size > 1) assert.notEqual(people[i], people[i - 1],
-        `completed ${completed}: ${people[i]} turned up twice in a row (${people.join(' → ')})`);
-      if (pool.length > 1) assert.notEqual(places[i], places[i - 1],
-        `completed ${completed}: the same scene ran twice in a row`);
-    }
-
-    // and the rotation reaches everybody rather than ping-ponging between two
-    assert.equal(new Set(people).size, Math.min(cast.size, people.length),
-      `completed ${completed}: only met ${new Set(people).size} of ${cast.size} people in 14 conversations`);
+    assert.ok(eligible.includes(session.story), `completed ${completed}: selected a locked story`);
+    assert.equal(session.storyId, session.story.id);
+    assert.equal(session.turns, session.story.beats, `${session.storyId}: mixed in unrelated turns`);
+    assert.ok(session.story.sceneIds.includes(session.sceneId), `${session.storyId}: used an unrelated scene`);
+    assert.equal(session.meta.mission, session.story.goal);
+    if (completed >= 18) assert.ok(session.turns.length >= 7,
+      `completed ${completed}: late-course practice should be a substantial conversation`);
   }
+
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  api.setState(state);
+  const storyIds = [];
+  for (let run = 0; run < 24; run++) {
+    const session = api.buildPracticeSession();
+    assert.ok(session);
+    assert.ok(!storyIds.slice(-6).includes(session.storyId),
+      `story repeated inside the recency window: ${storyIds.join(' → ')} → ${session.storyId}`);
+    api.rememberPracticeRun(session.sceneId, session.charId, session.storyId);
+    storyIds.push(session.storyId);
+    assert.equal(api.getState().practiceRecentStories.at(-1), session.storyId);
+    assert.ok(api.getState().practiceRecentStories.length <= 8);
+    assert.equal(new Set(api.getState().practiceRecentStories).size, api.getState().practiceRecentStories.length);
+  }
+  assert.equal(new Set(storyIds.slice(0, 7)).size, 7, 'the first seven conversations should all be different stories');
+});
+
+test('story rotation reconciles a conversation started in another tab', () => {
+  const seed = new Map();
+  const firstTab = runtime(seed);
+  const staleTab = runtime(seed);
+  for (const { api } of [firstTab, staleTab]) {
+    const state = api.defaults();
+    state.onboarded = true;
+    state.completed = 30;
+    api.setState(state);
+  }
+
+  const first = firstTab.api.buildPracticeSession();
+  firstTab.api.rememberPracticeRun(first.sceneId, first.charId, first.storyId);
+  const second = staleTab.api.buildPracticeSession();
+  assert.notEqual(second.storyId, first.storyId, 'a stale tab repeated the story just opened elsewhere');
+  assert.equal(staleTab.api.getState().practiceRecentStories.at(-1), first.storyId);
+
+  staleTab.api.rememberPracticeRun(second.sceneId, second.charId, second.storyId);
+  const third = firstTab.api.buildPracticeSession();
+  assert.notEqual(third.storyId, second.storyId);
+  assert.deepEqual(
+    Array.from(firstTab.api.getState().practiceRecentStories.slice(-2)),
+    [first.storyId, second.storyId],
+  );
+});
+
+test('unrelated progress from a stale tab cannot reorder recent stories', () => {
+  const seed = new Map();
+  const currentTab = runtime(seed);
+  const state = currentTab.api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  currentTab.api.setState(state);
+
+  const first = currentTab.api.buildPracticeSession();
+  currentTab.api.rememberPracticeRun(first.sceneId, first.charId, first.storyId);
+  const staleTab = runtime(seed);
+  const second = currentTab.api.buildPracticeSession();
+  currentTab.api.rememberPracticeRun(second.sceneId, second.charId, second.storyId);
+  assert.notEqual(second.storyId, first.storyId);
+
+  // This tab only changed ordinary lesson/mission progress after it became
+  // stale; it did not start another practice conversation.
+  staleTab.api.getState().progressUpdatedAt = currentTab.api.getState().progressUpdatedAt + 1000;
+  staleTab.api.save();
+  const persisted = JSON.parse(seed.get('speakEnglishV1'));
+  assert.deepEqual(persisted.practiceRecentStories.slice(-2), [first.storyId, second.storyId]);
+  assert.equal(persisted.practiceRecentUpdatedAt, currentTab.api.getState().practiceRecentUpdatedAt);
+});
+
+test('practice history resolves profile markers in the opening scene', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.profile.gender = 'female';
+  api.setState(state);
+  const story = api.practiceStoryById('family_photo_wind');
+  api.setLesson({
+    isPractice: true, practiceStoryId: story.id, practiceVars: {},
+    practiceMeta: { sceneOpen: story.open }, chat: [], chatExpanded: false,
+  });
+  const history = api.chatMessagesHtml();
+  assert.match(history, /את יושבת עם בן/);
+  assert.doesNotMatch(history, /\[\[/);
+  api.setLesson(null);
+});
+
+test('a story event remains visible while choosing and in conversation history', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  api.setState(state);
+  api.startPractice();
+  const lesson = api.getLesson();
+  const story = api.practiceStoryById(lesson.practiceStoryId);
+  let vars = {};
+  let eventIndex = -1;
+  let resolved = null;
+  for (let i = 0; i < story.beats.length; i++) {
+    resolved = api.resolvePracticeBeat(story, i, vars);
+    if (resolved.event) { eventIndex = i; break; }
+    vars = api.applyPracticeChoice(vars, resolved.options[0]);
+  }
+  assert.ok(eventIndex >= 0, `${story.id}: expected a story event`);
+  lesson.practiceVars = vars;
+  assert.equal(api.materializePracticeBeat(eventIndex, lesson), true);
+  const listenIndex = 1 + eventIndex * 4;
+  const listen = lesson.steps[listenIndex];
+  const choice = lesson.steps[listenIndex + 1];
+  assert.equal(choice.event, listen.event);
+
+  lesson.chat = [];
+  lesson.i = listenIndex;
+  listen.arrived = true;
+  api.next();
+  assert.equal(lesson.chat[0].event, listen.event);
+  assert.match(app.innerHTML, /class="story-event /);
+  assert.ok(app.innerHTML.includes(listen.event.emoji));
+  api.stopLessonTimers(false);
+});
+
+test('a free-practice choice fills the next fixed slot without changing progress length', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 30;
+  api.setState(state);
+  api.startPractice();
+  const lesson = api.getLesson();
+  const story = api.practiceStoryById(lesson.practiceStoryId);
+  assert.ok(story);
+  assert.equal(lesson.steps.length, 2 + story.beats.length * 4);
+  assert.deepEqual(Array.from(lesson.steps.slice(1, 3), step => step.type), ['listen', 'branchChoice']);
+  for (let round = 1; round < story.beats.length; round++) {
+    assert.deepEqual(Array.from(lesson.steps.slice(1 + round * 4, 3 + round * 4), step => step.type),
+      ['practiceBeatPending', 'practiceChoicePending']);
+  }
+
+  const choice = lesson.steps[2];
+  const option = choice.options[0];
+  const expectedVars = api.applyPracticeChoice({}, option);
+  const expectedNext = api.resolvePracticeBeat(story, 1, expectedVars);
+  lesson.i = 2;
+  const originalLength = lesson.steps.length;
+  api.chooseBranch(0);
+  assert.equal(lesson.steps.length, originalLength);
+  assert.equal(lesson.i, 3);
+  assert.equal(lesson.steps[3].p, option.answer);
+  assert.equal(lesson.steps[4].line, option.reply);
+  assert.equal(lesson.steps[5].line, expectedNext.ask);
+  assert.equal(lesson.steps[6].options, expectedNext.options);
+  assert.equal(lesson.steps[5].practiceVariantId, expectedNext.variantId);
+  for (const [key, value] of Object.entries(option.set || {})) assert.equal(lesson.practiceVars[key], value);
+  api.stopLessonTimers(false);
+});
+
+test('story branching does not hijack a unit rehearsal conversation', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 5;
+  api.setState(state);
+  api.startUnitRehearsal(0);
+  const lesson = api.getLesson();
+  const choiceIndex = lesson.steps.findIndex(step => step.type === 'branchChoice');
+  const untouchedNextAsk = lesson.steps[choiceIndex + 3];
+  const answer = lesson.steps[choiceIndex].options[0].answer;
+  const originalLength = lesson.steps.length;
+  lesson.i = choiceIndex;
+  api.chooseBranch(0);
+  assert.equal(lesson.practiceStoryId, undefined);
+  assert.equal(lesson.practiceVars, undefined);
+  assert.equal(lesson.steps.length, originalLength);
+  assert.equal(lesson.steps[choiceIndex + 1].p, answer);
+  assert.equal(lesson.steps[choiceIndex + 3], untouchedNextAsk);
+  api.stopLessonTimers(false);
 });
 
 test('a unit rehearsal only ever asks for what that unit taught', () => {
