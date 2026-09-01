@@ -291,7 +291,14 @@ body{
 @keyframes sceneSea{0%,100%{transform:translateX(-14px);opacity:.18}50%{transform:translateX(16px);opacity:.55}}
 .stage-screen .stage-caption{background:rgba(20,28,46,.94);backdrop-filter:none}
 .stage-screen .conversation-composer{background:rgba(18,25,41,.96);backdrop-filter:none}
-.stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
+/* The figure is anchored to the top of the stage rather than centred in it.
+   Centring meant everything around it took part in the layout: a caption
+   growing to two lines, the answer buttons replacing the microphone, the
+   status pill changing width — each one re-centred the column and shoved the
+   character up or down, up to 49px on every single beat of the conversation.
+   Anchored, the person stands still and only the empty space beneath the
+   caption changes size. */
+.stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
 .stage-place{font-size:13px;color:var(--dim);text-align:center}
 .stage-history{background:none;border:none;color:var(--blue);font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
 /* The figure scales with the screen instead of dropping off a cliff: full

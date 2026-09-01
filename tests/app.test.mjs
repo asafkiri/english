@@ -708,6 +708,17 @@ test('a completed speaking result resumes without requiring the phrase again', (
   second.api.stopLessonTimers(false);
 });
 
+test('the stage anchors the figure instead of re-centring it', () => {
+  // The character's position must not depend on what is drawn around it.
+  // Vertical centring made every caption or composer change re-centre the
+  // column and shove the figure up or down — measured at up to 49px on every
+  // beat of a conversation, which reads as the character jumping about.
+  const stageRule = html.match(/\.stage-screen \.stage\{[^}]*flex-direction:column[^}]*\}/)?.[0];
+  assert.ok(stageRule, 'the stage layout rule should exist');
+  assert.match(stageRule, /justify-content:flex-start/);
+  assert.doesNotMatch(stageRule, /justify-content:center/);
+});
+
 test('PWA update code is versioned and does not clear local progress', () => {
   const sw = fs.readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
   assert.match(sw, /CACHE_PREFIX\s*=\s*'speak-english-'/);
