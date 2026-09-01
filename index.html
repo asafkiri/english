@@ -236,9 +236,13 @@ body{
    The art keeps its proportions on tall phones and anchors the floor when a
    short screen has to crop a little from the top. */
 .stage-bg svg{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible}
-.stage-bg::before{content:'';position:absolute;inset:5% 7% 22%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 43%,rgba(8,14,25,.01) 0 36%,rgba(8,14,25,.12) 66%,rgba(8,14,25,.34) 100%)}
-.stage-bg::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(8,14,25,.04) 0%,rgba(8,14,25,.1) 48%,rgba(8,14,25,.6) 100%)}
+.stage-bg::before{content:'';position:absolute;inset:4% 5% 16%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,244,214,.1) 0 18%,rgba(8,14,25,.02) 42%,rgba(8,14,25,.2) 72%,rgba(8,14,25,.42) 100%)}
+.stage-bg::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(8,14,25,.02) 0%,rgba(8,14,25,.06) 48%,rgba(8,14,25,.44) 82%,rgba(8,14,25,.68) 100%)}
 .stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .backdrop-near{transform-box:fill-box;transform-origin:center}
+.stage-bg .backdrop-far{animation:sceneParallaxFar 18s ease-in-out infinite}
+.stage-bg .backdrop-mid{animation:sceneParallaxMid 13s ease-in-out infinite}
+.stage-bg .scene-ground-light{mix-blend-mode:screen;animation:groundLight 6.5s ease-in-out infinite}
+.stage-bg .scene-contact{filter:blur(1.5px)}
 .stage-bg .ambient{transform-box:fill-box;transform-origin:center}
 .stage-bg .ambient-drift{animation:backdropDrift 15s ease-in-out infinite}
 .stage-bg .ambient-sway{animation:backdropSway 8s ease-in-out infinite}
@@ -246,6 +250,9 @@ body{
 @keyframes backdropDrift{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
 @keyframes backdropSway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
 @keyframes backdropPulse{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes sceneParallaxFar{0%,100%{transform:translateX(-1.5px)}50%{transform:translateX(1.5px)}}
+@keyframes sceneParallaxMid{0%,100%{transform:translateX(1px)}50%{transform:translateX(-1px)}}
+@keyframes groundLight{0%,100%{opacity:.3}50%{opacity:.5}}
 .stage-screen .stage-caption{background:rgba(20,28,46,.94);backdrop-filter:none}
 .stage-screen .conversation-composer{background:rgba(18,25,41,.96);backdrop-filter:none}
 .stage-screen .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 16px;min-height:0;overflow:auto}
@@ -253,7 +260,7 @@ body{
 .stage-history{background:none;border:none;color:var(--blue);font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
 /* The figure scales with the screen instead of dropping off a cliff: full
    size on a roomy phone, gently smaller on a short one, never tiny. */
-.stage-screen .stage{--avatar:clamp(140px, 30vh, 210px)}
+.stage-screen .stage{--avatar:clamp(132px, 23vh, 184px)}
 .stage-avatar{position:relative;width:var(--avatar);height:var(--avatar);flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;margin:2px 0}
 .stage-avatar .face{font-size:calc(var(--avatar)*.37);line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
 .stage-avatar::before{content:'';position:absolute;left:50%;bottom:0;width:calc(var(--avatar) - 14px);height:calc(var(--avatar) - 14px);transform:translateX(-50%);border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--who) 30%, transparent), transparent 68%);border:2px solid color-mix(in srgb, var(--who) 48%, transparent);border-bottom:none}
@@ -263,10 +270,12 @@ body{
 .stage-avatar.listening::before{border-color:rgba(52,211,153,.6);background:radial-gradient(circle at 50% 32%, rgba(52,211,153,.24), transparent 68%)}
 @keyframes ringOut{0%{transform:translateX(-50%) scale(.86);opacity:.5}100%{transform:translateX(-50%) scale(1.4);opacity:0}}
 
-/* The redesigned cast is drawn as half-body characters that belong in the
-   scene, rather than emoji-like portraits floating inside a video-call ring. */
-.stage-avatar.modern-cast{width:calc(var(--avatar)*1.12);height:calc(var(--avatar)*1.12);margin-top:-5px}
+/* The redesigned cast is a full-body figure. Width still controls face size;
+   height gives the legs room without shrinking the expression into a tiny
+   portrait. The feet sit on the same visual ground line in every scene. */
+.stage-avatar.modern-cast{width:calc(var(--avatar)*1.08);height:calc(var(--avatar)*1.72);margin:-8px 0 -3px;isolation:isolate}
 .stage-avatar.modern-cast::before{display:none}
+.stage-avatar.modern-cast::after{content:'';position:absolute;z-index:-1;left:50%;bottom:1.5%;width:76%;height:7%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(4,10,19,.5),rgba(4,10,19,0) 72%);filter:blur(2px)}
 .stage-avatar.modern-cast .ring{display:none}
 
 /* the drawn cast: breathing, blinking, and a mouth that actually talks */
@@ -277,6 +286,10 @@ body{
 .person-art .mouth,.person-art .tongue{transform-box:fill-box;transform-origin:center}
 .person-art .tongue{opacity:0}
 .person-art .arm{transform-box:fill-box;transform-origin:50% 0}
+.person-art .lower-body,.person-art .leg{transform-box:fill-box;transform-origin:50% 0}
+.person-art .lower-body{animation:bodyBalance 7s ease-in-out infinite}
+.person-art .leg-l{animation:legIdleL 7s ease-in-out infinite}
+.person-art .leg-r{animation:legIdleR 7s ease-in-out infinite}
 .person-art .arm-l{animation:armIdleL 5.2s ease-in-out infinite}
 .person-art .arm-r{animation:armIdleR 5.8s ease-in-out infinite}
 .person-art.listening .arm-l{animation:armIdleL 4s ease-in-out infinite}
@@ -288,6 +301,9 @@ body{
 @keyframes armIdleR{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.6deg)}}
 @keyframes armTalkL{0%,100%{transform:rotate(-1deg) translateY(0)}35%{transform:rotate(5deg) translateY(-4px)}70%{transform:rotate(1deg) translateY(-1px)}}
 @keyframes armTalkR{0%,100%{transform:rotate(1deg) translateY(0)}40%{transform:rotate(-6deg) translateY(-5px)}75%{transform:rotate(-1deg) translateY(-1px)}}
+@keyframes bodyBalance{0%,100%{transform:translateX(0)}45%{transform:translateX(-1.1px)}72%{transform:translateX(1px)}}
+@keyframes legIdleL{0%,100%{transform:rotate(0)}45%{transform:rotate(.65deg)}}
+@keyframes legIdleR{0%,100%{transform:rotate(0)}45%{transform:rotate(-.65deg)}}
 .person-art.listening .head{animation:headNod 3s ease-in-out infinite}
 /* the short beat after an answer lands: taking it in before replying */
 .person-art.thinking .head{animation:headThink 1.6s ease-in-out infinite}
@@ -305,7 +321,9 @@ body{
 
 /* Every redesigned character shares one layered face contract. Unlike the
    original stretched ellipse, each vowel has a deliberately drawn mouth. */
-.person-art.modern-v2{filter:drop-shadow(0 10px 14px rgba(3,8,18,.4))}
+.person-art.modern-v2{filter:drop-shadow(0 11px 13px rgba(3,8,18,.36))}
+.person-art.modern-v2 .ground-shadow{animation:castShadow 4.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.person-art.modern-v2.voicing .hand{animation:handEmphasis 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 .person-art.modern-v2 .mouth{animation:none!important;transform:none!important}
 .person-art.modern-v2 .eyes{animation:none}
 .person-art.modern-v2 .mouth-shape{opacity:0;transition:opacity .055s linear}
@@ -335,6 +353,8 @@ body{
 @keyframes castBlink{0%,91%,94%,100%{opacity:0}92%,93%{opacity:1}}
 @keyframes castReact{0%{transform:none}42%{transform:translateY(2px) rotate(1.8deg)}100%{transform:none}}
 @keyframes castBrows{0%,100%{transform:none}45%{transform:translateY(-1px)}}
+@keyframes castShadow{0%,100%{transform:scaleX(1);opacity:.38}50%{transform:scaleX(.92);opacity:.31}}
+@keyframes handEmphasis{0%,100%{transform:rotate(0)}45%{transform:rotate(-2.5deg)}}
 @keyframes figBreathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-3px) scaleY(1.012)}}
 @keyframes blink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}97%{transform:scaleY(1)}}
 @keyframes mouthTalk{0%{transform:scale(1,.5)}20%{transform:scale(.86,3.1)}45%{transform:scale(1.05,1.5)}70%{transform:scale(.8,3.6)}100%{transform:scale(1,.6)}}
@@ -373,7 +393,7 @@ body{
 .cap-sent{font-size:18px;font-weight:700;color:var(--green)}
 @media (max-height:700px){
   .cap-en{font-size:22px}.cap-intent{font-size:20px}
-  .stage-screen .stage{--avatar:clamp(132px,26vh,180px);gap:7px}
+  .stage-screen .stage{--avatar:clamp(112px,20vh,148px);gap:6px;padding-top:8px}
   .stage-screen .stage-caption{padding:12px}
 }
 .scene-note{background:rgba(148,163,184,.09);border-inline-start:3px solid rgba(148,163,184,.45);border-radius:10px;padding:10px 12px;font-size:14.5px;color:#c2cde3;font-style:italic;line-height:1.5;margin:10px 0}
@@ -2406,18 +2426,29 @@ const PRACTICE_TOPICS = [
    explicit colour and a quiet centre where the face remains easy to read. */
 function sceneBackdrop(id,p,far,mid,near,motion=''){
   const horizon=p.horizon||500;
-  return {id,variant:'layered-v2',sky:p.top,ground:p.floor,art:`
+  const contactY=Math.min(612,horizon+48);
+  return {id,variant:'layered-v3',sky:p.top,ground:p.floor,art:`
     <defs>
       <linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.top}"/><stop offset="1" stop-color="${p.bottom}"/></linearGradient>
       <radialGradient id="${id}-edge" cx="50%" cy="40%" r="70%"><stop offset="32%" stop-color="#ffffff" stop-opacity="0"/><stop offset="100%" stop-color="#07101e" stop-opacity=".4"/></radialGradient>
+      <radialGradient id="${id}-ground" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${p.glow}" stop-opacity=".34"/><stop offset="100%" stop-color="${p.glow}" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${id}-focus" cx="50%" cy="42%" r="58%"><stop offset="0" stop-color="${p.glow}" stop-opacity=".13"/><stop offset="55%" stop-color="${p.glow}" stop-opacity=".055"/><stop offset="100%" stop-color="${p.glow}" stop-opacity="0"/></radialGradient>
+      <linearGradient id="${id}-floor-depth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".025"/><stop offset="1" stop-color="#050b14" stop-opacity=".3"/></linearGradient>
     </defs>
     <rect class="scene-base" width="400" height="700" fill="url(#${id}-sky)"/>
     <path class="scene-floor" d="M0 ${horizon}H400V700H0z" fill="${p.floor}"/>
+    <path class="scene-floor-depth" d="M0 ${horizon}H400V700H0z" fill="url(#${id}-floor-depth)"/>
     <path d="M0 ${horizon}H400" stroke="${p.line||'#d9e3ef'}" stroke-opacity=".18" stroke-width="3"/>
     <g class="backdrop-far">${far}</g>
-    <ellipse class="scene-focus" cx="200" cy="300" rx="128" ry="250" fill="${p.glow}" opacity=".075"/>
+    <ellipse class="scene-focus" cx="200" cy="300" rx="150" ry="270" fill="url(#${id}-focus)"/>
     <g class="backdrop-mid">${mid}</g>
     <g class="backdrop-motion">${motion}</g>
+    <g class="scene-perspective" fill="none" stroke="${p.line||'#d9e3ef'}" stroke-opacity=".07" stroke-width="2">
+      <path d="M200 ${horizon}L24 700M200 ${horizon}L118 700M200 ${horizon}L282 700M200 ${horizon}L376 700"/>
+      <path d="M0 ${contactY+55}H400M0 ${contactY+118}H400"/>
+    </g>
+    <ellipse class="scene-ground-light" cx="200" cy="${contactY}" rx="112" ry="39" fill="url(#${id}-ground)"/>
+    <ellipse class="scene-contact" cx="200" cy="${contactY+13}" rx="53" ry="10" fill="#08111e" opacity=".2"/>
     <g class="backdrop-near">${near}</g>
     <rect class="scene-edge" width="400" height="700" fill="url(#${id}-edge)"/>
   `};
@@ -2590,19 +2621,19 @@ const PRACTICE_BACKDROPS = {
 };
 const PRACTICE_CAST = {
   tom:{name:'טום', avatar:'👦', color:'#60a5fa', role:'חבר מבית הספר',
-    look:{variant:'modern-v2',id:'tom',outfit:'hoodie',faceShape:'oval',skin:'#f1c39d',skinShadow:'#d99f78',hairStyle:'short',hairColor:'#4b3022',eyeColor:'#557782',clothes:'#3973d9',accent:'#2555aa',blush:'#e98c7c'}},
+    look:{variant:'modern-v2',id:'tom',outfit:'hoodie',faceShape:'oval',skin:'#f1c39d',skinShadow:'#d99f78',hairStyle:'short',hairColor:'#4b3022',eyeColor:'#557782',clothes:'#3973d9',accent:'#2555aa',pants:'#263f70',shoes:'#e8eef5',blush:'#e98c7c'}},
   maya:{f:true, name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה',
-    look:{variant:'modern-v2',id:'maya',outfit:'sweater',faceShape:'round',skin:'#f6d3ad',skinShadow:'#dca681',hairStyle:'long',hairColor:'#2f2320',eyeColor:'#5c493d',clothes:'#e0559a',accent:'#b83c7b',blush:'#ed8c98'}},
+    look:{variant:'modern-v2',id:'maya',outfit:'sweater',faceShape:'round',skin:'#f6d3ad',skinShadow:'#dca681',hairStyle:'long',hairColor:'#2f2320',eyeColor:'#5c493d',clothes:'#e0559a',accent:'#b83c7b',pants:'#4d4168',shoes:'#f5e7ee',blush:'#ed8c98'}},
   sam:{name:'סם', avatar:'🧑‍🦱', color:'#34d399', role:'שכן',
-    look:{variant:'modern-v2',id:'sam',outfit:'jacket',faceShape:'broad',skin:'#d9a878',skinShadow:'#b87852',hairStyle:'curly',hairColor:'#231a15',eyeColor:'#455d4d',clothes:'#2fa87a',accent:'#1f7f5c',blush:'#c87967'}},
+    look:{variant:'modern-v2',id:'sam',outfit:'jacket',faceShape:'broad',skin:'#d9a878',skinShadow:'#b87852',hairStyle:'curly',hairColor:'#231a15',eyeColor:'#455d4d',clothes:'#2fa87a',accent:'#1f7f5c',pants:'#29483f',shoes:'#6e4f39',blush:'#c87967'}},
   alex:{name:'אלכס', avatar:'🤵', color:'#fbbf24', role:'מלצר',
-    look:{variant:'modern-v2',id:'alex',outfit:'waiter',faceShape:'angular',skin:'#f0c39a',skinShadow:'#d09a72',hairStyle:'sidepart',hairColor:'#3a2a1e',eyeColor:'#53647d',clothes:'#f1f4f8',accent:'#34445c',blush:'#dc8875'}},
+    look:{variant:'modern-v2',id:'alex',outfit:'waiter',faceShape:'angular',skin:'#f0c39a',skinShadow:'#d09a72',hairStyle:'sidepart',hairColor:'#3a2a1e',eyeColor:'#53647d',clothes:'#f1f4f8',accent:'#34445c',pants:'#252d3b',shoes:'#151b24',blush:'#dc8875'}},
   nina:{f:true, name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות',
-    look:{variant:'modern-v2',id:'nina',outfit:'blazer',faceShape:'soft',skin:'#e8bb8f',skinShadow:'#c98b62',hairStyle:'bob',hairColor:'#5a3320',eyeColor:'#6a5137',clothes:'#e08b2c',accent:'#8f4e18',blush:'#df826e'}},
+    look:{variant:'modern-v2',id:'nina',outfit:'blazer',faceShape:'soft',skin:'#e8bb8f',skinShadow:'#c98b62',hairStyle:'bob',hairColor:'#5a3320',eyeColor:'#6a5137',clothes:'#e08b2c',accent:'#8f4e18',pants:'#62432f',shoes:'#38251d',blush:'#df826e'}},
   ben:{name:'בן', avatar:'🧑‍🦰', color:'#a78bfa', role:'תייר מלונדון',
-    look:{variant:'modern-v2',id:'ben',outfit:'traveler',faceShape:'narrow',skin:'#f5d0b0',skinShadow:'#d9a17a',hairStyle:'cap',hairColor:'#a84b25',eyeColor:'#587381',clothes:'#8b7ae8',accent:'#6a58c9',blush:'#e68f7f'}},
+    look:{variant:'modern-v2',id:'ben',outfit:'traveler',faceShape:'narrow',skin:'#f5d0b0',skinShadow:'#d9a17a',hairStyle:'cap',hairColor:'#a84b25',eyeColor:'#587381',clothes:'#8b7ae8',accent:'#6a58c9',pants:'#3f4565',shoes:'#d8c8a1',blush:'#e68f7f'}},
   dana:{f:true, name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג',
-    look:{variant:'modern-v2',id:'dana',outfit:'teacher',faceShape:'oval',skin:'#e3b58c',skinShadow:'#c48760',hairStyle:'bun-side',hairColor:'#2b2320',eyeColor:'#4b6876',clothes:'#3aa6d8',accent:'#2483ae',blush:'#d77d70',glasses:true}},
+    look:{variant:'modern-v2',id:'dana',outfit:'teacher',faceShape:'oval',skin:'#e3b58c',skinShadow:'#c48760',hairStyle:'bun-side',hairColor:'#2b2320',eyeColor:'#4b6876',clothes:'#3aa6d8',accent:'#2483ae',pants:'#30475d',shoes:'#23313e',blush:'#d77d70',glasses:true}},
 };
 function modernFacePath(shape){
   return ({
@@ -2737,33 +2768,65 @@ function modernFaceFeatures(l, eye, hair, skin){
     <g class="eyelids"><path d="${left}" fill="${skin}" stroke="#51382e" stroke-width="1.8"/><path d="${right}" fill="${skin}" stroke="#51382e" stroke-width="1.8"/></g>`;
 }
 
+/* Full-body base shared by the entire cast. The silhouette stays simple at
+   phone size, while stance, seams and shoes keep each person grounded instead
+   of ending abruptly at the bottom of a portrait. */
+function modernLowerBodyArt(l,pants,shoes,accent){
+  const detail=({
+    tom:`<path d="M79 311h19M122 311h19" stroke="#7ea1d2" stroke-width="2" opacity=".5"/><path d="M82 289l-6 32M138 289l6 32" stroke="#172d52" stroke-width="2" opacity=".5"/>`,
+    maya:`<path d="M76 296q34 10 68 0" fill="none" stroke="#9a83bb" stroke-width="3" opacity=".6"/><path d="M82 341h17M121 341h17" stroke="#82709f" stroke-width="2" opacity=".52"/>`,
+    sam:`<path d="M76 314h23v15H76zM121 314h23v15h-23z" fill="none" stroke="#57766d" stroke-width="2" opacity=".7"/>`,
+    alex:`<path d="M86 288v90M134 288v90" stroke="#536071" stroke-width="1.6" opacity=".55"/>`,
+    nina:`<path d="M78 310h21M121 310h21" stroke="#9d7455" stroke-width="2" opacity=".58"/>`,
+    ben:`<g fill="none" stroke="#69718f" stroke-width="2" opacity=".7"><path d="M76 319h25v18H76zM119 319h25v18h-25z"/><path d="M82 328h13M125 328h13"/></g>`,
+    dana:`<path d="M86 291v89M134 291v89" stroke="#678099" stroke-width="1.5" opacity=".55"/>`,
+  })[l.id]||'';
+  return `<g class="lower-body">
+    <path class="hips" d="M66 260h88l-4 38c-12 8-68 8-80 0z" fill="${pants}" stroke="${accent}" stroke-opacity=".55" stroke-width="2.2"/>
+    <g class="leg leg-l">
+      <path d="M72 288c9-5 22-6 36-2l-5 98H73c-3-36-5-69-1-96z" fill="${pants}" stroke="#17202c" stroke-opacity=".52" stroke-width="2.2"/>
+      <path d="M74 376h29l3 15-7 10H55c-1-9 5-16 19-25z" fill="${shoes}" stroke="#17202c" stroke-opacity=".68" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M58 396h43" stroke="#f7fafc" stroke-opacity=".48" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+    <g class="leg leg-r">
+      <path d="M112 286c14-4 27-3 36 2 4 27 2 60-1 96h-30z" fill="${pants}" stroke="#17202c" stroke-opacity=".52" stroke-width="2.2"/>
+      <path d="M117 376h29c14 9 20 16 19 25h-44l-7-10z" fill="${shoes}" stroke="#17202c" stroke-opacity=".68" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M121 396h41" stroke="#f7fafc" stroke-opacity=".48" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+    <path d="M110 284v103" stroke="#141d28" stroke-opacity=".42" stroke-width="2"/>
+    ${detail}
+  </g>`;
+}
+
 /* One layered renderer now gives every conversation partner the same polished
    animation contract while hair, face, outfit and accessories stay unique. */
 function modernPersonArt(look, state='idle', cls=''){
   const l=look||{};
   const id=l.id||'tom',skin=l.skin||'#f1c39d',skinShadow=l.skinShadow||'#d99f78';
   const hair=l.hairColor||'#4b3022',clothes=l.clothes||'#3973d9',accent=l.accent||'#2555aa';
+  const pants=l.pants||accent,shoes=l.shoes||'#e8eef5';
   const eye=l.eyeColor||'#557782',blush=l.blush||'#e98c7c';
   const rearHair=l.hairStyle==='long'||l.hairStyle==='bob';
-  return `<svg class="person-art modern-v2 ${id}-v2 layered-mouth ${state} ${cls}${voiceActive?' voicing':''}" data-art="${id}-v2" data-character="${id}" data-palette="${id}" data-viseme="rest" viewBox="0 0 220 270" aria-hidden="true">
-    <ellipse cx="110" cy="263" rx="72" ry="7" fill="#07101f" opacity=".32"/>
+  return `<svg class="person-art modern-v2 full-body ${id}-v2 layered-mouth ${state} ${cls}${voiceActive?' voicing':''}" data-art="${id}-v2" data-character="${id}" data-palette="${id}" data-viseme="rest" data-body="full" viewBox="0 0 220 410" aria-hidden="true">
+    <ellipse class="ground-shadow" cx="110" cy="401" rx="68" ry="7" fill="#07101f" opacity=".38"/>
     <g class="figure">
+      ${modernLowerBodyArt(l,pants,shoes,accent)}
       ${modernBackArt(l,skin,clothes,accent)}
       ${rearHair?modernBackHairArt(l,hair):''}
 
       <!-- relaxed arms; the right hand sits a little higher for conversation gestures -->
       <g class="arm arm-l">
-        <path d="M69 192c-18 7-28 27-32 55l27 7c3-21 9-37 19-48z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
-        <path d="M42 245c5-3 13-1 20 3l-3 18H37c-2-8 0-16 5-21z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
-        <path d="M45 249c5 2 9 5 12 10" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M69 192c-18 7-26 29-27 65l25 4c1-25 6-43 16-55z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
+        <path class="hand" d="M43 254c6-2 15 0 23 5l-2 22c-5 8-17 7-21-1-3-9-3-18 0-26z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
+        <path d="M47 265c5 3 9 6 12 11M46 271c4 2 7 5 9 8" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
       </g>
       <g class="arm arm-r">
         <path d="M151 191c18 7 29 26 33 51l-27 8c-4-20-10-35-20-44z" fill="${clothes}" stroke="${accent}" stroke-opacity=".72" stroke-width="2.3" stroke-linejoin="round"/>
-        <path d="M161 241c5-5 15-5 21 0 4 5 5 13 2 21h-22l-6-14c1-3 2-5 5-7z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
-        <path d="M164 247c5-2 10-2 15 0" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="hand" d="M161 241c5-5 15-5 21 0 4 5 5 13 2 21h-22l-6-14c1-3 2-5 5-7z" fill="${skin}" stroke="#7e5947" stroke-opacity=".42" stroke-width="2"/>
+        <path d="M164 247c5-2 10-2 15 0M166 252c4-1 8-1 12 1" fill="none" stroke="#b77d62" stroke-width="1.5" stroke-linecap="round"/>
       </g>
 
-      <path class="torso" d="M64 270c0-43 7-74 30-88l16 14 16-14c23 14 30 45 30 88z" fill="${clothes}" stroke="${accent}" stroke-opacity=".76" stroke-width="2.5" stroke-linejoin="round"/>
+      <path class="torso" d="M64 288c0-53 7-92 30-106l16 14 16-14c23 14 30 53 30 106-25 10-67 10-92 0z" fill="${clothes}" stroke="${accent}" stroke-opacity=".76" stroke-width="2.5" stroke-linejoin="round"/>
       ${modernOutfitArt(l,clothes,accent)}
 
       <!-- neck and under-chin shadow -->
@@ -2960,7 +3023,7 @@ const PRACTICE_SCENES = {
   ],
 };
 
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.4.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
