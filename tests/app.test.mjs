@@ -54,7 +54,7 @@ function runtime(seed = new Map()) {
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
-      manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, chatMessagesHtml,
+      manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, captionHtml, chatMessagesHtml,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -736,6 +736,52 @@ test('practice history resolves profile markers in the opening scene', () => {
   const history = api.chatMessagesHtml();
   assert.match(history, /את יושבת עם בן/);
   assert.doesNotMatch(history, /\[\[/);
+  api.setLesson(null);
+});
+
+test('free-practice captions keep Hebrew visible but let English lead', () => {
+  const { api } = runtime();
+  const state = api.defaults();
+  state.profile.gender = 'female';
+  api.setState(state);
+  const line = {
+    en: "Hello! Welcome to your first art class. What's your name?",
+    he: 'שלום! ברוכה הבאה לשיעור האמנות הראשון שלך. איך קוראים לך?',
+    tl: 'הֶלוֹ! וֶולְקַאם טוּ יוֹר פֶרְסְט אַרְט קְלַאס.',
+  };
+
+  const listening = api.captionHtml(line, { showTl: false });
+  assert.ok(listening.indexOf('class="cap-en"') < listening.indexOf('class="cap-aid auto-translation delayed"'),
+    'English should be encountered before its Hebrew translation');
+  assert.doesNotMatch(listening, /id="capHe"[^>]*hidden/);
+  assert.match(listening, /id="capHe" dir="rtl" lang="he"/);
+  assert.doesNotMatch(listening, /toggleCaptionAid\('he'/, 'permanent translation needs no reveal button');
+  assert.match(listening, /toggleCaptionAid\('tl'/, 'pronunciation help should stay optional');
+  assert.match(listening, /איך מבטאים\?/);
+  assert.match(html, /animation:capTranslationReveal \.28s ease \.65s forwards/,
+    'the translation should arrive shortly after the English, not at the same instant');
+  assert.match(html, /translationReadingDelay=Math\.max\(2200,Math\.min\(3800,translatedLength\*45\)\)/,
+    'short follow-up lines still need enough time for a beginner to read the translation');
+  assert.match(html, /@media \(max-height:620px\)[\s\S]*--avatar:clamp\(84px,16vh,108px\)/,
+    'bilingual captions need a compact layout on short phones');
+  assert.match(html, /requestAnimationFrame\(keepStageCaptionVisible\)/,
+    'the bilingual caption should be brought into view after a stage update');
+
+  const choosing = api.captionHtml(line, { showTl: false }, { translationDelay: false });
+  assert.match(choosing, /class="cap-aid auto-translation"/);
+  assert.doesNotMatch(choosing, /auto-translation delayed/,
+    'the same line should not flash away again on the answer-choice screen');
+
+  api.setLesson({
+    isPractice: true, idx: 0, practiceStoryId: 'first_art_class', practiceVars: {},
+    practiceMeta: { character: { name: 'דנה', avatar: '🎨', color: '#38bdf8' } },
+    chat: [{ who: 'app', line, showHe: false, showTl: false }],
+    chatExpanded: false,
+  });
+  const history = api.chatMessagesHtml();
+  assert.doesNotMatch(history, /id="bubble-he-history-0"[^>]*hidden/,
+    'practice history should keep the translation visible too');
+  assert.doesNotMatch(history, /toggleBubbleAid\('history',0,'he'/);
   api.setLesson(null);
 });
 
