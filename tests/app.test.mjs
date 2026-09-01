@@ -758,7 +758,7 @@ test('free-practice captions keep Hebrew visible but let English lead', () => {
   assert.doesNotMatch(listening, /toggleCaptionAid\('he'/, 'permanent translation needs no reveal button');
   assert.match(listening, /toggleCaptionAid\('tl'/, 'pronunciation help should stay optional');
   assert.match(listening, /איך מבטאים\?/);
-  assert.match(html, /animation:capTranslationReveal \.28s ease \.65s forwards/,
+  assert.match(html, /animation:capTranslationReveal \.28s ease \.9s forwards/,
     'the translation should arrive shortly after the English, not at the same instant');
   assert.match(html, /translationReadingDelay=Math\.max\(2200,Math\.min\(3800,translatedLength\*45\)\)/,
     'short follow-up lines still need enough time for a beginner to read the translation');
