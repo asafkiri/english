@@ -1227,8 +1227,8 @@ test('free-practice captions keep Hebrew visible but let English lead', () => {
   assert.match(listening, /איך מבטאים\?/);
   assert.match(html, /animation:capTranslationReveal \.28s ease \.9s forwards/,
     'the translation should arrive shortly after the English, not at the same instant');
-  assert.match(html, /translationReadingDelay=Math\.max\(2200,Math\.min\(3800,translatedLength\*45\)\)/,
-    'short follow-up lines still need enough time for a beginner to read the translation');
+  assert.match(html, /\?\s*Math\.max\(700,Math\.min\(1200,translatedLength\*22\)\)\s*:\s*Math\.max\(2200,Math\.min\(3800,translatedLength\*45\)\)/,
+    'a beginner still gets a length-aware window to read the translation — the full one at the end of a turn, a shorter one mid-turn where the pair keeps the sentence and its Hebrew on screen anyway');
   assert.match(html, /@media \(max-height:620px\)[\s\S]*--avatar:clamp\(108px,19vh,124px\)/,
     'short phones should keep the full-body acting large enough to read');
   assert.match(html, /requestAnimationFrame\(keepStageCaptionVisible\)/,
@@ -1325,6 +1325,12 @@ test('a consecutive reply and question stay together until the learner answers',
   assert.doesNotMatch(app.innerHTML, /class="cap-previous-copy"/);
   assert.match(html, /\.cap-sequence \.cap-aid\.auto-translation\{border-top:none;/,
     'a pair keeps one divider: a second rule would box the current sentence again');
+  // replaying the earlier sentence must light up ITS words, not nothing:
+  // without the hook the 60% token match finds no container at all
+  assert.match(app.innerHTML, /class="cap-previous-en"[^>]*data-word-sync/,
+    'the earlier sentence needs a word-sync target for its own replay button');
+  assert.match(html, /\.cap-previous-en \.w\.now/,
+    'and the lit word needs to be visible on that line');
 
   api.next();
   assert.equal(lesson.i, 4);
@@ -3267,4 +3273,21 @@ test('only the beats that mean a change of distance make the figure travel', () 
 
   // an absent travel must not emit a bare class the [class*=] step cue matches
   assert.doesNotMatch(api.stageDirectionClasses(api.stageDirectionModel({ id: 'x', preset: 'agree' })), /stage-travel-/);
+});
+
+test('two sentences of one turn are paced like a speaker, not like a stalled recording', () => {
+  runtime();
+  // The pair keeps the first sentence on screen above the second, so nothing
+  // is whisked away and there is nothing to hold the conversation for. Paying
+  // the full translation reading window here left the character standing
+  // silent for 2.2s between two halves of one thought.
+  assert.match(html, /const translationReadingDelay=runsOn\s*\?\s*Math\.max\(700,Math\.min\(1200,translatedLength\*22\)\)/,
+    'mid-turn the reading window shrinks to a speaker\'s scale instead of holding the conversation');
+  assert.match(html, /const readingDelay=runsOn\s*\?\s*\(voiced\?600:/,
+    "the gap between two sentences of one turn is a speaker's beat, not a wait");
+  assert.match(html, /const runsOn=L\.steps\[L\.i\+1\]\?\.type==='listen'&&!!L\.steps\[L\.i\+1\]\.line/,
+    'a run-on needs a real next line, matching what the paired caption requires');
+  // the end of the turn still gets its full reading window before answering
+  assert.match(html, /:\s*Math\.max\(1900,Math\.min\(3400,spokenEn\.length\*38\)\)/,
+    'the last sentence of a turn keeps the time to read before the learner answers');
 });
