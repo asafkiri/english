@@ -273,6 +273,15 @@ test('guided lessons stay short, keep new English visible, and end on a real sta
   assert.match(app.innerHTML, /conversation-screen stage-screen/);
   assert.match(app.innerHTML, /data-backdrop="beach-path"/);
   assert.match(app.innerHTML, /person-art modern-v2/);
+
+  lesson.i = lesson.steps.findIndex(step => step.type === 'branchChoice');
+  api.chooseBranch(0);
+  assert.equal(api.getLesson().curStep.hintLevel, 0);
+  assert.match(app.innerHTML, /id="englishHint" hidden/);
+  assert.match(app.innerHTML, /id="translitHint" hidden/);
+  assert.match(app.innerHTML, /אם קשה, פתח עזרה/);
+  assert.doesNotMatch(app.innerHTML, /class="cap-en"/,
+    'the stage must not reveal the answer before the learner requests help');
   api.stopLessonTimers(false);
 });
 
