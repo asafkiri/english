@@ -833,10 +833,19 @@ body{
 @keyframes storyLookUp{0%{transform:none}52%{transform:rotate(-4deg) translateY(-3px)}100%{transform:none}}
 
 /* the drawn cast: breathing, blinking, and a mouth that actually talks */
-.person-art{position:relative;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45))}
-.person-art .figure{transform-box:fill-box;transform-origin:50% 100%;animation:figBreathe 4.4s ease-in-out infinite}
+/* The legacy rig has no drawn contact shadow, so it still needs a filter to
+   sit on the ground. The modern cast draws its own .ground-shadow ellipse,
+   and a drop-shadow on the root would push the whole animating figure through
+   a filter buffer every frame — undoing the one discipline that keeps this
+   rig cheap: everything on transform and opacity. */
+.person-art{position:relative;width:100%;height:100%;overflow:visible}
+.person-art:not(.modern-v2){filter:drop-shadow(0 10px 20px rgba(0,0,0,.45))}
+/* Idle loops are offset per character. Without this every figure on screen
+   breathes, sways and blinks on the same beat, which reads as one puppet
+   wearing different clothes. */
+.person-art .figure{transform-box:fill-box;transform-origin:50% 100%;animation:figBreathe 4.4s ease-in-out var(--idle-phase,0s) infinite}
 .person-art .head{transform-box:fill-box;transform-origin:50% 92%}
-.person-art .eyes{transform-box:fill-box;transform-origin:center;animation:blink 5.4s infinite}
+.person-art .eyes{transform-box:fill-box;transform-origin:center;animation:blink 5.4s var(--idle-phase,0s) infinite}
 .person-art .mouth,.person-art .tongue{transform-box:fill-box;transform-origin:center}
 .person-art .tongue{opacity:0}
 .person-art .arm,.person-art .forearm,.person-art .hand,.person-art .lower-body,.person-art .leg,.person-art .torso{transform-box:view-box}
@@ -847,15 +856,15 @@ body{
 .person-art .arm-l .hand{transform-origin:57px 278px}.person-art .arm-r .hand{transform-origin:176px 252px}
 .person-art .lower-body{transform-origin:110px 287px}.person-art .leg-l{transform-origin:88px 291px}.person-art .leg-r{transform-origin:132px 291px}
 .person-art .torso{transform-origin:110px 286px}
-.person-art .lower-body{animation:bodyBalance 7s ease-in-out infinite}
-.person-art .leg-l{animation:legIdleL 7s ease-in-out infinite}
-.person-art .leg-r{animation:legIdleR 7s ease-in-out infinite}
-.person-art .arm-l{animation:armIdleL 5.2s ease-in-out infinite}
-.person-art .arm-r{animation:armIdleR 5.8s ease-in-out infinite}
-.person-art .arm-l .forearm{animation:forearmIdleL 6.4s ease-in-out infinite}
-.person-art .arm-r .forearm{animation:forearmIdleR 6.8s ease-in-out infinite}
-.person-art.listening .arm-l{animation:armIdleL 4s ease-in-out infinite}
-.person-art.listening .arm-r{animation:armIdleR 4.4s ease-in-out infinite}
+.person-art .lower-body{animation:bodyBalance 7s ease-in-out calc(var(--idle-phase,0s) * .6) infinite}
+.person-art .leg-l{animation:legIdleL 7s ease-in-out calc(var(--idle-phase,0s) * 1.1) infinite}
+.person-art .leg-r{animation:legIdleR 7s ease-in-out calc(var(--idle-phase,0s) * 1.9) infinite}
+.person-art .arm-l{animation:armIdleL 5.2s ease-in-out calc(var(--idle-phase,0s) * 1.3) infinite}
+.person-art .arm-r{animation:armIdleR 5.8s ease-in-out calc(var(--idle-phase,0s) * .8) infinite}
+.person-art .arm-l .forearm{animation:forearmIdleL 6.4s ease-in-out calc(var(--idle-phase,0s) * 2.1) infinite}
+.person-art .arm-r .forearm{animation:forearmIdleR 6.8s ease-in-out calc(var(--idle-phase,0s) * 1.5) infinite}
+.person-art.listening .arm-l{animation:armIdleL 4s ease-in-out calc(var(--idle-phase,0s) * 1.3) infinite}
+.person-art.listening .arm-r{animation:armIdleR 4.4s ease-in-out calc(var(--idle-phase,0s) * .8) infinite}
 /* gestures belong to the voice, not to the scene state */
 .person-art.voicing .arm-l{animation:armTalkL 2.3s ease-in-out infinite}
 .person-art.voicing .arm-r{animation:armTalkR 2.9s ease-in-out infinite}
@@ -877,7 +886,7 @@ body{
 .person-art.thinking .head{animation:headThink 1.6s ease-in-out infinite}
 .person-art.thinking .eyes{animation:blink 2.2s infinite}
 @keyframes headThink{0%,100%{transform:rotate(0) translateY(0)}45%{transform:rotate(3.2deg) translateY(-2px)}}
-.person-art.waiting .head,.person-art.speaking .head{animation:headIdle 6s ease-in-out infinite}
+.person-art.waiting .head,.person-art.speaking .head{animation:headIdle 6s ease-in-out calc(var(--idle-phase,0s) * .9) infinite}
 /* The mouth and the talking head move only while a voice is actually
    playing (.voicing) — never merely because the scene says 'speaking',
    or the face keeps chattering after the sentence is over. */
@@ -889,16 +898,18 @@ body{
 
 /* Every redesigned character shares one layered face contract. Unlike the
    original stretched ellipse, each vowel has a deliberately drawn mouth. */
-.person-art.modern-v2{filter:drop-shadow(0 11px 13px rgba(3,8,18,.36))}
-.person-art.modern-v2 .ground-shadow{animation:castShadow 4.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.person-art.modern-v2 .ground-shadow{animation:castShadow 4.4s ease-in-out var(--idle-phase,0s) infinite;transform-box:fill-box;transform-origin:center}
 .person-art.modern-v2.voicing .hand{animation:handEmphasis 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 .person-art.modern-v2 .face-lighting,.person-art.modern-v2 .body-lighting{transform-box:fill-box;transform-origin:center;transition:transform .35s ease}
-.person-art.modern-v2 .hair-long-wavy,.person-art.modern-v2 .hair-bob-back,.person-art.modern-v2 .hair-curly-puff,.person-art.modern-v2 .travel-cap,.person-art.modern-v2 .pencil-accessory{transform-box:fill-box;transform-origin:50% 100%;animation:secondaryIdle 6.2s ease-in-out infinite}
+.person-art.modern-v2 .hair-long-wavy,.person-art.modern-v2 .hair-bob-back,.person-art.modern-v2 .hair-curly-puff,.person-art.modern-v2 .travel-cap,.person-art.modern-v2 .pencil-accessory{transform-box:fill-box;transform-origin:50% 100%;animation:secondaryIdle 6.2s ease-in-out calc(var(--idle-phase,0s) * 1.4) infinite}
 .person-art.modern-v2.voicing .hair-long-wavy,.person-art.modern-v2.voicing .hair-bob-back,.person-art.modern-v2.voicing .hair-curly-puff,.person-art.modern-v2.voicing .travel-cap,.person-art.modern-v2.voicing .pencil-accessory{animation:secondaryTalk 2s ease-in-out infinite}
-.person-art.modern-v2 .teacher-lanyard,.person-art.modern-v2 .crossbody-strap,.person-art.modern-v2 .maya-headphones,.person-art.modern-v2 .waiter-apron{transform-box:fill-box;transform-origin:50% 0;animation:clothSettle 4.8s ease-in-out infinite}
+.person-art.modern-v2 .teacher-lanyard,.person-art.modern-v2 .crossbody-strap,.person-art.modern-v2 .maya-headphones,.person-art.modern-v2 .waiter-apron{transform-box:fill-box;transform-origin:50% 0;animation:clothSettle 4.8s ease-in-out calc(var(--idle-phase,0s) * 2.3) infinite}
 .person-art.modern-v2.tom-v2{--leg-l-angle:-.45deg;--leg-r-angle:.65deg}.person-art.modern-v2.maya-v2{--leg-l-angle:.55deg;--leg-r-angle:-.45deg}.person-art.modern-v2.sam-v2{--leg-l-angle:-.8deg;--leg-r-angle:.8deg}.person-art.modern-v2.alex-v2{--leg-l-angle:-.2deg;--leg-r-angle:.2deg}.person-art.modern-v2.nina-v2{--leg-l-angle:.45deg;--leg-r-angle:-.7deg}.person-art.modern-v2.ben-v2{--leg-l-angle:-1deg;--leg-r-angle:.55deg}.person-art.modern-v2.dana-v2{--leg-l-angle:-.35deg;--leg-r-angle:.75deg}
 .person-art.modern-v2 .leg-l{transform:rotate(var(--leg-l-angle,0deg))}.person-art.modern-v2 .leg-r{transform:rotate(var(--leg-r-angle,0deg))}
-.person-art.modern-v2.tom-v2 .eyelids{animation-delay:-1.1s}.person-art.modern-v2.maya-v2 .eyelids{animation-delay:-3.8s}.person-art.modern-v2.sam-v2 .eyelids{animation-delay:-2.2s}.person-art.modern-v2.alex-v2 .eyelids{animation-delay:-4.7s}.person-art.modern-v2.nina-v2 .eyelids{animation-delay:-.4s}.person-art.modern-v2.ben-v2 .eyelids{animation-delay:-3s}.person-art.modern-v2.dana-v2 .eyelids{animation-delay:-5.2s}
+/* One phase offset per character, fed into every idle loop rather than only
+   into the blink. Each loop scales it differently, so two characters differ
+   both from each other and in how their own parts relate. */
+.person-art.modern-v2.tom-v2{--idle-phase:-1.1s}.person-art.modern-v2.maya-v2{--idle-phase:-3.8s}.person-art.modern-v2.sam-v2{--idle-phase:-2.2s}.person-art.modern-v2.alex-v2{--idle-phase:-4.7s}.person-art.modern-v2.nina-v2{--idle-phase:-.4s}.person-art.modern-v2.ben-v2{--idle-phase:-3s}.person-art.modern-v2.dana-v2{--idle-phase:-5.2s}
 .person-art.modern-v2 .mouth{animation:none!important;transform:none!important}
 .person-art.modern-v2 .eyes{animation:none}
 .person-art.modern-v2 .mouth-shape{opacity:0;transition:opacity .055s linear}
@@ -911,12 +922,14 @@ body{
 .person-art.modern-v2[data-viseme="y"] .mouth-e{opacity:1}
 .person-art.modern-v2[data-viseme="o"] .mouth-o{opacity:1}
 .person-art.modern-v2[data-viseme="u"] .mouth-u{opacity:1}
+.person-art.modern-v2[data-viseme="m"] .mouth-m{opacity:1}
+.person-art.modern-v2[data-viseme="f"] .mouth-f{opacity:1}
 .person-art.modern-v2 .pupils,.person-art.modern-v2 .brows,.person-art.modern-v2 .cheeks{
   transform-box:fill-box;transform-origin:center;transition:transform .24s ease,opacity .24s ease
 }
-.person-art.modern-v2 .eyelids{opacity:0;animation:castBlink 5.8s linear infinite}
-.person-art.modern-v2.listening .pupils{animation:castFocus 4.6s ease-in-out infinite}
-.person-art.modern-v2.waiting .pupils,.person-art.modern-v2.speaking .pupils{animation:castGaze 7.8s ease-in-out infinite}
+.person-art.modern-v2 .eyelids{opacity:0;animation:castBlink 5.8s linear var(--idle-phase,0s) infinite}
+.person-art.modern-v2.listening .pupils{animation:castFocus 4.6s ease-in-out calc(var(--idle-phase,0s) * 1.6) infinite}
+.person-art.modern-v2.waiting .pupils,.person-art.modern-v2.speaking .pupils{animation:castGaze 7.8s ease-in-out calc(var(--idle-phase,0s) * 1.2) infinite}
 .person-art.modern-v2.thinking .pupils{transform:translate(3px,-2px)}
 .person-art.modern-v2.thinking .brows{transform:rotate(-2deg) translateY(-1px)}
 .person-art.modern-v2.reacting .head{animation:castReact .72s ease-out both}
@@ -943,12 +956,108 @@ body{
 
 /* Alive between lines: a breath in the chest, the odd double blink, brows that
    lift a little while waiting for him — so the figure never looks frozen. */
-.person-art .torso{animation:torsoBreathe 4.4s ease-in-out infinite}
-.person-art.modern-v2.waiting .eyelids,.person-art.modern-v2.listening .eyelids{animation:castBlinkDouble 6.4s linear infinite}
-.stage-avatar:not(.stage-directed) .person-art.modern-v2.waiting .brows{animation:castBrowsIdle 9s ease-in-out infinite}
+.person-art .torso{animation:torsoBreathe 4.4s ease-in-out calc(var(--idle-phase,0s) * 1.7) infinite}
+.person-art.modern-v2.waiting .eyelids,.person-art.modern-v2.listening .eyelids{animation:castBlinkDouble 6.4s linear var(--idle-phase,0s) infinite}
+.stage-avatar:not(.stage-directed) .person-art.modern-v2.waiting .brows{animation:castBrowsIdle 9s ease-in-out calc(var(--idle-phase,0s) * 1.8) infinite}
 @keyframes torsoBreathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.014)}}
 @keyframes castBlinkDouble{0%,38%,41.5%,44%,47.5%,79%,81.5%,100%{opacity:0}39%,40.5%,45%,46.5%,80%,80.8%{opacity:1}}
 @keyframes castBrowsIdle{0%,86%,100%{transform:none}90%,95%{transform:translateY(-1.2px)}}
+
+/* ---- weight, and layers that add instead of replace ----
+   Two things were missing. The figure never transferred its weight: it swayed
+   symmetrically around one spot forever, which is what a mannequin does. And
+   every gesture REPLACED the idle animation on its element, so the pose
+   jumped at the class swap and no two parts ever overlapped.
+
+   animation-composition:add answers both. The weight cycle rides on top of
+   the breath instead of erasing it, and a talk gesture rides on top of the
+   arm idle instead of deleting it. Browsers without it keep exactly the
+   previous behaviour, so this layers in as an enhancement, not a rewrite. */
+@supports (animation-composition:add){
+  /* 13.5s: hold on one leg, transfer, hold on the other. The holds are what
+     make it read as weight rather than as more swaying. Hips lead, shoulders
+     counter them, and the head — a sibling of both — stays level, which is
+     what makes the contrapposto legible at phone size. */
+  .person-art.modern-v2 .lower-body{
+    animation:bodyBalance 7s ease-in-out calc(var(--idle-phase,0s) * .6) infinite,
+              idleWeightHips 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2 .torso{
+    animation:torsoBreathe 4.4s ease-in-out calc(var(--idle-phase,0s) * 1.7) infinite,
+              idleWeightTorso 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2 .leg-l{
+    animation:legIdleL 7s ease-in-out calc(var(--idle-phase,0s) * 1.1) infinite,
+              idleWeightLegL 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2 .leg-r{
+    animation:legIdleR 7s ease-in-out calc(var(--idle-phase,0s) * 1.9) infinite,
+              idleWeightLegR 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2 .ground-shadow{
+    animation:castShadow 4.4s ease-in-out var(--idle-phase,0s) infinite,
+              idleWeightShadow 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite;
+    animation-composition:replace,add
+  }
+  /* Talking now rides on the idle instead of replacing it: the slow drift
+     survives underneath the gesture, and the pose no longer jumps the frame
+     .voicing is added. The forearms start a fraction late so the limb reads
+     as one chain with follow-through rather than two parts on one beat. */
+  .person-art.modern-v2.voicing .head{
+    animation:headIdle 6s ease-in-out calc(var(--idle-phase,0s) * .9) infinite,
+              headTalk 1.1s ease-in-out infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2.voicing .arm-l{
+    animation:armIdleL 5.2s ease-in-out calc(var(--idle-phase,0s) * 1.3) infinite,
+              armTalkL 2.3s ease-in-out infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2.voicing .arm-r{
+    animation:armIdleR 5.8s ease-in-out calc(var(--idle-phase,0s) * .8) infinite,
+              armTalkR 2.9s ease-in-out infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2.voicing .arm-l .forearm{
+    animation:forearmIdleL 6.4s ease-in-out calc(var(--idle-phase,0s) * 2.1) infinite,
+              forearmTalkL 2.3s ease-in-out .13s infinite;
+    animation-composition:replace,add
+  }
+  .person-art.modern-v2.voicing .arm-r .forearm{
+    animation:forearmIdleR 6.8s ease-in-out calc(var(--idle-phase,0s) * 1.5) infinite,
+              forearmTalkR 2.15s ease-in-out .11s infinite;
+    animation-composition:replace,add
+  }
+}
+@keyframes idleWeightHips{
+  0%,34%{transform:translateX(-2.1px) rotate(-1.05deg)}
+  48%,84%{transform:translateX(2.1px) rotate(1.05deg)}
+  100%{transform:translateX(-2.1px) rotate(-1.05deg)}
+}
+@keyframes idleWeightTorso{
+  0%,37%{transform:translateX(-.8px) rotate(.72deg)}
+  52%,86%{transform:translateX(.8px) rotate(-.72deg)}
+  100%{transform:translateX(-.8px) rotate(.72deg)}
+}
+@keyframes idleWeightLegL{
+  0%,34%{transform:rotate(.52deg)}48%,84%{transform:rotate(-.34deg)}100%{transform:rotate(.52deg)}
+}
+@keyframes idleWeightLegR{
+  0%,34%{transform:rotate(-.34deg)}48%,84%{transform:rotate(.52deg)}100%{transform:rotate(-.34deg)}
+}
+/* The shadow broadens as the weight passes through both feet mid-transfer,
+   then narrows again once one leg has taken it. */
+@keyframes idleWeightShadow{
+  0%,34%{transform:translateX(-2.6px) scaleX(.99)}
+  41%{transform:translateX(0) scaleX(1.06)}
+  48%,84%{transform:translateX(2.6px) scaleX(.99)}
+  92%{transform:translateX(0) scaleX(1.06)}
+  100%{transform:translateX(-2.6px) scaleX(.99)}
+}
 
 /* His turn. While the microphone is really open the figure leans in and nods
    along; a pass earns a real smile; a retry gets only a patient tilt of the
@@ -979,7 +1088,9 @@ body{
    still playing. All animation stays on transform/opacity for mobile Safari. */
 .stage-avatar.stage-directed{
   --act-duration:1.7s;--act-ease:cubic-bezier(.2,.76,.24,1);
-  transform:translateX(var(--shot-x,0)) translateY(var(--shot-y,0)) scale(var(--shot-scale,1))
+  transform:translateX(calc(var(--shot-x,0px) + var(--travel-x,0px)))
+            translateY(calc(var(--shot-y,0px) + var(--travel-y,0px)))
+            scale(calc(var(--shot-scale,1) * var(--travel-scale,1)))
 }
 .stage-avatar.stage-directed .person-art .figure{
   animation:stageActFigure var(--act-duration) var(--act-ease) both,figBreathe 4.4s ease-in-out var(--act-duration) infinite
@@ -1109,6 +1220,51 @@ body{
 @keyframes stageCameraBumpNear{0%{transform:none}42%{transform:scale(1.026)}100%{transform:scale(1.013)}}
 .stage-shot-close{--shot-scale:1.012}.stage-shot-focus{--shot-scale:1.018}.stage-shot-push{--shot-scale:1.012}
 .stage-shot-pan{--shot-x:2px}.stage-shot-lift{--shot-y:-2px;--shot-scale:1.01}.stage-shot-bump{--shot-scale:1.008}
+
+/* The figure now actually travels. A shot is a 2px camera nudge; this is the
+   person changing where they stand. Only four beats move — coming closer,
+   backing off, turning away to think, and easing out on a goodbye — because
+   if every beat moves, no beat reads as movement.
+
+   Closer means lower and larger: on a flat stage that is the whole depth cue.
+   Scaling from the feet (transform-origin below) keeps them on the ground
+   instead of floating the figure as it grows. The .85s transform transition
+   already on .stage-avatar carries the move; the shadow and hips below give
+   it the weight that makes it a step rather than a slide. */
+.stage-avatar{transform-origin:50% 100%}
+.stage-travel-in{--travel-y:9px;--travel-scale:1.075}
+.stage-travel-back{--travel-y:-7px;--travel-scale:.945}
+.stage-travel-aside{--travel-x:-13px;--travel-y:2px;--travel-scale:.985}
+.stage-travel-out{--travel-x:16px;--travel-y:-4px;--travel-scale:.955}
+.stage-avatar[class*="stage-travel-"] .ground-shadow{animation:travelShadow 1.15s cubic-bezier(.2,.74,.24,1) both}
+.stage-avatar[class*="stage-travel-"] .lower-body{animation:travelHips 1.15s cubic-bezier(.2,.74,.24,1) both}
+/* A travel class stays on the avatar for the whole beat, so a step that
+   merely replaced the idle would switch the weight cycle off for as long as
+   the figure stood there. Layer it instead: the step plays over the idle and
+   hands back to it. Same specificity as the two rules above, declared after
+   them, so this wins wherever composition is supported. */
+@supports (animation-composition:add){
+  .stage-avatar[class*="stage-travel-"] .ground-shadow{
+    animation:castShadow 4.4s ease-in-out var(--idle-phase,0s) infinite,
+              idleWeightShadow 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite,
+              travelShadow 1.15s cubic-bezier(.2,.74,.24,1) both;
+    animation-composition:replace,add,add
+  }
+  .stage-avatar[class*="stage-travel-"] .lower-body{
+    animation:bodyBalance 7s ease-in-out calc(var(--idle-phase,0s) * .6) infinite,
+              idleWeightHips 13.5s ease-in-out calc(var(--idle-phase,0s) * 2.6) infinite,
+              travelHips 1.15s cubic-bezier(.2,.74,.24,1) both;
+    animation-composition:replace,add,add
+  }
+}
+/* weight leaves the ground, then lands: the shadow lifts and spreads */
+@keyframes travelShadow{
+  0%{transform:scaleX(1);opacity:.38}38%{transform:scaleX(.86);opacity:.25}
+  66%{transform:scaleX(1.12);opacity:.46}100%{transform:scaleX(1);opacity:.38}
+}
+@keyframes travelHips{
+  0%,100%{transform:none}34%{transform:translateY(-2.5px)}62%{transform:translateY(2px)}82%{transform:translateY(-.5px)}
+}
 .stage-bg.stage-mood-warm{--moment-light:rgba(255,218,145,.18);--moment-shade:.88}
 .stage-bg.stage-mood-cool{--moment-light:rgba(137,196,255,.14);--moment-shade:1}
 .stage-bg.stage-mood-soft{--moment-light:rgba(204,210,255,.12);--moment-shade:.96}
@@ -1386,6 +1542,10 @@ body{
 .stage-avatar.stage-directed.stage-settled.has-sam-cargo-doorway .person-art .arm-r .forearm{animation:none;transform:translate(-5px,3px) rotate(7deg)}
 @media (prefers-reduced-motion:reduce){
   .stage-avatar,.stage-avatar .person-art{animation:none!important;transition:none!important}
+  /* travel is real distance, so with the transition gone it would land as an
+     instant jump on every beat — exactly what reduced motion asks us not to
+     do. Flatten the offsets instead of merely un-animating them. */
+  .stage-avatar{--travel-x:0px;--travel-y:0px;--travel-scale:1}
   .person-art *,.stage-bg .ambient,.stage-bg .context-motion *,.stage-bg .scene-depth,.stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .scene-light-beam,.stage-bg .scene-ground-light,.stage-bg .backdrop-art,.stage-moment-fx *{animation:none!important;transition:none!important}
   .stage-story-props *,.stage-weather-layer *{animation:none!important;transition:none!important}
   .wall-light-moving,.wall-light-source,.wall-light-final,.mirror-light-fx *,
@@ -1663,6 +1823,32 @@ body{
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+
+  /* Reduced motion is a request to stop motion that can make someone ill —
+     travel across the screen, parallax, spin, camera moves — not a request to
+     be taught English by a corpse. The blanket rule above stops everything,
+     including the breath, the blink and the mouth; on its own it leaves a
+     frozen mask that reads as a broken app rather than a calm one.
+
+     So the vestibular offenders stay off, and the three signs of life come
+     back: a chest that breathes (1px), eyes that blink (opacity only), and a
+     mouth that still forms the word being spoken. None of them translate the
+     figure or move the frame. The weight shift, the parallax, the camera and
+     every story gesture stay disabled. Class selectors beat the `*` rule
+     above and the `.person-art *` rule in the stage block, so these win
+     wherever they land. */
+  .person-art .figure{animation:figBreathe 4.4s ease-in-out var(--idle-phase,0s) infinite!important}
+  .person-art .torso{animation:torsoBreathe 4.4s ease-in-out calc(var(--idle-phase,0s) * 1.7) infinite!important}
+  .person-art .eyes{animation:blink 5.4s var(--idle-phase,0s) infinite!important}
+  .person-art.modern-v2 .eyes{animation:none!important}
+  .person-art.modern-v2 .eyelids{animation:castBlink 5.8s linear var(--idle-phase,0s) infinite!important}
+  .person-art.modern-v2.waiting .eyelids,
+  .person-art.modern-v2.listening .eyelids{animation:castBlinkDouble 6.4s linear var(--idle-phase,0s) infinite!important}
+  .person-art.modern-v2 .ground-shadow{animation:castShadow 4.4s ease-in-out var(--idle-phase,0s) infinite!important}
+  /* the lip sync itself: the viseme swap and the legacy scaled mouth */
+  .person-art.modern-v2 .mouth-shape{transition:opacity .055s linear!important}
+  .person-art.mouth-js .mouth,
+  .person-art.mouth-js .tongue{transition:transform .07s linear,opacity .07s linear!important}
 }
 </style>
 </head>
@@ -4082,7 +4268,12 @@ function modernPersonArt(look, state='idle', cls=''){
   const eye=l.eyeColor||'#557782',blush=l.blush||'#e98c7c';
   const rearHair=l.hairStyle==='long'||l.hairStyle==='bob';
   return `<svg class="person-art modern-v2 full-body ${id}-v2 layered-mouth ${state} ${cls}${voiceActive?' voicing':''}" data-art="${id}-v2" data-character="${id}" data-palette="${id}" data-viseme="rest" data-body="full" viewBox="0 0 220 410" aria-hidden="true">
-    <ellipse class="ground-shadow" cx="110" cy="401" rx="68" ry="7" fill="#07101f" opacity=".38"/>
+    <!-- A static outer ellipse carries the falloff the removed root
+         drop-shadow used to give. It stays outside .ground-shadow so the
+         contact shadow keeps the exact opacity range castShadow and the
+         storyShadow* poses animate. A blur here would cost a filter buffer. -->
+    <ellipse class="ground-shadow-soft" cx="110" cy="401" rx="80" ry="10.5" fill="#07101f" opacity=".17"/>
+    <ellipse class="ground-shadow" cx="110" cy="401" rx="62" ry="7" fill="#07101f" opacity=".38"/>
     <g class="figure">
       ${modernLowerBodyArt(l,pants,shoes,accent)}
       ${modernBackArt(l,skin,clothes,accent)}
@@ -4160,7 +4351,8 @@ function modernPersonArt(look, state='idle', cls=''){
         <g class="cheeks" fill="${blush}" opacity=".34"><ellipse cx="77" cy="122" rx="10" ry="5"/><ellipse cx="145" cy="122" rx="10" ry="5"/></g>
         <circle cx="68" cy="112" r="1.2" fill="#a36a56" opacity=".55"/><circle cx="152" cy="112" r="1.2" fill="#a36a56" opacity=".55"/>
 
-        <!-- five clean mouth drawings: closed, A, E/I, O and U -->
+        <!-- seven clean mouth drawings: closed, A, E/I, O, U, the lips-together
+             M/B/P and the teeth-on-lip F/V that make speech readable -->
         <g class="mouth mouth-shapes">
           <g class="mouth-shape mouth-rest">
             <path d="M99 139c6 7 18 9 25 6 3-1 5-3 7-6" fill="none" stroke="#8a4748" stroke-width="3" stroke-linecap="round"/>
@@ -4183,6 +4375,18 @@ function modernPersonArt(look, state='idle', cls=''){
           <g class="mouth-shape mouth-u">
             <ellipse cx="114" cy="147" rx="7" ry="10" fill="#6f353b" stroke="#633237" stroke-width="2"/>
             <path d="M110 153c3-2 6-2 9 0" fill="none" stroke="#d86f78" stroke-width="2.2" stroke-linecap="round"/>
+          </g>
+          <!-- lips pressed together: the closure of m, b and p -->
+          <g class="mouth-shape mouth-m">
+            <path d="M99 135c9-3 21-3 30 0" fill="none" stroke="#d47b72" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+            <path d="M96 141c9 4 27 4 36 0" fill="none" stroke="#8a4748" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M101 147c8 3 18 3 26 0" fill="none" stroke="#c96f6c" stroke-width="2.2" stroke-linecap="round" opacity=".5"/>
+          </g>
+          <!-- upper teeth resting on the lower lip: f and v -->
+          <g class="mouth-shape mouth-f">
+            <path d="M99 138c9-4 22-4 30 0 0 8-5 12-15 12s-15-4-15-12z" fill="#74383c" stroke="#633237" stroke-width="1.7"/>
+            <path d="M101 139c8-2 19-2 26 0v4c-7 2-19 2-26 0z" fill="#fff8ef"/>
+            <path d="M102 148c7 3 16 3 23 0-3 3-7 4-11 4s-9-1-12-4z" fill="#d86f78"/>
           </g>
           <!-- a real smile, shown for a moment when he gets a sentence right -->
           <g class="mouth-shape mouth-smile">
@@ -5908,29 +6112,34 @@ const PRACTICE_STAGE_DIRECTIONS = {
   },
 };
 
+/* `travel` is where the person stands, not where the camera is. Only the
+   beats whose meaning IS a change of distance carry one: coming closer to
+   encourage, backing off in surprise, turning away to think, easing out on a
+   goodbye. Everything else stays put on purpose — movement only reads as
+   movement while most beats are still. */
 const STAGE_DIRECTION_PRESETS = {
-  welcome:  {pose:'welcome', expression:'warm',       gaze:'learner', camera:'open',  mood:'warm',    fx:'spark',   durationMs:1650},
-  warm:     {pose:'warm',    expression:'warm',       gaze:'learner', camera:'close', mood:'warm',    fx:'none',    durationMs:1500},
-  curious:  {pose:'ask',     expression:'curious',    gaze:'learner', camera:'close', mood:'neutral', fx:'question',durationMs:1650},
-  explain:  {pose:'explain', expression:'focused',    gaze:'learner', camera:'open',  mood:'neutral', fx:'none',    durationMs:1750},
-  consider: {pose:'think',   expression:'thoughtful', gaze:'up',      camera:'close', mood:'cool',    fx:'thought', durationMs:1800},
-  decide:   {pose:'decide',  expression:'focused',    gaze:'side',    camera:'close', mood:'cool',    fx:'focus',   durationMs:1800},
-  present:  {pose:'present', expression:'proud',      gaze:'prop',    camera:'focus', mood:'warm',    fx:'focus',   durationMs:1750},
-  inspect:  {pose:'inspect', expression:'focused',    gaze:'down',    camera:'focus', mood:'cool',    fx:'focus',   durationMs:1850},
-  search:   {pose:'search',  expression:'concerned',  gaze:'scan',    camera:'pan',   mood:'cool',    fx:'none',    durationMs:2050},
-  concern:  {pose:'concern', expression:'concerned',  gaze:'learner', camera:'close', mood:'cool',    fx:'alert',   durationMs:1700},
-  surprise: {pose:'surprise',expression:'surprised',  gaze:'prop',    camera:'bump',  mood:'alert',   fx:'alert',   durationMs:1550},
-  apologize:{pose:'apologize',expression:'sorry',     gaze:'learner', camera:'close', mood:'soft',    fx:'none',    durationMs:1750},
-  encourage:{pose:'encourage',expression:'proud',     gaze:'learner', camera:'push',  mood:'warm',    fx:'spark',   durationMs:1700},
-  celebrate:{pose:'celebrate',expression:'happy',     gaze:'learner', camera:'lift',  mood:'success', fx:'sparkle', durationMs:1950},
-  relief:   {pose:'relief',  expression:'relieved',   gaze:'learner', camera:'open',  mood:'success', fx:'success', durationMs:1650},
-  agree:    {pose:'agree',   expression:'warm',       gaze:'learner', camera:'steady',mood:'neutral', fx:'success', durationMs:1450},
-  point:    {pose:'point',   expression:'focused',    gaze:'side',    camera:'pan',   mood:'neutral', fx:'focus',   durationMs:1750},
-  offer:    {pose:'offer',   expression:'warm',       gaze:'prop',    camera:'focus', mood:'warm',    fx:'none',    durationMs:1800},
-  focus:    {pose:'focus',   expression:'focused',    gaze:'prop',    camera:'push',  mood:'cool',    fx:'focus',   durationMs:1700},
-  playful:  {pose:'playful', expression:'happy',      gaze:'learner', camera:'bump',  mood:'warm',    fx:'spark',   durationMs:1650},
-  proud:    {pose:'proud',   expression:'proud',      gaze:'learner', camera:'push',  mood:'success', fx:'spark',   durationMs:1650},
-  farewell: {pose:'farewell',expression:'warm',       gaze:'learner', camera:'open',  mood:'warm',    fx:'spark',   durationMs:1800},
+  welcome:  {pose:'welcome', expression:'warm',       gaze:'learner', camera:'open',  mood:'warm',    fx:'spark',   travel:'in',    durationMs:1650},
+  warm:     {pose:'warm',    expression:'warm',       gaze:'learner', camera:'close', mood:'warm',    fx:'none',                    durationMs:1500},
+  curious:  {pose:'ask',     expression:'curious',    gaze:'learner', camera:'close', mood:'neutral', fx:'question',                durationMs:1650},
+  explain:  {pose:'explain', expression:'focused',    gaze:'learner', camera:'open',  mood:'neutral', fx:'none',                    durationMs:1750},
+  consider: {pose:'think',   expression:'thoughtful', gaze:'up',      camera:'close', mood:'cool',    fx:'thought', travel:'aside', durationMs:1800},
+  decide:   {pose:'decide',  expression:'focused',    gaze:'side',    camera:'close', mood:'cool',    fx:'focus',                   durationMs:1800},
+  present:  {pose:'present', expression:'proud',      gaze:'prop',    camera:'focus', mood:'warm',    fx:'focus',                   durationMs:1750},
+  inspect:  {pose:'inspect', expression:'focused',    gaze:'down',    camera:'focus', mood:'cool',    fx:'focus',                   durationMs:1850},
+  search:   {pose:'search',  expression:'concerned',  gaze:'scan',    camera:'pan',   mood:'cool',    fx:'none',    travel:'aside', durationMs:2050},
+  concern:  {pose:'concern', expression:'concerned',  gaze:'learner', camera:'close', mood:'cool',    fx:'alert',   travel:'back',  durationMs:1700},
+  surprise: {pose:'surprise',expression:'surprised',  gaze:'prop',    camera:'bump',  mood:'alert',   fx:'alert',   travel:'back',  durationMs:1550},
+  apologize:{pose:'apologize',expression:'sorry',     gaze:'learner', camera:'close', mood:'soft',    fx:'none',                    durationMs:1750},
+  encourage:{pose:'encourage',expression:'proud',     gaze:'learner', camera:'push',  mood:'warm',    fx:'spark',   travel:'in',    durationMs:1700},
+  celebrate:{pose:'celebrate',expression:'happy',     gaze:'learner', camera:'lift',  mood:'success', fx:'sparkle', travel:'in',    durationMs:1950},
+  relief:   {pose:'relief',  expression:'relieved',   gaze:'learner', camera:'open',  mood:'success', fx:'success',                 durationMs:1650},
+  agree:    {pose:'agree',   expression:'warm',       gaze:'learner', camera:'steady',mood:'neutral', fx:'success',                 durationMs:1450},
+  point:    {pose:'point',   expression:'focused',    gaze:'side',    camera:'pan',   mood:'neutral', fx:'focus',                   durationMs:1750},
+  offer:    {pose:'offer',   expression:'warm',       gaze:'prop',    camera:'focus', mood:'warm',    fx:'none',                    durationMs:1800},
+  focus:    {pose:'focus',   expression:'focused',    gaze:'prop',    camera:'push',  mood:'cool',    fx:'focus',                   durationMs:1700},
+  playful:  {pose:'playful', expression:'happy',      gaze:'learner', camera:'bump',  mood:'warm',    fx:'spark',                   durationMs:1650},
+  proud:    {pose:'proud',   expression:'proud',      gaze:'learner', camera:'push',  mood:'success', fx:'spark',                   durationMs:1650},
+  farewell: {pose:'farewell',expression:'warm',       gaze:'learner', camera:'open',  mood:'warm',    fx:'spark',   travel:'out',   durationMs:1800},
 };
 
 const STAGE_ACTION_DURATIONS_MS = {
@@ -6857,10 +7066,17 @@ function speak(text, cb){
 const VISEMES = {
   a:{id:'a',sx:1.06,sy:3.5}, o:{id:'o',sx:.82,sy:3.3}, u:{id:'u',sx:.7,sy:2.6},
   e:{id:'e',sx:1.2,sy:1.9}, i:{id:'i',sx:1.15,sy:1.5}, y:{id:'y',sx:1.1,sy:1.7},
+  /* The two consonants an eye actually reads. Without them the face mouths
+     vowels through every word and never once closes on the 'b' of "bag" or
+     bites the lip on the 'f' of "find" — the clearest tell of a fake sync. */
+  m:{id:'m',sx:1.04,sy:.24}, f:{id:'f',sx:.98,sy:.9},
   default:{id:'default',sx:1,sy:2.2},
 };
+const VISEME_BILABIAL=/^[mbp]+$/, VISEME_LABIODENTAL=/^[fv]+$/, VISEME_VOWEL=/^[aeiouy]/;
 function visemeFor(group){
-  const g=String(group||'');
+  const g=String(group||'').toLowerCase();
+  if(VISEME_BILABIAL.test(g)) return VISEMES.m;
+  if(VISEME_LABIODENTAL.test(g)) return VISEMES.f;
   for(const key of ['a','o','u','e','i','y']) if(g.includes(key)) return VISEMES[key];
   return VISEMES.default;
 }
@@ -6873,13 +7089,25 @@ function buildMouthTimeline(text, rate){
     if(/^\s+$/.test(word)){ charPos+=word.length; continue; }
     const clean=word.replace(/[^A-Za-z']/g,'');
     if(clean){
-      const groups=clean.toLowerCase().match(/[aeiouy]+/g)||[clean[0]];
+      /* A word is read as an ordered run of articulations: vowel groups carry
+         the syllable, and lips-together (m/b/p) and teeth-on-lip (f/v) get
+         their own slots so the mouth closes where the word closes it. A
+         consonant is quicker than a vowel, so it takes a shorter slice. */
+      const units=clean.toLowerCase().match(/[aeiouy]+|[mbp]+|[fv]+/g)||[clean[0]];
       const dur=Math.max(150, clean.length*msPerChar);
-      const per=dur/groups.length;
+      const weights=units.map(u=>VISEME_VOWEL.test(u)?1:.45);
+      const span=weights.reduce((a,b)=>a+b,0)||1;
       tl.push({t, charIndex:charPos, word:true});
-      groups.forEach((g,i)=>{
-        tl.push({t:t+i*per, ...visemeFor(g)});
-        tl.push({t:t+i*per+per*0.6, id:'rest', sx:1, sy:.5});
+      let at=0;
+      units.forEach((u,i)=>{
+        const slot=dur*weights[i]/span;
+        tl.push({t:t+at, ...visemeFor(u)});
+        /* A vowel relaxes toward a closed mouth before the next syllable —
+           but only when no real consonant follows, which would close it
+           properly anyway. Two closures back to back read as a stutter. */
+        if(VISEME_VOWEL.test(u) && !(i+1<units.length && !VISEME_VOWEL.test(units[i+1])))
+          tl.push({t:t+at+slot*0.6, id:'rest', sx:1, sy:.5});
+        at+=slot;
       });
       t+=dur;
     }
@@ -9013,6 +9241,7 @@ function stageDirectionModel(cue){
 }
 function stageDirectionClasses(direction){
   if(!direction) return '';
+  const travel=safeStageClass(direction.travel);
   return [
     'stage-directed',
     'stage-pose-'+safeStageClass(direction.pose),
@@ -9020,6 +9249,9 @@ function stageDirectionClasses(direction){
     'stage-gaze-'+safeStageClass(direction.gaze),
     'stage-shot-'+safeStageClass(direction.camera),
     'stage-fx-'+safeStageClass(direction.fx),
+    // most presets do not travel; an empty class would still match the
+    // [class*="stage-travel-"] step cue, so only emit a real one
+    ...(travel?['stage-travel-'+travel]:[]),
   ].join(' ');
 }
 function stageBackdropMomentClasses(direction){

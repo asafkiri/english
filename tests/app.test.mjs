@@ -79,6 +79,7 @@ function runtime(seed = new Map(), options = {}) {
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
+      VISEMES, visemeFor, buildMouthTimeline,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3189,4 +3190,58 @@ test('the drawn cast can smile, and the mic ring level stays in range', () => {
   assert.ok(api.getMicLevel() > 0, 'listening starts with a faint ring');
   api.stopMicMeter();
   assert.equal(api.getMicLevel(), 0, 'the ring goes away with the recording');
+});
+
+test('the mouth closes on m/b/p and bites the lip on f/v, in word order', () => {
+  const { api } = runtime();
+  // joined rather than compared as arrays: the timeline is built inside the vm
+  // sandbox, so its arrays carry that realm's prototype and deepStrictEqual
+  // rejects them against a literal declared out here
+  const shapes = text => api.buildMouthTimeline(text, 1).filter(f => f.sy !== undefined).map(f => f.id).join(' ');
+
+  assert.equal(api.visemeFor('b'), api.VISEMES.m, 'b shares the lips-together shape');
+  assert.equal(api.visemeFor('p'), api.VISEMES.m, 'p shares the lips-together shape');
+  assert.equal(api.visemeFor('v'), api.VISEMES.f, 'v shares the teeth-on-lip shape');
+  assert.equal(api.visemeFor('a'), api.VISEMES.a, 'vowels still resolve to their own shape');
+  assert.equal(api.visemeFor('zzz'), api.VISEMES.default, 'unreadable consonants stay neutral');
+
+  // 0.5 is the height of the neutral rest frame the timeline inserts
+  assert.ok(api.VISEMES.m.sy < 0.5, 'the m/b/p shape is tighter than a resting mouth');
+  assert.ok(api.VISEMES.f.sy < api.VISEMES.a.sy, 'the f/v bite is narrower than an open vowel');
+
+  // the closure has to land where the word puts it, not merely be present.
+  // every utterance also ends on a rest, which is why the vowel-final words
+  // below close twice: once relaxing out of the vowel, once at the end.
+  assert.equal(shapes('bag'), 'm a rest rest', 'bag opens from a closed b');
+  assert.equal(shapes('find'), 'f i rest rest', 'find starts on the lip bite');
+  assert.equal(shapes('problem'), 'm o m e m rest', 'problem closes three times');
+
+  // a consonant slot is shorter than a vowel slot, and never doubles a close
+  const tl = api.buildMouthTimeline('bag', 1).filter(f => f.sy !== undefined);
+  assert.ok(tl[1].t - tl[0].t < tl[2].t - tl[1].t, 'the b is quicker than the a it opens into');
+  assert.ok(!shapes('problem').includes('m rest m'), 'a real closure replaces the filler rest');
+});
+
+test('only the beats that mean a change of distance make the figure travel', () => {
+  const { api } = runtime();
+  const travelOf = preset => {
+    const cls = api.stageDirectionClasses(api.stageDirectionModel({ id: 'x', preset }));
+    return cls.match(/stage-travel-([a-z]+)/)?.[1] || null;
+  };
+  assert.equal(travelOf('encourage'), 'in', 'encouraging steps toward the learner');
+  assert.equal(travelOf('surprise'), 'back', 'surprise backs off');
+  assert.equal(travelOf('consider'), 'aside', 'thinking turns away');
+  assert.equal(travelOf('farewell'), 'out', 'a goodbye eases out');
+  assert.equal(travelOf('agree'), null, 'an ordinary beat stays put');
+  assert.equal(travelOf('curious'), null, 'an ordinary beat stays put');
+
+  const all = Object.keys(api.STAGE_DIRECTION_PRESETS);
+  const moving = all.filter(p => api.STAGE_DIRECTION_PRESETS[p].travel);
+  assert.ok(moving.length < all.length / 2,
+    `movement only reads as movement while most beats are still (${moving.length}/${all.length} travel)`);
+  for (const p of moving)
+    assert.match(api.STAGE_DIRECTION_PRESETS[p].travel, /^(in|back|aside|out)$/, `${p} uses a defined travel`);
+
+  // an absent travel must not emit a bare class the [class*=] step cue matches
+  assert.doesNotMatch(api.stageDirectionClasses(api.stageDirectionModel({ id: 'x', preset: 'agree' })), /stage-travel-/);
 });
