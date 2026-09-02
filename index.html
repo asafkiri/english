@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>מדברים אנגלית — 15 דקות ביום</title>
-<meta name="description" content="אפליקציה ללימוד דיבור באנגלית — שיעור קצר של 15 דקות כל יום, צעד אחר צעד.">
+<title>מדברים אנגלית — שיעור קצר ביום</title>
+<meta name="description" content="אפליקציה ללימוד דיבור באנגלית — שיעור קצר אחד כל יום, צעד אחר צעד.">
 <meta name="theme-color" content="#0e1524">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -116,7 +116,17 @@ body{
 .xbtn{width:44px;height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--dim);font-size:17px;cursor:pointer;flex-shrink:0}
 .pbar{flex:1;height:12px;background:var(--card);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
 .pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#6ee7b7);transition:width .4s ease}
-.timer{font-size:13px;font-weight:700;color:var(--dim);min-width:44px;text-align:left;font-variant-numeric:tabular-nums}
+.timer{font-size:13px;font-weight:700;color:var(--dim);min-width:44px;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* what he can say now: the proof a finished lesson leaves behind */
+.can-say{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 8px;margin:16px 0 6px;text-align:right}
+.can-say-title{font-size:14.5px;font-weight:800;color:var(--green);margin-bottom:8px}
+.can-say-line{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;background:transparent;border:none;border-top:1px solid var(--line);
+  padding:8px 2px;color:var(--text);font:inherit;cursor:pointer;text-align:right}
+.can-say-line:first-of-type{border-top:none}
+.can-say-line .en{flex:1;direction:ltr;text-align:right;font-weight:800;font-size:16.5px}
+.can-say-line .he{font-size:13.5px;color:var(--dim)}
+.can-say-line .spk{font-size:16px;color:var(--blue)}
+.unit-promise{font-size:13.5px;color:#a7b6d6;margin:-4px 4px 10px;line-height:1.45}
 .step{padding-top:8px}
 .step-label{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--blue);background:rgba(96,165,250,.12);padding:4px 12px;border-radius:999px;margin-bottom:14px}
 .step h2{font-size:23px;font-weight:800;margin-bottom:8px}
@@ -1049,6 +1059,18 @@ body{
 .mission-line span[dir=ltr]{flex:1}
 .mission-tip{background:rgba(0,0,0,.22);border-radius:11px;padding:10px 12px;font-size:14px;
   line-height:1.5;color:#cfc3a6;margin-bottom:12px}
+/* the softer way in: saying it out loud somewhere safe still counts */
+.mission-soft{border-top:1px dashed rgba(251,191,36,.3);margin-top:14px;padding-top:12px;font-size:14px;line-height:1.5;color:#e8ddc4}
+.mission-soft b{display:block;color:var(--amber);margin-bottom:2px}
+.mission-soft .btn{margin-top:10px;font-size:15px;padding:12px 16px}
+.mission-snoozed{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;background:var(--card);border:1px solid rgba(251,191,36,.3);
+  border-radius:14px;padding:10px 14px;margin:14px 0;color:var(--text);font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-align:right}
+.mission-snoozed span:last-child{color:var(--amber);font-size:13px;white-space:nowrap}
+/* in-app confirmation sheet, instead of the browser's "index.html says" box */
+.dialog-sheet{border-radius:24px 24px 0 0;text-align:right}
+.dialog-sheet h3{margin-bottom:8px}
+.dialog-text{color:var(--dim);font-size:15.5px;line-height:1.5;margin-bottom:18px}
+.btn.danger{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff}
 
 /* ---------- modal ---------- */
 .overlay{position:fixed;inset:0;background:rgba(5,10,20,.7);display:flex;align-items:flex-end;justify-content:center;z-index:100;animation:fadeUp .2s ease}
@@ -1085,7 +1107,7 @@ body{
 <script>
 'use strict';
 /* =====================================================================
-   מדברים אנגלית — שיעור של 15 דקות ביום, עם דגש על דיבור וביטחון עצמי
+   מדברים אנגלית — שיעור קצר אחד ביום, עם דגש על דיבור וביטחון עצמי
    ===================================================================== */
 
 /* ---------------- lesson content ---------------- */
@@ -1683,6 +1705,17 @@ const LESSONS = [
 },
 ];
 const LESSONS_PER_UNIT = 5;
+/* What each unit actually leaves him able to do. A concrete promise he can
+   check against himself, instead of "after a month you will speak English". */
+const UNIT_PROMISES = [
+  'להגיד שלום, להציג את עצמך ולהיפרד יפה',
+  'לספר על עצמך, על המשפחה ועל מה שאתה אוהב, ולשאול שאלות',
+  'להזמין אוכל, לשאול כמה זה עולה ולהסתדר בחנות',
+  'לנהל שיחה קצרה עם חבר ולקבוע תוכניות',
+  'להבין מחירים, ימים וצבעים, ולקנות משהו באנגלית',
+  'לדבר על העולם שלך: חיות, בגדים, הגוף ומזג האוויר',
+];
+function unitPromise(u){ return UNIT_PROMISES[u] || ''; }
 
 /* A short controlled-choice conversation closes every unit. The learner
    chooses the meaning in Hebrew, then produces the English answer from memory.
@@ -5546,7 +5579,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.10.0';
+const APP_VERSION = '2.11.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -5571,14 +5604,14 @@ const PRAISE = ['מעולה! 🔥','זיהיתי את המשפט!','בדיוק �
 const ALMOST = ['קלטתי חלק מהמשפט — עוד ניסיון אחד?','קרוב מאוד! נסה שוב','יפה! בוא ננסה עוד פעם ביחד'];
 const FINISH_QUOTES = [
   'כל מילה שאתה אומר בקול — נשארת איתך לתמיד.',
-  'מי שמתאמן 15 דקות ביום, אחרי חודש מדבר אנגלית אמיתית.',
+  'כל שיעור מוסיף לך חמישה משפטים שאתה באמת יכול להגיד. זה מצטבר.',
   'זה לא כישרון. זה התמדה. ואתה מתמיד!',
   'גם מי שהיום מדבר אנגלית מושלמת — התחיל בדיוק ככה.',
   'הקול שלך באנגלית נהיה חזק יותר בכל יום.',
   'טעויות זה חלק מהדרך. מי שלא טועה — לא לומד.',
 ];
 const HOME_LINES = [
-  'רק 15 דקות. אתה תצא מזה עם משפטים אמיתיים.',
+  'שיעור אחד קצר, ואתה יוצא ממנו עם משפטים שאתה באמת יכול להגיד.',
   'עוד יום, עוד צעד. אתה בכיוון הנכון.',
   'אתה לא צריך להיות מושלם. אתה צריך רק להתחיל.',
   'ההצלחה שלך = כמה פעמים פתחת את האפליקציה. פשוט.',
@@ -5696,6 +5729,12 @@ function load(){
       out.onboarded = !!out.onboarded;
       out.completed = Math.max(0, Math.min(LESSONS.length, Math.floor(Number(out.completed) || 0)));
       out.streak = Math.max(0, Number(out.streak) || 0);
+      // A counter that only ever grows. Older installs never tracked it, so
+      // the best honest estimate is the days the streak and the lessons prove.
+      out.daysLearned = s.daysLearned === undefined
+        ? Math.max(out.streak, out.completed)
+        : Math.max(0, Math.floor(Number(out.daysLearned) || 0));
+      out.micPrimed = !!out.micPrimed;
       out.lessonsToday = Math.max(0, Math.floor(Number(out.lessonsToday) || 0));
       out.practiceCount = Math.max(0, Math.floor(Number(out.practiceCount) || 0));
       out.practiceRecent = Array.isArray(out.practiceRecent)
@@ -5750,9 +5789,9 @@ function load(){
 }
 function defaults(){
   return {
-    schemaVersion:3, name:'', onboarded:false, completed:0, streak:0,
+    schemaVersion:3, name:'', onboarded:false, completed:0, streak:0, daysLearned:0,
     profile:defaultProfile(),
-    lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true,
+    lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
     practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[],
@@ -5909,6 +5948,7 @@ function reconcileStoredProgress(){
       state.slowSpeech=stored.slowSpeech!==false;
       state.micEnabled=stored.micEnabled!==false;
     }
+    state.micPrimed=!!state.micPrimed||!!stored.micPrimed;
     state.settingsUpdatedAt=Math.max(Number(state.settingsUpdatedAt)||0,storedSettingsTs);
 
     const localReviewTs=Math.max(0,Number(state.reviewUpdatedAt)||0);
@@ -5953,6 +5993,7 @@ function reconcileStoredProgress(){
     state.missions=mergeMissions(stored.missions, state.missions);
     state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
     state.replays=Math.max(Number(state.replays)||0,Number(stored.replays)||0);
+    state.daysLearned=Math.max(Number(state.daysLearned)||0,Number(stored.daysLearned)||0);
     state.lastGraceTs=Math.max(Number(state.lastGraceTs)||0,Number(stored.lastGraceTs)||0);
     state.progressUpdatedAt=Math.max(Number(state.progressUpdatedAt)||0,Number(stored.progressUpdatedAt)||0);
     const localDay=dateValue(state.lastDoneDate), storedDay=dateValue(stored.lastDoneDate);
@@ -6400,6 +6441,36 @@ function toast(msg){
   document.body.appendChild(t);
   setTimeout(()=>t.remove(), 2200);
 }
+/* An in-app question sheet. The browser's own confirm box is a foreign thing
+   titled "index.html says"; this one speaks the app's language, never blocks
+   the thread, and resolves false when tapped away. */
+let dialogResolver=null, dialogEl=null;
+function resolveDialog(value){
+  const resolve=dialogResolver, el=dialogEl;
+  dialogResolver=null; dialogEl=null;
+  if(el) el.remove();
+  if(resolve) resolve(!!value);
+}
+function askConfirm(opts={}){
+  const {title='', text='', ok='אישור', cancel='ביטול', danger=false}=opts;
+  resolveDialog(false);
+  return new Promise(resolve=>{
+    dialogResolver=resolve;
+    const ov=document.createElement('div');
+    ov.className='overlay dialog';
+    ov.innerHTML=`
+    <div class="sheet dialog-sheet" role="alertdialog" aria-modal="true" aria-labelledby="dialogTitle" onclick="event.stopPropagation()">
+      <h3 id="dialogTitle">${esc(title)}</h3>
+      ${text?`<p class="dialog-text">${esc(text)}</p>`:''}
+      <button class="btn${danger?' danger':''}" id="dialogOk" onclick="resolveDialog(true)">${esc(ok)}</button>
+      ${cancel?`<button class="btn secondary" style="margin-top:8px" onclick="resolveDialog(false)">${esc(cancel)}</button>`:''}
+    </div>`;
+    ov.onclick=()=>resolveDialog(false);
+    dialogEl=ov;
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>{ if(dialogEl===ov) document.getElementById('dialogOk')?.focus?.(); });
+  });
+}
 function confetti(){
   const emojis = ['🎉','⭐','🔥','💪','✨','🏆'];
   for(let i=0;i<26;i++){
@@ -6423,7 +6494,7 @@ function renderOnboarding(){
     <h1>מדברים אנגלית</h1>
     <p>לא עוד דקדוק משעמם. פה לומדים <b>לדבר</b>.</p>
     <div class="promise">
-      <div><span>⏱️</span><span><b>15 דקות ביום. זהו.</b><br>שיעור אחד קצר, בלי שיעורי בית.</span></div>
+      <div><span>⏱️</span><span><b>שיעור אחד קצר ביום. זהו.</b><br>בערך ${estimateLessonMinutes(0)} דקות בהתחלה, בלי שיעורי בית. אחרי היחידה הראשונה תדע ${esc(unitPromise(0))}.</span></div>
       <div><span>🗣️</span><span><b>מדברים מהשיעור הראשון.</b><br>כל משפט כתוב גם באותיות עבריות, כדי שתדע בדיוק איך להגיד אותו.</span></div>
       <div><span>🧠</span><span><b>אי אפשר להיכשל פה.</b><br>אין ציונים ואין טעויות — רק ניסיונות. כל ניסיון מקדם אותך.</span></div>
     </div>
@@ -6445,6 +6516,30 @@ function greeting(){
   if(hr < 12) return 'בוקר טוב' + nm + ' ☀️';
   if(hr < 18) return 'אהלן' + nm + ' 👋';
   return 'ערב טוב' + nm + ' 🌙';
+}
+/* The proof a lesson leaves behind: the sentences themselves, tappable, not a
+   number. Evidence he can hear beats a counter he has to believe. */
+function canSayHtml(li, title='🗣️ מהיום אתה יכול להגיד:'){
+  const lesson = LESSONS[li];
+  if(!lesson) return '';
+  const lines = lesson.phrases.map(p=>{
+    const shown = ptext(p,'en'), spoken = ptext(p,'en',true), he = ptext(p,'he');
+    return `<button class="can-say-line" onclick="speak('${jsEsc(spoken)}')" aria-label="השמעת ${esc(shown)}">
+      <span class="en" dir="ltr" lang="en">${esc(shown)}</span><span class="he">${esc(he)}</span><span class="spk" aria-hidden="true">🔊</span>
+    </button>`;
+  }).join('');
+  return `<div class="can-say"><div class="can-say-title">${esc(title)}</div>${lines}</div>`;
+}
+function streakLabel(n){
+  n = Math.max(0, Math.floor(Number(n)||0));
+  if(n === 1) return 'יום ראשון ברצף';
+  if(n === 2) return 'יומיים ברצף';
+  return n + ' ימים ברצף';
+}
+function daysBetween(fromDate, toDate){
+  const a = dateValue(fromDate), b = dateValue(toDate);
+  if(!a || !b || b < a) return 0;
+  return Math.round((b - a) / 864e5);
 }
 function renderHome(){
   const doneCount = lessonsDoneToday();
@@ -6484,6 +6579,7 @@ function renderHome(){
       <div class="big">✅</div>
       <h2>סיימת את השיעור של היום!</h2>
       <p>הכי טוב לעצור כאן ולתת למוח לילה לשמור את מה שלמדת.<br>אבל אם אתה מרגיש חזק — יש לך שיעור בונוס אחד ליום. 😉</p>
+      ${canSayHtml(state.completed-1)}
       <button class="btn" onclick="startLesson(${cur}, false)">🎁 בא לי עוד — שיעור בונוס</button>
       <button class="btn secondary" style="margin-top:8px" onclick="renderReview()">בא לי לחזור על מילים 🔁</button>
     </div>`;
@@ -6493,13 +6589,14 @@ function renderHome(){
       <div class="big">🔥🔥</div>
       <h2>וואו, שני שיעורים ביום!</h2>
       <p>עשית היום כפול. עכשיו באמת תן למוח לשמור את זה —<br>השיעור הבא נפתח מחר. 😴</p>
+      ${canSayHtml(state.completed-1)}
       <button class="btn secondary" onclick="renderReview()">בא לי לחזור על מילים 🔁</button>
     </div>`;
   } else {
     heroHtml = `
     <div class="card today">
       <div class="deco">🎙️</div>
-      <div class="tag">⏱️ ~15 דקות · שיעור ${cur+1} מתוך ${LESSONS.length}</div>
+      <div class="tag">⏱️ ~${estimateLessonMinutes(cur)} דקות · שיעור ${cur+1} מתוך ${LESSONS.length}</div>
       <h2>${esc(lesson.title)}</h2>
       <div class="goal">${esc(lesson.goal)}</div>
       <button class="btn" onclick="startLesson(${cur}, false)">מתחילים את השיעור של היום 🎧</button>
@@ -6507,8 +6604,11 @@ function renderHome(){
   }
 
   let listHtml = '';
+  const currentUnit = Math.floor(cur / LESSONS_PER_UNIT);
   UNITS.forEach((u, ui)=>{
     listHtml += `<div class="unit"><div class="unit-head"><span>${u.emoji} יחידה ${ui+1} · ${esc(u.title)}</span><span class="bar"></span></div>`;
+    // the promise is concrete and checkable, and shown only for the unit he is in
+    if(ui === currentUnit && !allDone) listHtml += `<div class="unit-promise">בסוף היחידה תדע ${esc(unitPromise(ui))}.</div>`;
     for(let li = ui*LESSONS_PER_UNIT; li < (ui+1)*LESSONS_PER_UNIT; li++){
       const l = LESSONS[li];
       const done = li < state.completed;
@@ -6533,7 +6633,7 @@ function renderHome(){
   h(`
   <div class="screen">
     <div class="top">
-      <div class="brand">מדברים אנגלית<small>15 דקות ביום, וזהו</small></div>
+      <div class="brand">מדברים אנגלית<small>שיעור קצר ביום, וזהו</small></div>
       <div class="chips">
         <div class="chip">🔥 ${state.streak}</div>
         <button class="chip gear" onclick="openSettings()" aria-label="פתיחת הגדרות">⚙️</button>
@@ -6552,7 +6652,7 @@ function renderHome(){
     <div class="stats">
       <div class="stat"><b>${state.completed}</b><span>שיעורים</span></div>
       <div class="stat"><b>${words}</b><span>משפטים שלך</span></div>
-      <div class="stat"><b>${state.streak}</b><span>ימים ברצף</span></div>
+      <div class="stat"><b>${state.daysLearned}</b><span>ימים שלמדת</span></div>
       ${missionsDone()?`<div class="stat" style="grid-column:1/-1;border-color:rgba(251,191,36,.45)"><b style="color:var(--amber)">${missionsDone()}</b><span>${missionsDone()===1?'משימה אמיתית שעשית בעולם 🎯':'משימות אמיתיות שעשית בעולם 🎯'}</span></div>`:''}
     </div>
     ${state.completed > 0 ? `
@@ -6728,13 +6828,15 @@ function saveProfileSettings(){
 function setSpeed(slow, btn){ state.slowSpeech = slow; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); speak('Hello! How are you?'); }
 function setMic(on, btn){ state.micEnabled = on; touchState('settingsUpdatedAt'); save(); refreshSeg(btn); }
 function resetAll(){
-  if(confirm('בטוח לאפס את כל ההתקדמות? אי אפשר לבטל את זה.')){
+  askConfirm({title:'לאפס את כל ההתקדמות?', text:'אי אפשר לבטל את זה. כל השיעורים, הרצף והמשימות יימחקו.',
+    ok:'כן, לאפס הכול', cancel:'לא, להשאיר', danger:true}).then(ok=>{
+    if(!ok) return;
     localStorage.removeItem(STORE_KEY);
     localStorage.removeItem(PRACTICE_CYCLE_KEY);
     state = defaults();
-    document.querySelector('.overlay')?.remove();
+    document.querySelectorAll('.overlay').forEach(el=>el.remove());
     renderOnboarding();
-  }
+  });
 }
 
 /* ================= lesson player ================= */
@@ -6914,7 +7016,9 @@ function startLesson(idx, isReplay, force=false){
   if(!Number.isInteger(idx) || idx<0 || idx>=LESSONS.length) return;
   if(state.session && !force){
     if(state.session.idx === idx && !!state.session.isReplay === !!isReplay) return resumeLesson();
-    if(!confirm('יש שיעור שעצרת באמצע. להתחיל שיעור אחר ולוותר על המקום השמור?')) return;
+    askConfirm({title:'יש שיעור שעצרת באמצע', text:'להתחיל שיעור אחר ולוותר על המקום השמור?',
+      ok:'כן, שיעור אחר', cancel:'לא, להישאר'}).then(ok=>{ if(ok) startLesson(idx, isReplay, true); });
+    return;
   }
   rememberFinishedRun(state.session?.runId);
   state.session = null;
@@ -6962,7 +7066,37 @@ function elapsed(){
   const s = Math.floor(activeElapsedMs()/1000);
   return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 }
-function updateTimer(){ const el = document.getElementById('timer'); if(el) el.textContent = elapsed(); }
+function updateTimer(){ const el = document.getElementById('timer'); if(el) el.textContent = lessonEtaLabel(); }
+/* A running stopwatch reads like an exam. What he sees instead is how little
+   is left, estimated from the steps still ahead of him. The same estimate
+   tells the truth on the home screen instead of a fixed "15 minutes". */
+const STEP_SECONDS = {
+  intro:10, learn:15, speak:25, quiz:20, listenQuiz:20, order:20, dlgIntro:8, listen:8,
+  branchChoice:8, branchPending:16, practiceIntro:8, practiceBeatPending:8, practiceChoicePending:8,
+  practiceDone:0, done:0,
+};
+function stepSeconds(step){
+  if(!step) return 0;
+  if(step.type==='speak' && step.warmup) return 20;
+  return STEP_SECONDS[step.type] ?? 12;
+}
+function remainingLessonSeconds(session=L){
+  if(!session || !Array.isArray(session.steps)) return 0;
+  return session.steps.slice(session.i).reduce((sum,step)=>sum+stepSeconds(step),0);
+}
+function lessonEtaLabel(session=L){
+  const secs = remainingLessonSeconds(session);
+  if(secs <= 45) return 'כמעט סיימת';
+  return 'עוד כ־' + Math.max(1, Math.ceil(secs/60)) + ' דק׳';
+}
+function estimateLessonMinutes(idx, isReplay=false){
+  const warm = (!isReplay && idx > 0) ? Math.min(2 + idx, 20) : 0;
+  const rounds = Math.max(1, conversationRounds(idx).length || 4);
+  const secs = STEP_SECONDS.intro + warm*20 + 5*(STEP_SECONDS.learn + STEP_SECONDS.speak)
+    + 3*STEP_SECONDS.quiz + STEP_SECONDS.dlgIntro
+    + rounds*(STEP_SECONDS.listen + STEP_SECONDS.branchChoice + 2*STEP_SECONDS.branchPending);
+  return Math.max(5, Math.round(secs/60));
+}
 function startLessonClock(){
   if(!L) return;
   if(!L.activeSince) L.activeSince = Date.now();
@@ -7018,18 +7152,28 @@ function resumeLesson(){
 function restartSavedLesson(){
   if(!state.session) return;
   const idx=state.session.idx, isReplay=!!state.session.isReplay;
-  if(!confirm('להתחיל את השיעור הזה מחדש? המקום השמור יימחק.')) return;
-  rememberFinishedRun(state.session.runId);
-  state.session=null; touchState('sessionUpdatedAt'); save(); startLesson(idx,isReplay,true);
+  askConfirm({title:'להתחיל את השיעור מחדש?', text:'המקום השמור יימחק ותתחיל מההתחלה.',
+    ok:'כן, מההתחלה', cancel:'לא, להמשיך מאיפה שעצרתי'}).then(ok=>{
+    if(!ok || !state.session) return;
+    rememberFinishedRun(state.session.runId);
+    state.session=null; touchState('sessionUpdatedAt'); save(); startLesson(idx,isReplay,true);
+  });
 }
 function exitLesson(){
-  if(L?.isPractice){
-    if(confirm('לצאת מתרגול השיחה?')){ stopLessonTimers(false); L=null; renderHome(); }
+  const session=L;
+  if(!session) return;
+  if(session.isPractice){
+    askConfirm({title:'לצאת מתרגול השיחה?', ok:'לצאת', cancel:'להישאר בשיחה'}).then(ok=>{
+      if(!ok || L!==session) return;
+      stopLessonTimers(false); L=null; renderHome();
+    });
     return;
   }
-  if(confirm('לצאת מהשיעור? המקום שלך יישמר ותוכל להמשיך מכאן כשתחזור.')){
+  askConfirm({title:'לצאת מהשיעור?', text:'המקום שלך יישמר ותוכל להמשיך בדיוק מכאן כשתחזור.',
+    ok:'לצאת, אחזור אחר כך', cancel:'להישאר בשיעור'}).then(ok=>{
+    if(!ok || L!==session) return;
     pauseLessonClock(); saveLessonCheckpoint(); stopLessonTimers(false); L=null; renderHome();
-  }
+  });
 }
 function stopLessonTimers(keepCheckpoint=true){
   if(L && keepCheckpoint){ pauseLessonClock(); saveLessonCheckpoint(); }
@@ -7073,7 +7217,7 @@ function playerShell(inner){
     <div class="player-top">
       <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהשיעור">✕</button>
       <div class="pbar" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-      <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
+      <div class="timer" id="timer" aria-label="זמן משוער שנותר">${lessonEtaLabel()}</div>
     </div>
     <div class="step">${inner}</div>
   </div>`);
@@ -7112,21 +7256,39 @@ function normalizeMissions(raw){
   const out = {};
   for(let u=0; u<UNIT_MISSIONS.length; u++){
     const row = src[u] && typeof src[u]==='object' && !Array.isArray(src[u]) ? src[u] : {};
-    out[u] = { rehearsed:!!row.rehearsed, done:!!row.done, doneAt:Math.max(0, Number(row.doneAt)||0) };
+    out[u] = { rehearsed:!!row.rehearsed, done:!!row.done, doneAt:Math.max(0, Number(row.doneAt)||0),
+      soft:!!row.soft, snoozedUntil:Math.max(0, Number(row.snoozedUntil)||0) };
   }
   return out;
 }
 function mergeMissions(stored, local){
   const a = normalizeMissions(stored), b = normalizeMissions(local), out = {};
-  for(let u=0; u<UNIT_MISSIONS.length; u++)
+  for(let u=0; u<UNIT_MISSIONS.length; u++){
+    // "soft" only survives while no tab has recorded the real thing
+    const realDone = (a[u].done && !a[u].soft) || (b[u].done && !b[u].soft);
     out[u] = { rehearsed:a[u].rehearsed||b[u].rehearsed, done:a[u].done||b[u].done,
-      doneAt:Math.max(a[u].doneAt, b[u].doneAt) };
+      doneAt:Math.max(a[u].doneAt, b[u].doneAt), soft:(a[u].done||b[u].done) && !realDone,
+      snoozedUntil:Math.max(a[u].snoozedUntil, b[u].snoozedUntil) };
+  }
   return out;
 }
 function missionRow(u){
   if(!state.missions || typeof state.missions!=='object') state.missions = normalizeMissions(null);
-  if(!state.missions[u]) state.missions[u] = { rehearsed:false, done:false, doneAt:0 };
+  if(!state.missions[u]) state.missions[u] = { rehearsed:false, done:false, doneAt:0, soft:false, snoozedUntil:0 };
   return state.missions[u];
+}
+const MISSION_SNOOZE_MS = 7*864e5;
+function missionSnoozed(u, now=Date.now()){ return missionRow(u).snoozedUntil > now; }
+/* "Not now" is a real answer. The card folds into one quiet line for a week
+   instead of standing at the top of the home screen as a daily reminder of
+   the thing he has not done yet. */
+function snoozeMission(u){
+  const row = missionRow(u);
+  row.snoozedUntil = Date.now() + MISSION_SNOOZE_MS;
+  touchState('progressUpdatedAt');
+  save();
+  toast('בסדר. זה יחכה בשקט, בלי לחץ.');
+  renderHome();
 }
 function unitFinished(u){ return state.completed >= (u+1)*LESSONS_PER_UNIT; }
 function missionsDone(){
@@ -7153,8 +7315,12 @@ function startUnitRehearsal(u){
   const spec = UNIT_REHEARSALS[u];
   if(!spec || !unitFinished(u)) return;
   if(L){
-    if(!confirm('יש שיעור פתוח. לצאת ממנו ולעבור לחזרה הגנרלית?')) return;
-    stopLessonTimers(true); L=null;
+    askConfirm({title:'יש שיעור פתוח', text:'לצאת ממנו ולעבור לחזרה הגנרלית? המקום בשיעור יישמר.',
+      ok:'כן, לחזרה הגנרלית', cancel:'לא, להישאר בשיעור'}).then(ok=>{
+      if(!ok || !L) return;
+      stopLessonTimers(true); L=null; startUnitRehearsal(u);
+    });
+    return;
   }
   const character = PRACTICE_CAST[spec.who] || CHARACTERS[spec.who];
   const steps = [{type:'practiceIntro'}];
@@ -7237,26 +7403,40 @@ function missionCardHtml(u, withButton=true){
     <div class="mission-lines">${lines}</div>
     <div class="mission-tip">💡 ${esc(m.tip)}</div>
     ${withButton?`<button class="btn" onclick="completeMission(${u})">עשיתי את זה! 🎉</button>
-    <button class="btn ghost" style="padding:8px;margin-top:4px" onclick="renderHome()">עוד לא — אני עוד אעשה את זה</button>`:''}
+    <button class="btn ghost" style="padding:8px;margin-top:4px" onclick="snoozeMission(${u})">לא עכשיו — תזכיר לי בעוד שבוע</button>
+    <div class="mission-soft">
+      <b>קשה לך מול אדם זר? גם זה נחשב.</b>
+      תגיד את המשפטים בקול בהודעה קולית לחבר, לאח, או לעצמך מול המראה. העיקר שזה יצא מהפה.
+      <button class="btn secondary" onclick="completeMission(${u}, true)">עשיתי את הגרסה הרכה ✔</button>
+    </div>`:''}
   </div>`;
 }
-function completeMission(u){
+function completeMission(u, soft=false){
   const m = UNIT_MISSIONS[u];
   if(!m) return;
   const row = missionRow(u);
   if(!row.done){
     row.done = true;
     row.doneAt = Date.now();
+    row.soft = !!soft;
+    touchState('progressUpdatedAt');
+    save();
+  } else if(row.soft && !soft){
+    // the real thing after the soft version: the record only ever improves
+    row.soft = false;
     touchState('progressUpdatedAt');
     save();
   }
   confetti();
   setTimeout(confetti, 700);
+  const win = soft
+    ? 'הוצאת את זה מהפה, באנגלית ובקול. זה הצעד שרוב האנשים לא עושים. בפעם הבאה, מול בן אדם — וזה כבר יהיה קל יותר.'
+    : m.win;
   h(`<div class="screen">
     <div class="finish">
       <div class="emoji">🎉</div>
-      <h2>עשית את זה באמת</h2>
-      <div class="scene-note" style="text-align:right">${esc(m.win)}</div>
+      <h2>${soft ? 'עשית את זה בקול' : 'עשית את זה באמת'}</h2>
+      <div class="scene-note" style="text-align:right">${esc(win)}</div>
       <div class="chip" style="display:inline-flex;margin-top:6px">🎯 ${missionsDone()===1?'המשימה האמיתית הראשונה שלך':missionsDone()+' משימות אמיתיות שהשלמת'}</div>
       <div class="quote">💬 ${esc(pick(FINISH_QUOTES))}</div>
       <button class="btn" onclick="renderHome()">חזרה הביתה</button>
@@ -7279,12 +7459,18 @@ function unitCallToActionHtml(){
   const u = pendingUnit();
   if(u < 0) return '';
   const row = missionRow(u);
+  if(missionSnoozed(u)){
+    return row.rehearsed
+      ? `<button class="mission-snoozed" onclick="renderMissionScreen(${u})"><span>🎯</span><span style="flex:1">המשימה של יחידה ${u+1} מחכה, כשתרצה</span><span>לפתוח</span></button>`
+      : `<button class="mission-snoozed" onclick="startUnitRehearsal(${u})"><span>🎬</span><span style="flex:1">החזרה הגנרלית של יחידה ${u+1} מחכה, כשתרצה</span><span>לפתוח</span></button>`;
+  }
   if(!row.rehearsed) return `
     <div class="card unit-cta">
       <div class="tag">🎬 סיימת את יחידה ${u+1} · ${esc(UNITS[u].title)}</div>
       <h2>החזרה הגנרלית מחכה לך</h2>
       <p>שיחה אחת ארוכה מכל מה שלמדת ביחידה — ואז המשימה האמיתית.</p>
       <button class="btn" onclick="startUnitRehearsal(${u})">מתחילים את החזרה 🎬</button>
+      <button class="btn ghost" style="margin-top:5px;padding:8px" onclick="snoozeMission(${u})">לא עכשיו</button>
     </div>`;
   return `
     <div class="card unit-cta">
@@ -7292,7 +7478,10 @@ function unitCallToActionHtml(){
       <h2>${esc(UNIT_MISSIONS[u].emoji)} ${esc(UNIT_MISSIONS[u].title)}</h2>
       <p>${esc(UNIT_MISSIONS[u].what)}</p>
       <button class="btn" onclick="renderMissionScreen(${u})">לפתוח את המשימה 🎯</button>
-      <button class="btn ghost" style="margin-top:5px;padding:8px" onclick="startUnitRehearsal(${u})">לחזור על החזרה הגנרלית 🎬</button>
+      <div class="btn-row" style="margin-top:5px">
+        <button class="btn ghost" style="padding:8px" onclick="startUnitRehearsal(${u})">לחזור על החזרה 🎬</button>
+        <button class="btn ghost" style="padding:8px" onclick="snoozeMission(${u})">לא עכשיו</button>
+      </div>
     </div>`;
 }
 
@@ -7706,8 +7895,12 @@ function beginPracticeSession(){
 }
 function startPractice(){
   if(L){
-    if(!confirm('יש שיעור פתוח. לצאת ממנו ולעבור לתרגול שיחה?')) return;
-    stopLessonTimers(true); L=null;
+    return askConfirm({title:'יש שיעור פתוח', text:'לצאת ממנו ולעבור לתרגול שיחה? המקום בשיעור יישמר.',
+      ok:'כן, לתרגול שיחה', cancel:'לא, להישאר בשיעור'}).then(ok=>{
+      if(!ok || !L) return false;
+      stopLessonTimers(true); L=null;
+      return startPractice();
+    });
   }
   // Web Locks makes choosing + recording one critical section across tabs.
   // Older browsers keep the synchronous fallback and still reconcile storage
@@ -7733,9 +7926,6 @@ function renderPracticeIntro(){
   if(L.isRehearsal) return renderRehearsalIntro();
   const meta = conversationMeta(L.idx);
   const turns = L.practiceRoundCount || L.steps.filter(s=>s.type==='branchChoice').length;
-  const activeStories=availablePracticeStories();
-  const activeIds=new Set(activeStories.map(story=>story.id));
-  const cycleSeen=normalizePracticeStoryIds(state.practiceStorySeen).filter(id=>activeIds.has(id)).length;
   playerShell(`
     <div class="step-label">🗣️ תרגול שיחה חופשי</div>
     <h2>${esc(meta.placeEmoji)} ${esc(meta.place)}</h2>
@@ -7744,7 +7934,6 @@ function renderPracticeIntro(){
       <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${esc(meta.role||'')}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
-    <div class="chip" style="display:inline-flex;margin:0 auto 12px">🔀 מחזור גיוון: ${cycleSeen} מתוך ${activeStories.length} · אין חזרה לפני כולן</div>
     ${meta.sceneOpen?`<div class="scene-note">${esc(fillProfileText(meta.sceneOpen,'he'))}</div>`:''}
     <p class="sub">${turns} תורות, רק ממה שכבר למדת. אין ציון ואין לחץ — פשוט שיחה.<br>הסיטואציות מתחלפות לפי מה שכבר למדת 🔀</p>
     <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
@@ -8223,7 +8412,7 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
     <div class="conversation-top">
       <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהתרגול">✕</button>
       <div class="pbar" role="progressbar" aria-label="התקדמות בשיחה" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-      <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
+      <div class="timer" id="timer" aria-label="זמן משוער שנותר">${lessonEtaLabel()}</div>
     </div>
     <div class="stage" style="--who:${meta.character.color};--scene-light:${bd.lightColor||'#ffffff'}">
       <div class="stage-place">${stagePlaceHtml(meta,history)}</div>
@@ -8375,7 +8564,7 @@ function dialogueShell(messages,composer){
     <div class="conversation-top">
       <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהשיעור">✕</button>
       <div class="pbar" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-      <div class="timer" id="timer" aria-label="זמן תרגול">${elapsed()}</div>
+      <div class="timer" id="timer" aria-label="זמן משוער שנותר">${lessonEtaLabel()}</div>
     </div>
     <div class="conversation-person">
       <div class="portrait" style="border-color:${meta.character.color}88" aria-hidden="true">${meta.character.avatar}</div>
@@ -8499,7 +8688,7 @@ function renderDialogueSpeak(step){
         `<button class="btn" style="width:auto;padding:12px 18px" onclick="manualMicDone()">אמרתי בקול ✔</button>`}
       <button class="bubble-action" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(spokenEn)}')" aria-label="השמעת המשפט">🔊</button>
     </div>
-    <div class="mic-hint composer-note" id="micHint">${mic?'לחץ על המיקרופון, דבר ולחץ שוב לסיום':'אמור את המשפט בקול והמשך'}</div>
+    <div class="mic-hint composer-note" id="micHint">${mic?micReadyHint('לחץ על המיקרופון, דבר ולחץ שוב לסיום'):'אמור את המשפט בקול והמשך'}</div>
     <div class="heard" id="heard">${heardHtml}</div>
     <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
     ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
@@ -8570,7 +8759,7 @@ function renderSpeak(step){
         <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage)}</div>
       `:mic?`
         <button class="mic-btn" id="micBtn" onclick="micTap('${jsEsc(en)}')" aria-label="התחלת הקלטה">🎤</button>
-        <div class="mic-hint" id="micHint">לחץ על המיקרופון ותגיד את המשפט באנגלית</div>
+        <div class="mic-hint" id="micHint">${micReadyHint('לחץ על המיקרופון ותגיד את המשפט באנגלית')}</div>
         <div class="heard" id="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
         <button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך בלי בדיקה</button>
@@ -8619,6 +8808,17 @@ function showMicFallback(msg, forceManual=false){
   if(hint) hint.innerHTML=msg;
   revealEscapes(forceManual);
   requestAnimationFrame(scrollComposerToEnd);
+}
+/* Before the very first recording the phone will ask for permission. Saying
+   so a moment earlier turns a scary popup into an expected one. */
+function micReadyHint(normal){
+  return state.micPrimed ? normal : 'בלחיצה הראשונה הטלפון ישאל אם מותר להשתמש במיקרופון. תאשר, וזה יעבוד מכאן והלאה 🎤';
+}
+function markMicPrimed(){
+  if(state.micPrimed) return;
+  state.micPrimed = true;
+  touchState('settingsUpdatedAt');
+  save();
 }
 /* one tap starts listening; a tap while listening ends the recording early,
    so background noise can't keep an attempt hanging open */
@@ -8743,6 +8943,11 @@ function startListening(target){
     step.heardDetails=bestDetails;
     saveLessonCheckpoint();
     const missed=bestDetails.words.filter((w,i)=>!bestDetails.matched[i]);
+    // a transcript that shares almost nothing with the sentence is engine
+    // noise, not his English: showing it back word for word only humiliates
+    if(bestDetails.score<.40&&(missed.length||bestDetails.criticalMismatch)){
+      step.heardText=''; step.heardDetails=null;
+    }
     if(!bestDetails.criticalMismatch&&!missed.length){
       recordStepResult(step,'pass');
       showResult('pass',pick(PRAISE));
@@ -8756,9 +8961,9 @@ function startListening(target){
       else if(step.isDlg) showResult('pass','כל הכבוד שניסית — נמשיך בשיחה והמשפט יחזור בתרגול 💪');
       else showResult('requeue','הטלפון עדיין לא קלט את כל המשפט. נמשיך ונחזור אליו שוב בסוף');
     } else if(bestDetails.score>=.40) showResult('retry',pick(ALMOST));
-    else showResult('retry','התמלול לא היה בטוח. נסה שוב לאט, או המשך ידנית — יש לך את זה');
+    else showResult('retry','הטלפון לא הבין הפעם. נסה שוב לאט וקרוב לטלפון — יש לך את זה');
   };
-  try{rec.start();}
+  try{rec.start(); markMicPrimed();}
   catch(e){
     if(L&&L===session&&L.rec===rec) L.rec=null;
     restoreMicButton();
@@ -9061,7 +9266,7 @@ function renderDone(){
   pauseLessonClock();
   stopLessonTimers(false);
   const wasReplay = L.isReplay;
-  let streakNote = '', milestones = [];
+  let streakNote = '', milestones = [], streakReset = false;
   if(!wasReplay){
     state.completed = Math.max(state.completed, L.idx + 1);
     const today = todayStr();
@@ -9079,9 +9284,19 @@ function renderDone(){
         state.lastGraceTs = Date.now();
         streakNote = 'פספסת יום אחד — אבל הרצף שלך ניצל 🛟 (קורה לכולם)';
       } else {
-        if(state.lastDoneDate) streakNote = 'חזרת — וזה מה שחשוב! רצף חדש מתחיל היום 💪';
+        // The streak is gone, but this is not the screen to say so: the loss
+        // must not land on the medal. He gets the fact that matters instead —
+        // he came back — and the day still counts on the counter that only grows.
+        if(state.lastDoneDate){
+          const away = daysBetween(state.lastDoneDate, today);
+          streakReset = prevStreak > 1;
+          streakNote = away > 1
+            ? 'חזרת אחרי ' + away + ' ימים, וזה הדבר הכי חשוב. ממשיכים בדיוק מאותו מקום 💪'
+            : 'חזרת — וזה מה שחשוב! ממשיכים 💪';
+        }
         state.streak = 1;
       }
+      state.daysLearned = (Number(state.daysLearned)||0) + 1;
       state.lastDoneDate = today;
       state.lessonsToday = 1;
       const STREAK_MSGS = {3:'שלושה ימים — זה כבר מתחיל להיות הרגל!', 7:'שבוע שלם ברצף! רצינות אמיתית', 14:'שבועיים ברצף — אתה מכונה!', 30:'חודש שלם. וואו. פשוט וואו'};
@@ -9089,8 +9304,8 @@ function renderDone(){
         milestones.push('🔥 ' + state.streak + ' ימים ברצף — ' + STREAK_MSGS[state.streak]);
     }
     if((L.idx + 1) % LESSONS_PER_UNIT === 0){
-      const u = UNITS[Math.floor(L.idx / LESSONS_PER_UNIT)];
-      milestones.push('🏆 סיימת את כל יחידת "' + u.title + '"! אתה כבר יודע ' + (state.completed*5) + ' משפטים באנגלית');
+      const ui = Math.floor(L.idx / LESSONS_PER_UNIT), u = UNITS[ui];
+      milestones.push('🏆 סיימת את כל יחידת "' + u.title + '"! עכשיו אתה יודע ' + unitPromise(ui) + ' — ' + (state.completed*5) + ' משפטים באנגלית');
     }
   } else {
     state.replays=(state.replays||0)+1;
@@ -9112,10 +9327,11 @@ function renderDone(){
       <h2>${wasReplay ? 'סיימת את החזרה!' : 'כל הכבוד' + esc(nm) + '!'}</h2>
       <p>${wasReplay
           ? 'חזרת על שיעור — וזה בדיוק מה שהופך ידע לזיכרון לתמיד.'
-          : `סיימת את שיעור ${L.idx+1} ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} · למדת 5 משפטים חדשים 🗣️`}
+          : `סיימת את שיעור ${L.idx+1} ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} · 5 משפטים חדשים שלך 🗣️`}
       </p>
-      ${!wasReplay ? `<div class="chip" style="display:inline-flex;margin-top:4px">🔥 ${state.streak} ימים ברצף</div>` : ''}
+      ${!wasReplay && !streakReset ? `<div class="chip" style="display:inline-flex;margin-top:4px">🔥 ${esc(streakLabel(state.streak))}</div>` : ''}
       ${streakNote ? `<div class="streak-note">${esc(streakNote)}</div>` : ''}
+      ${canSayHtml(L.idx, wasReplay ? '🗣️ חזרת ואמרת:' : '🗣️ מהיום אתה יכול להגיד:')}
       ${milestones.map(m=>`<div class="milestone">${esc(m)}</div>`).join('')}
       <div class="quote">💬 ${esc(pick(FINISH_QUOTES))}</div>
       ${finishedUnit >= 0 ? `
