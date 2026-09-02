@@ -3404,3 +3404,16 @@ test("Sam's word journey persists mastery without leaking into lesson progress",
   assert.equal(JSON.stringify(api.getState()), before);
   assert.ok(api.SAM_RUN_GOAL >= 15, 'one run repeats a five-word pack rather than sampling it once');
 });
+
+test("Sam's run teaches every stage aloud, then challenges Hebrew to English", () => {
+  assert.match(html, /function samRunReviewStep\(index\)/,
+    'every run needs a word-preview sequence before its countdown');
+  assert.match(html, /speak\(c\.say\)/,
+    'the preview must pronounce each English word, not only show it');
+  assert.match(html, /setTimeout\(\(\)=>\{ if\(samRun===g\) samRunReviewStep\(index\+1\); \},1100\)/,
+    'the five-word preview stays brisk');
+  assert.match(html, /<span class="ob-label" dir="rtl">\$\{esc\(c\.he\)\}<em>תגיד באנגלית<\/em><\/span>/,
+    'the live challenge always asks with an unambiguous Hebrew word');
+  assert.doesNotMatch(html, /mastery>=SAM_RUN_MASTERY\?'':`<span class="ob-label"/,
+    'mastery must not remove the Hebrew prompt and turn translation into picture guessing');
+});

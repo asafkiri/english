@@ -2079,7 +2079,7 @@ body{
 @keyframes gameTreasureBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
 .game-obstacle.ob-vocab .ob-label{bottom:calc(100% + 2px);min-width:72px;text-align:center;line-height:1.2;border-color:rgba(96,165,250,.62)}
 .game-obstacle.ob-vocab .ob-label em{display:block;color:#bfdbfe;font-size:10px;font-style:normal;font-weight:650;direction:rtl}
-.game-obstacle.ob-vocab.is-mastered .ob-label{display:none}
+.game-obstacle.ob-vocab.is-mastered .ob-label{border-color:rgba(52,211,153,.68)}
 .game-obstacle.ob-vocab.is-wrong .ob-body{animation:gameWrong .32s ease both}
 @keyframes gameWrong{25%{transform:translateX(-7px)}55%{transform:translateX(6px)}80%{transform:translateX(-3px)}}
 .game-runner.is-collecting .person-art.modern-v2 .figure{animation:gameCollectBody .55s ease both}.game-runner.is-collecting .person-art.modern-v2 .arm-r{animation:gameCollectArm .55s ease both}
@@ -2090,6 +2090,13 @@ body{
 .game-word .mastery{position:absolute;bottom:3px;left:8px;right:8px;height:3px;border-radius:999px;background:rgba(148,163,184,.2);overflow:hidden}.game-word .mastery i{display:block;height:100%;background:#34d399;border-radius:inherit}
 .game-word.is-focus{border-color:rgba(96,165,250,.82);background:rgba(59,130,246,.16)}
 .game-card .reward{font-size:42px;animation:pop .55s ease both}.game-card .mastered-list{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;direction:ltr}.game-card .mastered-list span{padding:4px 7px;border-radius:8px;background:rgba(52,211,153,.13);color:#6ee7b7;font-size:11px;font-weight:800}
+.game-review{width:min(100%,310px);display:flex;flex-direction:column;align-items:center;gap:5px}
+.game-review-kicker{font-size:12px;font-weight:850;color:#93c5fd}.game-review-icon{font-size:42px;line-height:1.15;animation:pop .32s ease both}
+.game-review-en{direction:ltr;font-size:34px;line-height:1;font-weight:950;letter-spacing:.055em;color:#fff;text-shadow:0 4px 18px rgba(96,165,250,.35);animation:gameReviewWord .38s ease both}
+.game-review-he{font-size:19px;font-weight:850;color:#6ee7b7}.game-review-dots{display:flex;gap:6px;margin-top:8px;direction:ltr}
+.game-review-dots i{width:20px;height:5px;border-radius:999px;background:rgba(148,163,184,.25)}.game-review-dots i.on{background:#60a5fa}.game-review-dots i.done{background:#34d399}
+.game-review-skip{border:0;background:none;color:var(--dim);font:inherit;font-size:12px;padding:5px 10px;cursor:pointer}
+@keyframes gameReviewWord{0%{opacity:0;transform:translateY(8px) scale(.88)}100%{opacity:1;transform:none}}
 @media(max-width:380px){.game-stage-list{gap:7px}.game-stage{min-height:108px;padding:10px}.game-stage strong{font-size:14px}}
 @media (max-height:700px){
   .game-world{max-height:44dvh}
@@ -11401,7 +11408,7 @@ function samRunTeardown(){
   const g=samRun; if(!g) return;
   g.running=false;
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer);
   samRunStopListening();
   cancelSpeech();
   samRun=null;
@@ -11426,7 +11433,7 @@ function samRunSetMode(mode){
 function samRunStart(){
   const g=samRun; if(!g) return;
   samRunTone('tick');
-  clearTimeout(g.timer);
+  clearTimeout(g.timer); clearTimeout(g.reviewTimer); cancelSpeech();
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
   const obstacles=document.getElementById('samRunObstacles');
   if(!runner||!card||!world||!obstacles) return;
@@ -11434,11 +11441,31 @@ function samRunStart(){
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
-  runner.hidden=false; runner.className='game-runner';
+  runner.hidden=true; runner.className='game-runner';
   world.className='game-world'; world.style.setProperty('--speed','1');
-  card.hidden=true; card.innerHTML='';
   samRunPaintHud();
   const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
+  samRunReviewStep(0);
+}
+/* Every run opens with one brisk, spoken pass over the five words. It is
+   short enough to feel like a game intro, but gives the learner a clean
+   pronunciation model before the timer begins. */
+function samRunReviewStep(index){
+  const g=samRun,card=document.getElementById('samRunCard'); if(!g||!card) return;
+  clearTimeout(g.reviewTimer); cancelSpeech();
+  if(index>=g.active.length){ samRunBeginCountdown(); return; }
+  const c=SAM_RUN_COMMANDS[g.active[index]];
+  card.hidden=false;
+  card.innerHTML=`<div class="game-review" aria-live="polite"><div class="game-review-kicker">סקירה מהירה · ${index+1}/${g.active.length}</div><div class="game-review-icon">${c.ic}</div><div class="game-review-en">${c.en}</div><div class="game-review-he">${esc(c.he)}</div><div class="game-review-dots">${g.active.map((_,i)=>`<i class="${i<index?'done':i===index?'on':''}"></i>`).join('')}</div><button class="game-review-skip" onclick="samRunBeginCountdown()">דלג למשחק ›</button></div>`;
+  speak(c.say);
+  g.reviewTimer=setTimeout(()=>{ if(samRun===g) samRunReviewStep(index+1); },1100);
+}
+function samRunBeginCountdown(){
+  const g=samRun; if(!g) return;
+  clearTimeout(g.reviewTimer); cancelSpeech();
+  const runner=document.getElementById('samRunRunner'),card=document.getElementById('samRunCard'),world=document.getElementById('samRunWorld');
+  if(!runner||!card||!world) return;
+  card.hidden=true; card.innerHTML=''; runner.hidden=false;
   g.worldW=world.clientWidth||360; g.runnerX=runner.offsetLeft+runner.offsetWidth/2||60;
   // 3 · 2 · 1 · GO — long enough for the microphone to open
   const count=document.createElement('div'); count.className='game-countdown'; world.appendChild(count);
@@ -11526,9 +11553,9 @@ function samRunSpawn(){
   const mastery=g.store.mastery[cmd]||0;
   el.className='game-obstacle ob-vocab is-incoming'+(mastery>=SAM_RUN_MASTERY?' is-mastered':'');
   el.style.transform=`translateX(${g.worldW-62}px) scale(.6)`;
-  /* Hint fading is the learning loop: English+Hebrew, then English, then the
-     picture alone. The player experiences increasing difficulty, not a quiz. */
-  const label=mastery>=SAM_RUN_MASTERY?'':`<span class="ob-label">${c.en}${mastery<2?`<em>${esc(c.he)}</em>`:''}</span>`;
+  /* The challenge is translation, never guessing an ambiguous drawing: the
+     Hebrew prompt always stays visible and the answer is spoken in English. */
+  const label=`<span class="ob-label" dir="rtl">${esc(c.he)}<em>תגיד באנגלית</em></span>`;
   const colorStyle=c.color?` style="--word-color:${c.color}"`:'';
   el.innerHTML=`<span class="ob-body${c.color?' color-word':''}"${colorStyle}>${c.color?'':c.ic}</span>${label}`;
   host.appendChild(el);
