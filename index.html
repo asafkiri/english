@@ -1607,50 +1607,54 @@ body{
 .cap-aid.tl{color:var(--amber);font-weight:700}
 .cap-aid[hidden]{display:none}
 .cap-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
-.cap-sequence{display:grid;gap:11px}
-.cap-previous{padding:9px 10px;border:1px solid rgba(148,163,184,.2);border-radius:13px;
-  background:rgba(148,163,184,.075);direction:ltr;text-align:center}
-.cap-previous-copy{min-width:0}.cap-turn-label{direction:rtl;text-align:right;font-size:12.5px;font-weight:850;
-  color:#91a1be;line-height:1.2;margin-bottom:4px}
-.cap-current .cap-turn-label{color:var(--blue);margin:0 2px 6px}
-.cap-previous-en{direction:ltr;font-size:18px;font-weight:750;line-height:1.32;color:#dde5f4}
-.cap-previous-he{direction:rtl;margin-top:4px;font-size:14.5px;font-weight:600;line-height:1.38;color:#aebbd2}
+/* One bubble, one read. The earlier line is a quieter block above a hairline
+   — no second border, no inset panel, nothing that reads as another card. */
+.cap-sequence{display:grid;gap:10px}
+.cap-previous{padding:0 2px 10px;border:none;background:none;
+  border-bottom:1px solid rgba(148,163,184,.17);direction:ltr;text-align:center}
+.cap-previous-en{direction:ltr;font-size:19px;font-weight:700;line-height:1.32;color:#c6d2e6}
+.cap-previous-he{direction:rtl;margin-top:3px;font-size:14.5px;font-weight:600;line-height:1.38;color:#9fadc5}
+/* Inside a pair the single hairline between the two sentences is the only
+   divider. The translation keeps its own rule when a line stands alone, but
+   here a second one would box the current sentence and rebuild the two-card
+   look this change exists to remove. Both entries then read identically:
+   English, its Hebrew under it, nothing between them. */
+.cap-sequence .cap-aid.auto-translation{border-top:none;margin-top:5px;padding-top:0}
 .cap-typing{font-size:16px;color:var(--dim);display:flex;align-items:center;justify-content:center;gap:6px}
 .cap-intent{font-size:23px;font-weight:800;line-height:1.35}
 .cap-intent-note{font-size:13.5px;color:var(--dim);margin-top:6px}
 .cap-sent{font-size:18px;font-weight:700;color:var(--green)}
 @media (min-height:701px) and (max-height:960px){
-  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(118px,19vh,158px)}
+  .stage-screen .stage:has(.cap-pair){--avatar:clamp(118px,19vh,158px)}
 }
 @media (min-height:701px) and (max-height:760px){
-  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(112px,18vh,146px)}
+  .stage-screen .stage:has(.cap-pair){--avatar:clamp(112px,18vh,146px)}
 }
 @media (max-width:390px){
-  .cap-sequence{gap:8px}.cap-previous{padding:8px 9px}
-  .cap-previous-en{font-size:17px}.cap-previous-he{font-size:14px}
+  .cap-sequence{gap:9px}.cap-previous{padding-bottom:9px}
+  .cap-previous-en{font-size:18px}.cap-previous-he{font-size:14px}
   .cap-actions{gap:6px}
 }
 @media (max-width:350px){
-  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(106px,18vh,138px)}
+  .stage-screen .stage:has(.cap-pair){--avatar:clamp(106px,18vh,138px)}
   .cap-previous-en{font-size:16.5px}.cap-previous-he{font-size:13.5px}
 }
 @media (max-height:700px){
   .cap-en{font-size:22px}.cap-intent{font-size:20px}
   .stage-screen .stage{--avatar:clamp(112px,20vh,148px);gap:6px;padding-top:8px}
-  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(108px,18vh,136px)}
+  .stage-screen .stage:has(.cap-pair){--avatar:clamp(108px,18vh,136px)}
   .stage-screen .stage-caption{padding:12px}
 }
 @media (max-height:620px){
   .stage-screen .stage{--avatar:clamp(108px,19vh,124px);gap:4px;padding:5px 12px}
-  .stage-screen .stage:has(.cap-sequence){--avatar:clamp(104px,17vh,116px)}
+  .stage-screen .stage:has(.cap-pair){--avatar:clamp(104px,17vh,116px)}
   .stage-place{font-size:12px}.stage-name{font-size:16px}.stage-name span{font-size:11.5px}
   .stage-status{font-size:13px;padding:6px 11px}
   .stage-screen .stage-caption{padding:10px 11px;border-radius:15px}
   .cap-en{font-size:20px;line-height:1.28}
   .cap-aid.auto-translation{margin-top:7px;padding-top:6px;font-size:14px;line-height:1.38}
-  .cap-sequence{gap:8px}.cap-previous{padding:7px 8px;gap:7px}
-  .cap-previous-en{font-size:16.5px}.cap-previous-he{font-size:13.5px;margin-top:3px}
-  .cap-current .cap-turn-label{margin-bottom:4px}
+  .cap-sequence{gap:8px}.cap-previous{padding-bottom:8px}
+  .cap-previous-en{font-size:17px}.cap-previous-he{font-size:13.5px;margin-top:3px}
   .cap-actions{margin-top:8px}
 }
 @media (prefers-reduced-motion:reduce){.cap-aid.auto-translation.delayed{animation:none;opacity:1;transform:none}}
@@ -9685,23 +9689,41 @@ function stageCaptionSequence(){
   const previous=L.steps[currentIndex-1];
   return previous?.type==='listen'&&previous.line?[previous,current]:[current];
 }
+/* Both sentences belong to one card and one top-to-bottom read. The earlier
+   line used to sit in its own bordered box with a "קודם" tab, so a learner
+   halfway through reading it saw a second box arrive and lost their place.
+   Now it is simply the quieter line above, separated by a hairline: the size
+   difference already says which one is being spoken, so the labels stay for
+   screen readers and leave the screen alone. The two keep their own full
+   stops — joining them with a comma would teach a comma splice. */
 function stagePreviousCaptionHtml(item){
   const en=ptext(item.line,'en'),he=ptext(item.line,'he');
   return `<div class="cap-previous" data-caption-role="previous">
-    <div class="cap-previous-copy">
-      <div class="cap-turn-label">קודם</div>
-      <div class="cap-previous-en" dir="ltr" lang="en">${esc(en)}</div>
-      <div class="cap-previous-he" dir="rtl" lang="he">${esc(he)}</div>
-    </div>
+    <div class="cap-turn-label sr-only">קודם</div>
+    <div class="cap-previous-en" dir="ltr" lang="en">${esc(en)}</div>
+    <div class="cap-previous-he" dir="rtl" lang="he">${esc(he)}</div>
   </div>`;
+}
+/* True while this beat is part of a two-line pair — including the beat just
+   BEFORE the second line lands. The stage reserves the pair's room from that
+   moment, so the arriving line never resizes the figure under the reader. */
+function stageCaptionPairing(){
+  if(stageCaptionSequence().length>1) return true;
+  const step=L?.steps?.[L.i];
+  if(step?.type!=='listen'||!step.line) return false;
+  const next=L?.steps?.[L.i+1];
+  return next?.type==='listen'&&!!next.line;
 }
 function stageCaptionHtml(line,step,opts={}){
   const sequence=stageCaptionSequence();
-  if(sequence.length<2) return captionHtml(line,step,opts);
-  return `<div class="cap-sequence">
+  if(sequence.length<2){
+    const solo=captionHtml(line,step,opts);
+    return stageCaptionPairing()?`<div class="cap-pair cap-pair-lead">${solo}</div>`:solo;
+  }
+  return `<div class="cap-sequence cap-pair">
     ${stagePreviousCaptionHtml(sequence[0])}
     <div class="cap-current" data-caption-role="current">
-      <div class="cap-turn-label">עכשיו</div>
+      <div class="cap-turn-label sr-only">עכשיו</div>
       ${captionHtml(line,step,{...opts,previousReplay:true})}
     </div>
   </div>`;

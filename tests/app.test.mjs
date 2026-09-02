@@ -72,7 +72,7 @@ function runtime(seed = new Map(), options = {}) {
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep, renderHome,
       manualMicDone, answerListenQuiz, renderOrder, selectOrderChunk, chooseBranch, next, notePractice, stageCaptionLine, stageCaptionSequence,
-      stageCaptionHtml, captionHtml, chatMessagesHtml,
+      stageCaptionHtml, captionHtml, chatMessagesHtml, stageCaptionPairing,
       keepStageCaptionVisible,
       askConfirm, resolveDialog, exitLesson, unitCallToActionHtml, snoozeMission, missionSnoozed,
       completeMission, estimateLessonMinutes, lessonEtaLabel, canSayHtml, streakLabel, daysBetween,
@@ -1286,6 +1286,20 @@ test('a consecutive reply and question stay together until the learner answers',
   lesson.i = 2;
   assert.deepEqual(Array.from(api.stageCaptionSequence(), item => item.line.en), [first.en],
     'a learner turn must break the caption sequence');
+
+  // The room for a pair is claimed one beat early, so the arriving second
+  // sentence never resizes the figure while the first is still being read.
+  assert.equal(api.stageCaptionPairing(), true, 'a line followed by another line is already a pair');
+  api.renderStep();
+  assert.match(app.innerHTML, /class="cap-pair cap-pair-lead"/,
+    'the beat before the pair must already reserve the pair layout');
+  assert.ok(!app.innerHTML.includes(second.en), 'but it must not show the line that has not been said yet');
+
+  lesson.i = 0;
+  assert.equal(api.stageCaptionPairing(), false, 'a line answered by the learner is not a pair');
+  api.renderStep();
+  assert.doesNotMatch(app.innerHTML, /cap-pair/, 'a genuinely solo line keeps the full-size stage');
+
   lesson.i = 3;
   assert.deepEqual(Array.from(api.stageCaptionSequence(), item => item.line.en), [first.en, second.en]);
   api.renderStep();
@@ -1300,8 +1314,17 @@ test('a consecutive reply and question stay together until the learner answers',
     'the retained sentence needs its own replay control');
   assert.match(html, /\.stage-caption\.stage-swap:has\(\.cap-sequence\)\{animation:none\}/,
     'the retained sentence should not fade out and back when the next one arrives');
-  assert.match(html, /@media \(min-height:701px\) and \(max-height:960px\)[\s\S]*\.stage-screen \.stage:has\(\.cap-sequence\)/,
+  assert.match(html, /@media \(min-height:701px\) and \(max-height:960px\)[\s\S]*\.stage-screen \.stage:has\(\.cap-pair\)/,
     'the stacked caption should make room on the learner\'s 932px-tall phone');
+  // one bubble, not a card inside a card: the earlier line carries no border,
+  // no background and no visible turn label of its own
+  assert.match(html, /\.cap-previous\{padding:0 2px 10px;border:none;background:none;/,
+    'the earlier sentence must not be drawn as a second boxed card');
+  assert.match(app.innerHTML, /class="cap-turn-label sr-only"/,
+    'the turn labels stay for screen readers rather than on screen');
+  assert.doesNotMatch(app.innerHTML, /class="cap-previous-copy"/);
+  assert.match(html, /\.cap-sequence \.cap-aid\.auto-translation\{border-top:none;/,
+    'a pair keeps one divider: a second rule would box the current sentence again');
 
   api.next();
   assert.equal(lesson.i, 4);
