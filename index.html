@@ -282,9 +282,26 @@ body{
 .order-built{direction:ltr;min-height:62px;border:1.5px dashed var(--line);border-radius:14px;padding:12px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
 .order-built.empty::after{content:"לחץ על החלקים לפי הסדר";direction:rtl;color:var(--dim);font-size:14px}
 .word-bank{direction:ltr;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
-.word-chip{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;font:inherit;font-weight:750;cursor:pointer}
+.word-chip{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;font:inherit;font-weight:750;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease,opacity .18s ease}
 .word-chip:disabled{opacity:.3;cursor:default}
 .built-chip{background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.4);cursor:default}
+.order-challenge .word-bank:empty{margin:0;min-height:0}
+.order-built .built-chip.is-returning{color:var(--amber);border-color:rgba(251,191,36,.72);background:rgba(251,191,36,.12);animation:orderWrongNudge .34s ease both}
+.word-bank .word-chip.wrong-returned{color:var(--amber);border-color:rgba(251,191,36,.72);animation:orderWrongNudge .34s ease both}
+.order-built.is-correct{border-style:solid;border-color:rgba(52,211,153,.82);background:rgba(52,211,153,.08);box-shadow:0 0 0 3px rgba(52,211,153,.08);animation:orderJoin .46s cubic-bezier(.18,.82,.22,1) both}
+.order-built.is-correct .built-chip{color:#d8fff1;border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.16)}
+.order-built.is-correct .w{display:inline-block;transition:color .14s ease,text-shadow .14s ease,transform .14s ease}
+.order-built.is-correct .w.now{color:var(--green);text-shadow:0 0 14px rgba(52,211,153,.62);transform:translateY(-2px) scale(1.045)}
+.order-success{animation:orderSuccessRise .36s .2s ease both;opacity:0}
+.order-success-mark{width:64px;height:64px;margin:4px auto 8px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#6ee7b7);color:#073d2d;font-size:34px;font-weight:900;animation:orderSuccessPop .48s .14s cubic-bezier(.18,.82,.22,1) both}
+.order-pronunciation{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--amber);font-size:19px;font-weight:800;margin:8px 0}
+.order-pronunciation .order-speaker{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(96,165,250,.14)}
+.order-challenge.is-audio-live .order-speaker{animation:learningSpeakerBeat .82s ease-in-out infinite;box-shadow:0 0 0 7px rgba(96,165,250,.1)}
+.order-auto-next{color:#a7f3d0;font-size:14px;font-weight:800;margin-top:7px}
+@keyframes orderWrongNudge{0%,100%{transform:none}28%{transform:translateX(5px)}58%{transform:translateX(-5px)}82%{transform:translateX(2px)}}
+@keyframes orderJoin{0%{transform:scale(.985)}62%{transform:scale(1.025)}100%{transform:scale(1)}}
+@keyframes orderSuccessRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes orderSuccessPop{0%{opacity:0;transform:scale(.5) rotate(-14deg)}70%{opacity:1;transform:scale(1.1) rotate(2deg)}100%{transform:scale(1)}}
 .chat-thread{margin-bottom:16px}
 .voice-note{display:flex;align-items:center;gap:4px;color:var(--dim);font-size:15px}
 .vdots{display:inline-flex;margin-inline-start:6px}
@@ -5912,7 +5929,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.16.0';
+const APP_VERSION = '2.17.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7662,6 +7679,16 @@ function exitLesson(){
   });
 }
 function stopLessonTimers(keepCheckpoint=true){
+  if(L?.orderReturnTimer){
+    clearTimeout(L.orderReturnTimer);
+    L.orderReturnTimer=null;
+    const step=L.steps?.[L.i];
+    if(step?.type==='order'&&step.returningChunkId!==undefined){
+      if(step.selected?.at(-1)===step.returningChunkId) step.selected.pop();
+      step.orderLocked=false;
+      delete step.returningChunkId;
+    }
+  }
   if(L && keepCheckpoint){ pauseLessonClock(); saveLessonCheckpoint(); }
   else if(L && L.timerId){ clearInterval(L.timerId); L.timerId=null; }
   if(L?.stageCaptionAfterActionTimer){
@@ -7676,6 +7703,7 @@ function stopLessonTimers(keepCheckpoint=true){
     clearTimeout(L.phraseAdvanceTimer);
     L.phraseAdvanceTimer=null;
   }
+  if(L?.orderAdvanceTimer){ clearTimeout(L.orderAdvanceTimer); L.orderAdvanceTimer=null; }
   cancelAutoSpeak();
   invalidateDialogueFlow(false);
   stopRecognition();
@@ -7685,6 +7713,8 @@ function next(){
   if(!L||L.stepTransitioning) return;
   const session=L;
   if(L.phraseAdvanceTimer){ clearTimeout(L.phraseAdvanceTimer); L.phraseAdvanceTimer=null; }
+  if(L.orderReturnTimer){ clearTimeout(L.orderReturnTimer); L.orderReturnTimer=null; }
+  if(L.orderAdvanceTimer){ clearTimeout(L.orderAdvanceTimer); L.orderAdvanceTimer=null; }
   L.stepTransitioning=true;
   invalidateDialogueFlow(true);
   const current = L.steps[L.i];
@@ -9678,23 +9708,39 @@ function answerListenQuiz(optionIndex){
   }
   renderListenQuiz(step);
 }
+function orderBuiltChunksHtml(step){
+  let wordIndex=0;
+  return step.selected.map(id=>{
+    const words=String(step.chunks[id]).split(/(\s+)/).map(part=>{
+      if(!part) return '';
+      if(/^\s+$/.test(part)) return part;
+      return `<span class="w" data-i="${wordIndex++}">${esc(part)}</span>`;
+    }).join('');
+    const returning=step.returningChunkId===id?' is-returning':'';
+    return `<span class="word-chip built-chip${returning}" style="view-transition-name:order-word-${id}">${words}</span>`;
+  }).join('');
+}
 function renderOrder(step){
   const en=ptext(step.p,'en'), he=ptext(step.p,'he'), tl=ptext(step.p,'tl');
   playerShell(`
+    <div class="order-challenge${step.correct?' is-correct':''}">
     <div class="step-label">🧩 אתגר סדר</div>
     <h2>בנה את המשפט</h2>
     <p class="challenge-help">${esc(he)} · לחץ על החלקים לפי הסדר</p>
     ${step.showHint?`<div class="milestone" style="margin-bottom:12px"><span dir="ltr" lang="en">${esc(en)}</span></div>`:''}
-    <div class="order-built ${step.selected.length?'':'empty'}">
-      ${step.selected.map(id=>`<span class="word-chip built-chip">${esc(step.chunks[id])}</span>`).join('')}
+    <div class="order-built ${step.selected.length?'':'empty'}${step.correct?' is-correct':''}" ${step.correct?'data-word-sync':''}>
+      ${orderBuiltChunksHtml(step)}
     </div>
     <div class="word-bank">
-      ${step.bankOrder.map(id=>`<button class="word-chip" ${step.selected.includes(id)?'disabled':''} onclick="selectOrderChunk(${id})">${esc(step.chunks[id])}</button>`).join('')}
+      ${step.bankOrder.filter(id=>!step.selected.includes(id)).map(id=>`<button class="word-chip${step.wrongPulseId===id?' wrong-returned':''}" style="view-transition-name:order-word-${id}" ${step.orderLocked?'disabled':''} onclick="selectOrderChunk(${id})">${esc(step.chunks[id])}</button>`).join('')}
     </div>
     ${step.correct?`
-      <div class="result-msg good">בדיוק! בנית את המשפט נכון 👏</div>
-      <div class="phrase-tl" style="text-align:center;margin:8px 0">${esc(tl)}</div>
-      <button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>
+      <div class="order-success" role="status" aria-live="polite">
+        <div class="order-success-mark" aria-hidden="true">✓</div>
+        <div class="result-msg good">בדיוק! בנית את המשפט נכון 👏</div>
+        <div class="order-pronunciation"><span class="order-speaker" aria-hidden="true">🔊</span><span>${esc(tl)}</span></div>
+        <div class="order-auto-next">מקשיבים וממשיכים אוטומטית…</div>
+      </div>
     `:step.wrong?`
       <div class="result-msg almost">החלקים נכונים — רק הסדר עוד לא. נסה שוב בנחת.</div>
       <div class="btn-row" style="margin-top:12px">
@@ -9703,38 +9749,76 @@ function renderOrder(step){
       </div>
     `:`
       <div class="btn-row">
-        <button class="btn ghost" ${step.selected.length?'':'disabled'} onclick="undoOrder()">בטל חלק אחרון</button>
-        <button class="btn ghost" onclick="revealOrderHint()">צריך רמז?</button>
+        <button class="btn ghost" ${step.selected.length&&!step.orderLocked?'':'disabled'} onclick="undoOrder()">בטל חלק אחרון</button>
+        <button class="btn ghost" ${step.orderLocked?'disabled':''} onclick="revealOrderHint()">צריך רמז?</button>
       </div>
     `}
+    </div>
   `);
+  if(step.correct) scheduleOrderSuccess(step,en);
 }
 function selectOrderChunk(id){
   const step=L?.steps[L.i];
-  if(!step||step.type!=='order'||step.correct||step.selected.includes(id)) return;
+  if(!step||step.type!=='order'||step.correct||step.orderLocked||step.selected.includes(id)) return;
+  if(id!==step.selected.length){
+    const session=L,stepIndex=L.i;
+    step.orderLocked=true;
+    step.returningChunkId=id;
+    step.selected.push(id);
+    if(!step.hadWrong){ step.hadWrong=true; step.usedHint=true; noteHint(step); }
+    renderOrder(step);
+    session.orderReturnTimer=setTimeout(()=>{
+      if(!L||L!==session||L.i!==stepIndex||L.steps[L.i]!==step) return;
+      session.orderReturnTimer=null;
+      if(step.selected.at(-1)===id) step.selected.pop();
+      step.orderLocked=false;
+      delete step.returningChunkId;
+      step.wrongPulseId=id;
+      saveLessonCheckpoint();
+      renderOrder(step);
+      setTimeout(()=>{ if(step.wrongPulseId===id) delete step.wrongPulseId; },420);
+    },360);
+    return;
+  }
   step.selected.push(id);
   if(step.selected.length===step.chunks.length){
-    step.correct=step.selected.every((v,i)=>v===i);
-    step.wrong=!step.correct;
-    if(step.correct) recordStepResult(step,'pass');
-    else if(!step.hadWrong){ step.hadWrong=true; step.usedHint=true; noteHint(step); }
+    step.correct=true;
+    step.wrong=false;
+    recordStepResult(step,'pass');
+    if(navigator.vibrate) navigator.vibrate([32,35,55]);
   }
   saveLessonCheckpoint();
   renderOrder(step);
 }
+function scheduleOrderSuccess(step,en){
+  const session=L,stepIndex=L?.i;
+  if(!session) return;
+  scheduleSpeak(en,560,()=>{
+    if(!L||L!==session||L.i!==stepIndex||L.steps[L.i]!==step) return;
+    document.querySelector('.order-challenge')?.classList.remove('is-audio-live');
+    if(session.orderAdvanceTimer) clearTimeout(session.orderAdvanceTimer);
+    session.orderAdvanceTimer=setTimeout(()=>{
+      if(!L||L!==session||L.i!==stepIndex||L.steps[L.i]!==step) return;
+      session.orderAdvanceTimer=null;
+      next();
+    },720);
+  },()=>{
+    if(L===session&&L.i===stepIndex) document.querySelector('.order-challenge')?.classList.add('is-audio-live');
+  });
+}
 function undoOrder(){
   const step=L?.steps[L.i];
-  if(!step||step.type!=='order'||step.correct) return;
-  step.selected.pop(); step.wrong=false; saveLessonCheckpoint(); renderOrder(step);
+  if(!step||step.type!=='order'||step.correct||step.orderLocked) return;
+  step.selected.pop(); step.wrong=false; delete step.wrongPulseId; saveLessonCheckpoint(); renderOrder(step);
 }
 function resetOrder(){
   const step=L?.steps[L.i];
   if(!step||step.type!=='order') return;
-  step.selected=[]; step.wrong=false; saveLessonCheckpoint(); renderOrder(step);
+  step.selected=[]; step.wrong=false; step.orderLocked=false; delete step.returningChunkId; delete step.wrongPulseId; saveLessonCheckpoint(); renderOrder(step);
 }
 function revealOrderHint(){
   const step=L?.steps[L.i];
-  if(!step||step.type!=='order') return;
+  if(!step||step.type!=='order'||step.orderLocked) return;
   if(!step.showHint){ step.showHint=true; step.usedHint=true; noteHint(step); }
   saveLessonCheckpoint(); renderOrder(step);
 }
