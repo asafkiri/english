@@ -259,11 +259,16 @@ test('guided lessons stay short, keep new English visible, and end on a real sta
 
   const lesson = api.getLesson();
   assert.equal(lesson.steps.filter(step => step.warmup).length, 6, 'the opening review is capped for beginners');
+  assert.equal(lesson.steps.filter(step => step.type === 'learn').length, 0,
+    'a new phrase must not require a separate duplicate card');
+  assert.equal(lesson.steps.filter(step => step.newPhrase).length, 5);
 
   lesson.i = lesson.steps.findIndex(step => step.type === 'speak' && !step.warmup && !step.challenge);
   api.renderStep();
-  assert.match(app.innerHTML, /עכשיו אומרים יחד/);
+  assert.match(app.innerHTML, /משפט חדש · עכשיו אומרים יחד/);
   assert.match(app.innerHTML, /המשפט מולך/);
+  assert.match(app.innerHTML, /id="micBtn"|אמרתי בקול/,
+    'hearing and recording must happen on the same screen');
   assert.doesNotMatch(app.innerHTML, /id="englishHint" hidden/);
   assert.doesNotMatch(app.innerHTML, /id="translitHint" hidden/);
 

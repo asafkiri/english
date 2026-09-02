@@ -5883,7 +5883,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.15.1';
+const APP_VERSION = '2.15.2';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7495,8 +7495,9 @@ function startLesson(idx, isReplay, force=false){
   }
   lesson.phrases.forEach((p,pi)=>{
     const hid = idx+':'+pi;
-    steps.push({type:'learn',p,hid});
-    steps.push({type:'speak',p,hid});
+    // Hearing and repeating are one learning moment. A separate phrase card
+    // repeated the exact same content and added five needless taps per lesson.
+    steps.push({type:'speak',p,hid,newPhrase:true});
   });
   steps.push(...buildChallengeSteps(idx,lesson));
   steps.push({type:'dlgIntro',unitChallenge:!!BRANCH_DIALOGUES[idx]});
@@ -7552,7 +7553,7 @@ function lessonEtaLabel(session=L){
 function estimateLessonMinutes(idx, isReplay=false){
   const warm = (!isReplay && idx > 0) ? Math.min(2 + idx, 6) : 0;
   const rounds = Math.max(1, conversationRounds(idx).length || 4);
-  const secs = STEP_SECONDS.intro + warm*20 + 5*(STEP_SECONDS.learn + STEP_SECONDS.speak)
+  const secs = STEP_SECONDS.intro + warm*20 + 5*STEP_SECONDS.speak
     + 3*STEP_SECONDS.quiz + STEP_SECONDS.dlgIntro
     + rounds*(STEP_SECONDS.listen + STEP_SECONDS.branchChoice + 2*STEP_SECONDS.branchPending);
   return Math.max(5, Math.round(secs/60));
@@ -9217,9 +9218,10 @@ function renderSpeak(step){
   L.attempts=step.attempts||0;
   L.tries=step.tries||0;
   const guided=!step.warmup&&!step.challenge&&!step.requeued;
+  const firstIntroduction=guided&&!!step.newPhrase&&!step.introduced;
   const label=step.warmup ? '🔥 חימום — משפט שכבר למדת'
     : step.requeued ? '🔁 סיבוב שני — עוד תרגול קטן'
-    : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎤 עכשיו אומרים יחד';
+    : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎧 משפט חדש · עכשיו אומרים יחד';
   const mic=micAvailable();
   const hintLevel=guided?2:(step.hintLevel||0);
   const terminalResult=step.resultKind==='pass'||step.resultKind==='requeue';
@@ -9258,6 +9260,11 @@ function renderSpeak(step){
       `}
     </div>
   `);
+  if(firstIntroduction){
+    step.introduced=true;
+    saveLessonCheckpoint();
+    scheduleSpeak(en);
+  }
 }
 function manualMicDone(){
   const step=L?.curStep;
