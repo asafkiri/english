@@ -279,8 +279,12 @@ body{
 .hint-actions .btn{padding:12px;font-size:15px}
 .challenge-help{color:var(--dim);font-size:14.5px;margin:-5px 0 15px}
 .audio-only{font-size:15px;color:var(--dim);margin:8px 0 16px}
+.order-target{margin:13px 0 9px;padding:14px 16px;border-radius:16px;text-align:center;background:linear-gradient(145deg,rgba(96,165,250,.18),rgba(96,165,250,.08));border:1px solid rgba(96,165,250,.42);box-shadow:0 10px 24px rgba(4,12,29,.2)}
+.order-target-label{color:#93c5fd;font-size:12.5px;font-weight:800;margin-bottom:5px}
+.order-target-text{color:#f8fbff;font-size:clamp(21px,5.6vw,26px);font-weight:850;line-height:1.38}
+.order-instruction{color:var(--dim);font-size:14px;font-weight:650;text-align:center;margin:0 0 16px}
 .order-built{direction:ltr;min-height:62px;border:1.5px dashed var(--line);border-radius:14px;padding:12px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
-.order-built.empty::after{content:"לחץ על החלקים לפי הסדר";direction:rtl;color:var(--dim);font-size:14px}
+.order-built.empty::after{content:"המשפט באנגלית ייבנה כאן";direction:rtl;color:var(--dim);font-size:14px}
 .word-bank{direction:ltr;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
 .word-chip{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:12px;padding:11px 14px;font:inherit;font-weight:750;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease,opacity .18s ease}
 .word-chip:disabled{opacity:.3;cursor:default}
@@ -5929,7 +5933,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.17.0';
+const APP_VERSION = '2.17.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -9726,7 +9730,11 @@ function renderOrder(step){
     <div class="order-challenge${step.correct?' is-correct':''}">
     <div class="step-label">🧩 אתגר סדר</div>
     <h2>בנה את המשפט</h2>
-    <p class="challenge-help">${esc(he)} · לחץ על החלקים לפי הסדר</p>
+    <div class="order-target">
+      <div class="order-target-label">המשפט שצריך לבנות</div>
+      <div class="order-target-text" dir="rtl">${esc(he)}</div>
+    </div>
+    <p class="order-instruction">לחץ על החלקים באנגלית לפי הסדר</p>
     ${step.showHint?`<div class="milestone" style="margin-bottom:12px"><span dir="ltr" lang="en">${esc(en)}</span></div>`:''}
     <div class="order-built ${step.selected.length?'':'empty'}${step.correct?' is-correct':''}" ${step.correct?'data-word-sync':''}>
       ${orderBuiltChunksHtml(step)}
