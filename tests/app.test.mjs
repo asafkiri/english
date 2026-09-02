@@ -68,7 +68,7 @@ function runtime(seed = new Map(), options = {}) {
       practiceStoryCycleState, mergePracticeStoryCycles,
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
-      startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep,
+      startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep, renderHome,
       manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, stageCaptionSequence,
       stageCaptionHtml, captionHtml, chatMessagesHtml,
       keepStageCaptionVisible,
@@ -2297,6 +2297,24 @@ test('lesson checkpoint survives a fresh runtime', () => {
   assert.equal(second.api.getLesson().i, 4);
   assert.ok(second.api.getLesson().elapsedBeforeMs >= 27_000);
   second.api.stopLessonTimers(false);
+});
+
+test('a paused lesson resumes from its map row without a duplicate home card', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+  api.startLesson(0, false, true);
+  const lesson = api.getLesson();
+  lesson.i = 2;
+  api.saveLessonCheckpoint();
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+  api.renderHome();
+
+  assert.doesNotMatch(app.innerHTML, /ממשיכים מאיפה שעצרת|המשך בשיעור/);
+  assert.match(app.innerHTML, /עצרת כאן — אפשר להמשיך/);
+  assert.match(app.innerHTML, /onclick="resumeLesson\(\)"/);
 });
 
 test('invalid or completed checkpoint steps are rejected', () => {
