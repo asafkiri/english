@@ -3413,20 +3413,19 @@ test("Sam's run teaches every stage aloud, then challenges Hebrew to English", (
     'the preview must pronounce each English word, not only show it');
   assert.match(html, /setTimeout\(\(\)=>\{ if\(samRun===g\) samRunReviewStep\(index\+1\); \},1100\)/,
     'the five-word preview stays brisk');
-  assert.match(html, /<span class="ob-label" dir="rtl">\$\{esc\(c\.he\)\}<em>\$\{g\.mode==='voice'\?'תגיד':'בחר'\} באנגלית<\/em><\/span>/,
+  assert.match(html, /<span class="ob-label" dir="rtl">\$\{esc\(c\.he\)\}<em>בחר באנגלית<\/em><\/span>/,
     'the live challenge always asks with an unambiguous Hebrew word');
   assert.doesNotMatch(html, /mastery>=SAM_RUN_MASTERY\?'':`<span class="ob-label"/,
     'mastery must not remove the Hebrew prompt and turn translation into picture guessing');
 });
 
-test("Sam's runs let the learner freely choose quiet or bonus voice play", () => {
+test("Sam's runs start directly without microphone friction", () => {
   const { api } = runtime();
   assert.equal(api.SAM_RUN_PHASES.map(phase => phase.id).join(','), 'learn,speed,final');
-  assert.match(html, /samRunChooseMode\('tap'\)/, 'every run offers quiet play');
-  assert.match(html, /samRunChooseMode\('voice'\)/, 'every run offers voice play');
-  assert.match(html, /\+50% מטבעות/, 'the voluntary harder voice mode advertises its extra reward');
-  assert.match(html, /const voiceBoost=g\.mode==='voice'\?Math\.ceil\(beforeBoost\*\.5\):0/,
-    'voice play pays exactly fifty percent more');
+  assert.match(html, /onclick="samRunStart\(\)">מתחילים לרוץ/,
+    'one intentional tap starts the word preview and runner');
+  assert.doesNotMatch(html, /samRunChooseMode\('voice'\)|משחק קולי|\+50% מטבעות/,
+    'the game no longer offers a microphone mode');
   const oldSave = new Map([[api.SAM_RUN_KEY, JSON.stringify({
     version: 3, stage: 2, stageStars: {0: 3, 1: 2}, phaseByStage: {0: 1, 1: 1, 2: 1},
   })]]);
@@ -3434,18 +3433,10 @@ test("Sam's runs let the learner freely choose quiet or bonus voice play", () =>
   assert.equal(migrated.phaseByStage[0], 0, 'a completed old world reopens quietly');
   assert.equal(migrated.phaseByStage[1], 0, 'adjacent completed worlds cannot both reopen as voice stages');
   assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
-  assert.match(html, /if\(g\.mode==='voice'&&!g\.micReady\)\{ samRunPrepareMicrophone\(\); return; \}/,
-    'a voice run must stop before review and countdown until the microphone is ready');
-  assert.match(html, /navigator\.mediaDevices\.getUserMedia\(\{audio:true\}\)/,
-    'the microphone permission is requested from the intentional start tap');
-  assert.match(html, /stream\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/,
-    'the permission probe releases its temporary audio track');
-  assert.match(html, /לא התחלנו את המשחק ולא איבדת חיים/,
-    'a denied permission can never cost a life');
-  assert.match(html, /if\(source==='tap'\) speak\(c\.say\)/,
-    'every silent answer pronounces the selected English word');
-  assert.match(html, /\.game-controls\.mode-voice \.game-words\{display:none\}/,
-    'voice stages cannot reveal the English answers under the Hebrew prompt');
+  assert.doesNotMatch(html, /function samRunPrepareMicrophone/,
+    'starting the runner never requests microphone permission');
+  assert.match(html, /speak\(SAM_RUN_COMMANDS\[ob\.options\[lane\]\]\.say\)/,
+    'every lane selection still pronounces the English word');
 });
 
 test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
@@ -3471,12 +3462,21 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /game-lane-grid/);
   assert.match(app.innerHTML, /game-lane-prompt/);
   assert.match(app.innerHTML, /lane-game/);
+  assert.match(app.innerHTML, /game-playing/, 'the run owns the full viewport');
+  assert.match(app.innerHTML, /game-back-rig/, 'the equipped character is seen running away from the camera');
+  assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
   assert.match(html, /const distractors=shuffled\(g\.active\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
     'each wave mixes the answer with two live distractors');
   assert.match(html, /onclick="samRunChooseLane\(\$\{i\}\)"/,
     'the approaching gates themselves are playable');
   assert.match(html, /world\.addEventListener\('pointerup'/,
-    'vertical swipes also control the runner');
+    'the whole road is the input surface');
+  assert.match(html, /const dx=e\.clientX-startX/,
+    'horizontal swipes move naturally between perspective lanes');
+  assert.match(html, /lefts=\['20%','50%','80%'\]/,
+    'the rear-view runner travels between three screen lanes');
+  assert.match(html, /spread=6\+p\*31,y=17\+p\*61,scale=\.3\+p\*\.8/,
+    'answer gates grow from the horizon toward the player');
   assert.match(html, /speak\(SAM_RUN_COMMANDS\[ob\.options\[lane\]\]\.say\)/,
     'every lane choice reinforces its English pronunciation');
   assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,

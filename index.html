@@ -2128,6 +2128,50 @@ body{
 .game-mission b{color:var(--text)}.game-mission-progress{height:5px;flex:1;min-width:48px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden}
 .game-mission-progress i{display:block;height:100%;background:var(--green);border-radius:inherit;transition:width .3s ease}
 .game-bonus-mission{display:flex;align-items:center;gap:7px;margin-top:-3px;padding:6px 10px;border-radius:12px;background:linear-gradient(90deg,rgba(251,191,36,.12),rgba(245,158,11,.05));border:1px solid rgba(251,191,36,.28);color:#fde68a;font-size:11px;font-weight:750}.game-bonus-mission strong{font-size:11px}.game-bonus-mission .bonus-progress{margin-right:auto;color:#fbbf24;white-space:nowrap}.game-bonus-mission.done{background:rgba(52,211,153,.13);border-color:rgba(52,211,153,.45);color:#a7f3d0;animation:pop .35s ease}
+
+/* Full-screen forward runner. The street is now the controller: gates grow
+   out of the vanishing point and the learner taps/swipes the road itself. */
+.game-screen.game-playing{position:fixed;inset:0;z-index:70;width:100%;max-width:none;min-height:100dvh;margin:0;padding:max(9px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));overflow:hidden;background:#0d1424;animation:none}
+.game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{position:relative;z-index:20;max-width:720px;width:100%;margin-inline:auto;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.game-playing>.game-top{padding:4px 5px;border-radius:15px;background:rgba(8,15,30,.56)}
+.game-playing>.game-mission,.game-playing>.game-bonus-mission{background-color:rgba(8,15,30,.72);box-shadow:0 5px 18px rgba(0,0,0,.2)}
+.game-playing>.game-world{position:absolute;inset:0;width:100%;height:100%;max-height:none;aspect-ratio:auto;border:0;border-radius:0;touch-action:none;cursor:pointer}
+.game-playing>.lane-controls{display:none!important}
+.game-playing .game-card{padding:clamp(150px,22dvh,210px) 18px max(24px,env(safe-area-inset-bottom));background:rgba(8,15,29,.75)}
+.game-start-tip{display:block;max-width:310px;color:#bfdbfe;font-size:12px;line-height:1.45}.game-start-run{margin-top:8px!important}
+
+.game-world.lane-game{--horizon:19%;--ground:9%;background:linear-gradient(180deg,#234879 0%,#6fa4c9 35%,#9eb7c4 48%,#303b48 48%,#111827 100%)!important}
+.game-world.lane-game .game-far{height:49%;opacity:.72;filter:saturate(.75);background-size:auto 82%;background-position:center bottom}
+.game-world.lane-game .game-skyfx{height:49%;opacity:.72}
+.game-world.lane-game .game-mid{bottom:50%;height:20%;opacity:.5}
+.game-world.lane-game .game-roadside{bottom:34%;height:20%;opacity:.45;filter:blur(.4px) drop-shadow(0 5px 4px rgba(0,0,0,.25))}
+.game-world.lane-game .game-dust{z-index:3;mask-image:linear-gradient(transparent 42%,#000);opacity:.25}
+.game-world.lane-game .game-lane-grid{display:block;inset:0;z-index:2;overflow:hidden;background:linear-gradient(180deg,transparent 0 47%,rgba(10,18,31,.1) 47% 100%);perspective:none}
+.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:50%;top:var(--horizon);width:116%;height:90%;translate:-50% 0;clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);background:linear-gradient(180deg,#3c4653,#172130 75%);box-shadow:inset 0 0 70px rgba(0,0,0,.35)}
+.game-world.lane-game .game-lane-grid i{position:absolute;z-index:1;left:50%;top:var(--horizon);width:3px;height:94%;transform-origin:50% 0;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.8));box-shadow:0 0 7px rgba(255,255,255,.28)}
+.game-world.lane-game .game-lane-grid i:nth-child(1){rotate:18deg}.game-world.lane-game .game-lane-grid i:nth-child(2){rotate:-18deg}
+.game-world.lane-game .game-lane-grid i:nth-child(3){left:0;top:47%;width:100%;height:53%;transform:none;background:repeating-linear-gradient(180deg,transparent 0 15%,rgba(255,255,255,.13) 15.3% 15.8%,transparent 16.1% 31%);opacity:.55;animation:gameRoadRush calc(.75s / var(--speed)) linear infinite}
+@keyframes gameRoadRush{to{background-position:0 120px}}
+.game-world.lane-game .game-speedlines{z-index:3;background:repeating-linear-gradient(105deg,transparent 0 72px,rgba(255,255,255,.13) 74px 76px,transparent 78px 150px);opacity:.22}
+
+.game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(270px,76vw);padding:8px 16px;border-color:rgba(147,197,253,.48);background:rgba(8,15,30,.82);font-size:clamp(22px,6vw,31px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.game-world.lane-game .game-lane-prompt small{font-size:10px;letter-spacing:.02em}
+.game-world.lane-game .game-streak{z-index:13;top:clamp(186px,25dvh,230px)}
+
+.game-world.lane-game .game-runner{left:50%;top:auto;bottom:2.5%;width:clamp(84px,24vw,124px);height:clamp(132px,23dvh,202px);z-index:9;transform:translateX(-50%);transition:left .16s cubic-bezier(.2,.85,.35,1),filter .16s ease}
+.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 8px 7px rgba(0,0,0,.28));animation:gameBackBob calc(.22s / var(--speed)) ease-in-out infinite}
+.game-back-rig .back-leg,.game-back-rig .back-arm{transform-box:fill-box;transform-origin:50% 12%}.game-back-rig .back-leg-l{animation:gameBackLegL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-leg-r{animation:gameBackLegR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameRunShadow calc(.21s / var(--speed)) ease-in-out infinite}
+@keyframes gameBackBob{50%{transform:translateY(-4px) rotate(-.8deg)}}@keyframes gameBackLegL{0%,100%{transform:rotate(17deg)}50%{transform:rotate(-20deg)}}@keyframes gameBackLegR{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(17deg)}}@keyframes gameBackArmL{0%,100%{transform:rotate(-24deg)}50%{transform:rotate(25deg)}}@keyframes gameBackArmR{0%,100%{transform:rotate(25deg)}50%{transform:rotate(-24deg)}}
+.game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .game-back-rig{transform:translateY(-28px) scale(.82);transform-origin:50% 100%}
+.game-world.lane-game .game-runner.is-hit{animation:gameBackHit .55s ease both}.game-world.lane-game .game-runner.is-safe{animation:gameSafeBlink 1.2s steps(1) both}
+@keyframes gameBackHit{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-65%) rotate(-8deg)}55%{transform:translateX(-37%) rotate(5deg)}}
+
+.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(82px,26vw,126px);height:clamp(64px,10dvh,88px);margin:0;padding:7px 6px;border-radius:17px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:0 10px 24px rgba(0,0,0,.38)}
+.game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(20px,6vw,30px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
+.game-obstacle.lane-wave.is-caught{animation:gameGateWin .48s ease both}.game-obstacle.lane-wave.is-poof{animation:gameGateMiss .48s ease both}
+@keyframes gameGateWin{55%{filter:brightness(1.55)}to{opacity:0}}@keyframes gameGateMiss{25%{filter:saturate(1.8)}45%{translate:-5px 0}65%{translate:5px 0}to{opacity:0}}
+
+@media (min-width:760px){.game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{max-width:680px}.game-world.lane-game .game-lane-prompt{top:150px}.game-world.lane-game .game-runner{width:116px;height:194px}.game-obstacle.lane-wave .lane-gate{width:128px}}
 .game-streak{position:absolute;top:10px;left:10px;z-index:6;padding:4px 8px;border-radius:999px;background:rgba(15,23,42,.74);font-size:12px;font-weight:850;direction:ltr;opacity:0;transform:translateY(-5px);transition:.2s ease}.game-streak.on{opacity:1;transform:none}.game-streak.hot{color:#fbbf24;box-shadow:0 0 16px rgba(251,191,36,.24)}
 .game-stage-tag{font-size:11px;color:#93c5fd;font-weight:800;white-space:nowrap}
 .game-obstacle.ob-vocab{bottom:calc(var(--ground) + 8px);width:66px;height:76px;justify-content:flex-end}
@@ -6792,7 +6836,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.21.0';
+const APP_VERSION = '2.22.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11234,18 +11278,13 @@ if('serviceWorker' in navigator){
   });
 }
 /* ================= Sam's Run =================
-   A small game on the side, deliberately unconnected to the lessons.
+   A full-screen runner, deliberately unconnected to lesson progress. The
+   learner steers toward the English translation while every chosen word is
+   pronounced. New worlds keep small five-word sets in rotation until they
+   become automatic; game progress is vocabulary progress without a mic.
 
-   The idea is the one thing a language game can do that nothing else can:
-   the learner's English voice is the controller. Sam runs down the street;
-   a box, a low sign, a crossing dog, a friend, a ball come at him; the
-   player says the word in time. No word, no move. New words unlock as the
-   score climbs, so progress in the game is progress in vocabulary. Where
-   there is no microphone the words are buttons — reading under time
-   pressure, which is still the language doing the work.
-
-   It keeps its own storage key, its own recogniser and its own screen, and
-   tears itself down the moment its DOM is gone, so nothing here can leak
+   It keeps its own storage key and screen, and tears itself down the moment
+   its DOM is gone, so nothing here can leak
    into a lesson. */
 const SAM_RUN_KEY='english.samRun';
 const SAM_RUN_MASTERY=4, SAM_RUN_GOAL=18;
@@ -11303,7 +11342,7 @@ const SAM_RUN_MISSIONS=[
   {id:'correct12',title:'ענה נכון על 12 מילים',metric:'correct',target:12,reward:20},
   {id:'clean8',title:'השג 8 תשובות רצופות בלי טעות',metric:'clean',target:8,reward:28},
   {id:'hearts2',title:'סיים עם לפחות 2 לבבות',metric:'hearts',target:2,reward:30},
-  {id:'voice6',title:'אמור 6 מילים נכון',metric:'correct',target:6,reward:24,modes:['voice']},
+  {id:'perfect',title:'סיים את הריצה עם כל הלבבות',metric:'hearts',target:3,reward:40},
 ];
 function samRunItem(id){ return SAM_RUN_SHOP_ITEMS.find(x=>x.id===id); }
 function samRunAvatarLook(store){
@@ -11315,6 +11354,30 @@ function samRunAvatarLook(store){
 function samRunAvatarHtml(store,cls=''){
   const rideItem=samRunItem(store.equipped?.ride),ride=rideItem?.ride||'';
   return `<div class="game-avatar${ride?' has-ride ride-'+rideItem.id:''}">${ride?`<span class="game-ride" aria-hidden="true">${ride}</span>`:''}${personArt(samRunAvatarLook(store),'waiting',cls)}</div>`;
+}
+/* On the road the learner sees the character from behind, so the game reads
+   as forward motion. The small rig preserves every equipped colour and has
+   separate limbs for a proper run cycle. */
+function samRunBackAvatarHtml(store){
+  const l=samRunAvatarLook(store),rideItem=samRunItem(store.equipped?.ride),ride=rideItem?.ride||'';
+  const hair=l.hairColor||'#231a15',skin=l.skin||'#d9a878',skinShadow=l.skinShadow||'#b87852';
+  const clothes=l.clothes||'#2fa87a',accent=l.accent||'#1f7f5c',pants=l.pants||'#29483f',shoes=l.shoes||'#6e4f39';
+  const longHair=['long','bob','bun-side'].includes(l.hairStyle),curly=l.hairStyle==='curly';
+  const hairBack=longHair
+    ? `<path fill="${hair}" d="M35 45c1-25 15-38 35-38s35 13 35 38v37H35z"/>`
+    : `<path fill="${hair}" d="M37 43C37 18 51 7 70 7s33 11 33 36c-8-8-18-12-32-12S46 35 37 43z"/>`;
+  const curls=curly?`<g fill="${hair}"><circle cx="43" cy="27" r="10"/><circle cx="56" cy="18" r="11"/><circle cx="72" cy="17" r="12"/><circle cx="89" cy="22" r="11"/><circle cx="98" cy="35" r="9"/></g>`:'';
+  return `<div class="game-back-avatar${ride?' has-ride':''}">${ride?`<span class="game-back-ride" aria-hidden="true">${ride}</span>`:''}<svg class="game-back-rig" viewBox="0 0 140 220" aria-hidden="true">
+    <ellipse class="back-shadow" cx="70" cy="211" rx="39" ry="8" fill="rgba(0,0,0,.35)"/>
+    <g class="back-leg back-leg-l"><path fill="${pants}" d="M43 139h25l-5 57H42z"/><path fill="${shoes}" d="M41 188h23l5 18c-9 7-24 7-34 1z"/></g>
+    <g class="back-leg back-leg-r"><path fill="${pants}" d="M72 139h25l1 57H77z"/><path fill="${shoes}" d="M77 188h23l5 19c-11 6-26 6-34-1z"/></g>
+    <g class="back-arm back-arm-l"><path fill="${clothes}" d="M38 82c-12 8-18 25-20 45l17 4c3-16 9-29 17-37z"/><path fill="${skinShadow}" d="M18 124l17 4-4 29-14-2z"/><circle cx="23" cy="157" r="8" fill="${skin}"/></g>
+    <g class="back-arm back-arm-r"><path fill="${clothes}" d="M102 82c12 8 18 25 20 45l-17 4c-3-16-9-29-17-37z"/><path fill="${skinShadow}" d="M105 128l17-4 1 31-14 2z"/><circle cx="116" cy="157" r="8" fill="${skin}"/></g>
+    <path class="back-body" fill="${clothes}" d="M42 78c8-8 18-12 28-12s20 4 28 12l6 68c-20 9-48 9-68 0z"/>
+    <path fill="${accent}" d="M65 70h10l5 76H60z" opacity=".75"/><path fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3" d="M45 103h17v18H45m33-18h17v18H78"/>
+    <path fill="${skinShadow}" d="M59 56h22v19c-7 7-15 7-22 0z"/><ellipse cx="70" cy="43" rx="33" ry="37" fill="${skin}"/>
+    ${hairBack}${curls}<path fill="${hair}" d="M38 41c8-10 18-15 32-15s25 5 33 15v-8C100 13 87 3 70 3S40 13 37 33z"/>
+  </svg></div>`;
 }
 function samRunMissionFor(store,mode,stageIndex,phaseIndex){
   const pool=SAM_RUN_MISSIONS.filter(m=>!m.modes||m.modes.includes(mode));
@@ -11411,9 +11474,8 @@ function samRunStore(){
     store.owned=Array.isArray(store.owned)?[...new Set(store.owned.filter(id=>samRunItem(id)&&samRunItem(id).price>0))]:[];
     store.equipped=store.equipped&&typeof store.equipped==='object'?store.equipped:{};
     for(const type of ['outfit','shoes','hair','character','ride']) if(samRunItem(store.equipped[type])?.type!==type) delete store.equipped[type];
-    /* v3 stored quiet/voice as phase positions. Keep its unfinished final
-       challenge in the final slot, while completed worlds restart at their
-       first activity. In v5 voice is a free choice before every run. */
+    /* v3 stored the old modes as phase positions. Keep unfinished progress
+       in its equivalent activity while completed worlds restart cleanly. */
     if(Number(raw?.version)<4){
       if(Number(raw?.version)===3){
         for(const key of Object.keys(store.phaseByStage)) if(Number(store.phaseByStage[key])===1) store.phaseByStage[key]=2;
@@ -11427,8 +11489,7 @@ function samRunStore(){
   catch(e){ return base; }
 }
 function samRunSave(store){ try{ localStorage.setItem(SAM_RUN_KEY, JSON.stringify(store)); }catch(e){} }
-/* the run gets faster with the score, then settles: a ceiling keeps the
-   voice path fair, since a word takes a real moment to be recognised */
+/* The run gets faster with the score, then settles at a readable ceiling. */
 function samRunSpeedFor(score){ return 1+Math.min(Math.max(0,score),70)/70*1.15; }
 /* The street can look as fast as it likes; the windows must stay fair. A
    spoken word takes the recogniser anywhere from half a second to two before
@@ -11490,7 +11551,7 @@ function samRunTone(kind){
 }
 
 function samRunWordsHtml(g){
-  if(g.laneGame&&!g.running) return `<div class="game-lane-help">↕️ בחר מסלול בזמן · אפשר להחליף עד הרגע האחרון</div>`;
+  if(g.laneGame&&!g.running) return `<div class="game-lane-help">↔️ החליקו או לחצו ישירות על המסלול</div>`;
   return g.active.map(id=>{
     const c=SAM_RUN_COMMANDS[id], mastery=Math.min(SAM_RUN_MASTERY,g.store.mastery[id]||0);
     return `<button type="button" class="game-word" data-cmd="${id}" onclick="samRunCommand('${id}','tap')" aria-label="${c.en} — ${esc(c.he)}">
@@ -11499,9 +11560,7 @@ function samRunWordsHtml(g){
   }).join('');
 }
 function samRunHeardHtml(g){
-  if(!g.running) return g.mode==='voice'?'🎤 המיקרופון ייבדק לפני שהמשחק מתחיל.':'🔊 כל תשובה שתבחר תושמע באנגלית.';
-  if(g.mode!=='voice') return 'בחר את התרגום באנגלית — והקשב להגייה 🔊';
-  return '<span class="mic">🎤</span> מקשיב… תגיד את המילה';
+  return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 כל תשובה שתבחר תושמע באנגלית.';
 }
 function samRunStartCardHtml(store){
   const stage=SAM_RUN_STAGES[samRun?.stageIndex||0], ids=stage.words.map(w=>w[0]);
@@ -11514,7 +11573,7 @@ function samRunStartCardHtml(store){
     <p>${phase.hint}</p>
     <p class="words-said">${ids.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}</p>
     <p>${learned?`כבר שלטת ב־${learned} מתוך ${ids.length} מילים`:'מוכנים להכיר חמש מילים חדשות?'}</p>
-    <div class="game-mode-choice"><button onclick="samRunChooseMode('tap')"><b>👆 משחק שקט</b><small>בוחרים את המילה באנגלית</small><span class="coin-boost">מטבעות רגילים</span></button><button class="voice" onclick="samRunChooseMode('voice')"><b>🎤 משחק קולי</b><small>אומרים את המילה באנגלית</small><span class="coin-boost">+50% מטבעות</span></button></div>`;
+    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ›</button><small class="game-start-tip">לוחצים על המסלול הנכון וכל בחירה נשמעת באנגלית 🔊</small>`;
 }
 function samRunMapHtml(store){
   const curriculum=SAM_RUN_STAGES.flatMap(stage=>stage.words.map(w=>w[0]));
@@ -11601,7 +11660,7 @@ function renderSamRun(stageIndex=null){
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
-  hx(`<div class="screen game-screen">
+  hx(`<div class="screen game-screen game-playing">
     <div class="game-top">
       <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
       <div class="game-title">${phase.icon} ${esc(stage.title)}</div>
@@ -11611,16 +11670,13 @@ function renderSamRun(stageIndex=null){
     <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
-      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר את התרגום באנגלית</small>מוכנים?</div><div class="game-speedlines"></div><div class="game-finish"></div>
+      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
-      <div class="game-runner" id="samRunRunner" hidden>${samRunAvatarHtml(store,'game-sam')}</div>
+      <div class="game-runner" id="samRunRunner" hidden>${samRunBackAvatarHtml(store)}</div>
       <div id="samRunObstacles"></div>
       <div class="game-card" id="samRunCard">${samRunStartCardHtml(store)}</div>
     </div>
-    <div class="game-controls mode-${mode}" id="samRunControls">
-      <div class="game-mode">
-        ${mode==='voice'?'<button type="button" id="samRunMicBtn" class="on">🎤 שלב קולי</button>':'<span class="game-mode-label">👆 שלב שקט · התשובות מושמעות</span>'}
-      </div>
+    <div class="game-controls mode-${mode} lane-controls" id="samRunControls">
       <div class="game-words" id="samRunWords">${samRunWordsHtml(g)}</div>
       <div class="game-heard" id="samRunHeard">${samRunHeardHtml(g)}</div>
     </div>
@@ -11629,12 +11685,15 @@ function renderSamRun(stageIndex=null){
   samRunBindLaneInput(document.getElementById('samRunWorld'),g);
 }
 function samRunBindLaneInput(world,g){
-  if(!world) return; let startY=0;
-  world.addEventListener('pointerdown',e=>{ startY=e.clientY; });
+  if(!world) return; let startX=0;
+  world.addEventListener('pointerdown',e=>{ startX=e.clientX; });
   world.addEventListener('pointerup',e=>{
     if(samRun!==g||!g.running||!g.laneGame) return;
-    const dy=e.clientY-startY; if(Math.abs(dy)<28) return;
-    samRunChooseLane(Math.max(0,Math.min(2,g.lane+(dy>0?1:-1))));
+    const dx=e.clientX-startX;
+    if(Math.abs(dx)>=28){ samRunChooseLane(Math.max(0,Math.min(2,g.lane+(dx>0?1:-1)))); return; }
+    if(e.target.closest?.('.lane-gate')) return;
+    const rect=world.getBoundingClientRect(),lane=Math.max(0,Math.min(2,Math.floor((e.clientX-rect.left)/rect.width*3)));
+    samRunChooseLane(lane);
   });
 }
 function samRunExit(){ samRunTeardown(); renderHome(); }
@@ -11643,64 +11702,12 @@ function samRunTeardown(){
   g.running=false;
   if(g.raf) cancelAnimationFrame(g.raf);
   clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer);
-  samRunStopListening();
   cancelSpeech();
   samRun=null;
 }
-function samRunToggleMode(){
-  const g=samRun; if(!g) return;
-  samRunSetMode(g.mode==='voice'?'tap':'voice');
-}
-function samRunChooseMode(mode){
-  const g=samRun; if(!g||g.running||!['tap','voice'].includes(mode)) return;
-  g.mode=mode; g.laneGame=mode==='tap'; g.mission=samRunMissionFor(g.store,mode,g.stageIndex,g.phaseIndex); g.store.mode=mode; samRunSave(g.store);
-  const controls=document.getElementById('samRunControls'); if(controls) controls.className='game-controls mode-'+mode;
-  const modeHost=controls?.querySelector('.game-mode'); if(modeHost) modeHost.innerHTML=mode==='voice'?'<button type="button" id="samRunMicBtn" class="on">🎤 משחק קולי · ‎+50%</button>':'<span class="game-mode-label">👆 משחק שקט · התשובות מושמעות</span>';
-  const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
-  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
-  const world=document.getElementById('samRunWorld'); if(world) world.className=samRunWorldClass(g);
-  samRunPaintMission();
-  samRunStart();
-}
-function samRunSetMode(mode){
-  const g=samRun; if(!g) return;
-  if(mode==='voice'&&!SR) mode='tap';
-  g.mode=mode; g.store.mode=mode; samRunSave(g.store);
-  const controls=document.getElementById('samRunControls');
-  if(controls) controls.className='game-controls mode-'+mode;
-  const btn=document.getElementById('samRunMicBtn');
-  if(btn){ btn.classList.toggle('on',mode==='voice'); btn.textContent=mode==='voice'?'🎤 מקשיב':'🎤 כבוי'; }
-  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
-  if(mode==='voice'&&g.running&&!g.paused) samRunListen(); else samRunStopListening();
-}
-
-/* A voice round cannot start on hope. The permission request is attached to
-   the learner's tap, and the countdown stays blocked until the phone has
-   actually opened an audio track. */
-async function samRunPrepareMicrophone(){
-  const g=samRun,card=document.getElementById('samRunCard'); if(!g||!card||g.micRequesting) return;
-  g.micRequesting=true; card.hidden=false;
-  card.innerHTML=`<div class="game-mic-gate"><div class="mic-big">🎤</div><h2>מכינים את המיקרופון</h2><p>הטלפון יבקש עכשיו הרשאה. המשחק יתחיל רק אחרי שנדע שהוא באמת עובד.</p><div class="game-heard"><span class="mic">🎤</span> ממתין לאישור…</div><p class="privacy">המיקרופון משמש רק לזיהוי המילים במשחק.</p></div>`;
-  try{
-    if(!SR||!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    stream.getTracks().forEach(track=>track.stop());
-    if(samRun!==g) return;
-    g.micReady=true; g.micRequesting=false;
-    card.innerHTML=`<div class="game-mic-gate"><div class="mic-big">✅</div><h2>המיקרופון מוכן</h2><p>עכשיו עוברים במהירות על המילים ומתחילים.</p></div>`;
-    g.reviewTimer=setTimeout(()=>{ if(samRun===g) samRunStart(); },550);
-  }catch(err){
-    if(samRun!==g) return;
-    g.micRequesting=false;
-    const unsupported=err?.message==='unsupported';
-    card.innerHTML=`<div class="game-mic-gate"><div class="mic-big">${unsupported?'📵':'🎤'}</div><h2>${unsupported?'המיקרופון לא זמין':'לא התקבל אישור למיקרופון'}</h2><p>${unsupported?'הדפדפן הזה לא מאפשר כרגע משחק קולי.':'לא התחלנו את המשחק ולא איבדת חיים. אפשר לאשר ולנסות שוב.'}</p><div class="btn-row">${unsupported?'':`<button class="btn" onclick="samRunPrepareMicrophone()">נסה שוב 🎤</button>`}<button class="btn secondary" onclick="samRunChooseMode('tap')">שחק בשקט 👆</button></div></div>`;
-  }
-}
-
 /* ---- a run ---- */
 function samRunStart(){
   const g=samRun; if(!g) return;
-  if(g.mode==='voice'&&!g.micReady){ samRunPrepareMicrophone(); return; }
   samRunTone('tick');
   clearTimeout(g.timer); clearTimeout(g.reviewTimer); cancelSpeech();
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
@@ -11711,7 +11718,7 @@ function samRunStart(){
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
-  runner.style.top='36%';
+  runner.style.top=''; runner.style.left='50%'; runner.style.transform='translateX(-50%)';
   world.className=samRunWorldClass(g); world.style.setProperty('--speed','1');
   samRunPaintHud();
   const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
@@ -11746,7 +11753,6 @@ function samRunBeginCountdown(){
     count.innerHTML=`<span>${steps[i++]}</span>`; samRunTone('tick');
     g.timer=setTimeout(tick,i===steps.length?550:700);
   };
-  if(g.mode==='voice') samRunListen();
   tick();
 }
 function samRunGo(){
@@ -11787,10 +11793,20 @@ function samRunFrame(ts){
       // before its run a thing waits at the edge as a small badge with a "!"
       const incoming=ob.progress<0;
       if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
-      const startX=g.worldW-62;
-      const x=incoming?startX:startX-ob.progress*(startX-g.runnerX);
-      ob.x=x; ob.el.style.setProperty('--x',x+'px');
-      if(!ob.el.classList.contains('is-poof')&&!ob.el.classList.contains('is-caught')) ob.el.style.transform=`translateX(${x}px)${incoming?' scale(.6)':''}`;
+      if(ob.laneWave){
+        const p=Math.max(0,Math.min(1.18,ob.progress)),spread=6+p*31,y=17+p*61,scale=.3+p*.8;
+        ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100);
+        ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
+        ob.el.querySelectorAll('.lane-gate').forEach((gate,i)=>{
+          const x=50+(i-1)*spread;
+          gate.style.left=x+'%'; gate.style.top=y+'%'; gate.style.transform=`translate(-50%,-50%) scale(${scale})`;
+        });
+      } else {
+        const startX=g.worldW-62;
+        const x=incoming?startX:startX-ob.progress*(startX-g.runnerX);
+        ob.x=x; ob.el.style.setProperty('--x',x+'px');
+        if(!ob.el.classList.contains('is-poof')&&!ob.el.classList.contains('is-caught')) ob.el.style.transform=`translateX(${x}px)${incoming?' scale(.6)':''}`;
+      }
     }
   }
   g.raf=requestAnimationFrame(samRunFrame);
@@ -11810,21 +11826,15 @@ function samRunPickKind(){
   g.sameKind=id===g.lastKind?g.sameKind+1:1; g.lastKind=id;
   return id;
 }
-function samRunLaneControls(ob){
-  const words=document.getElementById('samRunWords'); if(!words) return;
-  const laneNames=['מסלול עליון','מסלול אמצעי','מסלול תחתון'];
-  words.className='game-words lane-choices';
-  words.innerHTML=ob.options.map((id,i)=>{ const c=SAM_RUN_COMMANDS[id]; return `<button type="button" class="game-word${ob.chosenLane===i?' is-lane-picked':''}" data-lane="${i}" data-lane-icon="${laneNames[i]}" onclick="samRunChooseLane(${i})"><span class="ic">${c.ic}</span><span class="en">${c.en}</span></button>`; }).join('');
-}
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0)); g.lane=lane;
-  const runner=document.getElementById('samRunRunner'),tops=['7%','36%','64%'],scales=[.82,.91,1];
-  if(runner){ runner.style.top=tops[lane]; runner.style.transform=`scale(${scales[lane]})`; }
+  const runner=document.getElementById('samRunRunner'),lefts=['20%','50%','80%'];
+  if(runner){ runner.style.left=lefts[lane]; runner.style.transform='translateX(-50%)'; }
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
   ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>el.classList.toggle('is-picked',i===lane));
-  speak(SAM_RUN_COMMANDS[ob.options[lane]].say); samRunLaneControls(ob);
+  speak(SAM_RUN_COMMANDS[ob.options[lane]].say);
 }
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
@@ -11833,11 +11843,10 @@ function samRunSpawnLaneWave(){
   const phasePace=g.phase.id==='speed'?.82:1,travelMs=Math.round(samRunTravelMs(g.score)*phasePace),warnMs=650;
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'');
-  el.style.transform=`translateX(${g.worldW-62}px) scale(.62)`;
   el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
   host.appendChild(el);
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
-  g.obstacles.push(ob); samRunLaneControls(ob);
+  g.obstacles.push(ob);
   const prompt=document.getElementById('samRunLanePrompt'); if(prompt) prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`;
   g.nextSpawnAt=g.time+warnMs+travelMs*(.78+Math.random()*.16);
 }
@@ -11858,7 +11867,7 @@ function samRunSpawn(){
   el.style.transform=`translateX(${g.worldW-62}px) scale(.6)`;
   /* The challenge is translation, never guessing an ambiguous drawing: the
      Hebrew prompt always stays visible and the answer is spoken in English. */
-  const label=`<span class="ob-label" dir="rtl">${esc(c.he)}<em>${g.mode==='voice'?'תגיד':'בחר'} באנגלית</em></span>`;
+  const label=`<span class="ob-label" dir="rtl">${esc(c.he)}<em>בחר באנגלית</em></span>`;
   const colorStyle=c.color?` style="--word-color:${c.color}"`:'';
   el.innerHTML=`<span class="ob-body${c.color?' color-word':''}"${colorStyle}>${c.color?'':c.ic}</span>${label}`;
   host.appendChild(el);
@@ -12062,13 +12071,10 @@ function samRunUnlock(id){
   const g=samRun,c=SAM_RUN_COMMANDS[id]; if(!g||!c) return;
   g.store.mastery[id]=Math.max(1,g.store.mastery[id]||0); samRunSave(g.store); speak(c.say);
 }
-function samRunResume(){
-  const g=samRun;if(!g)return;g.paused=false;if(g.mode==='voice')samRunListen();
-}
+function samRunResume(){ const g=samRun;if(g)g.paused=false; }
 function samRunOver(finished=false){
   const g=samRun; if(!g||!g.running) return;
   g.running=false; if(g.raf) cancelAnimationFrame(g.raf);
-  samRunStopListening();
   const card=document.getElementById('samRunCard'); if(!card) return;
   const store=g.store, newBest=g.score>(store.best||0);
   store.best=Math.max(store.best||0,g.score);
@@ -12088,8 +12094,7 @@ function samRunOver(finished=false){
   const newlyUnlocked=stageComplete&&g.stageIndex===store.stage&&store.stage<SAM_RUN_STAGES.length-1;
   if(newlyUnlocked){ store.stage++; store.phaseByStage[store.stage]=0; }
   const baseEarned=Math.max(1,g.correctCount+stars*2)+(g.runCoinBonus||0), missionDone=samRunMissionDone(g);
-  const missionBonus=missionDone?g.mission.reward:0, beforeBoost=baseEarned+missionBonus;
-  const voiceBoost=g.mode==='voice'?Math.ceil(beforeBoost*.5):0, earned=beforeBoost+voiceBoost;
+  const missionBonus=missionDone?g.mission.reward:0, earned=baseEarned+missionBonus;
   store.coins=(store.coins||0)+earned;
   samRunSave(store);
   samRunTone(stageComplete||nextPhase?'best':newBest?'best':'over');
@@ -12103,77 +12108,12 @@ function samRunOver(finished=false){
   card.hidden=false;
   card.innerHTML=`<div class="reward">${stageComplete?'🏆':nextPhase?upcoming.icon:g.lives<=0?'💪':'🎁'}</div><h2>${stageComplete?'העולם הושלם!':nextPhase?'השלב הושלם!':g.lives<=0?'כמעט! יוצאים לעוד ריצה':'ריצה מעולה!'}</h2>
     <div class="game-stat"><div><b>${g.correctCount}</b>מילים נכונות</div><div><b>${g.store.streakBest||g.streak}</b>רצף שיא</div><div><b>+${earned}</b>מטבעות</div></div>
-    <div class="game-bonus-mission ${missionDone?'done':''}"><span>${missionDone?'✅':'⭐'}</span><strong>${missionDone?'המשימה הושלמה!':'המשימה היא בונוס בלבד'}</strong><span class="bonus-progress">${missionDone?'+'+missionBonus+' 🪙':'לא ירדו מטבעות'}${voiceBoost?' · קולי +'+voiceBoost:''}</span></div>
+    <div class="game-bonus-mission ${missionDone?'done':''}"><span>${missionDone?'✅':'⭐'}</span><strong>${missionDone?'המשימה הושלמה!':'המשימה היא בונוס בלבד'}</strong><span class="bonus-progress">${missionDone?'+'+missionBonus+' 🪙':'לא ירדו מטבעות'}</span></div>
     <div class="mastered-list">${mastered.map(id=>`<span>${SAM_RUN_COMMANDS[id].ic} ${SAM_RUN_COMMANDS[id].en} ✓</span>`).join('')}</div>
-    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:nextPhase?'אותן מילים חוזרות באתגר חדש. גם בריצה הבאה אפשר לבחור שקט או קולי.':stageComplete?'שלוש הריצות הסתיימו והמילים באמת אצלך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
+    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:nextPhase?'אותן מילים חוזרות עכשיו באתגר מהיר ומפתיע יותר.':stageComplete?'שלוש הריצות הסתיימו והמילים באמת אצלך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
     <div class="btn-row"><button class="btn" onclick="${nextAction}">${nextLabel}</button><button class="btn secondary" onclick="renderSamRun()">מפת העולמות</button></div>`;
   const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.best;
-  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=g.mode==='voice'?'כל מילה שאמרת חיזקה את הזיכרון 🧠':'כל בחירה נכונה חיברה בין הכתב לצליל 🔊';
-}
-
-/* ---- the microphone as a controller ---- */
-function samRunListen(){
-  const g=samRun; if(!g||!SR||g.mode!=='voice') return;
-  samRunStopListening();
-  let rec; try{ rec=new SR(); }catch(e){ return; }
-  rec.lang='en-US'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=3;
-  g.rec=rec; g.heardKeys=new Set();
-  const live=()=>samRun===g&&g.rec===rec;
-  // sound arrives long before words do: mark the start of a phrase from the
-  // first sound event, or from the first partial result where a browser
-  // gives no sound events, and show the player they are being heard
-  const hearing=()=>{ if(!live()||!g.running||g.paused) return; if(!g.speechAt){ g.speechAt=performance.now(); samRunHearing(true); } };
-  rec.onstart=()=>{ if(live()) g.heardKeys=new Set(); };
-  rec.onsoundstart=rec.onspeechstart=hearing;
-  rec.onresult=e=>{
-    if(!live()) return;
-    for(let ri=e.resultIndex||0;ri<e.results.length;ri++){
-      const res=e.results[ri]; if(!res) continue;
-      let shown='';
-      for(let ai=0;ai<res.length;ai++){
-        const t=String(res[ai]?.transcript||'').trim(); if(!t) continue;
-        shown=shown||t;
-        hearing();
-        const cmd=samRunMatchCommand(t,g.active);
-        if(!cmd) continue;
-        // one move per phrase per word: interim and final results repeat the same text
-        const key=ri+':'+cmd;
-        if(g.heardKeys.has(key)){ samRunShowHeard(t,cmd); break; }
-        g.heardKeys.add(key);
-        samRunShowHeard(t,cmd);
-        samRunCommand(cmd,'voice');
-        break;
-      }
-      if(shown&&!samRunMatchCommand(shown,g.active)) samRunShowHeard(shown,null);
-    }
-  };
-  rec.onerror=e=>{
-    if(!live()) return;
-    const err=e?.error||'';
-    if(err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture'){
-      g.rec=null; samRunSetMode('tap'); toast('אין גישה למיקרופון — משחקים בלחיצות 👆');
-    }
-  };
-  rec.onend=()=>{
-    if(!live()) return;
-    if(g.running&&!g.paused&&g.mode==='voice'){
-      g.heardKeys=new Set();
-      try{ rec.start(); }catch(e){ setTimeout(()=>{ if(live()&&g.running&&!g.paused) try{ rec.start(); }catch(_){ } },300); }
-    }
-  };
-  try{ rec.start(); }catch(e){ g.rec=null; }
-}
-function samRunStopListening(){
-  const g=samRun; if(!g||!g.rec) return;
-  const rec=g.rec; g.rec=null;
-  rec.onresult=rec.onerror=rec.onend=rec.onstart=null;
-  try{ rec.abort(); }catch(e){}
-}
-function samRunShowHeard(text,cmd){
-  const g=samRun, el=document.getElementById('samRunHeard'); if(!g||!el) return;
-  const now=Date.now(); if(!cmd&&now-g.heardAt<250) return; g.heardAt=now;
-  const tail=String(text).trim().split(/\s+/).slice(-3).join(' ');
-  el.innerHTML=cmd?`שמעתי: <b>${esc(SAM_RUN_COMMANDS[cmd].en)}</b> ✓`:`שמעתי: <span dir="ltr">${esc(tail)}</span>`;
+  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='כל בחירה נכונה חיברה בין הכתב לצליל 🔊';
 }
 
 if(viewTransitionsEnabled()) document.documentElement?.classList?.add('vt');
