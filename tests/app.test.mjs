@@ -82,7 +82,7 @@ function runtime(seed = new Map(), options = {}) {
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
-      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop,
+      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3463,6 +3463,26 @@ test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
     'a completed run gets a visible finish-line sequence');
   assert.match(html, /if\(cls==='is-jumping'\) setTimeout\(\(\)=>samRunWorldFx\('is-land',300\),690\)/,
     'jumping has a camera-weighted landing');
+});
+
+test("Sam's quiet game is a real three-lane runner rather than a word queue", () => {
+  const { api, app } = runtime();
+  api.renderSamRun(0);
+  assert.match(app.innerHTML, /game-lane-grid/);
+  assert.match(app.innerHTML, /game-lane-prompt/);
+  assert.match(app.innerHTML, /lane-game/);
+  assert.match(html, /const distractors=shuffled\(g\.active\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
+    'each wave mixes the answer with two live distractors');
+  assert.match(html, /onclick="samRunChooseLane\(\$\{i\}\)"/,
+    'the approaching gates themselves are playable');
+  assert.match(html, /world\.addEventListener\('pointerup'/,
+    'vertical swipes also control the runner');
+  assert.match(html, /speak\(SAM_RUN_COMMANDS\[ob\.options\[lane\]\]\.say\)/,
+    'every lane choice reinforces its English pronunciation');
+  assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,
+    'a second three-answer wave never steals control from the active one');
+  assert.match(html, /Math\.random\(\)<\.18/, 'rare bonus coins make runs less predictable');
+  assert.match(html, /g\.streak===5&&!g\.shield/, 'a five-answer combo earns a one-hit shield');
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {
