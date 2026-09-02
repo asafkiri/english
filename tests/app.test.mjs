@@ -267,6 +267,9 @@ test('guided lessons stay short, keep new English visible, and end on a real sta
   api.renderStep();
   assert.match(app.innerHTML, /משפט חדש · עכשיו אומרים יחד/);
   assert.match(app.innerHTML, /המשפט מולך/);
+  assert.match(app.innerHTML, /id="listenFirst"/);
+  assert.match(app.innerHTML, /id="speakZone" hidden/,
+    'the microphone must wait until the automatic example finishes');
   assert.match(app.innerHTML, /id="micBtn"|אמרתי בקול/,
     'hearing and recording must happen on the same screen');
   assert.doesNotMatch(app.innerHTML, /id="englishHint" hidden/);

@@ -166,6 +166,9 @@ body{
 }
 .play-big:active{transform:scale(.92)}
 .speak-zone{text-align:center;margin-top:6px}
+.listen-first{min-height:118px;display:flex;align-items:center;justify-content:center;gap:9px;color:var(--dim);font-weight:750;font-size:16px}
+.phrase-mic-entry{animation:phraseMicRise .42s cubic-bezier(.2,.78,.24,1) both}
+@keyframes phraseMicRise{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
 .mic-btn{
   width:92px;height:92px;border-radius:50%;border:none;cursor:pointer;margin:8px auto 10px;
   background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;font-size:38px;
@@ -5883,7 +5886,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.15.2';
+const APP_VERSION = '2.15.3';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -6472,7 +6475,10 @@ function speak(text, cb){
   const v = pickVoice(); if(v) u.voice = v;
   u.rate = state.slowSpeech ? 0.8 : 1.0;
   u.pitch = 1;
+  let finished=false;
   const finish=()=>{
+    if(finished) return;
+    finished=true;
     if(token===speechToken) stopVoiceAnimation();
     if(cb && token===speechToken) cb();
   };
@@ -6483,7 +6489,7 @@ function speak(text, cb){
   setVoicing(true);
   // some engines never report the end of an utterance; the face must not be
   // left talking to itself, so stop the animation on a generous deadline too
-  setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) stopVoiceAnimation(); },
+  setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) finish(); },
     Math.max(6000, u.text.length*220));
   speechSynthesis.speak(u);
 }
@@ -6670,7 +6676,7 @@ function stopWordSync(){
 function cancelAutoSpeak(){
   if(autoSpeakTimer){ clearTimeout(autoSpeakTimer); autoSpeakTimer = null; }
 }
-function scheduleSpeak(text, delay=350){
+function scheduleSpeak(text, delay=350, cb=null){
   cancelAutoSpeak();
   const epoch = uiEpoch;
   const session = typeof L !== 'undefined' ? L : null;
@@ -6679,7 +6685,7 @@ function scheduleSpeak(text, delay=350){
     autoSpeakTimer = null;
     if(epoch !== uiEpoch) return;
     if(session && (!L || L !== session || L.i !== stepIndex)) return;
-    speak(text);
+    speak(text,cb);
   }, delay);
 }
 
@@ -9218,7 +9224,7 @@ function renderSpeak(step){
   L.attempts=step.attempts||0;
   L.tries=step.tries||0;
   const guided=!step.warmup&&!step.challenge&&!step.requeued;
-  const firstIntroduction=guided&&!!step.newPhrase&&!step.introduced;
+  const waitingForIntroduction=guided&&!!step.newPhrase&&!step.introAudioComplete;
   const label=step.warmup ? '🔥 חימום — משפט שכבר למדת'
     : step.requeued ? '🔁 סיבוב שני — עוד תרגול קטן'
     : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎧 משפט חדש · עכשיו אומרים יחד';
@@ -9242,7 +9248,8 @@ function renderSpeak(step){
       <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(en)}')" aria-label="השמעת המשפט">🔊</button>
     </div>
     <button class="btn secondary" id="hintBtn" ${terminalResult||hintLevel>=2?'hidden':''} onclick="revealSpeakHint()">${hintLevel===0?'צריך רמז? הצג באנגלית':'עוד עזרה — תעתיק ושמיעה 🔊'}</button>
-    <div class="speak-zone" id="speakZone">
+    ${waitingForIntroduction?`<div class="listen-first" id="listenFirst">👂 קודם מקשיבים למשפט…</div>`:''}
+    <div class="speak-zone${waitingForIntroduction?' phrase-mic-entry':''}" id="speakZone" ${waitingForIntroduction?'hidden':''}>
       ${terminalResult?`
         <div class="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage)}</div>
@@ -9260,11 +9267,23 @@ function renderSpeak(step){
       `}
     </div>
   `);
-  if(firstIntroduction){
-    step.introduced=true;
-    saveLessonCheckpoint();
-    scheduleSpeak(en);
+  if(waitingForIntroduction){
+    const session=L,stepIndex=L.i;
+    scheduleSpeak(en,450,()=>finishNewPhraseIntroduction(session,stepIndex));
   }
+}
+function finishNewPhraseIntroduction(session,stepIndex){
+  setTimeout(()=>{
+    if(!L||L!==session||L.i!==stepIndex) return;
+    const step=L.steps[L.i];
+    if(!step?.newPhrase) return;
+    step.introAudioComplete=true;
+    saveLessonCheckpoint();
+    const waiting=document.getElementById('listenFirst');
+    const zone=document.getElementById('speakZone');
+    if(waiting) waiting.hidden=true;
+    if(zone) zone.hidden=false;
+  },320);
 }
 function manualMicDone(){
   const step=L?.curStep;
