@@ -1416,7 +1416,7 @@ const LESSONS = [
     {who:'you', en:'Yes?', he:'כן?', tl:'יֶס?'},
     {who:'app', en:'Thank you for your help!', he:'תודה על העזרה!', tl:'ת׳נק יו פור יור הֶלְפּ!'},
     {who:'you', en:"You're welcome!", he:'על לא דבר!', tl:'יור וולקם!'},
-    {who:'app', en:'Can I sit here, please?', he:'אפשר לשבת פה, בבקשה?', tl:'קֶן אַיי סִיט הִיר, פְּלִיז?'},
+    {who:'app', en:'Can I help you?', he:'אפשר לעזור לך?', tl:'קֶן אַיי הֶלְפּ יוּ?'},
     {who:'you', en:'Yes, please!', he:'כן, בבקשה!', tl:'יֶס, פְּלִיז!'},
     {who:'app', en:'Thank you!', he:'תודה!', tl:'תֶ׳נְק יוּ!'},
     {who:'you', en:"You're welcome!", he:'על לא דבר!', tl:'יוֹר וֶולְקַם!'},
@@ -1734,7 +1734,7 @@ const LESSONS = [
   ],
 },
 {
-  title:'!I can do it', goal:'השיעור האחרון בקורס — והמשפטים הכי חשובים שיש. הם עליך.',
+  title:'!I can do it', goal:'מסיימים את יחידת החברים עם המשפטים הכי חשובים — משפטים שנותנים ביטחון להמשיך.',
   phrases:[
     {en:'I want to learn English', he:'אני רוצה ללמוד אנגלית', tl:'אַיי וּוֹנְט טוּ לֶרְן אִינְגְלִיש'},
     {en:'I will try', he:'אני אנסה', tl:'אַיי וִויל טְרַיי'},
@@ -3022,7 +3022,15 @@ const CONVERSATION_META = CONVERSATION_META_ROWS.map((row,idx)=>({
   lessonIndex:idx,characterId:row[0],placeEmoji:row[1],place:row[2],mission:row[3],character:CHARACTERS[row[0]],
 }));
 /* a practice session carries its own meta instead of a lesson's */
-function conversationMeta(idx){ return L?.practiceMeta || CONVERSATION_META[idx] || CONVERSATION_META[0]; }
+function conversationMeta(idx){
+  if(L?.practiceMeta) return L.practiceMeta;
+  const base=CONVERSATION_META[idx] || CONVERSATION_META[0];
+  // Every guided conversation now happens face to face in a relevant place.
+  // It is still fully scripted: the richer presentation does not raise the
+  // language difficulty or pretend to be an open AI conversation.
+  const character=PRACTICE_CAST[base.characterId] || base.character;
+  return {...base,character,bg:LESSON_STAGE_BACKGROUNDS[idx]||'living-room',role:character.role||''};
+}
 function learnerAvatar(){ return state?.profile?.gender==='female'?'👧':'🧒'; }
 
 /* ---------------- free conversation practice ----------------
@@ -3541,6 +3549,14 @@ const PRACTICE_CAST = {
   dana:{f:true, name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג',
     look:{variant:'modern-v2',id:'dana',outfit:'teacher',faceShape:'oval',skin:'#e3b58c',skinShadow:'#c48760',hairStyle:'bun-side',hairColor:'#2b2320',eyeColor:'#4b6876',clothes:'#3aa6d8',accent:'#2483ae',pants:'#30475d',shoes:'#23313e',blush:'#d77d70',glasses:true}},
 };
+const LESSON_STAGE_BACKGROUNDS = [
+  'street-school','park-bench','bus-stop','city-square','home-street',
+  'living-room','music-room','basketball-court','school-steps','city-square',
+  'home-kitchen','restaurant','courtyard-garden','clothing-store','basketball-court',
+  'phone-room','courtyard-garden','parking-lot','basketball-court','school-steps',
+  'living-room','market-stall','art-studio','courtyard-garden','clothing-store',
+  'dog-park','clothing-store','school-steps','weather-window','beach-path',
+];
 function modernFacePath(shape){
   return ({
     round:'M57 82c0-38 20-59 53-59s54 23 53 61l-2 29c-2 31-23 53-51 56-29-3-50-25-52-56z',
@@ -5867,7 +5883,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.14.0';
+const APP_VERSION = '2.15.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7469,10 +7485,10 @@ function startLesson(idx, isReplay, force=false){
   const lesson = LESSONS[idx];
   const steps = [{type:'intro'}];
   let warmupIds = [];
-  // The cumulative review deliberately grows with the course and stops at 20.
-  // At the cap: up to 10 hard, 5 recent and 5 older phrases.
+  // A beginner needs a quick win before new material, not a second lesson.
+  // Keep the adaptive mix, but cap the opening review at six phrases.
   if(!isReplay && idx > 0){
-    const target = Math.min(2 + idx, 20);
+    const target = Math.min(2 + idx, 6);
     const chosen = selectWarmup(idx,target);
     warmupIds = chosen.map(x=>x.id);
     chosen.forEach(x=>steps.push({type:'speak',p:x.p,warmup:true,hid:x.id}));
@@ -7534,7 +7550,7 @@ function lessonEtaLabel(session=L){
   return 'עוד כ־' + Math.max(1, Math.ceil(secs/60)) + ' דק׳';
 }
 function estimateLessonMinutes(idx, isReplay=false){
-  const warm = (!isReplay && idx > 0) ? Math.min(2 + idx, 20) : 0;
+  const warm = (!isReplay && idx > 0) ? Math.min(2 + idx, 6) : 0;
   const rounds = Math.max(1, conversationRounds(idx).length || 4);
   const secs = STEP_SECONDS.intro + warm*20 + 5*(STEP_SECONDS.learn + STEP_SECONDS.speak)
     + 3*STEP_SECONDS.quiz + STEP_SECONDS.dlgIntro
@@ -9137,6 +9153,7 @@ function renderDialogueSpeak(step){
   const p=step.p,en=ptext(p,'en'),spokenEn=ptext(p,'en',true),he=ptext(p,'he'),tl=ptext(p,'tl');
   L.curStep=step;L.attempts=step.attempts||0;L.tries=step.tries||0;
   const mic=micAvailable(),hintLevel=step.hintLevel||0;
+  const guidedStage=usesConversationStage();
   const terminal=step.resultKind==='pass'||step.resultKind==='requeue';
   const heardHtml=step.heardText
     ? `<div><span dir="rtl">זה מה שהטלפון קלט:</span> <bdi dir="ltr">“${esc(step.heardText)}”</bdi></div>${step.heardDetails?.words?wordFeedbackHtml(step.heardDetails):''}`:'';
@@ -9160,13 +9177,15 @@ function renderDialogueSpeak(step){
     <div class="mic-hint composer-note" id="micHint">${mic?micReadyHint('לחץ על המיקרופון, דבר ולחץ שוב לסיום'):'אמור את המשפט בקול והמשך'}</div>
     <div class="heard" id="heard">${heardHtml}</div>
     <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
-    ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
-    <button class="btn ghost" id="skipBtn" style="padding:7px" ${(step.attempts||0)>=3?'':'hidden'} onclick="skipDialogueSpeak()">קשה לי עכשיו — נמשיך בשיחה</button>
+    ${mic?`<button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=2?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך</button>`:''}
+    <button class="btn ghost" id="skipBtn" style="padding:7px" ${(step.attempts||0)>=2?'':'hidden'} onclick="skipDialogueSpeak()">קשה לי עכשיו — נמשיך בשיחה</button>
   `;
-  if(L.isPractice){
+  if(guidedStage){
     const caption=terminal
       ? `<div class="cap-sent">✔️ אמרת: <bdi dir="ltr">${esc(en)}</bdi></div>`
-      : `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">תגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)}</div>`;
+      : (L.isPractice
+        ? `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">תגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)}</div>`
+        : captionHtml(p,step,{translationDelay:false}));
     stageShell(terminal?'reacting':'listening', caption, composer, terminal?'heard':'listening');
   } else {
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
@@ -9175,7 +9194,7 @@ function renderDialogueSpeak(step){
   if(terminal){
     // The same 1.9s as before, but read as a person rather than as a wait:
     // heard you -> a beat where they take it in -> they answer.
-    if(L.isPractice){
+    if(guidedStage){
       scheduleDialogueFlow(()=>{
         setStageCue('thinking');
         setStageThinking(true);
@@ -9199,11 +9218,12 @@ function renderSpeak(step){
   L.curStep=step;
   L.attempts=step.attempts||0;
   L.tries=step.tries||0;
+  const guided=!step.warmup&&!step.challenge&&!step.requeued;
   const label=step.warmup ? '🔥 חימום — משפט שכבר למדת'
     : step.requeued ? '🔁 סיבוב שני — עוד תרגול קטן'
-    : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎤 עכשיו אתה';
+    : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎤 עכשיו אומרים יחד';
   const mic=micAvailable();
-  const hintLevel=step.hintLevel||0;
+  const hintLevel=guided?2:(step.hintLevel||0);
   const terminalResult=step.resultKind==='pass'||step.resultKind==='requeue';
   const heardHtml=step.heardText
     ? `<div>זה מה שהטלפון קלט: “${esc(step.heardText)}”</div>${step.heardDetails?.words?wordFeedbackHtml(step.heardDetails):''}`
@@ -9212,7 +9232,7 @@ function renderSpeak(step){
     <div class="step-label">${label}</div>
     <div class="recall-card">
       <div class="cue">${esc(he)}</div>
-      <div class="cue-note">נסה להגיד את המשפט באנגלית בלי להסתכל</div>
+      <div class="cue-note">${guided?'המשפט מולך — קרא אותו בקול יחד עם ההקלטה':'נסה להגיד את המשפט באנגלית בלי להסתכל'}</div>
       <div class="hint-box" id="englishHint" ${hintLevel<1?'hidden':''}>
         <div class="hint-en" dir="ltr" lang="en">${esc(en)}</div>
       </div>
@@ -9231,8 +9251,8 @@ function renderSpeak(step){
         <div class="mic-hint" id="micHint">${micReadyHint('לחץ על המיקרופון ותגיד את המשפט באנגלית')}</div>
         <div class="heard" id="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${step.retryMessage?speakResultHtml('retry',step.retryMessage):''}</div>
-        <button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך בלי בדיקה</button>
-        ${!step.requeued&&!step.warmup?`<button class="btn ghost" id="skipBtn" ${(step.attempts||0)>=3?'':'hidden'} onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`:''}
+        <button class="btn ghost mic-fallback" id="manualMicBtn" ${(step.attempts||0)>=2?'':'hidden'} onclick="manualMicDone()">אמרתי בקול — המשך בלי בדיקה</button>
+        ${!step.requeued&&!step.warmup?`<button class="btn ghost" id="skipBtn" ${(step.attempts||0)>=2?'':'hidden'} onclick="skipSpeak()">קשה לי עכשיו — נחזור לזה בסוף 🔁</button>`:''}
       `:`
         <p class="mic-hint" style="margin:14px 0">תגיד את המשפט <b>בקול רם</b>. אם צריך, השתמש ברמז.</p>
         <button class="btn" onclick="manualMicDone()">אמרתי בקול! ✔</button>
@@ -9631,6 +9651,7 @@ function revealOrderHint(){
 }
 
 /* ---- dialogue ---- */
+function usesConversationStage(){ return !!L; }
 function renderDlgIntro(){
   const unitChallenge=!!L.steps[L.i].unitChallenge;
   const meta=conversationMeta(L.idx);
@@ -9665,11 +9686,11 @@ function renderListen(step){
     <div class="flow-controls">
       <span id="flowStatus">${step.arrived?meta.character.name+' מדבר…':'הודעה חדשה בדרך…'}</span>
     </div>`;
-  if(L.isPractice){
+  if(usesConversationStage()){
     const eventHtml=storyEventHtml(step.event);
     stageShell(step.arrived?'speaking':'waiting',
       step.arrived
-        ? eventHtml+stageCaptionHtml(line,step)
+        ? eventHtml+stageCaptionHtml(line,step,{translationDelay:L.isPractice})
         : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
       composer,
       step.arrived?'speaking':'incoming',
@@ -9725,7 +9746,7 @@ function renderBranchChoice(step){
     <div class="conversation-options">
       ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranch(${i})">${esc(fillProfileText(o.label,'he'))}</button>`).join('')}
     </div>`;
-  if(L.isPractice){
+  if(usesConversationStage()){
     const currentLine=stageCaptionLine();
     const eventHtml=storyEventHtml(step.event);
     stageShell('waiting', eventHtml+(currentLine?stageCaptionHtml(currentLine,step,{translationDelay:false}):'<div class="cap-typing">מה אפשר לענות?</div>'), composer, 'choosing');
@@ -9747,7 +9768,8 @@ function chooseBranch(optionIndex){
   }
   const hid=phraseIdForText(option.answer.en,L.idx);
   L.steps.splice(L.i+1,2,
-    {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true,roundIndex:step.roundIndex},
+    {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true,roundIndex:step.roundIndex,
+      hintLevel:L.isPractice?0:1},
     {type:'listen',line:option.reply,isBranchReply:true,roundIndex:step.roundIndex,
       practiceBeatId:step.practiceBeatId,practiceVariantId:step.practiceVariantId,
       stageCue:option.stageCue||step.replyStageCue||null}
