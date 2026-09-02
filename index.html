@@ -50,8 +50,12 @@ body{
 ::view-transition-new(root){animation:vtIn .24s ease both}
 .player-top,.conversation-top{view-transition-name:lesson-top}
 ::view-transition-old(lesson-top),::view-transition-new(lesson-top){animation:none;mix-blend-mode:normal}
+::view-transition-old(learning-card){animation:learningCardOut .18s ease both;mix-blend-mode:normal}
+::view-transition-new(learning-card){animation:learningCardNext .28s cubic-bezier(.2,.76,.24,1) both;mix-blend-mode:normal}
 @keyframes vtOut{to{opacity:0}}
 @keyframes vtIn{from{opacity:0;transform:translateY(8px)}}
+@keyframes learningCardOut{to{opacity:0;transform:translateX(-18px) scale(.985)}}
+@keyframes learningCardNext{from{opacity:0;transform:translateX(24px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.45)}70%{box-shadow:0 0 0 22px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
@@ -162,13 +166,35 @@ body{
 .play-big{
   margin:6px auto 0;width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;
   background:linear-gradient(135deg,var(--blue),#3b82f6);color:#fff;font-size:26px;
-  display:flex;align-items:center;justify-content:center;transition:transform .12s ease;
+  display:flex;align-items:center;justify-content:center;transition:transform .12s ease;position:relative;
 }
 .play-big:active{transform:scale(.92)}
 .speak-zone{text-align:center;margin-top:6px}
 .listen-first{min-height:118px;display:flex;align-items:center;justify-content:center;gap:9px;color:var(--dim);font-weight:750;font-size:16px}
 .phrase-mic-entry{animation:phraseMicRise .42s cubic-bezier(.2,.78,.24,1) both}
 @keyframes phraseMicRise{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
+.learning-card{position:relative;overflow:hidden;view-transition-name:learning-card;transition:border-color .28s ease,box-shadow .28s ease,background .28s ease}
+.learning-card.is-intro{animation:learningCardEnter .42s cubic-bezier(.2,.76,.24,1) both}
+.learning-card.is-intro .cue,.learning-card.is-intro .hint-en,.learning-card.is-intro .hint-tl,.learning-card.is-intro .play-big{opacity:0;animation:learningPartIn .34s ease both}
+.learning-card.is-intro .cue{animation-delay:.08s}.learning-card.is-intro .hint-en{animation-delay:.16s}.learning-card.is-intro .hint-tl{animation-delay:.24s}.learning-card.is-intro .play-big{animation-delay:.32s}
+.learning-card.is-intro::after{content:'';position:absolute;inset:-40% auto -40% -30%;width:22%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transform:skewX(-18deg);animation:learningSheen 1.15s .25s ease-out both;pointer-events:none}
+.learning-card .hint-en .w{display:inline-block;transition:color .14s ease,text-shadow .14s ease,transform .14s ease}
+.learning-card .hint-en .w.now{color:var(--green);text-shadow:0 0 15px rgba(52,211,153,.58);transform:translateY(-2px) scale(1.035)}
+.learning-card .hint-en .w.heard-ok{color:var(--green)}
+.learning-card .hint-en .w.heard-miss{color:var(--amber);animation:learningWordNudge .36s ease both}
+.learning-card.is-audio-live .play-big{animation:learningSpeakerBeat .9s ease-in-out infinite;box-shadow:0 0 0 0 rgba(96,165,250,.4)}
+.learning-card.is-audio-live .play-big::before,.learning-card.is-audio-live .play-big::after{content:'';position:absolute;inset:-8px;border:2px solid rgba(96,165,250,.48);border-radius:50%;animation:learningSoundRing 1.35s ease-out infinite;pointer-events:none}
+.learning-card.is-audio-live .play-big::after{animation-delay:.48s}
+.learning-card.is-learning-success{border-color:rgba(52,211,153,.72);background:linear-gradient(150deg,rgba(24,74,69,.95),var(--card));box-shadow:0 0 0 3px rgba(52,211,153,.1),0 18px 42px rgba(7,38,31,.38)}
+.learning-success-orb{width:92px;height:92px;margin:7px auto 4px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#6ee7b7);color:#073d2d;font-size:48px;font-weight:900;animation:learningSuccessPop .55s cubic-bezier(.18,.82,.22,1) both}
+.learning-auto-next{margin-top:7px;color:#a7f3d0;font-size:14px;font-weight:800}
+@keyframes learningCardEnter{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes learningPartIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@keyframes learningSheen{from{left:-30%;opacity:0}25%{opacity:1}to{left:115%;opacity:0}}
+@keyframes learningSpeakerBeat{0%,100%{transform:scale(1)}45%{transform:scale(1.055)}}
+@keyframes learningSoundRing{0%{opacity:.65;transform:scale(.78)}100%{opacity:0;transform:scale(1.38)}}
+@keyframes learningWordNudge{0%,100%{transform:none}35%{transform:translateX(3px)}70%{transform:translateX(-3px)}}
+@keyframes learningSuccessPop{0%{opacity:0;transform:scale(.55) rotate(-12deg)}68%{opacity:1;transform:scale(1.1) rotate(2deg)}100%{transform:scale(1)}}
 .mic-btn{
   width:92px;height:92px;border-radius:50%;border:none;cursor:pointer;margin:8px auto 10px;
   background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;font-size:38px;
@@ -5886,7 +5912,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.15.4';
+const APP_VERSION = '2.16.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -6676,7 +6702,7 @@ function stopWordSync(){
 function cancelAutoSpeak(){
   if(autoSpeakTimer){ clearTimeout(autoSpeakTimer); autoSpeakTimer = null; }
 }
-function scheduleSpeak(text, delay=350, cb=null){
+function scheduleSpeak(text, delay=350, cb=null, startCb=null){
   cancelAutoSpeak();
   const epoch = uiEpoch;
   const session = typeof L !== 'undefined' ? L : null;
@@ -6685,6 +6711,7 @@ function scheduleSpeak(text, delay=350, cb=null){
     autoSpeakTimer = null;
     if(epoch !== uiEpoch) return;
     if(session && (!L || L !== session || L.i !== stepIndex)) return;
+    if(startCb) startCb();
     speak(text,cb);
   }, delay);
 }
@@ -7645,6 +7672,10 @@ function stopLessonTimers(keepCheckpoint=true){
     clearTimeout(L.stageActionSettleTimer);
     L.stageActionSettleTimer=null;
   }
+  if(L?.phraseAdvanceTimer){
+    clearTimeout(L.phraseAdvanceTimer);
+    L.phraseAdvanceTimer=null;
+  }
   cancelAutoSpeak();
   invalidateDialogueFlow(false);
   stopRecognition();
@@ -7653,6 +7684,7 @@ function stopLessonTimers(keepCheckpoint=true){
 function next(){
   if(!L||L.stepTransitioning) return;
   const session=L;
+  if(L.phraseAdvanceTimer){ clearTimeout(L.phraseAdvanceTimer); L.phraseAdvanceTimer=null; }
   L.stepTransitioning=true;
   invalidateDialogueFlow(true);
   const current = L.steps[L.i];
@@ -8479,6 +8511,15 @@ function wordSpans(en){
     return `<button type="button" class="w" data-i="${i}" lang="en" onclick="event.stopPropagation();speak('${jsEsc(clean)}')" aria-label="השמעת ${esc(clean)}">${esc(w)}</button>`;
   }).join(' ');
 }
+function learningWordSpans(en,details=null){
+  let i=0;
+  return String(en).split(/(\s+)/).map(part=>{
+    if(!part) return '';
+    if(/^\s+$/.test(part)) return part;
+    const cls=details?.matched ? (details.matched[i]?' heard-ok':' heard-miss') : '';
+    return `<span class="w${cls}" data-i="${i++}">${esc(part)}</span>`;
+  }).join('');
+}
 
 /* ---- speak a phrase (mic or self-check) ---- */
 function chatItem(source,index){
@@ -9141,12 +9182,15 @@ function recordStepResult(step,result){
   notePractice(step.hid,result,!!step.usedHint,!!step.warmup);
   saveLessonCheckpoint();
 }
-function speakResultHtml(kind,msg){
+function speakResultHtml(kind,msg,step=null){
   const cls = kind === 'pass' ? 'good' : 'almost';
   let button = '';
-  if(kind === 'pass') button = `<button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>`;
+  const learningSuccess=kind==='pass'&&!!step?.newPhrase&&!step?.isDlg;
+  if(kind === 'pass'&&!learningSuccess) button = `<button class="btn" style="margin-top:12px" onclick="next()">ממשיכים ⬅</button>`;
   if(kind === 'requeue') button = `<button class="btn" style="margin-top:12px" onclick="requeueAndNext()">ממשיכים — נחזור לזה בסוף ⬅</button>`;
-  return `<div class="result-msg ${cls}">${esc(msg||'')}</div>${button}`;
+  const celebration=learningSuccess?`<div class="learning-success-orb" aria-hidden="true">✓</div>`:'';
+  const autoNext=learningSuccess?`<div class="learning-auto-next">ממשיכים אוטומטית…</div>`:'';
+  return `${celebration}<div class="result-msg ${cls}">${esc(msg||'')}${autoNext}</div>${button}`;
 }
 function renderDialogueSpeak(step){
   const p=step.p,en=ptext(p,'en'),spokenEn=ptext(p,'en',true),he=ptext(p,'he'),tl=ptext(p,'tl');
@@ -9217,6 +9261,7 @@ function renderSpeak(step){
   L.tries=step.tries||0;
   const guided=!step.warmup&&!step.challenge&&!step.requeued;
   const waitingForIntroduction=guided&&!!step.newPhrase&&!step.introAudioComplete;
+  const learningSuccess=guided&&!!step.newPhrase&&step.resultKind==='pass';
   const label=step.warmup ? '🔥 חימום — משפט שכבר למדת'
     : step.requeued ? '🔁 סיבוב שני — עוד תרגול קטן'
     : step.challenge ? '🧠 אתגר — תגיד מהזיכרון' : '🎧 משפט חדש · עכשיו אומרים יחד';
@@ -9228,23 +9273,23 @@ function renderSpeak(step){
     : '';
   playerShell(`
     <div class="step-label">${label}</div>
-    <div class="recall-card">
+    <div class="recall-card${guided?' learning-card':''}${waitingForIntroduction?' is-intro':''}${learningSuccess?' is-learning-success':''}">
       <div class="cue">${esc(he)}</div>
       <div class="cue-note">${guided?'המשפט מולך — קרא אותו בקול יחד עם ההקלטה':'נסה להגיד את המשפט באנגלית בלי להסתכל'}</div>
       <div class="hint-box" id="englishHint" ${hintLevel<1?'hidden':''}>
-        <div class="hint-en" dir="ltr" lang="en">${esc(en)}</div>
+        <div class="hint-en" dir="ltr" lang="en"${guided?' data-word-sync':''}>${guided?learningWordSpans(en,step.heardDetails):esc(en)}</div>
       </div>
       <div class="hint-box" id="translitHint" ${hintLevel<2?'hidden':''}>
         <div class="hint-tl">${esc(tl)}</div>
       </div>
-      <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} onclick="speak('${jsEsc(en)}')" aria-label="השמעת המשפט">🔊</button>
+      <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} ${waitingForIntroduction?'disabled':''} onclick="speak('${jsEsc(en)}')" aria-label="השמעת המשפט">🔊</button>
     </div>
     <button class="btn secondary" id="hintBtn" ${terminalResult||hintLevel>=2?'hidden':''} onclick="revealSpeakHint()">${hintLevel===0?'צריך רמז? הצג באנגלית':'עוד עזרה — תעתיק ושמיעה 🔊'}</button>
     ${waitingForIntroduction?`<div class="listen-first" id="listenFirst">👂 קודם מקשיבים למשפט…</div>`:''}
     <div class="speak-zone${waitingForIntroduction?' phrase-mic-entry':''}" id="speakZone" ${waitingForIntroduction?'hidden':''}>
       ${terminalResult?`
         <div class="heard">${heardHtml}</div>
-        <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage)}</div>
+        <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage,step)}</div>
       `:mic?`
         <button class="mic-btn" id="micBtn" onclick="micTap('${jsEsc(en)}')" aria-label="התחלת הקלטה">🎤</button>
         <div class="mic-hint" id="micHint">${micReadyHint('לחץ על המיקרופון ותגיד את המשפט באנגלית')}</div>
@@ -9261,8 +9306,25 @@ function renderSpeak(step){
   `);
   if(waitingForIntroduction){
     const session=L,stepIndex=L.i;
-    scheduleSpeak(en,450,()=>finishNewPhraseIntroduction(session,stepIndex));
+    scheduleSpeak(en,450,
+      ()=>{ setLearningAudioActive(session,stepIndex,false); finishNewPhraseIntroduction(session,stepIndex); },
+      ()=>setLearningAudioActive(session,stepIndex,true));
   }
+  if(learningSuccess) scheduleLearningAdvance(step);
+}
+function scheduleLearningAdvance(step){
+  const session=L,stepIndex=L?.i;
+  if(!session) return;
+  if(session.phraseAdvanceTimer) clearTimeout(session.phraseAdvanceTimer);
+  session.phraseAdvanceTimer=setTimeout(()=>{
+    if(!L||L!==session||L.i!==stepIndex||L.curStep!==step) return;
+    session.phraseAdvanceTimer=null;
+    next();
+  },1100);
+}
+function setLearningAudioActive(session,stepIndex,on){
+  if(!L||L!==session||L.i!==stepIndex) return;
+  document.querySelector('.learning-card')?.classList.toggle('is-audio-live',!!on);
 }
 function finishNewPhraseIntroduction(session,stepIndex){
   setTimeout(()=>{
@@ -9273,8 +9335,10 @@ function finishNewPhraseIntroduction(session,stepIndex){
     saveLessonCheckpoint();
     const waiting=document.getElementById('listenFirst');
     const zone=document.getElementById('speakZone');
+    const audio=document.getElementById('hintAudio');
     if(waiting) waiting.hidden=true;
     if(zone) zone.hidden=false;
+    if(audio) audio.disabled=false;
   },320);
 }
 function manualMicDone(){
@@ -9415,6 +9479,7 @@ function startListening(target){
     if(!got) return;
     const step=L.curStep||{};
     step.heardText=best;
+    paintGuidedLearningWords(bestDetails);
     // while still recording, show ONLY what was heard — the word-by-word
     // feedback lists the target words, which would spoil the recall exercise
     step.heardDetails=null;
@@ -9496,6 +9561,14 @@ function startListening(target){
     restoreMicButton();
     showMicFallback('בדיקת הקול לא נפתחה. אמור את המשפט בקול והמשך ידנית.', true);
   }
+}
+function paintGuidedLearningWords(details){
+  const step=L?.curStep;
+  if(!step?.newPhrase||!details?.matched) return;
+  document.querySelectorAll('#englishHint .w').forEach((el,i)=>{
+    el.classList.toggle('heard-ok',!!details.matched[i]);
+    el.classList.remove('heard-miss');
+  });
 }
 function showResult(kind, msg){
   const step=L?.curStep;
