@@ -2029,6 +2029,10 @@ body{
 .game-word.is-locked{opacity:.38;pointer-events:none}
 .game-word.is-locked .en{font-size:13px}
 .game-controls.mode-voice .game-word{cursor:default;border-style:dashed}
+.game-controls.mode-voice .game-words{display:none}
+.game-controls.mode-voice .game-mode{min-height:42px;align-items:center}
+.game-controls.mode-voice .game-mode button{pointer-events:none}
+.game-mode-label{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);color:#bfdbfe;font-size:12px;font-weight:850}
 .game-controls.mode-tap .game-word:active{transform:scale(.96)}
 .game-heard{text-align:center;font-size:13.5px;color:var(--dim);min-height:20px;direction:rtl}
 .game-heard .mic{display:inline-block;animation:cuePulse 1.1s ease-in-out infinite}
@@ -2068,6 +2072,8 @@ body{
 .game-stage .stage-num{font-size:11px;font-weight:850;color:var(--dim)}.game-stage .stage-icon{font-size:28px;display:block;margin:4px 0}
 .game-stage strong{display:block;font-size:15px}.game-stage small{display:block;font-size:11px;color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;text-align:left}
 .game-stage .stage-stars{position:absolute;left:9px;top:8px;font-size:12px;letter-spacing:-2px}.game-stage .stage-lock{position:absolute;left:10px;bottom:9px}
+.game-stage .stage-mode{display:inline-flex;align-items:center;gap:3px;margin-top:6px;padding:3px 7px;border-radius:999px;background:rgba(148,163,184,.12);color:#cbd5e1;font-size:10px;font-weight:850}
+.game-stage .stage-mode.voice{background:rgba(52,211,153,.13);color:#6ee7b7}
 .game-mission{display:flex;align-items:center;gap:8px;min-height:32px;padding:5px 9px;border:1px solid var(--line);border-radius:12px;background:rgba(15,23,42,.45);font-size:12px;color:var(--dim)}
 .game-mission b{color:var(--text)}.game-mission-progress{height:5px;flex:1;min-width:48px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden}
 .game-mission-progress i{display:block;height:100%;background:var(--green);border-radius:inherit;transition:width .3s ease}
@@ -2096,6 +2102,7 @@ body{
 .game-review-he{font-size:19px;font-weight:850;color:#6ee7b7}.game-review-dots{display:flex;gap:6px;margin-top:8px;direction:ltr}
 .game-review-dots i{width:20px;height:5px;border-radius:999px;background:rgba(148,163,184,.25)}.game-review-dots i.on{background:#60a5fa}.game-review-dots i.done{background:#34d399}
 .game-review-skip{border:0;background:none;color:var(--dim);font:inherit;font-size:12px;padding:5px 10px;cursor:pointer}
+.game-mic-gate{width:min(100%,320px);display:flex;flex-direction:column;align-items:center;gap:8px}.game-mic-gate .mic-big{font-size:46px;filter:drop-shadow(0 6px 18px rgba(52,211,153,.25))}.game-mic-gate .privacy{font-size:11px;color:var(--dim);line-height:1.4}.game-mic-gate .btn-row{margin-top:5px}
 @keyframes gameReviewWord{0%{opacity:0;transform:translateY(8px) scale(.88)}100%{opacity:1;transform:none}}
 @media(max-width:380px){.game-stage-list{gap:7px}.game-stage{min-height:108px;padding:10px}.game-stage strong{font-size:14px}}
 @media (max-height:700px){
@@ -11185,6 +11192,10 @@ if('serviceWorker' in navigator){
    into a lesson. */
 const SAM_RUN_KEY='english.samRun';
 const SAM_RUN_MASTERY=4, SAM_RUN_GOAL=18;
+const SAM_RUN_PHASES=[
+  {id:'quiet',mode:'tap',icon:'👆',title:'שלב שקט',cta:'מתחילים בלחיצה',hint:'בחר את המילה באנגלית — וכל בחירה גם תושמע.'},
+  {id:'voice',mode:'voice',icon:'🎤',title:'אתגר קולי',cta:'מוכנים לדבר',hint:'ראה את המילה בעברית ואמור אותה באנגלית.'},
+];
 /* Each world is deliberately small. Five words can be repeated enough to
    become automatic; the next five arrive only after all five are known. */
 const SAM_RUN_STAGES=[
@@ -11251,12 +11262,16 @@ const SAM_RUN_THINGS={
 let samRun=null;
 
 function samRunStore(){
-  const base={version:2,best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0};
+  const base={version:3,best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0};
   try{
     const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}');
     const store={...base,...(raw&&typeof raw==='object'?raw:{})};
     store.mastery=store.mastery&&typeof store.mastery==='object'?store.mastery:{};
     store.stageStars=store.stageStars&&typeof store.stageStars==='object'?store.stageStars:{};
+    store.phaseByStage=store.phaseByStage&&typeof store.phaseByStage==='object'?store.phaseByStage:{};
+    /* A world completed in the old all-voice game stays completed. Replaying
+       it opens its voice challenge; the learner is never sent backwards. */
+    for(const key of Object.keys(store.stageStars)) if(store.stageStars[key]>0&&store.phaseByStage[key]===undefined) store.phaseByStage[key]=SAM_RUN_PHASES.length-1;
     store.stage=Math.max(0,Math.min(SAM_RUN_STAGES.length-1,Number(store.stage)||0));
     return store;
   }
@@ -11329,26 +11344,27 @@ function samRunWordsHtml(g){
   return g.active.map(id=>{
     const c=SAM_RUN_COMMANDS[id], mastery=Math.min(SAM_RUN_MASTERY,g.store.mastery[id]||0);
     return `<button type="button" class="game-word" data-cmd="${id}" onclick="samRunCommand('${id}','tap')" aria-label="${c.en} — ${esc(c.he)}">
-      <span class="ic">${c.ic}</span><span class="en">${c.en}</span><span class="he">${esc(c.he)}</span><span class="mastery"><i style="width:${mastery/SAM_RUN_MASTERY*100}%"></i></span>
+      <span class="ic">${c.ic}</span><span class="en">${c.en}</span><span class="mastery"><i style="width:${mastery/SAM_RUN_MASTERY*100}%"></i></span>
     </button>`;
   }).join('');
 }
 function samRunHeardHtml(g){
-  if(!g.running) return g.mode==='voice'?'🎤 המיקרופון נדלק כשלוחצים GO. אפשר גם ללחוץ על המילים.':'👆 בלי מיקרופון פה, אז לוחצים על המילים.';
-  if(g.mode!=='voice') return 'לוחצים על המילה הנכונה בזמן 👆';
+  if(!g.running) return g.mode==='voice'?'🎤 המיקרופון ייבדק לפני שהמשחק מתחיל.':'🔊 כל תשובה שתבחר תושמע באנגלית.';
+  if(g.mode!=='voice') return 'בחר את התרגום באנגלית — והקשב להגייה 🔊';
   return '<span class="mic">🎤</span> מקשיב… תגיד את המילה';
 }
 function samRunStartCardHtml(store){
   const stage=SAM_RUN_STAGES[samRun?.stageIndex||0], ids=stage.words.map(w=>w[0]);
+  const phase=samRun?.phase||SAM_RUN_PHASES[0];
   const learned=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
   return `
     <div class="game-intro-runner">${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
-    <div class="game-stage-tag">שלב ${(samRun?.stageIndex||0)+1} מתוך ${SAM_RUN_STAGES.length}</div>
+    <div class="game-stage-tag">עולם ${(samRun?.stageIndex||0)+1} מתוך ${SAM_RUN_STAGES.length} · ${phase.icon} ${phase.title}</div>
     <h2>${stage.icon} ${esc(stage.title)}</h2>
-    <p>אמור את המילה שמגיעה לסם. ככל שתצליח, הרמזים ייעלמו והמילה באמת תישאר בראש.</p>
+    <p>${phase.hint}</p>
     <p class="words-said">${ids.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}</p>
     <p>${learned?`כבר שלטת ב־${learned} מתוך ${ids.length} מילים`:'מוכנים להכיר חמש מילים חדשות?'}</p>
-    <button class="btn" onclick="samRunStart()">יוצאים לדרך! 🏃</button>`;
+    <button class="btn" onclick="samRunStart()">${phase.cta} ${phase.icon}</button>`;
 }
 function samRunMapHtml(store){
   const curriculum=SAM_RUN_STAGES.flatMap(stage=>stage.words.map(w=>w[0]));
@@ -11358,8 +11374,9 @@ function samRunMapHtml(store){
     <div class="game-map-hero"><div class="game-intro-runner">${personArt(PRACTICE_CAST.sam.look,'waiting','game-map-sam')}</div><h2>מסע המילים של סם</h2><p>רצים, מדברים ופותחים עולמות חדשים בלי להרגיש שלומדים.</p><div class="game-map-progress"><i style="width:${learned/total*100}%"></i></div><p style="margin-top:6px"><b>${learned}</b> מתוך ${total} מילים · 🪙 ${store.coins||0}</p></div>
     <div class="game-stage-list">${SAM_RUN_STAGES.map((stage,i)=>{
       const open=i<=store.stage, stars=store.stageStars[i]||0, ids=stage.words.map(w=>w[0]);
+      const phaseIndex=Math.max(0,Math.min(SAM_RUN_PHASES.length-1,Number(store.phaseByStage[i])||0)), phase=SAM_RUN_PHASES[phaseIndex];
       const mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
-      return `<button class="game-stage${i===store.stage?' current':''}${stars?' done':''}${open?'':' is-locked'}" ${open?`onclick="renderSamRun(${i})"`:'disabled'}><span class="stage-num">שלב ${i+1}</span><span class="stage-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</span><span class="stage-icon">${stage.icon}</span><strong>${esc(stage.title)}</strong><small>${ids.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</small>${open?`<span class="stage-lock">${mastered}/${ids.length} ✓</span>`:'<span class="stage-lock">🔒</span>'}</button>`;
+      return `<button class="game-stage${i===store.stage?' current':''}${stars?' done':''}${open?'':' is-locked'}" ${open?`onclick="renderSamRun(${i})"`:'disabled'}><span class="stage-num">עולם ${i+1}</span><span class="stage-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</span><span class="stage-icon">${stage.icon}</span><strong>${esc(stage.title)}</strong><small>${ids.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</small>${open?`<span class="stage-mode${phase.mode==='voice'?' voice':''}">${phase.icon} הבא: ${phase.title}</span><span class="stage-lock">${mastered}/${ids.length} ✓</span>`:'<span class="stage-lock">🔒</span>'}</button>`;
     }).join('')}</div></div>`;
 }
 function renderSamRun(stageIndex=null){
@@ -11371,9 +11388,10 @@ function renderSamRun(stageIndex=null){
   }
   stageIndex=Math.max(0,Math.min(store.stage,Number(stageIndex)||0));
   const stage=SAM_RUN_STAGES[stageIndex];
-  const mode=micAvailable()?(store.mode==='tap'?'tap':'voice'):'tap';
+  const phaseIndex=Math.max(0,Math.min(SAM_RUN_PHASES.length-1,Number(store.phaseByStage[stageIndex])||0));
+  const phase=SAM_RUN_PHASES[phaseIndex], mode=phase.mode;
   samRun={
-    epoch:uiEpoch,store,mode,stageIndex,stage,active:stage.words.map(w=>w[0]),running:false,paused:false,
+    epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
@@ -11381,11 +11399,11 @@ function renderSamRun(stageIndex=null){
   hx(`<div class="screen game-screen">
     <div class="game-top">
       <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
-      <div class="game-title">${stage.icon} ${esc(stage.title)}</div>
+      <div class="game-title">${phase.icon} ${esc(stage.title)}</div>
       <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
       <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">שיא ${store.best}</div></div>
     </div>
-    <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>שליטה בכל 5 המילים</span></div>
+    <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-world" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
       <div class="game-far"></div><div class="game-lane"></div><div class="game-speedlines"></div>
       <div class="game-streak" id="samRunStreak"></div>
@@ -11395,7 +11413,7 @@ function renderSamRun(stageIndex=null){
     </div>
     <div class="game-controls mode-${mode}" id="samRunControls">
       <div class="game-mode">
-        <button type="button" id="samRunMicBtn" class="${mode==='voice'?'on':''}" onclick="samRunToggleMode()" ${SR?'':'hidden'}>${mode==='voice'?'🎤 מקשיב':'🎤 כבוי'}</button>
+        ${mode==='voice'?'<button type="button" id="samRunMicBtn" class="on">🎤 שלב קולי</button>':'<span class="game-mode-label">👆 שלב שקט · התשובות מושמעות</span>'}
       </div>
       <div class="game-words" id="samRunWords">${samRunWordsHtml(g)}</div>
       <div class="game-heard" id="samRunHeard">${samRunHeardHtml(g)}</div>
@@ -11429,9 +11447,33 @@ function samRunSetMode(mode){
   if(mode==='voice'&&g.running&&!g.paused) samRunListen(); else samRunStopListening();
 }
 
+/* A voice round cannot start on hope. The permission request is attached to
+   the learner's tap, and the countdown stays blocked until the phone has
+   actually opened an audio track. */
+async function samRunPrepareMicrophone(){
+  const g=samRun,card=document.getElementById('samRunCard'); if(!g||!card||g.micRequesting) return;
+  g.micRequesting=true; card.hidden=false;
+  card.innerHTML=`<div class="game-mic-gate"><div class="mic-big">🎤</div><h2>מכינים את המיקרופון</h2><p>הטלפון יבקש עכשיו הרשאה. המשחק יתחיל רק אחרי שנדע שהוא באמת עובד.</p><div class="game-heard"><span class="mic">🎤</span> ממתין לאישור…</div><p class="privacy">המיקרופון משמש רק לזיהוי המילים במשחק.</p></div>`;
+  try{
+    if(!SR||!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(track=>track.stop());
+    if(samRun!==g) return;
+    g.micReady=true; g.micRequesting=false;
+    card.innerHTML=`<div class="game-mic-gate"><div class="mic-big">✅</div><h2>המיקרופון מוכן</h2><p>עכשיו עוברים במהירות על המילים ומתחילים.</p></div>`;
+    g.reviewTimer=setTimeout(()=>{ if(samRun===g) samRunStart(); },550);
+  }catch(err){
+    if(samRun!==g) return;
+    g.micRequesting=false;
+    const unsupported=err?.message==='unsupported';
+    card.innerHTML=`<div class="game-mic-gate"><div class="mic-big">${unsupported?'📵':'🎤'}</div><h2>${unsupported?'המיקרופון לא זמין':'לא התקבל אישור למיקרופון'}</h2><p>${unsupported?'הדפדפן הזה לא מאפשר כרגע משחק קולי.':'לא התחלנו את המשחק ולא איבדת חיים. אפשר לאשר ולנסות שוב.'}</p><div class="btn-row">${unsupported?'':`<button class="btn" onclick="samRunPrepareMicrophone()">נסה שוב 🎤</button>`}<button class="btn secondary" onclick="renderSamRun()">חזרה למפה</button></div></div>`;
+  }
+}
+
 /* ---- a run ---- */
 function samRunStart(){
   const g=samRun; if(!g) return;
+  if(g.mode==='voice'&&!g.micReady){ samRunPrepareMicrophone(); return; }
   samRunTone('tick');
   clearTimeout(g.timer); clearTimeout(g.reviewTimer); cancelSpeech();
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
@@ -11555,7 +11597,7 @@ function samRunSpawn(){
   el.style.transform=`translateX(${g.worldW-62}px) scale(.6)`;
   /* The challenge is translation, never guessing an ambiguous drawing: the
      Hebrew prompt always stays visible and the answer is spoken in English. */
-  const label=`<span class="ob-label" dir="rtl">${esc(c.he)}<em>תגיד באנגלית</em></span>`;
+  const label=`<span class="ob-label" dir="rtl">${esc(c.he)}<em>${g.mode==='voice'?'תגיד':'בחר'} באנגלית</em></span>`;
   const colorStyle=c.color?` style="--word-color:${c.color}"`:'';
   el.innerHTML=`<span class="ob-body${c.color?' color-word':''}"${colorStyle}>${c.color?'':c.ic}</span>${label}`;
   host.appendChild(el);
@@ -11571,12 +11613,13 @@ function samRunSpawn(){
 function samRunCommand(cmd,source){
   const g=samRun; if(!g||!g.running||g.paused) return;
   if(!g.active.includes(cmd)) return;
+  const c=SAM_RUN_COMMANDS[cmd];
+  if(source==='tap') speak(c.say);
   g.said[cmd]=(g.said[cmd]||0)+1;
   samRunLight(cmd);
   // the word has landed: how long did it take from the first sound?
   if(source==='voice'&&g.speechAt) samRunNoteLatency(performance.now()-g.speechAt);
   g.speechAt=0; samRunHearing(false); samRunBrace(false);
-  const c=SAM_RUN_COMMANDS[cmd];
   const pending=g.obstacles.filter(o=>!o.resolved);
   const target=pending[0]||null;
   /* A right word that arrives just after its thing already hit is late, not
@@ -11737,23 +11780,30 @@ function samRunOver(finished=false){
   const ids=g.active, mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY);
   const accuracy=g.resolvedCount?g.correctCount/g.resolvedCount:0;
   const stars=g.lives===3&&accuracy>=.9?3:g.lives>=2&&accuracy>=.72?2:1;
-  store.stageStars[g.stageIndex]=Math.max(store.stageStars[g.stageIndex]||0,stars);
-  const stageComplete=mastered.length===ids.length;
+  const passed=!!finished&&g.lives>0;
+  const stageComplete=passed&&g.phaseIndex===SAM_RUN_PHASES.length-1;
+  const nextPhase=passed&&!stageComplete;
+  if(nextPhase) store.phaseByStage[g.stageIndex]=g.phaseIndex+1;
+  if(stageComplete) store.stageStars[g.stageIndex]=Math.max(store.stageStars[g.stageIndex]||0,stars);
   const newlyUnlocked=stageComplete&&g.stageIndex===store.stage&&store.stage<SAM_RUN_STAGES.length-1;
-  if(newlyUnlocked) store.stage++;
+  if(newlyUnlocked){ store.stage++; store.phaseByStage[store.stage]=0; }
   const earned=Math.max(1,g.correctCount+stars*2); store.coins=(store.coins||0)+earned;
   samRunSave(store);
-  samRunTone(stageComplete?'best':newBest?'best':'over');
-  if(stageComplete) confetti();
+  samRunTone(stageComplete||nextPhase?'best':newBest?'best':'over');
+  if(stageComplete||nextPhase) confetti();
   const needs=ids.filter(id=>(store.mastery[id]||0)<SAM_RUN_MASTERY).sort((a,b)=>(store.mastery[a]||0)-(store.mastery[b]||0));
+  const nextAction=stageComplete
+    ? (g.stageIndex<SAM_RUN_STAGES.length-1?`renderSamRun(${g.stageIndex+1})`:'renderSamRun()')
+    : nextPhase?`renderSamRun(${g.stageIndex})`:'samRunStart()';
+  const nextLabel=stageComplete?(g.stageIndex<SAM_RUN_STAGES.length-1?'לעולם הבא 🚀':'למפת העולמות 🏆'):nextPhase?'לאתגר הקולי 🎤':'נסה שוב 🔁';
   card.hidden=false;
-  card.innerHTML=`<div class="reward">${stageComplete?'🏆':g.lives<=0?'💪':'🎁'}</div><h2>${stageComplete?'השלב הושלם!':g.lives<=0?'כמעט! יוצאים לעוד ריצה':'ריצה מעולה!'}</h2>
+  card.innerHTML=`<div class="reward">${stageComplete?'🏆':nextPhase?'🎤':g.lives<=0?'💪':'🎁'}</div><h2>${stageComplete?'העולם הושלם!':nextPhase?'השלב השקט הושלם!':g.lives<=0?'כמעט! יוצאים לעוד ריצה':'ריצה מעולה!'}</h2>
     <div class="game-stat"><div><b>${g.correctCount}</b>מילים נכונות</div><div><b>${g.store.streakBest||g.streak}</b>רצף שיא</div><div><b>+${earned}</b>מטבעות</div></div>
     <div class="mastered-list">${mastered.map(id=>`<span>${SAM_RUN_COMMANDS[id].ic} ${SAM_RUN_COMMANDS[id].en} ✓</span>`).join('')}</div>
-    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:stageComplete?'כל חמש המילים כבר אצלך. אפשר לשפר את הכוכבים או להמשיך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
-    <div class="btn-row"><button class="btn" onclick="${stageComplete&&g.stageIndex<SAM_RUN_STAGES.length-1?`renderSamRun(${g.stageIndex+1})`:'samRunStart()'}">${stageComplete&&g.stageIndex<SAM_RUN_STAGES.length-1?'לשלב הבא 🚀':'עוד ריצה 🔁'}</button><button class="btn secondary" onclick="renderSamRun()">מפת השלבים</button></div>`;
+    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:nextPhase?'עכשיו אותן מילים חוזרות בלי אפשרויות — אומרים אותן באנגלית.':stageComplete?'זיהית וגם אמרת את כל חמש המילים. הן באמת אצלך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
+    <div class="btn-row"><button class="btn" onclick="${nextAction}">${nextLabel}</button><button class="btn secondary" onclick="renderSamRun()">מפת העולמות</button></div>`;
   const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.best;
-  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='כל מילה שאמרת חיזקה את הזיכרון 🧠';
+  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=g.mode==='voice'?'כל מילה שאמרת חיזקה את הזיכרון 🧠':'כל בחירה נכונה חיברה בין הכתב לצליל 🔊';
 }
 
 /* ---- the microphone as a controller ---- */

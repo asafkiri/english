@@ -81,7 +81,7 @@ function runtime(seed = new Map(), options = {}) {
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
-      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
+      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3412,8 +3412,25 @@ test("Sam's run teaches every stage aloud, then challenges Hebrew to English", (
     'the preview must pronounce each English word, not only show it');
   assert.match(html, /setTimeout\(\(\)=>\{ if\(samRun===g\) samRunReviewStep\(index\+1\); \},1100\)/,
     'the five-word preview stays brisk');
-  assert.match(html, /<span class="ob-label" dir="rtl">\$\{esc\(c\.he\)\}<em>תגיד באנגלית<\/em><\/span>/,
+  assert.match(html, /<span class="ob-label" dir="rtl">\$\{esc\(c\.he\)\}<em>\$\{g\.mode==='voice'\?'תגיד':'בחר'\} באנגלית<\/em><\/span>/,
     'the live challenge always asks with an unambiguous Hebrew word');
   assert.doesNotMatch(html, /mastery>=SAM_RUN_MASTERY\?'':`<span class="ob-label"/,
     'mastery must not remove the Hebrew prompt and turn translation into picture guessing');
+});
+
+test("Sam's worlds alternate a silent learning stage and a gated voice stage", () => {
+  const { api } = runtime();
+  assert.equal(api.SAM_RUN_PHASES.map(phase => phase.mode).join(','), 'tap,voice');
+  assert.match(html, /if\(g\.mode==='voice'&&!g\.micReady\)\{ samRunPrepareMicrophone\(\); return; \}/,
+    'a voice run must stop before review and countdown until the microphone is ready');
+  assert.match(html, /navigator\.mediaDevices\.getUserMedia\(\{audio:true\}\)/,
+    'the microphone permission is requested from the intentional start tap');
+  assert.match(html, /stream\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/,
+    'the permission probe releases its temporary audio track');
+  assert.match(html, /לא התחלנו את המשחק ולא איבדת חיים/,
+    'a denied permission can never cost a life');
+  assert.match(html, /if\(source==='tap'\) speak\(c\.say\)/,
+    'every silent answer pronounces the selected English word');
+  assert.match(html, /\.game-controls\.mode-voice \.game-words\{display:none\}/,
+    'voice stages cannot reveal the English answers under the Hebrew prompt');
 });
