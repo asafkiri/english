@@ -1861,8 +1861,8 @@ body{
    microphone is not an option). The English is not decoration here: no word,
    no move. Nothing in this block touches the lessons — the game has its own
    screen, its own storage key and its own recogniser. */
-.home-side-game{display:block;margin:14px auto 0;background:none;border:0;padding:6px 10px;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;opacity:.85}
-.home-side-game:hover,.home-side-game:focus-visible{color:var(--text);opacity:1;outline:none}
+.home-side-game{display:block;margin:14px auto 0;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(52,211,153,.08));border:1px solid rgba(96,165,250,.25);border-radius:999px;padding:8px 14px;color:var(--dim);font:inherit;font-size:13px;font-weight:750;cursor:pointer;opacity:.92}
+.home-side-game:hover,.home-side-game:focus-visible{color:var(--text);border-color:rgba(52,211,153,.55);opacity:1;outline:none}
 .game-screen{display:flex;flex-direction:column;min-height:100dvh;padding:10px 12px 14px;gap:10px;animation:fadeUp .35s ease both}
 .game-top{display:flex;align-items:center;gap:8px}
 .game-top .xbtn{width:40px;height:40px;font-size:16px}
@@ -2054,6 +2054,43 @@ body{
 .game-card .newbest{color:var(--amber);font-weight:900;font-size:16px;animation:pop .5s ease .2s both}
 .game-intro-runner{width:46px;height:86px;margin:0 auto}
 .game-intro-runner .person-art{width:100%;height:100%}
+.game-map{display:flex;flex-direction:column;gap:12px;padding-bottom:8px}
+.game-map-hero{position:relative;overflow:hidden;border:1px solid rgba(96,165,250,.3);border-radius:22px;padding:16px;background:linear-gradient(145deg,rgba(37,99,235,.2),rgba(16,185,129,.1));text-align:center}
+.game-map-hero:after{content:'';position:absolute;inset:auto -15% -70% 20%;height:150px;background:radial-gradient(circle,rgba(52,211,153,.22),transparent 68%);pointer-events:none}
+.game-map-hero h2{font-size:23px;margin:0 0 4px}.game-map-hero p{margin:0;color:var(--dim);font-size:13px;line-height:1.45}
+.game-map-progress{height:8px;border-radius:999px;background:rgba(15,23,42,.68);overflow:hidden;margin-top:11px}
+.game-map-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#34d399,#60a5fa);transition:width .4s ease}
+.game-stage-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.game-stage{position:relative;min-height:116px;border:1px solid var(--line);border-radius:18px;padding:12px;background:linear-gradient(150deg,var(--card),var(--card2));color:var(--text);font:inherit;text-align:right;cursor:pointer;overflow:hidden;transition:transform .18s ease,border-color .18s ease,opacity .18s ease}
+.game-stage:not(:disabled):active{transform:scale(.97)}.game-stage:disabled{opacity:.48;cursor:default;filter:saturate(.5)}
+.game-stage.current{border-color:rgba(52,211,153,.72);box-shadow:0 0 0 3px rgba(52,211,153,.1)}
+.game-stage.done{border-color:rgba(251,191,36,.5)}
+.game-stage .stage-num{font-size:11px;font-weight:850;color:var(--dim)}.game-stage .stage-icon{font-size:28px;display:block;margin:4px 0}
+.game-stage strong{display:block;font-size:15px}.game-stage small{display:block;font-size:11px;color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;text-align:left}
+.game-stage .stage-stars{position:absolute;left:9px;top:8px;font-size:12px;letter-spacing:-2px}.game-stage .stage-lock{position:absolute;left:10px;bottom:9px}
+.game-mission{display:flex;align-items:center;gap:8px;min-height:32px;padding:5px 9px;border:1px solid var(--line);border-radius:12px;background:rgba(15,23,42,.45);font-size:12px;color:var(--dim)}
+.game-mission b{color:var(--text)}.game-mission-progress{height:5px;flex:1;min-width:48px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden}
+.game-mission-progress i{display:block;height:100%;background:var(--green);border-radius:inherit;transition:width .3s ease}
+.game-streak{position:absolute;top:10px;left:10px;z-index:6;padding:4px 8px;border-radius:999px;background:rgba(15,23,42,.74);font-size:12px;font-weight:850;direction:ltr;opacity:0;transform:translateY(-5px);transition:.2s ease}.game-streak.on{opacity:1;transform:none}.game-streak.hot{color:#fbbf24;box-shadow:0 0 16px rgba(251,191,36,.24)}
+.game-stage-tag{font-size:11px;color:#93c5fd;font-weight:800;white-space:nowrap}
+.game-obstacle.ob-vocab{bottom:calc(var(--ground) + 8px);width:66px;height:76px;justify-content:flex-end}
+.game-obstacle.ob-vocab .ob-body{display:flex;align-items:center;justify-content:center;width:58px;height:58px;border:2px solid rgba(255,255,255,.28);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(15,23,42,.72));font-size:35px;line-height:1;box-shadow:0 10px 20px rgba(0,0,0,.26);animation:gameTreasureBob .8s ease-in-out infinite}
+.game-obstacle.ob-vocab .ob-body.color-word{background:var(--word-color);box-shadow:0 0 0 5px rgba(255,255,255,.12),0 10px 24px color-mix(in srgb,var(--word-color) 48%,transparent)}
+@keyframes gameTreasureBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
+.game-obstacle.ob-vocab .ob-label{bottom:calc(100% + 2px);min-width:72px;text-align:center;line-height:1.2;border-color:rgba(96,165,250,.62)}
+.game-obstacle.ob-vocab .ob-label em{display:block;color:#bfdbfe;font-size:10px;font-style:normal;font-weight:650;direction:rtl}
+.game-obstacle.ob-vocab.is-mastered .ob-label{display:none}
+.game-obstacle.ob-vocab.is-wrong .ob-body{animation:gameWrong .32s ease both}
+@keyframes gameWrong{25%{transform:translateX(-7px)}55%{transform:translateX(6px)}80%{transform:translateX(-3px)}}
+.game-runner.is-collecting .person-art.modern-v2 .figure{animation:gameCollectBody .55s ease both}.game-runner.is-collecting .person-art.modern-v2 .arm-r{animation:gameCollectArm .55s ease both}
+@keyframes gameCollectBody{35%{transform:translateX(9px) rotate(5deg)}70%{transform:translateX(3px) rotate(-2deg)}}
+@keyframes gameCollectArm{30%,70%{transform:rotate(-112deg) translate(3px,-2px)}}
+.game-runner.is-celebrating .person-art.modern-v2 .figure{animation:gameCelebrate .8s ease both}
+@keyframes gameCelebrate{25%{transform:translateY(-18px) rotate(-4deg)}55%{transform:translateY(0) rotate(4deg)}75%{transform:translateY(-9px)}}
+.game-word .mastery{position:absolute;bottom:3px;left:8px;right:8px;height:3px;border-radius:999px;background:rgba(148,163,184,.2);overflow:hidden}.game-word .mastery i{display:block;height:100%;background:#34d399;border-radius:inherit}
+.game-word.is-focus{border-color:rgba(96,165,250,.82);background:rgba(59,130,246,.16)}
+.game-card .reward{font-size:42px;animation:pop .55s ease both}.game-card .mastered-list{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;direction:ltr}.game-card .mastered-list span{padding:4px 7px;border-radius:8px;background:rgba(52,211,153,.13);color:#6ee7b7;font-size:11px;font-weight:800}
+@media(max-width:380px){.game-stage-list{gap:7px}.game-stage{min-height:108px;padding:10px}.game-stage strong{font-size:14px}}
 @media (max-height:700px){
   .game-world{max-height:44dvh}
   .game-runner{width:66px;height:124px}
@@ -7963,7 +8000,7 @@ function renderHome(){
       ${missionsDone()?`<div class="home-mission-stat">🎯 ${missionsDone()===1?'משימה אמיתית אחת הושלמה':missionsDone()+' משימות אמיתיות הושלמו'}</div>`:''}
       ${state.completed > 0 ? `<button class="btn secondary home-review-btn" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
     </div>
-    <button type="button" class="home-side-game" onclick="renderSamRun()">🏃 הריצה של סם · משחק קטן בצד</button>
+    <button type="button" class="home-side-game" onclick="renderSamRun()">🏃 מסע המילים של סם · משחק קולי</button>
     <div style="text-align:center;color:var(--dim);font-size:12px;margin-top:6px">גרסה ${APP_VERSION}</div>
   </div>`);
   afterRender(()=>revealCurrentHomeLesson(currentUnit));
@@ -11140,30 +11177,82 @@ if('serviceWorker' in navigator){
    tears itself down the moment its DOM is gone, so nothing here can leak
    into a lesson. */
 const SAM_RUN_KEY='english.samRun';
-const SAM_RUN_COMMANDS={
-  jump: {en:'JUMP', he:'קפוץ',   ic:'📦', say:'Jump!',  aliases:['jump','jumped','jumping','hop','jam','junk'],        hint:'קופסה על הדרך? תגיד JUMP וסם יקפוץ מעליה.'},
-  duck: {en:'DUCK', he:'התכופף', ic:'🪧', say:'Duck!',  aliases:['duck','ducked','dock','doc','duct','down'],          hint:'שלט נמוך? תגיד DUCK וסם יתכופף מתחתיו.'},
-  stop: {en:'STOP', he:'עצור',   ic:'🐕', say:'Stop!',  aliases:['stop','stopped','stock','halt','wait'],              hint:'כלב חוצה את הכביש? תגיד STOP וסם יעצור עד שהוא יעבור.'},
-  hello:{en:'HELLO',he:'שלום',   ic:'👋', say:'Hello!', aliases:['hello','hi','hey','hallo','allo','yellow'],          hint:'חבר מנופף לך? תגיד HELLO ותקבל נקודות בונוס.'},
-  catch:{en:'CATCH',he:'תפוס',   ic:'⚽', say:'Catch!', aliases:['catch','caught','ketch','cash','cache','catches'],   hint:'כדור עף לכיוונו? תגיד CATCH וסם יתפוס אותו. בונוס גדול.'},
+const SAM_RUN_MASTERY=4, SAM_RUN_GOAL=18;
+/* Each world is deliberately small. Five words can be repeated enough to
+   become automatic; the next five arrive only after all five are known. */
+const SAM_RUN_STAGES=[
+  {title:'זזים עם סם', icon:'🏃', sky:'#233a67', ground:'#173d38', words:[
+    ['jump','JUMP','קפוץ','📦',['jump','jumped','jumping','hop','jam','junk'],'is-jumping'],
+    ['duck','DUCK','התכופף','🪧',['duck','ducked','dock','doc','duct'],'is-ducking'],
+    ['stop','STOP','עצור','🛑',['stop','stopped','stock','halt'],'is-stopped'],
+    ['run','RUN','רוץ','👟',['run','running','ran','ron'],'is-collecting'],
+    ['walk','WALK','לך','🚶',['walk','walking','wall','work'],'is-waving'],
+  ]},
+  {title:'צובעים את העיר', icon:'🎨', sky:'#312e65', ground:'#3f315a', words:[
+    ['red','RED','אדום','🔴',['red','read','rat'],'is-collecting','#ef4444'],
+    ['blue','BLUE','כחול','🔵',['blue','blew','glue'],'is-collecting','#3b82f6'],
+    ['green','GREEN','ירוק','🟢',['green','grin'],'is-collecting','#22c55e'],
+    ['yellow','YELLOW','צהוב','🟡',['yellow','hello','yello'],'is-collecting','#eab308'],
+    ['black','BLACK','שחור','⚫',['black','back','block'],'is-collecting','#111827'],
+  ]},
+  {title:'פארק החיות', icon:'🐾', sky:'#164e63', ground:'#244b36', words:[
+    ['dog','DOG','כלב','🐕',['dog','dock'],'is-waving'],['cat','CAT','חתול','🐈',['cat','cap','cut'],'is-collecting'],
+    ['bird','BIRD','ציפור','🐦',['bird','burred'],'is-catching'],['fish','FISH','דג','🐟',['fish','finish'],'is-catching'],
+    ['horse','HORSE','סוס','🐴',['horse','house'],'is-waving'],
+  ]},
+  {title:'פיקניק בפארק', icon:'🧺', sky:'#3b3564', ground:'#3d4d32', words:[
+    ['apple','APPLE','תפוח','🍎',['apple'],'is-catching'],['banana','BANANA','בננה','🍌',['banana'],'is-catching'],
+    ['bread','BREAD','לחם','🍞',['bread','bred','red'],'is-collecting'],['milk','MILK','חלב','🥛',['milk'],'is-collecting'],
+    ['water','WATER','מים','💧',['water','wader'],'is-catching'],
+  ]},
+  {title:'הדרך לבית הספר', icon:'🎒', sky:'#243b68', ground:'#3d414a', words:[
+    ['book','BOOK','ספר','📘',['book','look'],'is-catching'],['pen','PEN','עט','🖊️',['pen','pan'],'is-catching'],
+    ['bag','BAG','תיק','🎒',['bag','back'],'is-collecting'],['chair','CHAIR','כיסא','🪑',['chair','share'],'is-jumping'],
+    ['teacher','TEACHER','מורה','👩‍🏫',['teacher','feature'],'is-waving'],
+  ]},
+  {title:'הבית של סם', icon:'🏠', sky:'#40345e', ground:'#493d39', words:[
+    ['door','DOOR','דלת','🚪',['door','dor'],'is-collecting'],['window','WINDOW','חלון','🪟',['window'],'is-waving'],
+    ['table','TABLE','שולחן','🪑',['table','cable'],'is-jumping'],['bed','BED','מיטה','🛏️',['bed','bad'],'is-jumping'],
+    ['lamp','LAMP','מנורה','💡',['lamp','lamb'],'is-catching'],
+  ]},
+  {title:'הרפתקה בעיר', icon:'🏙️', sky:'#20355b', ground:'#353f4b', words:[
+    ['car','CAR','מכונית','🚗',['car','card'],'is-stopped'],['bus','BUS','אוטובוס','🚌',['bus','buzz'],'is-stopped'],
+    ['shop','SHOP','חנות','🏪',['shop','chop'],'is-waving'],['park','PARK','פארק','🌳',['park','bark'],'is-collecting'],
+    ['street','STREET','רחוב','🛣️',['street','sweet'],'is-jumping'],
+  ]},
+  {title:'כוחות־על', icon:'⚡', sky:'#42275f', ground:'#32364a', words:[
+    ['open','OPEN','פתח','🔓',['open','opened'],'is-waving'],['close','CLOSE','סגור','🔒',['close','closed','clothes'],'is-stopped'],
+    ['turn','TURN','הסתובב','↩️',['turn','turned'],'is-waving'],['push','PUSH','דחוף','👉',['push','pushed'],'is-collecting'],
+    ['pull','PULL','משוך','👈',['pull','pool'],'is-catching'],
+  ]},
+];
+const SAM_RUN_COMMANDS={...Object.fromEntries(SAM_RUN_STAGES.flatMap((stage,stageIndex)=>stage.words.map((w,wordIndex)=>[
+  w[0],{id:w[0],en:w[1],he:w[2],ic:w[3],aliases:w[4],move:w[5],color:w[6]||'',stageIndex,wordIndex,say:w[1].toLowerCase()}
+]))),
+  /* Old v1 commands remain readable while saved games migrate. */
+  hello:{id:'hello',en:'HELLO',he:'שלום',ic:'👋',aliases:['hello','hi','hey','hallo','allo'],move:'is-waving',say:'hello'},
+  catch:{id:'catch',en:'CATCH',he:'תפוס',ic:'⚽',aliases:['catch','caught','ketch','cash','cache','catches'],move:'is-catching',say:'catch'}
 };
 const SAM_RUN_ORDER=['jump','duck','stop','hello','catch'];
-/* the score at which each word first appears; the first two are there from the start */
+/* Kept as a public compatibility contract for old saved games and tests. */
 const SAM_RUN_UNLOCK={jump:0,duck:0,stop:6,hello:14,catch:24};
-/* what each word answers to. execAt is how far along the approach (0..1)
-   the move fires when armed — early enough to be in the air on arrival */
 const SAM_RUN_THINGS={
-  jump: {kind:'box',   danger:true,  points:1, execAt:.8,  move:'is-jumping', hold:860},
-  duck: {kind:'sign',  danger:true,  points:1, execAt:.83, move:'is-ducking', hold:740},
-  stop: {kind:'dog',   danger:true,  points:2, execAt:.78, move:'is-stopped', hold:0},
-  hello:{kind:'friend',danger:false, points:3, execAt:0,   move:'is-waving',  hold:800},
-  catch:{kind:'ball',  danger:false, points:5, execAt:.88, move:'is-catching',hold:600},
+  jump:{kind:'box',move:'is-jumping',hold:860},duck:{kind:'sign',move:'is-ducking',hold:740},stop:{kind:'dog',move:'is-stopped',hold:620},
+  hello:{kind:'friend',move:'is-waving',hold:700},catch:{kind:'ball',move:'is-catching',hold:600},
+  collect:{move:'is-collecting',hold:550},wave:{move:'is-waving',hold:700}
 };
 let samRun=null;
 
 function samRunStore(){
-  const base={best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:''};
-  try{ const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}'); return {...base,...(raw&&typeof raw==='object'?raw:{})}; }
+  const base={version:2,best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0};
+  try{
+    const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}');
+    const store={...base,...(raw&&typeof raw==='object'?raw:{})};
+    store.mastery=store.mastery&&typeof store.mastery==='object'?store.mastery:{};
+    store.stageStars=store.stageStars&&typeof store.stageStars==='object'?store.stageStars:{};
+    store.stage=Math.max(0,Math.min(SAM_RUN_STAGES.length-1,Number(store.stage)||0));
+    return store;
+  }
   catch(e){ return base; }
 }
 function samRunSave(store){ try{ localStorage.setItem(SAM_RUN_KEY, JSON.stringify(store)); }catch(e){} }
@@ -11230,10 +11319,10 @@ function samRunTone(kind){
 }
 
 function samRunWordsHtml(g){
-  return SAM_RUN_ORDER.map(id=>{
-    const c=SAM_RUN_COMMANDS[id], locked=!g.active.includes(id);
-    return `<button type="button" class="game-word${locked?' is-locked':''}" data-cmd="${id}" onclick="samRunCommand('${id}','tap')" aria-label="${c.en} — ${esc(c.he)}"${locked?' tabindex="-1"':''}>
-      <span class="ic">${locked?'🔒':c.ic}</span><span class="en">${locked?`${SAM_RUN_UNLOCK[id]} נק׳`:c.en}</span><span class="he">${locked?'':esc(c.he)}</span>
+  return g.active.map(id=>{
+    const c=SAM_RUN_COMMANDS[id], mastery=Math.min(SAM_RUN_MASTERY,g.store.mastery[id]||0);
+    return `<button type="button" class="game-word" data-cmd="${id}" onclick="samRunCommand('${id}','tap')" aria-label="${c.en} — ${esc(c.he)}">
+      <span class="ic">${c.ic}</span><span class="en">${c.en}</span><span class="he">${esc(c.he)}</span><span class="mastery"><i style="width:${mastery/SAM_RUN_MASTERY*100}%"></i></span>
     </button>`;
   }).join('');
 }
@@ -11243,33 +11332,56 @@ function samRunHeardHtml(g){
   return '<span class="mic">🎤</span> מקשיב… תגיד את המילה';
 }
 function samRunStartCardHtml(store){
-  const locked=SAM_RUN_ORDER.filter(id=>!store.unlocked.includes(id));
+  const stage=SAM_RUN_STAGES[samRun?.stageIndex||0], ids=stage.words.map(w=>w[0]);
+  const learned=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
   return `
     <div class="game-intro-runner">${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
-    <h2>הריצה של סם</h2>
-    <p>סם רץ. כשמופיע <b>!</b> בקצה, תגיד את המילה <b>מיד</b>. סם יעשה את זה בזמן הנכון.</p>
-    <p class="words-said">${store.unlocked.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}${locked.length?` · 🔒 עוד ${locked.length}`:''}</p>
-    <button class="btn" onclick="samRunStart()">GO! 🏃</button>`;
+    <div class="game-stage-tag">שלב ${(samRun?.stageIndex||0)+1} מתוך ${SAM_RUN_STAGES.length}</div>
+    <h2>${stage.icon} ${esc(stage.title)}</h2>
+    <p>אמור את המילה שמגיעה לסם. ככל שתצליח, הרמזים ייעלמו והמילה באמת תישאר בראש.</p>
+    <p class="words-said">${ids.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}</p>
+    <p>${learned?`כבר שלטת ב־${learned} מתוך ${ids.length} מילים`:'מוכנים להכיר חמש מילים חדשות?'}</p>
+    <button class="btn" onclick="samRunStart()">יוצאים לדרך! 🏃</button>`;
 }
-function renderSamRun(){
+function samRunMapHtml(store){
+  const curriculum=SAM_RUN_STAGES.flatMap(stage=>stage.words.map(w=>w[0]));
+  const learned=curriculum.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
+  const total=curriculum.length;
+  return `<div class="game-map">
+    <div class="game-map-hero"><div class="game-intro-runner">${personArt(PRACTICE_CAST.sam.look,'waiting','game-map-sam')}</div><h2>מסע המילים של סם</h2><p>רצים, מדברים ופותחים עולמות חדשים בלי להרגיש שלומדים.</p><div class="game-map-progress"><i style="width:${learned/total*100}%"></i></div><p style="margin-top:6px"><b>${learned}</b> מתוך ${total} מילים · 🪙 ${store.coins||0}</p></div>
+    <div class="game-stage-list">${SAM_RUN_STAGES.map((stage,i)=>{
+      const open=i<=store.stage, stars=store.stageStars[i]||0, ids=stage.words.map(w=>w[0]);
+      const mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
+      return `<button class="game-stage${i===store.stage?' current':''}${stars?' done':''}${open?'':' is-locked'}" ${open?`onclick="renderSamRun(${i})"`:'disabled'}><span class="stage-num">שלב ${i+1}</span><span class="stage-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</span><span class="stage-icon">${stage.icon}</span><strong>${esc(stage.title)}</strong><small>${ids.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</small>${open?`<span class="stage-lock">${mastered}/${ids.length} ✓</span>`:'<span class="stage-lock">🔒</span>'}</button>`;
+    }).join('')}</div></div>`;
+}
+function renderSamRun(stageIndex=null){
   samRunTeardown();
   const store=samRunStore();
+  if(stageIndex===null||stageIndex===undefined){
+    hx(`<div class="screen game-screen"><div class="game-top"><button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button><div class="game-title">🏃 המשחק של סם</div><div class="game-scorebox"><div class="game-score">${store.totalCorrect||0}</div><div class="game-best">מילים נכונות</div></div></div>${samRunMapHtml(store)}</div>`);
+    return;
+  }
+  stageIndex=Math.max(0,Math.min(store.stage,Number(stageIndex)||0));
+  const stage=SAM_RUN_STAGES[stageIndex];
   const mode=micAvailable()?(store.mode==='tap'?'tap':'voice'):'tap';
   samRun={
-    epoch:uiEpoch, store, mode, active:store.unlocked.slice(), running:false, paused:false,
-    score:0, lives:3, time:0, last:0, obstacles:[], nextSpawnAt:0, halted:false, said:{}, hits:{}, cleared:{},
-    raf:0, timer:0, unlockTimer:0, rec:null, heardKeys:new Set(), heardAt:0, lastKind:'', sameKind:0,
+    epoch:uiEpoch,store,mode,stageIndex,stage,active:stage.words.map(w=>w[0]),running:false,paused:false,
+    score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},
+    raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
   hx(`<div class="screen game-screen">
     <div class="game-top">
       <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
-      <div class="game-title">🏃 הריצה של סם</div>
+      <div class="game-title">${stage.icon} ${esc(stage.title)}</div>
       <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
       <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">שיא ${store.best}</div></div>
     </div>
-    <div class="game-world" id="samRunWorld" style="--speed:1">
+    <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>שליטה בכל 5 המילים</span></div>
+    <div class="game-world" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
       <div class="game-far"></div><div class="game-lane"></div><div class="game-speedlines"></div>
+      <div class="game-streak" id="samRunStreak"></div>
       <div class="game-runner" id="samRunRunner" hidden>${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
       <div id="samRunObstacles"></div>
       <div class="game-card" id="samRunCard">${samRunStartCardHtml(store)}</div>
@@ -11319,8 +11431,8 @@ function samRunStart(){
   const obstacles=document.getElementById('samRunObstacles');
   if(!runner||!card||!world||!obstacles) return;
   obstacles.innerHTML='';
-  Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],halted:false,paused:false,said:{},hits:{},cleared:{},lastKind:'',sameKind:0,active:g.store.unlocked.slice(),
-    speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0});
+  Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
+    speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=false; runner.className='game-runner';
   world.className='game-world'; world.style.setProperty('--speed','1');
@@ -11352,10 +11464,6 @@ function samRunFrame(ts){
   const dt=g.last?Math.min(50,ts-g.last):16; g.last=ts;
   if(!g.paused&&!document.hidden){
     g.time+=dt;
-    // a halt freezes the street, so it must freeze the spawn clock too:
-    // otherwise the next thing spawns right behind the frozen one and the
-    // two arrive as a cluster nobody could answer in time
-    if(g.halted) g.nextSpawnAt+=dt;
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
     // window — unless a thing is already holding for it, which runs on its
@@ -11364,8 +11472,6 @@ function samRunFrame(ts){
     if(g.speechAt&&!anyHolding&&performance.now()-g.speechAt>SAM_RUN_SPEECH_MAX_MS){ g.speechAt=0; samRunHearing(false); }
     const target=g.obstacles.find(o=>!o.resolved);
     for(const ob of g.obstacles.slice()){
-      if(g.halted&&!ob.crossing) continue;
-      const thing=SAM_RUN_THINGS[ob.cmd];
       /* Hold at the door. The player is mid-word: speech was detected but
          the recogniser has not answered yet. The thing waits just short of
          Sam, once, for up to the grace window, so a word said in time is
@@ -11379,9 +11485,7 @@ function samRunFrame(ts){
         if(ob.holding){ ob.holding=false; samRunBrace(false); }
         ob.progress+=dt/ob.travelMs;
       }
-      if(!ob.executed&&thing.execAt&&ob.progress>=thing.execAt&&ob.armed===ob.cmd) samRunExecute(ob);
       if(!ob.resolved&&ob.progress>=1) samRunResolve(ob);
-      if(ob.crossing&&ob.progress>=1.18&&g.halted) samRunUnhalt();
       if(ob.progress>=1.32){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
       // before its run a thing waits at the edge as a small badge with a "!"
       const incoming=ob.progress<0;
@@ -11398,9 +11502,12 @@ function samRunPickKind(){
   const g=samRun;
   const pool=[];
   for(const id of g.active){
-    const w=SAM_RUN_THINGS[id].danger?3:1.4;
+    /* Weak and not-yet-seen words return more often; mastered words still
+       appear occasionally as spaced review instead of vanishing forever. */
+    const mastery=g.store.mastery[id]||0, seen=g.runSeen[id]||0;
+    const w=Math.max(2,8-mastery-seen);
     if(id===g.lastKind&&g.sameKind>=2) continue;   // never the same thing three times running
-    for(let i=0;i<Math.round(w*10);i++) pool.push(id);
+    for(let i=0;i<w;i++) pool.push(id);
   }
   const id=pick(pool.length?pool:g.active);
   g.sameKind=id===g.lastKind?g.sameKind+1:1; g.lastKind=id;
@@ -11408,28 +11515,25 @@ function samRunPickKind(){
 }
 function samRunSpawn(){
   const g=samRun, host=document.getElementById('samRunObstacles'); if(!host) return;
+  if(g.finishing) return;
   // never put a new thing on the street while the last one is still in the
   // first half of its approach — one answer at a time is the whole game
   const last=g.obstacles[g.obstacles.length-1];
   if(last&&!last.resolved&&last.progress<.55){ g.nextSpawnAt=g.time+120; return; }
-  const cmd=samRunPickKind(), c=SAM_RUN_COMMANDS[cmd], thing=SAM_RUN_THINGS[cmd];
+  const cmd=samRunPickKind(), c=SAM_RUN_COMMANDS[cmd];
   const travelMs=samRunTravelMs(g.score), warnMs=samRunWarnMs(g.score,g.latencyEma||g.store.latency||0);
   const el=document.createElement('div');
-  el.className='game-obstacle ob-'+thing.kind+' is-incoming';
+  const mastery=g.store.mastery[cmd]||0;
+  el.className='game-obstacle ob-vocab is-incoming'+(mastery>=SAM_RUN_MASTERY?' is-mastered':'');
   el.style.transform=`translateX(${g.worldW-62}px) scale(.6)`;
-  // the word rides on the obstacle until this type has been cleared three times
-  const trained=(g.store.cleared[cmd]||0)>=3;
-  const label=trained?'':`<span class="ob-label">${c.en}</span>`;
-  el.innerHTML=({
-    box:`<svg width="46" height="38" viewBox="0 0 46 38" aria-hidden="true"><path d="M2 10h42v26H2z" fill="#c8894a" stroke="#7c4a1d" stroke-width="2.5"/><path d="M2 10l6-8h30l6 8z" fill="#e0a262" stroke="#7c4a1d" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 10v26" stroke="#7c4a1d" stroke-width="2" opacity=".55"/><path d="M8 22h30" stroke="#f3d9b5" stroke-width="3" opacity=".8"/></svg>${label}`,
-    sign:`<div class="ob-pole"></div><div class="ob-board">${pick(['OPEN','SALE','SHOP','CAFE'])}</div>${label}`,
-    dog:`<span class="ob-body">🐕</span>${label}`,
-    friend:`${personArt(PRACTICE_CAST[pick(['maya','tom','nina'])].look,'waiting')}${label}`,
-    ball:`<span class="ob-body">${pick(['⚽','🏀','🎾'])}</span>${label}`,
-  })[thing.kind];
+  /* Hint fading is the learning loop: English+Hebrew, then English, then the
+     picture alone. The player experiences increasing difficulty, not a quiz. */
+  const label=mastery>=SAM_RUN_MASTERY?'':`<span class="ob-label">${c.en}${mastery<2?`<em>${esc(c.he)}</em>`:''}</span>`;
+  const colorStyle=c.color?` style="--word-color:${c.color}"`:'';
+  el.innerHTML=`<span class="ob-body${c.color?' color-word':''}"${colorStyle}>${c.color?'':c.ic}</span>${label}`;
   host.appendChild(el);
   // progress starts negative: that is the warning phase, parked at the edge
-  const ob={cmd,el,progress:-warnMs/travelMs,travelMs,armed:null,executed:false,resolved:false,crossing:thing.kind==='dog',incoming:true};
+  const ob={id:++g.obstacleSeq,cmd,el,progress:-warnMs/travelMs,travelMs,armed:null,resolved:false,incoming:true,mastery};
   g.obstacles.push(ob);
   // spacing is a share of the approach, so density scales with speed
   g.nextSpawnAt=g.time+warnMs+travelMs*(.62+Math.random()*.3);
@@ -11445,75 +11549,59 @@ function samRunCommand(cmd,source){
   // the word has landed: how long did it take from the first sound?
   if(source==='voice'&&g.speechAt) samRunNoteLatency(performance.now()-g.speechAt);
   g.speechAt=0; samRunHearing(false); samRunBrace(false);
-  const thing=SAM_RUN_THINGS[cmd];
-  /* Which thing does the word belong to? The nearest one it answers that is
-     not already answered — so saying the NEXT thing's word early, which the
-     "!" invites, never un-answers the current one, and a wrong word can be
-     corrected by the right one. Failing that, the nearest thing not yet
-     answered right: a wrong word is still a wrong word. */
+  const c=SAM_RUN_COMMANDS[cmd];
   const pending=g.obstacles.filter(o=>!o.resolved);
-  const match=pending.find(o=>o.cmd===cmd&&o.armed!==cmd);
+  const target=pending[0]||null;
   /* A right word that arrives just after its thing already hit is late, not
      wrong. Say so — and never let it arm the next thing with a move meant
      for the last one, which turned one slow recognition into two hits. */
-  if(!match&&g.lastHit&&g.time-g.lastHit.at<1400&&g.lastHit.cmd===cmd){
+  if(!target&&g.lastHit&&g.time-g.lastHit.at<1400&&g.lastHit.cmd===cmd){
     g.lastHit=null; g.late=(g.late||0)+1;
     samRunFloat('מאוחר!',null,true);
     const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='המילה הגיעה אחרי הפגיעה. תגיד אותה <b>ברגע שאתה רואה</b> את ה־!';
-    if(cmd!=='stop') samRunPose(thing.move,thing.hold||600);
+    samRunPose(c.move,650);
     return;
   }
-  const target=match||pending.find(o=>o.armed!==o.cmd)||null;
   if(target){
     target.armed=cmd;
-    if(cmd==='hello'&&target.cmd==='hello'){ samRunResolve(target); return; }
     if(target.cmd===cmd){
-      if(target.progress>=thing.execAt) samRunExecute(target);
-      else samRunPose('is-armed-'+cmd,380);
+      /* The character reacts as soon as the recogniser returns the word.
+         Collision timing no longer delays visible feedback. */
+      samRunPose(c.move||'is-collecting',650);
+      samRunResolve(target);
     } else {
-      // Sam visibly gets ready for the wrong move: the player can see it and
-      // correct him with the right word while there is still time
-      samRunPose('is-armed-'+cmd,380);
+      target.el.classList.remove('is-wrong'); void target.el.offsetWidth; target.el.classList.add('is-wrong');
+      samRunFloat('נסה שוב',target,true);
+      const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=`שמעתי <b>${c.en}</b> · כאן צריך מילה אחרת`;
     }
     return;
   }
-  // nothing to answer: a free move, no consequence
-  if(cmd!=='stop'){ samRunPose(thing.move,thing.hold||600); samRunTone(cmd); }
-}
-function samRunExecute(ob){
-  const g=samRun, thing=SAM_RUN_THINGS[ob.cmd];
-  ob.executed=true;
-  samRunTone(ob.cmd);
-  if(ob.cmd==='stop'){ samRunHalt(); return; }
-  samRunPose(thing.move,thing.hold);
-}
-function samRunHalt(){
-  const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
-  g.halted=true;
-  if(runner){ runner.classList.remove('is-armed-stop'); runner.classList.add('is-stopped'); }
-  if(world) world.classList.add('is-halted');
-}
-function samRunUnhalt(){
-  const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
-  g.halted=false;
-  if(runner) runner.classList.remove('is-stopped');
-  if(world) world.classList.remove('is-halted');
+  samRunPose(c.move||'is-collecting',650);
 }
 function samRunResolve(ob){
-  const g=samRun, thing=SAM_RUN_THINGS[ob.cmd];
+  const g=samRun;
+  if(ob.resolved) return;
   ob.resolved=true;
   const ok=ob.armed===ob.cmd;
+  g.resolvedCount++;
+  g.runSeen[ob.cmd]=(g.runSeen[ob.cmd]||0)+1;
   if(ok){
-    if(ob.cmd==='hello'){ samRunPose('is-waving',800); samRunTone('hello'); }
-    if(ob.cmd==='catch'){ ob.el.classList.add('is-caught'); }
-    if(!ob.executed&&ob.cmd!=='hello'&&ob.cmd!=='catch') samRunExecute(ob);
+    ob.el.classList.add('is-caught');
     g.cleared[ob.cmd]=(g.cleared[ob.cmd]||0)+1;
     g.store.cleared[ob.cmd]=(g.store.cleared[ob.cmd]||0)+1;
-    samRunScore(thing.points, ob);
+    g.store.mastery[ob.cmd]=Math.min(SAM_RUN_MASTERY,(g.store.mastery[ob.cmd]||0)+1);
+    g.correctCount++; g.streak++;
+    g.store.totalCorrect=(g.store.totalCorrect||0)+1;
+    g.store.streakBest=Math.max(g.store.streakBest||0,g.streak);
+    samRunTone(ob.cmd==='jump'?'jump':'catch');
+    samRunScore(1+Math.min(4,Math.floor(g.streak/5)),ob);
+    samRunUpdateWords(ob.cmd);
+    samRunCheckFinish();
     return;
   }
-  if(!thing.danger){ samRunFloat('…', ob, true); return; }   // a missed bonus just passes by
+  g.streak=0;
   samRunHit(ob);
+  samRunCheckFinish();
 }
 function samRunScore(points, ob){
   const g=samRun;
@@ -11523,9 +11611,7 @@ function samRunScore(points, ob){
   const world=document.getElementById('samRunWorld');
   const speed=samRunSpeedFor(g.score);
   if(world){ world.style.setProperty('--speed',speed.toFixed(3)); world.classList.toggle('is-fast',speed>1.7); }
-  for(const id of SAM_RUN_ORDER){
-    if(!g.active.includes(id)&&g.score>=SAM_RUN_UNLOCK[id]){ samRunUnlock(id); break; }
-  }
+  samRunPaintHud(true);
 }
 function samRunHit(ob){
   const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
@@ -11533,14 +11619,13 @@ function samRunHit(ob){
   g.hits[ob.cmd]=(g.hits[ob.cmd]||0)+1;
   g.lastHit={cmd:ob.cmd,at:g.time};
   if(ob.holding){ ob.holding=false; samRunBrace(false); }
-  if(g.halted) samRunUnhalt();
   ob.el.classList.add('is-poof');
   samRunTone('hit');
   samRunFloat('💥', ob, true);
-  if(runner){ runner.classList.remove('is-jumping','is-ducking','is-armed-jump','is-armed-duck','is-armed-stop','is-armed-catch'); samRunPose('is-hit',580); setTimeout(()=>{ if(samRun===g&&runner.isConnected) samRunPose('is-safe',1200); },600); }
+  if(runner){ runner.classList.remove('is-jumping','is-ducking','is-stopped','is-catching','is-collecting'); samRunPose('is-hit',580); setTimeout(()=>{ if(samRun===g&&runner.isConnected) samRunPose('is-safe',1200); },600); }
   if(world&&!prefersReducedStageMotion()){ world.classList.remove('is-shake'); void world.offsetWidth; world.classList.add('is-shake'); }
   samRunPaintHud();
-  if(g.lives<=0) samRunOver();
+  if(g.lives<=0) samRunOver(false);
 }
 function samRunPose(cls,ms){
   const runner=document.getElementById('samRunRunner'); if(!runner) return;
@@ -11586,76 +11671,62 @@ function samRunPaintHud(bump=false){
   if(score){ score.textContent=String(g.score); if(bump){ score.classList.remove('bump'); void score.offsetWidth; score.classList.add('bump'); } }
   const lives=document.getElementById('samRunLives');
   if(lives) lives.querySelectorAll('i').forEach((h,i)=>h.classList.toggle('lost',i>=g.lives));
+  const mt=document.getElementById('samRunMissionText'); if(mt) mt.textContent=`${Math.min(g.resolvedCount,SAM_RUN_GOAL)}/${SAM_RUN_GOAL}`;
+  const mb=document.getElementById('samRunMissionBar'); if(mb) mb.style.width=Math.min(100,g.resolvedCount/SAM_RUN_GOAL*100)+'%';
+  const streak=document.getElementById('samRunStreak');
+  if(streak){ streak.textContent=g.streak>=2?`🔥 ×${g.streak}`:''; streak.classList.toggle('on',g.streak>=2); streak.classList.toggle('hot',g.streak>=5); }
 }
-/* a new word: the run pauses, Sam says it, the player sees what it answers */
-function samRunUnlock(id){
-  const g=samRun, c=SAM_RUN_COMMANDS[id], card=document.getElementById('samRunCard'); if(!card) return;
-  g.paused=true; samRunStopListening();
-  g.active.push(id);
-  if(!g.store.unlocked.includes(id)) g.store.unlocked.push(id);
+function samRunUpdateWords(focus){
+  const g=samRun, words=document.getElementById('samRunWords'); if(!g||!words) return;
+  words.innerHTML=samRunWordsHtml(g);
+  const b=words.querySelector?.(`[data-cmd="${focus}"]`); if(b){ b.classList.add('is-focus'); setTimeout(()=>b.classList.remove('is-focus'),500); }
   samRunSave(g.store);
-  samRunTone('unlock');
-  card.hidden=false;
-  card.innerHTML=`
-    <p style="font-weight:800;color:#6ee7b7">מילה חדשה! 🎉</p>
-    <div class="big-ic">${c.ic}</div>
-    <div class="big-word">${c.en}</div>
-    <div class="big-he">${esc(c.he)}</div>
-    <p>${esc(c.hint)}</p>
-    <button class="btn" onclick="samRunResume()">הבנתי ▶</button>`;
-  const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
-  speak(c.say);
-  clearTimeout(g.unlockTimer); g.unlockTimer=setTimeout(()=>{ if(samRun===g&&g.paused) samRunResume(); },3600);
+}
+function samRunCheckFinish(){
+  const g=samRun; if(!g||g.finishing||g.lives<=0) return;
+  if(g.resolvedCount<SAM_RUN_GOAL) return;
+  g.finishing=true;
+  g.nextSpawnAt=Infinity;
+  setTimeout(()=>{ if(samRun===g) samRunOver(true); },650);
+}
+/* Compatibility hook: old versions paused to unlock a word mid-run. New
+   worlds unlock together, so this simply teaches the requested word. */
+function samRunUnlock(id){
+  const g=samRun,c=SAM_RUN_COMMANDS[id]; if(!g||!c) return;
+  g.store.mastery[id]=Math.max(1,g.store.mastery[id]||0); samRunSave(g.store); speak(c.say);
 }
 function samRunResume(){
-  const g=samRun; if(!g||!g.paused) return;
-  clearTimeout(g.unlockTimer);
-  cancelSpeech();
-  const card=document.getElementById('samRunCard'); if(card){ card.hidden=true; card.innerHTML=''; }
-  g.paused=false; g.last=0; g.speechAt=0; samRunHearing(false); samRunBrace(false);
-  /* Whatever was on the street when the card came up was answered — or not —
-     while nobody was listening: a word already on its way landed on a
-     recogniser that had been stopped. Clear the street and start clean, so
-     the pause never costs a life. */
-  for(const ob of g.obstacles.slice()){ if(!ob.resolved){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); } }
-  if(g.halted) samRunUnhalt();
-  g.nextSpawnAt=g.time+900;
-  if(g.mode==='voice') samRunListen();
+  const g=samRun;if(!g)return;g.paused=false;if(g.mode==='voice')samRunListen();
 }
-function samRunOver(){
-  const g=samRun; if(!g) return;
+function samRunOver(finished=false){
+  const g=samRun; if(!g||!g.running) return;
   g.running=false; if(g.raf) cancelAnimationFrame(g.raf);
   samRunStopListening();
   const card=document.getElementById('samRunCard'); if(!card) return;
   const store=g.store, newBest=g.score>(store.best||0);
   store.best=Math.max(store.best||0,g.score);
   for(const [k,v] of Object.entries(g.said)) store.said[k]=(store.said[k]||0)+v;
-  if(g.latencyEma) store.latency=Math.round(g.latencyEma);   // next run gives this device its due notice from the first thing
+  if(g.latencyEma) store.latency=Math.round(g.latencyEma);
+  const ids=g.active, mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY);
+  const accuracy=g.resolvedCount?g.correctCount/g.resolvedCount:0;
+  const stars=g.lives===3&&accuracy>=.9?3:g.lives>=2&&accuracy>=.72?2:1;
+  store.stageStars[g.stageIndex]=Math.max(store.stageStars[g.stageIndex]||0,stars);
+  const stageComplete=mastered.length===ids.length;
+  const newlyUnlocked=stageComplete&&g.stageIndex===store.stage&&store.stage<SAM_RUN_STAGES.length-1;
+  if(newlyUnlocked) store.stage++;
+  const earned=Math.max(1,g.correctCount+stars*2); store.coins=(store.coins||0)+earned;
   samRunSave(store);
-  samRunTone(newBest?'best':'over');
-  if(newBest&&g.score>=5) confetti();
-  const said=SAM_RUN_ORDER.filter(id=>g.said[id]).map(id=>`${SAM_RUN_COMMANDS[id].en} ×${g.said[id]}`).join(' · ');
-  const worst=Object.entries(g.hits).sort((a,b)=>b[1]-a[1])[0];
-  const slow=g.latencyEma>1100?` (הזיהוי במכשיר הזה לוקח בערך ${(g.latencyEma/1000).toFixed(1)} שניות, אז מעכשיו כל דבר יודיע על עצמו קצת יותר מוקדם.)`:'';
-  const tip=g.late>=2
-    ? `${g.late} פעמים המילה הנכונה הגיעה אחרי הפגיעה. תגיד אותה ברגע שאתה רואה את ה־! בקצה, סם יחכה לרגע הנכון.${slow}`
-    : g.score<4
-    ? 'טיפ: תגיד את המילה ברגע שה־! מופיע בקצה. סם עושה את התנועה בזמן הנכון.'+slow
-    : worst&&worst[1]>=2 ? `רוב הפעמים זה היה ${SAM_RUN_COMMANDS[worst[0]].ic} — ${SAM_RUN_COMMANDS[worst[0]].hint}`
-    : pick(['עוד קצת והשיא נופל.','סם כבר מחכה לריצה הבאה.','כל מילה שאמרת בקול, נשארת.']);
+  samRunTone(stageComplete?'best':newBest?'best':'over');
+  if(stageComplete) confetti();
+  const needs=ids.filter(id=>(store.mastery[id]||0)<SAM_RUN_MASTERY).sort((a,b)=>(store.mastery[a]||0)-(store.mastery[b]||0));
   card.hidden=false;
-  card.innerHTML=`
-    <h2>${g.score>=(store.best||0)&&g.score>0?'🏃 ריצה מעולה!':'אופס, סם נפל'}</h2>
-    ${newBest?'<div class="newbest">🏆 שיא חדש!</div>':''}
-    <div class="game-stat"><div><b>${g.score}</b>נקודות</div><div><b>${store.best}</b>שיא</div></div>
-    ${said?`<div class="words-said">${said}</div>`:''}
-    <p>${esc(tip)}</p>
-    <div class="btn-row">
-      <button class="btn" onclick="samRunStart()">עוד פעם 🔁</button>
-      <button class="btn secondary" onclick="samRunExit()">הביתה</button>
-    </div>`;
+  card.innerHTML=`<div class="reward">${stageComplete?'🏆':g.lives<=0?'💪':'🎁'}</div><h2>${stageComplete?'השלב הושלם!':g.lives<=0?'כמעט! יוצאים לעוד ריצה':'ריצה מעולה!'}</h2>
+    <div class="game-stat"><div><b>${g.correctCount}</b>מילים נכונות</div><div><b>${g.store.streakBest||g.streak}</b>רצף שיא</div><div><b>+${earned}</b>מטבעות</div></div>
+    <div class="mastered-list">${mastered.map(id=>`<span>${SAM_RUN_COMMANDS[id].ic} ${SAM_RUN_COMMANDS[id].en} ✓</span>`).join('')}</div>
+    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:stageComplete?'כל חמש המילים כבר אצלך. אפשר לשפר את הכוכבים או להמשיך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
+    <div class="btn-row"><button class="btn" onclick="${stageComplete&&g.stageIndex<SAM_RUN_STAGES.length-1?`renderSamRun(${g.stageIndex+1})`:'samRunStart()'}">${stageComplete&&g.stageIndex<SAM_RUN_STAGES.length-1?'לשלב הבא 🚀':'עוד ריצה 🔁'}</button><button class="btn secondary" onclick="renderSamRun()">מפת השלבים</button></div>`;
   const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.best;
-  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
+  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='כל מילה שאמרת חיזקה את הזיכרון 🧠';
 }
 
 /* ---- the microphone as a controller ---- */

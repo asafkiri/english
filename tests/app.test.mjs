@@ -81,7 +81,7 @@ function runtime(seed = new Map(), options = {}) {
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
-      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_KEY, STORE_KEY,
+      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3365,4 +3365,42 @@ test("Sam's Run: lives beside the lessons, remembers its best, and stays out of 
   assert.equal(again.api.samRunStore().unlocked.join(','), 'jump,duck,stop', 'so do the words already earned');
   seed.set(api.SAM_RUN_KEY, '{not json');
   assert.equal(runtime(seed).api.samRunStore().best, 0, 'a corrupt store falls back instead of crashing the game');
+});
+
+test("Sam's word journey has eight focused worlds and forty playable curriculum words", () => {
+  const { api } = runtime();
+  assert.equal(api.SAM_RUN_STAGES.length, 8);
+  assert.ok(api.SAM_RUN_STAGES.every(stage => stage.words.length === 5),
+    'a world stays small enough to repeat every word several times');
+  const ids = api.SAM_RUN_STAGES.flatMap(stage => stage.words.map(word => word[0]));
+  assert.equal(ids.length, 40);
+  assert.equal(new Set(ids).size, ids.length, 'curriculum words must not repeat across worlds');
+  for (const stage of api.SAM_RUN_STAGES) {
+    const active = stage.words.map(word => word[0]);
+    for (const id of active)
+      assert.equal(api.samRunMatchCommand(api.SAM_RUN_COMMANDS[id].en, active), id,
+        `${id} must be playable by voice inside its world`);
+  }
+});
+
+test("Sam's word journey persists mastery without leaking into lesson progress", () => {
+  const seed = new Map();
+  const { api, app } = runtime(seed);
+  const before = JSON.stringify(api.getState());
+  const store = api.samRunStore();
+  store.mastery.jump = api.SAM_RUN_MASTERY;
+  store.stageStars[0] = 2;
+  store.stage = 1;
+  store.coins = 23;
+  api.samRunSave(store);
+  const fresh = runtime(seed);
+  assert.equal(fresh.api.samRunStore().mastery.jump, api.SAM_RUN_MASTERY);
+  assert.equal(fresh.api.samRunStore().stageStars[0], 2);
+  assert.equal(fresh.api.samRunStore().coins, 23);
+  fresh.api.renderSamRun();
+  assert.match(fresh.app.innerHTML, /מסע המילים של סם/);
+  assert.match(fresh.app.innerHTML, /<b>1<\/b> מתוך 40 מילים/);
+  assert.match(fresh.app.innerHTML, /צובעים את העיר/);
+  assert.equal(JSON.stringify(api.getState()), before);
+  assert.ok(api.SAM_RUN_GOAL >= 15, 'one run repeats a five-word pack rather than sampling it once');
 });
