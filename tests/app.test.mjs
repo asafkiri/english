@@ -72,6 +72,8 @@ function runtime(seed = new Map(), options = {}) {
       askConfirm, resolveDialog, exitLesson, unitCallToActionHtml, snoozeMission, missionSnoozed,
       completeMission, estimateLessonMinutes, lessonEtaLabel, canSayHtml, streakLabel, daysBetween,
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
+      h, hx, afterRender, viewTransitionsEnabled, wordSpans, tokenIndexAt, alignTokens, modernPersonArt,
+      setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -2350,4 +2352,66 @@ test('promises are concrete and no fixed fifteen minutes remain', () => {
   // a fresh install boots into onboarding, which promises what unit one delivers
   assert.ok(app.innerHTML.includes(api.unitPromise(0)));
   assert.ok(!app.innerHTML.includes('15 דקות ביום'));
+});
+
+/* ---- animation: soft screen changes, a word that lights up, a face that answers him ---- */
+
+test('a newer synchronous render always wins over a pending screen transition', async () => {
+  const { api, app, context } = runtime();
+  assert.equal(api.viewTransitionsEnabled(), false, 'without the API every render is synchronous');
+  api.hx('<div class="screen">plain</div>');
+  assert.equal(app.innerHTML, '<div class="screen">plain</div>');
+
+  const queued = [];
+  context.document.startViewTransition = cb => {
+    queued.push(cb);
+    return { updateCallbackDone: Promise.resolve(), finished: Promise.resolve() };
+  };
+  assert.equal(api.viewTransitionsEnabled(), true);
+  api.hx('<div class="screen">A</div>');
+  assert.equal(app.innerHTML, '<div class="screen">plain</div>', 'a transition applies its swap a frame later');
+  api.h('<div class="screen">B</div>');
+  queued.splice(0).forEach(cb => cb());
+  assert.equal(app.innerHTML, '<div class="screen">B</div>', 'the older transition must not overwrite the newer render');
+
+  api.hx('<div class="screen">C</div>');
+  let ran = false;
+  api.afterRender(() => { ran = true; });
+  queued.splice(0).forEach(cb => cb());
+  assert.equal(app.innerHTML, '<div class="screen">C</div>');
+  await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(ran, true, 'afterRender waits for the swap, then runs');
+  delete context.document.startViewTransition;
+});
+
+test('the word being spoken can be found in the text he sees', () => {
+  const { api } = runtime();
+  const html = api.wordSpans('Good morning, Dan!');
+  assert.match(html, /data-i="0"[^>]*>Good</);
+  assert.match(html, /data-i="2"[^>]*>Dan!</);
+  assert.doesNotMatch(api.wordSpans('Hi - there'), /data-i="1"/, 'a token with no letters gets no button');
+  assert.equal(api.tokenIndexAt('Good morning, Dan!', 0), 0);
+  assert.equal(api.tokenIndexAt('Good morning, Dan!', 5), 1);
+  assert.equal(api.tokenIndexAt('Good morning, Dan!', 14), 2);
+  assert.equal(api.tokenIndexAt('Good morning, Dan!', 7), 1, 'a boundary inside a word still means that word');
+  // the voice drops a Hebrew name the caption still shows
+  const aligned = api.alignTokens(['Good', 'morning!'], ['Good', 'morning,', 'Dan!']);
+  assert.deepEqual(aligned.map, [0, 1]);
+  assert.equal(aligned.matched, 2);
+  assert.deepEqual(api.alignTokens(['What', 'is', 'this?'], ['Totally', 'different']).map, [-1, -1, -1]);
+});
+
+test('the drawn cast can smile, and the mic ring level stays in range', () => {
+  const { api } = runtime();
+  const svg = api.modernPersonArt({ id: 'tom', variant: 'modern-v2' }, 'listening');
+  assert.match(svg, /class="mouth-shape mouth-smile"/);
+  assert.match(svg, /class="mouth-shape mouth-rest"/);
+  api.setMicLevel(2);
+  assert.equal(api.getMicLevel(), 1);
+  api.setMicLevel(-1);
+  assert.equal(api.getMicLevel(), 0);
+  api.startMicMeter();
+  assert.ok(api.getMicLevel() > 0, 'listening starts with a faint ring');
+  api.stopMicMeter();
+  assert.equal(api.getMicLevel(), 0, 'the ring goes away with the recording');
 });

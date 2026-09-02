@@ -42,6 +42,16 @@ body{
 }
 #app{max-width:520px;margin:0 auto;min-height:100%;padding:env(safe-area-inset-top) 16px calc(28px + env(safe-area-inset-bottom));}
 .screen{animation:fadeUp .35s ease both}
+/* Screen changes crossfade through the View Transitions API where the browser
+   has it. The per-screen fadeUp then steps aside, so the home list no longer
+   flashes and re-animates on every render, and the lesson header stays put. */
+.vt .screen{animation:none}
+::view-transition-old(root){animation:vtOut .16s ease both}
+::view-transition-new(root){animation:vtIn .24s ease both}
+.player-top,.conversation-top{view-transition-name:lesson-top}
+::view-transition-old(lesson-top),::view-transition-new(lesson-top){animation:none;mix-blend-mode:normal}
+@keyframes vtOut{to{opacity:0}}
+@keyframes vtIn{from{opacity:0;transform:translateY(8px)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.45)}70%{box-shadow:0 0 0 22px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
@@ -137,8 +147,12 @@ body{
   border-radius:var(--radius);padding:26px 20px;text-align:center;margin-bottom:16px;animation:pop .3s ease both;
 }
 .phrase-en{direction:ltr;font-size:30px;font-weight:800;letter-spacing:.2px;margin-bottom:12px;line-height:1.35}
-.phrase-en .w{cursor:pointer;border-bottom:1.5px dashed rgba(147,160,189,.45);transition:color .12s ease}
+.phrase-en .w{cursor:pointer;border-bottom:1.5px dashed rgba(147,160,189,.45);transition:color .12s ease,border-color .12s ease}
 .phrase-en .w:active{color:var(--green)}
+/* the word being spoken lights up as the voice reaches it: sound meets text */
+.phrase-en .w.now{color:var(--green);border-bottom-color:var(--green)}
+.cap-en .w,.dlg-en .w{display:inline;transition:color .12s ease,text-shadow .12s ease}
+.cap-en .w.now,.dlg-en .w.now{color:var(--green);text-shadow:0 0 12px rgba(52,211,153,.55)}
 .phrase-en button.w{display:inline;background:none;border:0;color:inherit;font:inherit;padding:0;line-height:inherit}
 .milestone{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.45);border-radius:16px;padding:14px 16px;margin:14px 0 0;font-weight:700;font-size:15.5px;color:var(--amber);animation:pop .4s ease both}
 .streak-note{margin-top:10px;font-size:14.5px;color:#a7d9c3}
@@ -159,6 +173,16 @@ body{
 }
 .mic-btn.listening{animation:pulse 1.4s infinite;background:linear-gradient(135deg,#f87171,#ef4444)}
 .mic-btn:active{transform:scale(.93)}
+/* a live ring that grows with his voice, driven by the recogniser's interim
+   results — proof that the phone hears him, without a second microphone stream */
+.mic-btn,.conversation-mic{position:relative;--level:0}
+.mic-btn::after,.conversation-mic::after{
+  content:'';position:absolute;inset:-7px;border-radius:50%;border:3px solid rgba(52,211,153,.75);pointer-events:none;
+  opacity:0;transform:scale(.9);transition:transform .11s ease-out,opacity .16s ease-out;
+}
+.mic-btn.listening::after,.conversation-mic.listening::after{
+  opacity:calc(.2 + var(--level) * .8);transform:scale(calc(1 + var(--level) * .38));
+}
 .mic-hint{font-size:14.5px;color:var(--dim)}
 .heard{margin-top:12px;font-size:15px;color:var(--dim);direction:ltr;min-height:24px}
 .result-msg{
@@ -627,6 +651,38 @@ body{
 @keyframes headTalk{0%,100%{transform:rotate(-1.2deg) translateY(0)}50%{transform:rotate(1.2deg) translateY(-2px)}}
 @keyframes headNod{0%,100%{transform:rotate(0) translateY(0)}30%{transform:rotate(2.2deg) translateY(2px)}60%{transform:rotate(-1deg) translateY(0)}}
 @keyframes headIdle{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.6deg)}}
+
+/* Alive between lines: a breath in the chest, the odd double blink, brows that
+   lift a little while waiting for him — so the figure never looks frozen. */
+.person-art .torso{animation:torsoBreathe 4.4s ease-in-out infinite}
+.person-art.modern-v2.waiting .eyelids,.person-art.modern-v2.listening .eyelids{animation:castBlinkDouble 6.4s linear infinite}
+.stage-avatar:not(.stage-directed) .person-art.modern-v2.waiting .brows{animation:castBrowsIdle 9s ease-in-out infinite}
+@keyframes torsoBreathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.014)}}
+@keyframes castBlinkDouble{0%,38%,41.5%,44%,47.5%,79%,81.5%,100%{opacity:0}39%,40.5%,45%,46.5%,80%,80.8%{opacity:1}}
+@keyframes castBrowsIdle{0%,86%,100%{transform:none}90%,95%{transform:translateY(-1.2px)}}
+
+/* His turn. While the microphone is really open the figure leans in and nods
+   along; a pass earns a real smile; a retry gets only a patient tilt of the
+   head — never a frown, never a raised brow. */
+.person-art{transition:transform .5s cubic-bezier(.2,.72,.25,1)}
+.person-art.mic-live{transform:translateY(5px) scale(1.035)}
+.person-art.mic-live .head{animation:headListenNod 1.5s ease-in-out infinite}
+.person-art.modern-v2.mic-live .pupils{animation:none;transform:translate(0,1.6px)}
+.person-art.modern-v2.mic-live .brows{transform:translateY(-1px)}
+.person-art.modern-v2.mic-live .eyelids{animation:castBlink 7s linear infinite}
+.stage-avatar.mic-live::before{border-color:rgba(52,211,153,.85);background:radial-gradient(circle at 50% 32%,rgba(52,211,153,.32),transparent 68%)}
+.person-art.retry-tilt .head{animation:headTiltOnce 1.1s ease-in-out both}
+.person-art.modern-v2.reacting:not(.voicing) .mouth-rest,.person-art.modern-v2.happy:not(.voicing) .mouth-rest{opacity:0}
+.person-art.modern-v2.reacting:not(.voicing) .mouth-smile,.person-art.modern-v2.happy:not(.voicing) .mouth-smile{opacity:1}
+.person-art.modern-v2.reacting .cheeks,.person-art.modern-v2.happy .cheeks{opacity:.78}
+.person-art:not(.modern-v2).reacting .mouth,.person-art:not(.modern-v2).happy .mouth{transform:scale(1.5,1.15)}
+.conversation-person .portrait{transition:transform .4s cubic-bezier(.2,.72,.25,1),box-shadow .4s ease}
+.conversation-person .portrait.mic-live{transform:translateY(2px) scale(1.1);box-shadow:0 0 0 4px rgba(52,211,153,.22)}
+.conversation-person .portrait.happy{animation:portraitHappy .7s ease-out both}
+.conversation-person .portrait.retry-tilt{animation:headTiltOnce 1.1s ease-in-out both}
+@keyframes headListenNod{0%,100%{transform:rotate(0) translateY(0)}35%{transform:rotate(1.6deg) translateY(2.5px)}70%{transform:rotate(-.8deg) translateY(.5px)}}
+@keyframes headTiltOnce{0%,100%{transform:rotate(0)}35%{transform:rotate(5deg) translateY(1px)}70%{transform:rotate(3.5deg) translateY(1px)}}
+@keyframes portraitHappy{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-6deg)}70%{transform:scale(1.06) rotate(3deg)}100%{transform:scale(1)}}
 
 /* Cinematic acting vocabulary. A direction is attached to an authored line,
    so it plays once when that line arrives. The body makes one readable
@@ -3535,6 +3591,11 @@ function modernPersonArt(look, state='idle', cls=''){
             <ellipse cx="114" cy="147" rx="7" ry="10" fill="#6f353b" stroke="#633237" stroke-width="2"/>
             <path d="M110 153c3-2 6-2 9 0" fill="none" stroke="#d86f78" stroke-width="2.2" stroke-linecap="round"/>
           </g>
+          <!-- a real smile, shown for a moment when he gets a sentence right -->
+          <g class="mouth-shape mouth-smile">
+            <path d="M95 137c9 13 29 13 38 0-3 10-10 15-19 15s-16-5-19-15z" fill="#74383c" stroke="#633237" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M99 139c8 5 22 5 30 0-3 4-8 6-15 6s-12-2-15-6z" fill="#fff8ef"/>
+          </g>
         </g>
       </g>
     </g>
@@ -5579,7 +5640,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.11.0';
+const APP_VERSION = '2.12.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -6149,6 +6210,7 @@ function setVoicing(on){
 }
 function stopVoiceAnimation(){
   stopMouthSync();
+  stopWordSync();
   setVoicing(false);
 }
 function speak(text, cb){
@@ -6172,9 +6234,9 @@ function speak(text, cb){
     if(cb && token===speechToken) cb();
   };
   u.onend = finish; u.onerror = finish;
-  u.onstart = ()=>{ if(token===speechToken) startMouthSync(u.text, u.rate); };
-  // word boundaries let the mouth re-sync to where the voice actually is
-  u.onboundary = e=>{ if(token===speechToken) syncMouthToChar(e.charIndex); };
+  u.onstart = ()=>{ if(token===speechToken){ startMouthSync(u.text, u.rate); startWordSync(u.text, u.rate); } };
+  // word boundaries let the mouth and the lit-up word re-sync to where the voice actually is
+  u.onboundary = e=>{ if(token===speechToken){ syncMouthToChar(e.charIndex); syncWordToChar(e.charIndex); } };
   setVoicing(true);
   // some engines never report the end of an utterance; the face must not be
   // left talking to itself, so stop the animation on a generous deadline too
@@ -6270,6 +6332,97 @@ function stopMouthSync(){
     if(m) m.style.transform='';
     if(tg) tg.style.opacity='';
   });
+}
+/* ---------------- word sync ----------------
+   The same schedule that drives the mouth lights up the word being spoken in
+   whatever English text is on screen (the learn card, a caption, a chat
+   bubble), so sound and spelling meet. The displayed line may show a name the
+   voice drops, so spoken tokens are aligned to displayed tokens first. */
+let wordSync=null;
+function wordSyncTokens(text){ return String(text||'').split(/\s+/).filter(Boolean); }
+function wordKey(w){ return String(w).toLowerCase().replace(/[^a-z0-9']/g,''); }
+function tokenIndexAt(text, charIndex){
+  const before=String(text||'').slice(0, Math.max(0, charIndex|0));
+  if(!before.trim()) return 0;
+  return wordSyncTokens(before).length - (/\S$/.test(before) ? 1 : 0);
+}
+function alignTokens(spoken, shown){
+  const n=spoken.length, m=shown.length;
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--)
+    dp[i][j]=wordKey(spoken[i])===wordKey(shown[j]) ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const map=new Array(n).fill(-1);
+  let i=0, j=0;
+  while(i<n && j<m){
+    if(wordKey(spoken[i])===wordKey(shown[j])){ map[i]=j; i++; j++; }
+    else if(dp[i+1][j]>=dp[i][j+1]) i++;
+    else j++;
+  }
+  return {map, matched:dp[0][0]};
+}
+function wrapWordMarks(el){
+  if(el.querySelector('.w')) return;
+  let i=0;
+  el.innerHTML=String(el.textContent).split(/(\s+)/).map(part=>{
+    if(!part) return '';
+    if(/^\s+$/.test(part)) return part;
+    return `<span class="w" data-i="${i++}">${esc(part)}</span>`;
+  }).join('');
+}
+function findWordSyncContainer(text){
+  const spoken=wordSyncTokens(text);
+  if(!spoken.length || !document.querySelectorAll) return null;
+  const candidates=[...document.querySelectorAll('[data-word-sync]')].reverse();
+  for(const el of candidates){
+    const shown=wordSyncTokens(el.textContent);
+    if(!shown.length) continue;
+    const {map, matched}=alignTokens(spoken, shown);
+    if(matched < Math.max(1, Math.ceil(spoken.length*0.6))) continue;
+    wrapWordMarks(el);
+    const byIndex=new Map([...el.querySelectorAll('.w')].map(s=>[Number(s.dataset.i), s]));
+    return {el, map, byIndex};
+  }
+  return null;
+}
+function setSpokenWord(spokenIdx){
+  if(!wordSync) return;
+  const shownIdx=spokenIdx>=0 ? wordSync.map[spokenIdx] : -1;
+  const el=shownIdx>=0 ? wordSync.byIndex.get(shownIdx) : null;
+  if(el===wordSync.current) return;
+  if(wordSync.current) wordSync.current.classList.remove('now');
+  if(el) el.classList.add('now');
+  wordSync.current=el||null;
+}
+function startWordSync(text, rate){
+  stopWordSync();
+  const target=findWordSyncContainer(text);
+  if(!target) return;
+  const markers=buildMouthTimeline(text, rate).filter(f=>f.word).map(f=>({t:f.t, idx:tokenIndexAt(text, f.charIndex)}));
+  wordSync={...target, text, markers, start:performance.now(), shift:0, current:null, raf:null};
+  target.el.classList.add('word-sync-live');
+  const step=()=>{
+    if(!wordSync) return;
+    const now=performance.now()-wordSync.start-wordSync.shift;
+    let idx=-1;
+    for(const m of wordSync.markers){ if(m.t<=now) idx=m.idx; else break; }
+    setSpokenWord(idx);
+    wordSync.raf=requestAnimationFrame(step);
+  };
+  wordSync.raf=requestAnimationFrame(step);
+}
+function syncWordToChar(charIndex){
+  if(!wordSync || typeof charIndex!=='number') return;
+  const idx=tokenIndexAt(wordSync.text, charIndex);
+  const marker=wordSync.markers.find(m=>m.idx===idx);
+  if(marker) wordSync.shift=(performance.now()-wordSync.start)-marker.t;
+  setSpokenWord(idx);
+}
+function stopWordSync(){
+  if(!wordSync) return;
+  if(wordSync.raf) cancelAnimationFrame(wordSync.raf);
+  if(wordSync.current) wordSync.current.classList.remove('now');
+  wordSync.el.classList.remove('word-sync-live');
+  wordSync=null;
 }
 function cancelAutoSpeak(){
   if(autoSpeakTimer){ clearTimeout(autoSpeakTimer); autoSpeakTimer = null; }
@@ -6426,14 +6579,78 @@ function stopRecognition(){
   if(typeof L === 'undefined' || !L || !L.rec) return;
   const rec = L.rec; L.rec = null;
   rec.onresult = rec.onerror = rec.onend = null;
+  rec.onaudiostart = rec.onsoundstart = rec.onspeechstart = rec.onsoundend = rec.onspeechend = null;
   try{ rec.abort(); }catch(e){}
+  stopMicMeter();
+  setMicLive(false);
 }
-function h(html){
+/* ---- the phone hears him: a live ring around the mic, and a figure that
+   leans in while the microphone is open ---- */
+let micLevel=0, micDecayTimer=null;
+function getMicLevel(){ return micLevel; }
+function setMicLevel(v){
+  micLevel=Math.max(0, Math.min(1, Number(v)||0));
+  document.querySelectorAll('.mic-btn,.conversation-mic').forEach(b=>b.style?.setProperty?.('--level', micLevel.toFixed(3)));
+}
+function bumpMicLevel(v){ setMicLevel(Math.max(micLevel, v)); }
+function startMicMeter(){
+  stopMicMeter();
+  setMicLevel(.15);
+  micDecayTimer=setInterval(()=>{ if(micLevel>.15) setMicLevel(Math.max(.15, micLevel*.86)); }, 90);
+}
+function stopMicMeter(){
+  if(micDecayTimer){ clearInterval(micDecayTimer); micDecayTimer=null; }
+  setMicLevel(0);
+}
+function setMicLive(on){
+  document.querySelectorAll('.stage-avatar,.person-art,.conversation-person .portrait').forEach(el=>el.classList.toggle('mic-live', !!on));
+}
+/* a one-shot reaction on whoever is on screen: the drawn figure on the stage
+   or the small portrait above a lesson conversation */
+function pulseCharacter(cls){
+  document.querySelectorAll('.person-art,.conversation-person .portrait').forEach(el=>{
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    const clear=()=>el.classList.remove(cls);
+    el.addEventListener?.('animationend', clear, {once:true});
+    setTimeout(clear, 1600);
+  });
+}
+/* Screen rendering. A plain h() swaps the DOM at once. hx() asks the browser
+   for a view transition, which applies the swap a frame later inside a
+   crossfade; a render sequence number makes sure a newer synchronous render
+   is never overwritten by an older transition that was still pending. Code
+   that must touch the new DOM right after a render goes through afterRender(). */
+function viewTransitionsEnabled(){
+  if(typeof document.startViewTransition!=='function') return false;
+  try{ if(typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return false; }catch(e){}
+  return true;
+}
+let renderSeq=0, lastRenderDone=null;
+function h(html, transition=false){
   uiEpoch++;
   cancelAutoSpeak();
   stopRecognition();
-  app.innerHTML = html;
-  window.scrollTo(0,0);
+  const seq=++renderSeq;
+  const apply=()=>{ app.innerHTML = html; window.scrollTo(0,0); };
+  if(transition && viewTransitionsEnabled() && !document.hidden){
+    try{
+      const vt=document.startViewTransition(()=>{ if(seq===renderSeq) apply(); });
+      lastRenderDone=Promise.resolve(vt?.updateCallbackDone).catch(()=>{});
+      if(vt?.finished?.catch) vt.finished.catch(()=>{});
+      return lastRenderDone;
+    }catch(e){}
+  }
+  apply();
+  lastRenderDone=null;
+  return Promise.resolve();
+}
+function hx(html){ return h(html, true); }
+function afterRender(fn){
+  const pending=lastRenderDone;
+  if(pending) pending.then(()=>requestAnimationFrame(fn));
+  else requestAnimationFrame(fn);
 }
 function toast(msg){
   const t = document.createElement('div');
@@ -6488,7 +6705,7 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* ================= onboarding ================= */
 function renderOnboarding(){
-  h(`
+  hx(`
   <div class="screen onb">
     <div class="logo">🎙️</div>
     <h1>מדברים אנגלית</h1>
@@ -6630,7 +6847,7 @@ function renderHome(){
     listHtml += '</div>';
   });
 
-  h(`
+  hx(`
   <div class="screen">
     <div class="top">
       <div class="brand">מדברים אנגלית<small>שיעור קצר ביום, וזהו</small></div>
@@ -6683,7 +6900,7 @@ function renderReview(){
       </div>`;
     });
   });
-  h(`
+  hx(`
     <div class="screen">
     <div class="player-top">
       <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
@@ -7212,7 +7429,7 @@ function next(){
 }
 function playerShell(inner){
   const pct = Math.round(L.i / (L.steps.length-1) * 100);
-  h(`
+  hx(`
   <div class="screen">
     <div class="player-top">
       <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהשיעור">✕</button>
@@ -7432,7 +7649,7 @@ function completeMission(u, soft=false){
   const win = soft
     ? 'הוצאת את זה מהפה, באנגלית ובקול. זה הצעד שרוב האנשים לא עושים. בפעם הבאה, מול בן אדם — וזה כבר יהיה קל יותר.'
     : m.win;
-  h(`<div class="screen">
+  hx(`<div class="screen">
     <div class="finish">
       <div class="emoji">🎉</div>
       <h2>${soft ? 'עשית את זה בקול' : 'עשית את זה באמת'}</h2>
@@ -7445,7 +7662,7 @@ function completeMission(u, soft=false){
 }
 function renderMissionScreen(u){
   if(!UNIT_MISSIONS[u]) return renderHome();
-  h(`<div class="screen">
+  hx(`<div class="screen">
     <div class="player-top">
       <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
       <h2 style="font-size:20px">המשימה שלך 🎯</h2>
@@ -7994,7 +8211,7 @@ function renderLearn(step){
   playerShell(`
     <div class="step-label">🎧 משפט חדש</div>
     <div class="phrase-card">
-      <div class="phrase-en" dir="ltr" lang="en">${wordSpans(en)}</div>
+      <div class="phrase-en" dir="ltr" lang="en" data-word-sync>${wordSpans(en)}</div>
       <div class="phrase-tl">${esc(tl)}</div>
       <div class="phrase-he">${esc(he)}</div>
       <button class="play-big" onclick="speak('${jsEsc(en)}')" aria-label="השמע">🔊</button>
@@ -8007,10 +8224,10 @@ function renderLearn(step){
 function jsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 /* each English word becomes tappable — tap hears just that word; 🔊 plays the whole sentence */
 function wordSpans(en){
-  return String(en).split(' ').map(w=>{
+  return String(en).split(' ').map((w,i)=>{
     const clean = w.replace(/[^A-Za-z']/g,'');
     if(!clean) return esc(w);
-    return `<button type="button" class="w" lang="en" onclick="event.stopPropagation();speak('${jsEsc(clean)}')" aria-label="השמעת ${esc(clean)}">${esc(w)}</button>`;
+    return `<button type="button" class="w" data-i="${i}" lang="en" onclick="event.stopPropagation();speak('${jsEsc(clean)}')" aria-label="השמעת ${esc(clean)}">${esc(w)}</button>`;
   }).join(' ');
 }
 
@@ -8040,7 +8257,7 @@ function chatBubbleHtml(item,source,index,extraClass=''){
         <span class="bubble-speaker">${who==='you'?'אני':esc(meta.character.name)}</span>
         <button class="bubble-action" onclick="replayChatMessage(${sourceArg},${index})" aria-label="השמעת ההודעה">🔊</button>
       </div>
-      <div class="dlg-en" dir="ltr" lang="en">${esc(en)}</div>
+      <div class="dlg-en" dir="ltr" lang="en" data-word-sync>${esc(en)}</div>
       <div class="bubble-help" id="bubble-he-${source}-${index}" ${autoTranslate||item.showHe?'':'hidden'}><div class="dlg-he">${esc(he)}</div></div>
       <div class="bubble-help" id="bubble-tl-${source}-${index}" ${item.showTl?'':'hidden'}><div class="dlg-tl">${esc(tl)}</div></div>
       <div class="bubble-help-actions">
@@ -8379,7 +8596,7 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
     // never silence a mouth mid-word: the live voice classes survive the morph
     const keep=['voicing','mouth-js'].filter(c=>art.classList.contains(c));
     // variant classes are part of the illustration, not of the current beat
-    const transient=new Set(['idle','waiting','speaking','listening','reacting','thinking','voicing','mouth-js']);
+    const transient=new Set(['idle','waiting','speaking','listening','reacting','thinking','voicing','mouth-js','mic-live','retry-tilt','happy']);
     const persistent=[...art.classList].filter(c=>c!=='person-art'&&!transient.has(c));
     art.setAttribute('class',['person-art',...persistent,state_,...keep].join(' '));
   }
@@ -8403,7 +8620,7 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
   const stageVisual=practiceStageModel(L);
   const direction=stageDirectionModel(directionCue);
   const rainy=stageVisual.world.weather==='rain';
-  h(`<div class="conversation-screen stage-screen" data-scene="${esc(sceneKey)}">
+  hx(`<div class="conversation-screen stage-screen" data-scene="${esc(sceneKey)}">
     <div class="stage-bg scene-motion-${esc(bd.motionProfile||'dust')}${rainy?' has-story-rain':''}${stageWorldClasses(stageVisual)}${stageBackdropMomentClasses(direction)}" data-backdrop="${esc(bd.id)}" data-light="${esc(bd.lightSide||'left')}" data-stage-cue="${esc(direction?.id||'')}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground};--scene-light:${bd.lightColor||'#ffffff'}">
       <svg class="backdrop-art backdrop-${esc(bd.id)}" data-art="${esc(bd.id)}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">${bd.art}</svg>
       <div class="stage-weather-layer" id="stageWeather" data-visual-key="${esc(stageVisual.key)}">${stageWeatherHtml(stageVisual)}</div>
@@ -8430,13 +8647,13 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
     </div>
     <div class="conversation-composer">${composer}</div>
   </div>`);
-  requestAnimationFrame(keepStageCaptionVisible);
+  afterRender(keepStageCaptionVisible);
 }
 function captionHtml(line, step, opts={}){
   const en=ptext(line,'en'), he=ptext(line,'he'), tl=ptext(line,'tl');
   const translationClass=opts.translationDelay===false?'':' delayed';
   return `
-    <div class="cap-en" dir="ltr" lang="en">${esc(en)}</div>
+    <div class="cap-en" dir="ltr" lang="en" data-word-sync>${esc(en)}</div>
     <div class="cap-aid auto-translation${translationClass}" id="capHe" dir="rtl" lang="he">${esc(he)}</div>
     <div class="cap-aid tl" id="capTl" ${step?.showTl?'':'hidden'}>${esc(tl)}</div>
     <div class="cap-actions">
@@ -8560,7 +8777,7 @@ function openChatHistory(){
 function dialogueShell(messages,composer){
   const pct=Math.round(L.i/(L.steps.length-1)*100);
   const meta=conversationMeta(L.idx);
-  h(`<div class="conversation-screen">
+  hx(`<div class="conversation-screen">
     <div class="conversation-top">
       <button class="xbtn" onclick="exitLesson()" aria-label="יציאה מהשיעור">✕</button>
       <div class="pbar" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
@@ -8574,7 +8791,7 @@ function dialogueShell(messages,composer){
     <div class="conversation-log" id="conversationLog" role="log" aria-live="polite">${messages}</div>
     <div class="conversation-composer">${composer}</div>
   </div>`);
-  requestAnimationFrame(scrollConversationToEnd);
+  afterRender(scrollConversationToEnd);
 }
 function scrollConversationToEnd(){
   const log=document.getElementById('conversationLog');
@@ -8702,7 +8919,7 @@ function renderDialogueSpeak(step){
   } else {
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
   }
-  if(terminal||step.retryMessage) requestAnimationFrame(scrollComposerToEnd);
+  if(terminal||step.retryMessage) afterRender(scrollComposerToEnd);
   if(terminal){
     // The same 1.9s as before, but read as a person rather than as a wait:
     // heard you -> a beat where they take it in -> they answer.
@@ -8866,13 +9083,35 @@ function startListening(target){
     btn.classList.remove('listening');
     btn.textContent='🎤';
     btn.setAttribute('aria-label','התחלת הקלטה');
+    stopMicMeter();
+    setMicLive(false);
   };
   btn.classList.add('listening');
   btn.textContent='⏹';
   btn.setAttribute('aria-label','סיום ההקלטה');
   hint.textContent='מקשיב... דבר, וכשסיימת לחץ ⏹';
+  startMicMeter();
+  setMicLive(true);
+  // the ring grows the moment sound is detected and with every word that
+  // arrives, then settles — he can see the phone hearing him
+  let heardChars=0;
+  rec.onaudiostart=()=>{ if(active()) bumpMicLevel(.28); };
+  rec.onsoundstart=rec.onspeechstart=()=>{
+    if(!active()||done) return;
+    bumpMicLevel(.7);
+    hint.textContent='שומע אותך 👂 דבר עד הסוף, ואז לחץ ⏹';
+  };
+  rec.onsoundend=rec.onspeechend=()=>{ if(active()) setMicLevel(Math.min(micLevel,.3)); };
   rec.onresult=(e)=>{
     if(done||!active()) return;
+    let longest=0;
+    for(let ri=0;ri<e.results.length;ri++){
+      const alt=e.results[ri]?.[0];
+      const len=alt&&typeof alt.transcript==='string'?alt.transcript.length:0;
+      if(len>longest) longest=len;
+    }
+    bumpMicLevel(Math.min(1, .55 + Math.max(0, longest-heardChars)*.04));
+    heardChars=Math.max(heardChars, longest);
     for(let ri=0;ri<e.results.length;ri++){
       const result=e.results[ri];
       if(!result) continue;
@@ -8981,6 +9220,12 @@ function showResult(kind, msg){
   }
   saveLessonCheckpoint();
   renderSpeak(step);
+  // the character answers his attempt with a face, never with a verdict:
+  // a smile when it landed, a patient tilt of the head when it didn't yet
+  afterRender(()=>{
+    if(kind==='pass') pulseCharacter('happy');
+    else if(kind==='retry') pulseCharacter('retry-tilt');
+  });
   if(kind === 'pass' && navigator.vibrate) navigator.vibrate(40);
 }
 function requeueAndNext(){
@@ -9038,7 +9283,7 @@ function renderListenQuiz(step){
     <p class="challenge-help">אפשר לשמוע שוב כמה פעמים שצריך</p>
     ${step.correctAnswered?`
       <div class="phrase-card">
-        <div class="phrase-en" dir="ltr" lang="en">${wordSpans(en)}</div>
+        <div class="phrase-en" dir="ltr" lang="en" data-word-sync>${wordSpans(en)}</div>
         <div class="phrase-tl">${esc(tl)}</div>
         <div class="phrase-he">${esc(he)}</div>
       </div>
@@ -9464,6 +9709,7 @@ if('serviceWorker' in navigator){
     }).catch(()=>{});
   });
 }
+if(viewTransitionsEnabled()) document.documentElement?.classList?.add('vt');
 if(state.onboarded) renderHome(); else renderOnboarding();
 </script>
 </body>
