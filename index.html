@@ -1982,6 +1982,23 @@ body{
 .game-obstacle.ob-friend .person-art{width:100%;height:100%}
 .game-obstacle.ob-friend .person-art.modern-v2 .arm-r{animation:gameWave 1.1s ease-in-out infinite}
 .game-obstacle.ob-friend .ob-label{font-size:12.5px}
+/* incoming: parked at the edge as a small badge with a "!" before it rolls
+   in. That is the moment to say the word, while there is still time for it
+   to be recognised; the thing then grows and starts its run. */
+.game-obstacle{transform-origin:50% 100%}
+.game-obstacle.ob-sign{transform-origin:50% 0}
+.game-obstacle.is-incoming{opacity:.9}
+.game-obstacle.is-incoming .ob-label{display:none}
+.game-obstacle.is-incoming::after{content:'!';position:absolute;bottom:100%;left:50%;margin-bottom:18px;transform:translateX(-50%);
+  width:34px;height:34px;line-height:34px;border-radius:999px;background:#f43f5e;color:#fff;font-size:26px;font-weight:900;text-align:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);animation:gameIncoming .45s ease-in-out infinite alternate}
+.game-obstacle.ob-sign.is-incoming::after{bottom:auto;top:100%;margin:22px 0 0}
+@keyframes gameIncoming{from{transform:translateX(-50%) scale(.9)}to{transform:translateX(-50%) scale(1.2)}}
+/* Sam heard something and is waiting for the word: a tense little crouch */
+.game-runner.is-bracing .person-art.modern-v2 .figure{animation:gameBrace .3s ease forwards}
+@keyframes gameBrace{to{transform:translateY(4px) scaleY(.95) scaleX(1.03)}}
+.game-heard.is-hearing b{color:#6ee7b7}
+.game-mode button.is-hearing{box-shadow:0 0 0 4px rgba(52,211,153,.28);background:rgba(52,211,153,.3);color:#d1fae5}
 .game-obstacle.is-done{transition:opacity .35s ease,transform .35s ease;opacity:0}
 .game-obstacle.is-poof{animation:gamePoof .42s ease both}
 @keyframes gamePoof{to{opacity:0;transform:translateX(var(--x,0px)) scale(1.6) rotate(12deg)}}
@@ -11153,7 +11170,20 @@ function samRunSave(store){ try{ localStorage.setItem(SAM_RUN_KEY, JSON.stringif
 /* the run gets faster with the score, then settles: a ceiling keeps the
    voice path fair, since a word takes a real moment to be recognised */
 function samRunSpeedFor(score){ return 1+Math.min(Math.max(0,score),70)/70*1.15; }
-function samRunTravelMs(score){ return Math.max(1150, Math.round(2550/samRunSpeedFor(score))); }
+/* The street can look as fast as it likes; the windows must stay fair. A
+   spoken word takes the recogniser anywhere from half a second to two before
+   it comes back, so the approach never drops below 1.5s, and every thing
+   announces itself at the edge first (samRunWarnMs) so the word can be said
+   while there is still time for it to be recognised. */
+function samRunTravelMs(score){ return Math.max(1500, Math.round(2400/samRunSpeedFor(score))); }
+function samRunWarnMs(score, latency=0){
+  const base=Math.round(1000-250*(samRunSpeedFor(score)-1)/1.15);
+  // a slow recogniser, measured on this device, earns more notice
+  return base+Math.min(700,Math.max(0,Math.round(latency)-650));
+}
+/* how long a thing will wait at the door for a word that is already being
+   said, and how long speech counts as "in flight" before a word comes back */
+const SAM_RUN_GRACE_MS=1500, SAM_RUN_SPEECH_MAX_MS=3000;
 /* the last word the player said wins, matched with the same forgiveness the
    lessons use, so "jumped", "dock" and "cash" all land on the move meant */
 function samRunMatchCommand(text, active=SAM_RUN_ORDER){
@@ -11217,7 +11247,7 @@ function samRunStartCardHtml(store){
   return `
     <div class="game-intro-runner">${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
     <h2>הריצה של סם</h2>
-    <p>סם רץ. <b>אתה</b> אומר לו מה לעשות: באנגלית, בקול, בזמן.</p>
+    <p>סם רץ. כשמופיע <b>!</b> בקצה, תגיד את המילה <b>מיד</b>. סם יעשה את זה בזמן הנכון.</p>
     <p class="words-said">${store.unlocked.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}${locked.length?` · 🔒 עוד ${locked.length}`:''}</p>
     <button class="btn" onclick="samRunStart()">GO! 🏃</button>`;
 }
@@ -11289,7 +11319,8 @@ function samRunStart(){
   const obstacles=document.getElementById('samRunObstacles');
   if(!runner||!card||!world||!obstacles) return;
   obstacles.innerHTML='';
-  Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],halted:false,paused:false,said:{},hits:{},cleared:{},lastKind:'',sameKind:0,active:g.store.unlocked.slice()});
+  Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],halted:false,paused:false,said:{},hits:{},cleared:{},lastKind:'',sameKind:0,active:g.store.unlocked.slice(),
+    speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=false; runner.className='game-runner';
   world.className='game-world'; world.style.setProperty('--speed','1');
@@ -11326,17 +11357,39 @@ function samRunFrame(ts){
     // two arrive as a cluster nobody could answer in time
     if(g.halted) g.nextSpawnAt+=dt;
     if(g.time>=g.nextSpawnAt) samRunSpawn();
+    // speech that never turned into a word stops counting after the grace
+    // window — unless a thing is already holding for it, which runs on its
+    // own clock below, so a two-second word is not dropped half way
+    const anyHolding=g.obstacles.some(o=>o.holding);
+    if(g.speechAt&&!anyHolding&&performance.now()-g.speechAt>SAM_RUN_SPEECH_MAX_MS){ g.speechAt=0; samRunHearing(false); }
+    const target=g.obstacles.find(o=>!o.resolved);
     for(const ob of g.obstacles.slice()){
       if(g.halted&&!ob.crossing) continue;
-      ob.progress+=dt/ob.travelMs;
       const thing=SAM_RUN_THINGS[ob.cmd];
+      /* Hold at the door. The player is mid-word: speech was detected but
+         the recogniser has not answered yet. The thing waits just short of
+         Sam, once, for up to the grace window, so a word said in time is
+         never lost to the time it takes to be understood. */
+      const speaking=!!g.speechAt&&ob===target&&!ob.resolved&&ob.armed!==ob.cmd&&!ob.holdSpent;
+      if(speaking&&ob.progress>=.96){
+        ob.progress=.96;
+        if(!ob.holding){ ob.holding=true; ob.holdAt=g.time; samRunBrace(true); }
+        else if(g.time-ob.holdAt>SAM_RUN_GRACE_MS){ ob.holdSpent=true; ob.holding=false; g.speechAt=0; samRunBrace(false); samRunHearing(false); }
+      } else {
+        if(ob.holding){ ob.holding=false; samRunBrace(false); }
+        ob.progress+=dt/ob.travelMs;
+      }
       if(!ob.executed&&thing.execAt&&ob.progress>=thing.execAt&&ob.armed===ob.cmd) samRunExecute(ob);
       if(!ob.resolved&&ob.progress>=1) samRunResolve(ob);
       if(ob.crossing&&ob.progress>=1.18&&g.halted) samRunUnhalt();
       if(ob.progress>=1.32){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
-      const x=g.worldW+70-ob.progress*(g.worldW+70-g.runnerX);
+      // before its run a thing waits at the edge as a small badge with a "!"
+      const incoming=ob.progress<0;
+      if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
+      const startX=g.worldW-62;
+      const x=incoming?startX:startX-ob.progress*(startX-g.runnerX);
       ob.x=x; ob.el.style.setProperty('--x',x+'px');
-      if(!ob.el.classList.contains('is-poof')&&!ob.el.classList.contains('is-caught')) ob.el.style.transform=`translateX(${x}px)`;
+      if(!ob.el.classList.contains('is-poof')&&!ob.el.classList.contains('is-caught')) ob.el.style.transform=`translateX(${x}px)${incoming?' scale(.6)':''}`;
     }
   }
   g.raf=requestAnimationFrame(samRunFrame);
@@ -11360,9 +11413,10 @@ function samRunSpawn(){
   const last=g.obstacles[g.obstacles.length-1];
   if(last&&!last.resolved&&last.progress<.55){ g.nextSpawnAt=g.time+120; return; }
   const cmd=samRunPickKind(), c=SAM_RUN_COMMANDS[cmd], thing=SAM_RUN_THINGS[cmd];
-  const travelMs=samRunTravelMs(g.score);
+  const travelMs=samRunTravelMs(g.score), warnMs=samRunWarnMs(g.score,g.latencyEma||g.store.latency||0);
   const el=document.createElement('div');
-  el.className='game-obstacle ob-'+thing.kind;
+  el.className='game-obstacle ob-'+thing.kind+' is-incoming';
+  el.style.transform=`translateX(${g.worldW-62}px) scale(.6)`;
   // the word rides on the obstacle until this type has been cleared three times
   const trained=(g.store.cleared[cmd]||0)>=3;
   const label=trained?'':`<span class="ob-label">${c.en}</span>`;
@@ -11374,10 +11428,11 @@ function samRunSpawn(){
     ball:`<span class="ob-body">${pick(['⚽','🏀','🎾'])}</span>${label}`,
   })[thing.kind];
   host.appendChild(el);
-  const ob={cmd,el,progress:0,travelMs,armed:null,executed:false,resolved:false,crossing:thing.kind==='dog'};
+  // progress starts negative: that is the warning phase, parked at the edge
+  const ob={cmd,el,progress:-warnMs/travelMs,travelMs,armed:null,executed:false,resolved:false,crossing:thing.kind==='dog',incoming:true};
   g.obstacles.push(ob);
   // spacing is a share of the approach, so density scales with speed
-  g.nextSpawnAt=g.time+travelMs*(.62+Math.random()*.3);
+  g.nextSpawnAt=g.time+warnMs+travelMs*(.62+Math.random()*.3);
 }
 /* the player said (or tapped) a word: it arms the next thing coming. Anything
    said with nothing coming is a free move — Sam does it anyway, because a
@@ -11387,18 +11442,42 @@ function samRunCommand(cmd,source){
   if(!g.active.includes(cmd)) return;
   g.said[cmd]=(g.said[cmd]||0)+1;
   samRunLight(cmd);
-  const target=g.obstacles.find(o=>!o.resolved);
+  // the word has landed: how long did it take from the first sound?
+  if(source==='voice'&&g.speechAt) samRunNoteLatency(performance.now()-g.speechAt);
+  g.speechAt=0; samRunHearing(false); samRunBrace(false);
   const thing=SAM_RUN_THINGS[cmd];
+  /* Which thing does the word belong to? The nearest one it answers that is
+     not already answered — so saying the NEXT thing's word early, which the
+     "!" invites, never un-answers the current one, and a wrong word can be
+     corrected by the right one. Failing that, the nearest thing not yet
+     answered right: a wrong word is still a wrong word. */
+  const pending=g.obstacles.filter(o=>!o.resolved);
+  const match=pending.find(o=>o.cmd===cmd&&o.armed!==cmd);
+  /* A right word that arrives just after its thing already hit is late, not
+     wrong. Say so — and never let it arm the next thing with a move meant
+     for the last one, which turned one slow recognition into two hits. */
+  if(!match&&g.lastHit&&g.time-g.lastHit.at<1400&&g.lastHit.cmd===cmd){
+    g.lastHit=null; g.late=(g.late||0)+1;
+    samRunFloat('מאוחר!',null,true);
+    const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='המילה הגיעה אחרי הפגיעה. תגיד אותה <b>ברגע שאתה רואה</b> את ה־!';
+    if(cmd!=='stop') samRunPose(thing.move,thing.hold||600);
+    return;
+  }
+  const target=match||pending.find(o=>o.armed!==o.cmd)||null;
   if(target){
     target.armed=cmd;
     if(cmd==='hello'&&target.cmd==='hello'){ samRunResolve(target); return; }
     if(target.cmd===cmd){
       if(target.progress>=thing.execAt) samRunExecute(target);
       else samRunPose('is-armed-'+cmd,380);
-      return;
+    } else {
+      // Sam visibly gets ready for the wrong move: the player can see it and
+      // correct him with the right word while there is still time
+      samRunPose('is-armed-'+cmd,380);
     }
+    return;
   }
-  // no matching target: a free move, no consequence
+  // nothing to answer: a free move, no consequence
   if(cmd!=='stop'){ samRunPose(thing.move,thing.hold||600); samRunTone(cmd); }
 }
 function samRunExecute(ob){
@@ -11452,6 +11531,8 @@ function samRunHit(ob){
   const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
   g.lives=Math.max(0,g.lives-1);
   g.hits[ob.cmd]=(g.hits[ob.cmd]||0)+1;
+  g.lastHit={cmd:ob.cmd,at:g.time};
+  if(ob.holding){ ob.holding=false; samRunBrace(false); }
   if(g.halted) samRunUnhalt();
   ob.el.classList.add('is-poof');
   samRunTone('hit');
@@ -11465,6 +11546,24 @@ function samRunPose(cls,ms){
   const runner=document.getElementById('samRunRunner'); if(!runner) return;
   runner.classList.remove(cls); void runner.offsetWidth; runner.classList.add(cls);
   if(ms) setTimeout(()=>runner.classList.remove(cls),ms);
+}
+/* Sam heard something and is waiting for the word: a tense little crouch */
+function samRunBrace(on){
+  const runner=document.getElementById('samRunRunner'); if(runner) runner.classList.toggle('is-bracing',!!on);
+}
+/* the moment sound is detected the player sees it — long before the word
+   comes back — so a slow recogniser never feels like a deaf one */
+function samRunHearing(on){
+  const g=samRun; if(!g) return;
+  const heard=document.getElementById('samRunHeard'), btn=document.getElementById('samRunMicBtn');
+  if(btn) btn.classList.toggle('is-hearing',!!on);
+  if(!heard) return;
+  heard.classList.toggle('is-hearing',!!on);
+  if(on) heard.innerHTML='<span class="mic">🎤</span> <b>שומע אותך…</b>';
+}
+function samRunNoteLatency(ms){
+  const g=samRun; if(!g||!(ms>0)||ms>4000) return;
+  g.latencyEma=g.latencyEma?g.latencyEma*.7+ms*.3:ms;
 }
 function samRunLight(cmd){
   document.querySelectorAll('#samRunWords .game-word').forEach(b=>{
@@ -11513,9 +11612,14 @@ function samRunResume(){
   clearTimeout(g.unlockTimer);
   cancelSpeech();
   const card=document.getElementById('samRunCard'); if(card){ card.hidden=true; card.innerHTML=''; }
-  g.paused=false; g.last=0;
-  // the pause froze time, so nothing arrives the instant play resumes
-  g.nextSpawnAt=Math.max(g.nextSpawnAt,g.time+900);
+  g.paused=false; g.last=0; g.speechAt=0; samRunHearing(false); samRunBrace(false);
+  /* Whatever was on the street when the card came up was answered — or not —
+     while nobody was listening: a word already on its way landed on a
+     recogniser that had been stopped. Clear the street and start clean, so
+     the pause never costs a life. */
+  for(const ob of g.obstacles.slice()){ if(!ob.resolved){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); } }
+  if(g.halted) samRunUnhalt();
+  g.nextSpawnAt=g.time+900;
   if(g.mode==='voice') samRunListen();
 }
 function samRunOver(){
@@ -11526,13 +11630,17 @@ function samRunOver(){
   const store=g.store, newBest=g.score>(store.best||0);
   store.best=Math.max(store.best||0,g.score);
   for(const [k,v] of Object.entries(g.said)) store.said[k]=(store.said[k]||0)+v;
+  if(g.latencyEma) store.latency=Math.round(g.latencyEma);   // next run gives this device its due notice from the first thing
   samRunSave(store);
   samRunTone(newBest?'best':'over');
   if(newBest&&g.score>=5) confetti();
   const said=SAM_RUN_ORDER.filter(id=>g.said[id]).map(id=>`${SAM_RUN_COMMANDS[id].en} ×${g.said[id]}`).join(' · ');
   const worst=Object.entries(g.hits).sort((a,b)=>b[1]-a[1])[0];
-  const tip=g.score<4
-    ? 'טיפ: תגיד את המילה ברגע שאתה רואה מה מגיע. סם מחכה לה.'
+  const slow=g.latencyEma>1100?` (הזיהוי במכשיר הזה לוקח בערך ${(g.latencyEma/1000).toFixed(1)} שניות, אז מעכשיו כל דבר יודיע על עצמו קצת יותר מוקדם.)`:'';
+  const tip=g.late>=2
+    ? `${g.late} פעמים המילה הנכונה הגיעה אחרי הפגיעה. תגיד אותה ברגע שאתה רואה את ה־! בקצה, סם יחכה לרגע הנכון.${slow}`
+    : g.score<4
+    ? 'טיפ: תגיד את המילה ברגע שה־! מופיע בקצה. סם עושה את התנועה בזמן הנכון.'+slow
     : worst&&worst[1]>=2 ? `רוב הפעמים זה היה ${SAM_RUN_COMMANDS[worst[0]].ic} — ${SAM_RUN_COMMANDS[worst[0]].hint}`
     : pick(['עוד קצת והשיא נופל.','סם כבר מחכה לריצה הבאה.','כל מילה שאמרת בקול, נשארת.']);
   card.hidden=false;
@@ -11558,7 +11666,12 @@ function samRunListen(){
   rec.lang='en-US'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=3;
   g.rec=rec; g.heardKeys=new Set();
   const live=()=>samRun===g&&g.rec===rec;
+  // sound arrives long before words do: mark the start of a phrase from the
+  // first sound event, or from the first partial result where a browser
+  // gives no sound events, and show the player they are being heard
+  const hearing=()=>{ if(!live()||!g.running||g.paused) return; if(!g.speechAt){ g.speechAt=performance.now(); samRunHearing(true); } };
   rec.onstart=()=>{ if(live()) g.heardKeys=new Set(); };
+  rec.onsoundstart=rec.onspeechstart=hearing;
   rec.onresult=e=>{
     if(!live()) return;
     for(let ri=e.resultIndex||0;ri<e.results.length;ri++){
@@ -11567,6 +11680,7 @@ function samRunListen(){
       for(let ai=0;ai<res.length;ai++){
         const t=String(res[ai]?.transcript||'').trim(); if(!t) continue;
         shown=shown||t;
+        hearing();
         const cmd=samRunMatchCommand(t,g.active);
         if(!cmd) continue;
         // one move per phrase per word: interim and final results repeat the same text

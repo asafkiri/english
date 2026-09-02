@@ -80,7 +80,7 @@ function runtime(seed = new Map(), options = {}) {
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
-      renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunStore, samRunSave,
+      renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_KEY, STORE_KEY,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3317,7 +3317,17 @@ test("Sam's Run: the street speeds up with the score, then stops speeding up", (
   assert.equal(api.samRunSpeedFor(0), 1);
   assert.equal(api.samRunSpeedFor(70), api.samRunSpeedFor(500), 'a ceiling keeps the voice path fair');
   assert.ok(api.samRunTravelMs(0) > api.samRunTravelMs(70), 'things arrive faster as the score climbs');
-  assert.ok(api.samRunTravelMs(500) >= 1150, 'a spoken word needs a real moment to be recognised');
+  assert.ok(api.samRunTravelMs(500) >= 1500, 'a spoken word needs a real moment to be recognised');
+  // every thing announces itself at the edge first, and a slow recogniser,
+  // measured on this device, earns more notice — up to a cap
+  assert.equal(api.samRunWarnMs(0, 0), 1000, 'a fresh run gives a full second of warning');
+  assert.ok(api.samRunWarnMs(70, 0) < api.samRunWarnMs(0, 0) && api.samRunWarnMs(70, 0) >= 750, 'the warning shortens with speed but never below 750ms');
+  assert.equal(api.samRunWarnMs(0, 600), 1000, 'a quick recogniser earns no extra notice');
+  assert.equal(api.samRunWarnMs(0, 1200), 1550, 'a slow one earns the difference above 650ms');
+  assert.equal(api.samRunWarnMs(0, 4000), 1700, 'capped at +700ms, so a broken measurement cannot stall the game');
+  // the whole window a human gets: warning plus approach, at both ends of the ramp
+  assert.ok(api.samRunWarnMs(0, 0) + api.samRunTravelMs(0) >= 3400, 'over three seconds at the start');
+  assert.ok(api.samRunWarnMs(70, 0) + api.samRunTravelMs(70) >= 2250, 'still over two seconds at full speed');
   for (const id of api.SAM_RUN_ORDER)
     assert.ok(api.SAM_RUN_COMMANDS[id] && api.SAM_RUN_THINGS[id], `${id} has both a word and a thing that answers to it`);
   assert.equal(api.SAM_RUN_ORDER.filter(id => api.SAM_RUN_UNLOCK[id] === 0).join(','), 'jump,duck',
