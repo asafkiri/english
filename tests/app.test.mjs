@@ -69,7 +69,7 @@ function runtime(seed = new Map(), options = {}) {
       buildPracticeSession, rememberPracticeRun, startPractice, startUnitRehearsal, ptext,
       UNIT_REHEARSALS, UNIT_MISSIONS, normalizeMissions, mergeMissions, LESSONS_PER_UNIT,
       startLesson, resumeLesson, saveLessonCheckpoint, stopLessonTimers, renderStep, renderHome,
-      manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, stageCaptionSequence,
+      manualMicDone, answerListenQuiz, renderOrder, selectOrderChunk, chooseBranch, next, notePractice, stageCaptionLine, stageCaptionSequence,
       stageCaptionHtml, captionHtml, chatMessagesHtml,
       keepStageCaptionVisible,
       askConfirm, resolveDialog, exitLesson, unitCallToActionHtml, snoozeMission, missionSnoozed,
@@ -328,6 +328,36 @@ test('each lesson builds three challenges of one gradual type', () => {
       }
     }
   });
+});
+
+test('ordering words animates mistakes back and success continues without another tap', async () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 2;
+  api.setState(state);
+  api.startLesson(2, false, true);
+  const lesson = api.getLesson();
+  lesson.i = lesson.steps.findIndex(step => step.type === 'order');
+  api.renderStep();
+  const step = lesson.steps[lesson.i];
+
+  api.selectOrderChunk(1);
+  assert.equal(step.returningChunkId, 1);
+  assert.match(app.innerHTML, /is-returning/);
+  await new Promise(resolve => setTimeout(resolve, 390));
+  assert.deepEqual([...step.selected], []);
+  assert.match(app.innerHTML, /wrong-returned/);
+
+  for(let id=0;id<step.chunks.length;id++) api.selectOrderChunk(id);
+  assert.equal(step.correct, true);
+  assert.match(app.innerHTML, /order-built[^>]*is-correct/);
+  assert.match(app.innerHTML, /data-word-sync/);
+  assert.match(app.innerHTML, /מקשיבים וממשיכים אוטומטית/);
+  assert.doesNotMatch(app.innerHTML, /onclick="next\(\)"/);
+  assert.equal((app.innerHTML.match(/class="word-chip"/g)||[]).length, 0,
+    'used bank chips disappear instead of remaining as disabled controls');
+  api.stopLessonTimers(false);
 });
 
 test('there is one controlled branch conversation per unit', () => {
