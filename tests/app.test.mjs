@@ -103,7 +103,7 @@ test('course content remains intact', () => {
   });
   assert.equal(
     crypto.createHash('sha256').update(protectedContent).digest('hex'),
-    '46793e10019e3cfd3c218a44e87f65f6213deb9845a126a1afc03964c19f2159',
+    '626ff047deb56d8144b8dff18cac1140dbec1b8dc5012040b65fa3bddca115b0',
   );
 });
 
@@ -247,6 +247,33 @@ test('warm-up grows to 20 and keeps hard, recent and older material', () => {
     maxHardRun = Math.max(maxHardRun, run);
   }
   assert.ok(maxHardRun <= 2);
+});
+
+test('guided lessons stay short, keep new English visible, and end on a real stage', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 29;
+  api.setState(state);
+  api.startLesson(29, false, true);
+
+  const lesson = api.getLesson();
+  assert.equal(lesson.steps.filter(step => step.warmup).length, 6, 'the opening review is capped for beginners');
+
+  lesson.i = lesson.steps.findIndex(step => step.type === 'speak' && !step.warmup && !step.challenge);
+  api.renderStep();
+  assert.match(app.innerHTML, /עכשיו אומרים יחד/);
+  assert.match(app.innerHTML, /המשפט מולך/);
+  assert.doesNotMatch(app.innerHTML, /id="englishHint" hidden/);
+  assert.doesNotMatch(app.innerHTML, /id="translitHint" hidden/);
+
+  lesson.i = lesson.steps.findIndex(step => step.type === 'listen');
+  lesson.steps[lesson.i].arrived = true;
+  api.renderStep();
+  assert.match(app.innerHTML, /conversation-screen stage-screen/);
+  assert.match(app.innerHTML, /data-backdrop="beach-path"/);
+  assert.match(app.innerHTML, /person-art modern-v2/);
+  api.stopLessonTimers(false);
 });
 
 test('each lesson builds three challenges of one gradual type', () => {
