@@ -33,6 +33,7 @@ function runtime(seed = new Map(), options = {}) {
   const window = {
     SpeechRecognition: null,
     webkitSpeechRecognition: null,
+    matchMedia: options.matchMedia,
     scrollTo() {},
     addEventListener() {},
   };
@@ -51,15 +52,17 @@ function runtime(seed = new Map(), options = {}) {
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, save, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
-      PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES,
+      PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES, PRACTICE_CAST,
       PRACTICE_STAGE_DIRECTIONS, STAGE_DIRECTION_PRESETS, STAGE_ACTION_DURATIONS_MS,
       practiceStoryById, practiceSceneById, matchesPracticeWhen, resolvePracticeBeat,
       applyPracticeChoice, fillPracticeStoryTokens, fillProfileText, materializePracticeBeat,
       initialPracticeStageWorld, initialPracticeVars, applyPracticeStageMutation, enterPracticeStageAction,
       ensurePracticeStageWorld, settlePracticeStageAction, finishPracticeStageActionVisual,
       practiceStageModel, practiceStageDirection, practiceStageActionDuration,
+      prefersReducedStageMotion, practiceStageActionVisualDelay,
       stageDirectionModel, stageDirectionClasses, stageBackdropMomentClasses,
       stageActionClass, stageHeldObjectClasses, stageWorldClasses,
+      PRACTICE_BACKDROPS,
       stagePropsHtml, stageWeatherHtml, syncStageVisualBlock,
       availablePracticeStories, remainingPracticeStories, practiceStoryLengthPool, normalizePracticeStoryIds,
       practiceStoryCycleState, mergePracticeStoryCycles,
@@ -1284,6 +1287,7 @@ test('authored stage actions are narrated, unique and use the supported world co
   const { api } = runtime();
   const gestures = new Set([
     'place-brushes', 'pick-up-phone', 'hand-over-phone', 'phone-to-desk',
+    'move-mirror-light', 'find-mirror', 'place-mirror',
     'reveal-wrong-bag', 'replace-bag', 'start-rain', 'stop-rain',
     'inspect-found-bag', 'find-lost-bag', 'serve-wrong-meal', 'swap-correct-meal',
     'catch-photo', 'return-photo', 'choose-activity', 'confirm-activity',
@@ -1306,6 +1310,8 @@ test('authored stage actions are narrated, unique and use the supported world co
     lostDog: new Set(['none', 'spotted', 'identified', 'reunited']),
     robot: new Set(['bag', 'awake', 'lit']),
     storyProp: new Set(['ready', 'changed']),
+    mirror: new Set(['hidden', 'held', 'placed']),
+    mirrorLight: new Set(['hidden', 'moving', 'source', 'final']),
   };
   const ids = [];
   const authoredActionIds = new Set();
@@ -1471,6 +1477,185 @@ test('stage actions run once on arrival and their logical result persists across
   assert.equal(visual.pendingStageAction.id, 'newer-action');
 });
 
+test('Maya physically finds and places the mirror while its wall light keeps the resolved state', () => {
+  const { api } = runtime();
+  const story = api.practiceStoryById('maya_window_light');
+  assert.ok(story, 'the window-light story should remain available');
+
+  const actionAt = beatIndex => {
+    const beat = api.resolvePracticeBeat(story, beatIndex, { clue: 'light' });
+    assert.ok(beat, `maya_window_light/${beatIndex}: unresolved beat`);
+    return beat.stageAction;
+  };
+  const actions = [actionAt(1), actionAt(2), actionAt(3)];
+  assert.deepEqual(Array.from(actions, action => action?.gesture), [
+    'move-mirror-light', 'find-mirror', 'place-mirror',
+  ], 'the narrated discovery needs a physical action on each visible beat');
+  assert.equal(new Set(actions.map(action => action?.id)).size, actions.length,
+    'each mirror action should remain a one-shot event');
+
+  const session = {
+    isPractice: true, practiceStoryId: story.id, practiceVars: { clue: 'light' },
+    stageWorld: api.initialPracticeStageWorld(story), stagePlayedActions: [], pendingStageAction: null,
+  };
+  assert.equal(session.stageWorld.mirror, 'hidden');
+  assert.equal(session.stageWorld.mirrorLight, 'hidden');
+  const livingRoomArt = api.PRACTICE_BACKDROPS['living-room'].art;
+  for (const className of ['wall-light-moving', 'wall-light-source', 'wall-light-final']) {
+    assert.match(livingRoomArt, new RegExp(className), `${className} should be anchored to the living-room SVG`);
+  }
+  const storyOverlayAt = livingRoomArt.indexOf('class="backdrop-motion"');
+  assert.ok(storyOverlayAt >= 0 && livingRoomArt.indexOf('wall-light-moving') > storyOverlayAt,
+    'the animated spot should live in a small unfiltered overlay, outside the far-layer filter');
+  assert.match(livingRoomArt, /class="mirror-window-prop"/,
+    'the placed mirror should share the window viewBox instead of drifting with avatar size');
+  assert.match(livingRoomArt, /class="living-picture" transform="translate\(0 74\)"/,
+    'the wall target should stay below the header crop on short phones');
+  assert.match(livingRoomArt, /wall-light-source[\s\S]*cx="244" cy="314"[\s\S]*class="mirror-source-prop"[\s\S]*cx="244" cy="314"/,
+    'the source ray and reflective face should meet at one scene-coordinate point');
+  assert.ok(livingRoomArt.indexOf('class="sun-mirror-object"', livingRoomArt.indexOf('class="mirror-source-prop"')) <
+      livingRoomArt.indexOf('class="mirror-source-book"'),
+    'the book should paint over the lower mirror so it visibly peeks out from underneath');
+  assert.match(livingRoomArt, /class="mirror-final-beam"[\s\S]*class="mirror-final-spot"/,
+    'the reflected beam should stay anchored while only its landing spot moves');
+  assert.match(livingRoomArt, /class="mirror-final-spot"[\s\S]*cy="129"/,
+    'the settled light should land on the short-phone-safe target position');
+  assert.match(html, /@keyframes mirrorLightLand\{\s*0%,68%\{opacity:0/,
+    'the reflected light must wait until Maya brings the mirror to the window');
+  assert.match(html, /@keyframes storyMirrorBackdropTurn\{\s*0%,38%/,
+    'the mirror turn should begin before the wall reflection appears');
+
+  assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: actions[0] }, session), true);
+  assert.equal(session.stageWorld.mirror, 'hidden');
+  assert.equal(session.stageWorld.mirrorLight, 'moving');
+  let model = api.practiceStageModel(session);
+  let props = api.stagePropsHtml(model);
+  assert.match(api.stageWorldClasses(model), /has-mirror-light-moving/);
+  assert.match(api.stageWorldClasses(model), /is-mirror-action-move/,
+    'the first light sweep should be synchronized to Maya\'s tracking glance');
+  assert.doesNotMatch(api.stageWorldClasses(model), /has-mirror-light-final/);
+  api.settlePracticeStageAction(session);
+  model = api.practiceStageModel(session);
+  assert.equal(model.action, null);
+  assert.match(api.stageWorldClasses(model), /has-mirror-light-moving/,
+    'the travelling spot should persist after its one-shot tracking gesture settles');
+  assert.doesNotMatch(api.stageWorldClasses(model), /is-mirror-action-move/,
+    'after the authored glance, the spot should switch to its slower ambient wander');
+
+  assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: actions[1] }, session), true);
+  assert.equal(session.stageWorld.mirror, 'held');
+  assert.equal(session.stageWorld.mirrorLight, 'source');
+  model = api.practiceStageModel(session);
+  props = api.stagePropsHtml(model);
+  assert.doesNotMatch(props, /prop-sun-mirror/,
+    'the source mirror should stay aligned to the room rather than an avatar-relative overlay');
+  assert.match(livingRoomArt, /mirror-source-prop/,
+    'the discovered mirror should be drawn as a real living-room object');
+  assert.match(api.stageWorldClasses(model), /has-mirror-light-source/);
+  assert.doesNotMatch(props, /prop-story-card/,
+    'the physical mirror should not fall back to the generic floating story card');
+  api.settlePracticeStageAction(session);
+  model = api.practiceStageModel(session);
+  assert.equal(model.action, null);
+  assert.equal(model.world.mirror, 'held');
+  assert.match(api.stageWorldClasses(model), /has-mirror-light-source/);
+  assert.match(api.stageHeldObjectClasses(model), /has-held-mirror/,
+    'after the pickup animation settles, the mirror must remain visibly gripped');
+  assert.doesNotMatch(api.stagePropsHtml(model), /prop-sun-mirror/,
+    'the source copy should disappear once the same mirror is in Maya\'s hand');
+
+  assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: actions[2] }, session), true);
+  assert.equal(session.stageWorld.mirror, 'placed');
+  assert.equal(session.stageWorld.mirrorLight, 'final');
+  model = api.practiceStageModel(session);
+  props = api.stagePropsHtml(model);
+  assert.doesNotMatch(props, /prop-sun-mirror/,
+    'the settled mirror belongs to the background coordinate system, not the avatar prop layer');
+  assert.match(api.stageWorldClasses(model), /has-mirror-light-final/);
+  assert.doesNotMatch(api.stageWorldClasses(model), /has-mirror-light-moving|has-mirror-light-source/,
+    'the settled spot should replace transient light states rather than stack on top of them');
+  api.settlePracticeStageAction(session);
+  assert.equal(session.stageWorld.mirror, 'placed');
+  assert.equal(session.stageWorld.mirrorLight, 'final');
+  assert.match(api.stageWorldClasses(api.practiceStageModel(session)), /has-mirror-light-final/,
+    'the final spot should persist after the one-shot placement animation ends');
+  assert.doesNotMatch(api.stageHeldObjectClasses(api.practiceStageModel(session)), /has-held-mirror/,
+    'the hand should release the mirror after it settles on the window ledge');
+  for (const gesture of ['move-mirror-light', 'find-mirror', 'place-mirror']) {
+    assert.match(html, new RegExp(`\\.stage-avatar\\.stage-action-${gesture.replaceAll('-', '\\-')}`),
+      `${gesture}: the semantic action needs dedicated body choreography`);
+  }
+  assert.match(html, /\.person-art\.modern-v2\.voicing \.arm-r \.hand\{animation:mirrorPlaceWrist[^}]*transform-origin:176px 252px/,
+    'the placement wrist must override speaking motion without losing its anatomical pivot');
+  const breathe = html.match(/@keyframes figBreathe\{[\s\S]*?\}\n@keyframes blink/)?.[0] || '';
+  assert.ok(breathe, 'the figure breathing keyframes should remain available');
+  assert.doesNotMatch(breathe, /scaleY\(/,
+    'whole-body idle motion should not stretch Maya on top of the torso breath');
+});
+
+test('the living-room portrait is lit from its visible window on the right', () => {
+  const { api } = runtime();
+  assert.equal(api.PRACTICE_BACKDROPS['living-room'].lightSide, 'right');
+});
+
+test('the rendered mirror scene keeps one physical mirror through pickup and placement', () => {
+  const renderBeat = (beatIndex, stageWorld, stagePlayedActions) => {
+    const { api, app } = runtime();
+    const story = api.practiceStoryById('maya_window_light');
+    const beat = api.resolvePracticeBeat(story, beatIndex, { clue: 'light' });
+    const listen = {
+      type: 'listen', line: beat.ask, event: beat.event, stageAction: beat.stageAction,
+      stageCue: beat.stageCue, practiceBeatId: beat.id, practiceVariantId: beat.variantId,
+      roundIndex: beatIndex, arrived: true,
+    };
+    const lesson = {
+      idx: 0, steps: [listen, { type: 'branchChoice', options: beat.options, roundIndex: beatIndex }],
+      i: 0, isReplay: true, isPractice: true, practiceStoryId: story.id,
+      practiceVars: { clue: 'light' }, practiceDecisions: [],
+      practiceMeta: {
+        characterId: 'maya', character: api.PRACTICE_CAST.maya,
+        placeEmoji: '🪟', place: 'בסלון', mission: story.goal,
+        role: api.PRACTICE_CAST.maya.role, bg: 'living-room',
+      },
+      stageWorld: { ...stageWorld }, stagePlayedActions: [...stagePlayedActions], pendingStageAction: null,
+      elapsedBeforeMs: 0, activeSince: Date.now(), chat: [], chatExpanded: false,
+      tries: 0, attempts: 0, rec: null, timerId: null, runId: `mirror-dom-${beatIndex}`,
+    };
+    api.setLesson(lesson);
+    api.renderStep();
+    const during = app.innerHTML;
+    api.next();
+    const settled = app.innerHTML;
+    api.stopLessonTimers(false);
+    api.setLesson(null);
+    return { during, settled };
+  };
+
+  const pickup = renderBeat(2, { mirror: 'hidden', mirrorLight: 'moving' }, ['maya-tracks-moving-mirror-light']);
+  assert.match(pickup.during, /stage-action-find-mirror/);
+  assert.match(pickup.during, /is-mirror-action-find/);
+  assert.match(pickup.during, /has-held-mirror/);
+  assert.match(pickup.during, /mirror-source-prop/);
+  assert.doesNotMatch(pickup.during, /prop-sun-mirror/);
+  assert.doesNotMatch(pickup.settled, /stage-action-find-mirror|is-mirror-action-find/);
+  assert.match(pickup.settled, /has-held-mirror/,
+    'the settled choice screen must keep the discovered mirror in Maya\'s hand');
+
+  const placement = renderBeat(3, { mirror: 'held', mirrorLight: 'source' }, [
+    'maya-tracks-moving-mirror-light', 'maya-finds-sun-mirror',
+  ]);
+  assert.match(placement.during, /stage-action-place-mirror/);
+  assert.match(placement.during, /is-mirror-action-place/);
+  assert.match(placement.during, /has-held-mirror/);
+  assert.match(placement.during, /mirror-window-prop/);
+  assert.doesNotMatch(placement.during, /prop-sun-mirror at-window/,
+    'placement must not create a second mirror tied to the avatar coordinate system');
+  assert.doesNotMatch(placement.settled, /stage-action-place-mirror|is-mirror-action-place|has-held-mirror/);
+  assert.match(placement.settled, /has-mirror-light-final/);
+  assert.match(placement.settled, /mirror-window-prop/,
+    'the same mirror must remain anchored to the window after Maya releases it');
+});
+
 test('every story world renders a persistent prop and held objects share the hand rig', () => {
   const { api } = runtime();
   const modelFor = (storyId, world, vars = {}, action = null) => api.practiceStageModel({
@@ -1562,15 +1747,19 @@ test('every story world renders a persistent prop and held objects share the han
   assert.match(api.stageHeldObjectClasses({ world: { ball: 'scored' }, action: { gesture: 'score-ball' } }), /has-held-ball/,
     'the ball stays in the hand until the throw');
   assert.doesNotMatch(api.stageHeldObjectClasses({ world: { ball: 'scored' } }), /has-held-ball/);
+  assert.match(api.stageHeldObjectClasses({ world: { mirror: 'held' } }), /has-held-mirror/);
+  assert.match(api.stageHeldObjectClasses({ world: { mirror: 'placed' }, action: { gesture: 'place-mirror' } }), /has-held-mirror/,
+    'the mirror stays in the hand until it reaches the window ledge');
+  assert.doesNotMatch(api.stageHeldObjectClasses({ world: { mirror: 'placed' } }), /has-held-mirror/);
 
   const slotAt = html.indexOf('class="hand-object-slot"');
   const fingersAt = html.indexOf('class="grip-fingers"', slotAt);
   assert.ok(slotAt >= 0 && fingersAt > slotAt, 'the front fingers must be painted above held objects');
-  for (const held of ['held-brushes-art', 'held-phone-art', 'held-photo-art', 'held-ball-art']) {
+  for (const held of ['held-brushes-art', 'held-phone-art', 'held-photo-art', 'held-ball-art', 'held-mirror-art']) {
     const at = html.indexOf(`class="held-object ${held}"`, slotAt);
     assert.ok(at > slotAt && at < fingersAt, `${held}: object must live inside the hand slot`);
   }
-  for (const held of ['brushes', 'phone', 'photo', 'ball']) {
+  for (const held of ['brushes', 'phone', 'photo', 'ball', 'mirror']) {
     assert.match(html, new RegExp(`has-held-${held}`), `${held}: held state needs a visibility selector`);
   }
   assert.match(html, /\.stage-bg\.has-story-connection \.phone-signal/,
@@ -1657,6 +1846,27 @@ test('stage action markup updates independently and has a reduced-motion final s
   assert.doesNotMatch(reduced, /\.person-art[^\{]*\{[^\}]*transform\s*:\s*none!important/,
     'reduced motion must preserve static SVG joints and character accessories');
   assert.match(reduced, /\.stage-moment-fx\{display:none\}/);
+  const mirrorLightStops = /\.wall-light-moving[^\{]*\{[^\}]*animation\s*:\s*none!important/.test(reduced) &&
+    /\.wall-light-source[^\{]*\{[^\}]*animation\s*:\s*none!important/.test(reduced);
+  assert.ok(mirrorLightStops,
+    'reduced motion should freeze both the travelling spot and its source-light transition');
+  assert.match(reduced, /\.wall-light-final[^\{]*\{[^\}]*opacity\s*:\s*1!important/,
+    'reduced motion must leave the mirror story\'s resolved wall spot visible');
+  assert.doesNotMatch(reduced, /\.wall-light-final[^\{]*\{[^\}]*(?:display\s*:\s*none|opacity\s*:\s*0(?:\D|$))/,
+    'reduced motion must never hide the resolved wall spot');
+  assert.match(html, /\.mirror-source-prop \.sun-mirror-object\{opacity:0;/,
+    'without its pickup animation, the scene copy should yield directly to the mirror in Maya\'s hand');
+  assert.match(reduced, /\.mirror-source-prop,[^\{]*\.mirror-source-prop \*[^\{]*\{[^\}]*animation\s*:\s*none!important/,
+    'reduced motion should disable the scene-coordinate pickup transition');
+  assert.match(reduced, /\.stage-action-place-mirror\s+\.held-mirror-art\{opacity:0!important\}/,
+    'reduced motion should not show held and placed copies of the mirror together');
+
+  const { api: reducedApi } = runtime(new Map(), { matchMedia: query => ({
+    matches: query === '(prefers-reduced-motion: reduce)',
+  }) });
+  assert.equal(reducedApi.prefersReducedStageMotion(), true);
+  assert.equal(reducedApi.practiceStageActionVisualDelay({ gesture: 'place-mirror' }), 0,
+    'reduced motion should settle a semantic action without waiting through its cinematic duration');
 
   const { api } = runtime();
   const block = { dataset: {}, innerHTML: '' };

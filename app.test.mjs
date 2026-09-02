@@ -68,7 +68,7 @@ test('all seven conversation characters keep the modern layered SVG contract', (
   const castIds = ['tom', 'maya', 'sam', 'alex', 'nina', 'ben', 'dana'];
   const stageStates = ['idle', 'waiting', 'speaking', 'listening', 'reacting', 'thinking'];
   const singleHooks = ['figure', 'head', 'eyes', 'pupils', 'brows', 'eyelids', 'cheeks', 'arm-l', 'arm-r'];
-  const mouthShapes = ['mouth-rest', 'mouth-a', 'mouth-e', 'mouth-o', 'mouth-u'];
+  const mouthShapes = ['mouth-rest', 'mouth-a', 'mouth-e', 'mouth-o', 'mouth-u', 'mouth-smile'];
 
   assert.deepEqual(Object.keys(api.PRACTICE_CAST), castIds);
   for (const id of castIds) {
@@ -93,7 +93,7 @@ test('all seven conversation characters keep the modern layered SVG contract', (
       assert.equal(classCount(svg, 'arm'), 2, `${id}/${stageState} needs two animated arms`);
       assert.equal(classCount(svg, 'mouth'), 1, `${id}/${stageState} needs one lip-sync target`);
       assert.equal(classCount(svg, 'mouth-shapes'), 1, `${id}/${stageState} needs one mouth-shape group`);
-      assert.equal(classCount(svg, 'mouth-shape'), 5, `${id}/${stageState} needs five visemes`);
+      assert.equal(classCount(svg, 'mouth-shape'), 6, `${id}/${stageState} needs five visemes and a smile`);
       for (const shape of mouthShapes)
         assert.equal(classCount(svg, shape), 1, `${id}/${stageState} needs one ${shape} viseme`);
       assert.doesNotMatch(svg, /<(?:image|script|foreignObject|animate|animateTransform)\b/i);
