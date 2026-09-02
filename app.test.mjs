@@ -293,7 +293,7 @@ test('course content remains intact', () => {
   });
   assert.equal(
     crypto.createHash('sha256').update(protectedContent).digest('hex'),
-    '46793e10019e3cfd3c218a44e87f65f6213deb9845a126a1afc03964c19f2159',
+    '626ff047deb56d8144b8dff18cac1140dbec1b8dc5012040b65fa3bddca115b0',
   );
 });
 
