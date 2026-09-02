@@ -394,6 +394,64 @@ body{
   79%{transform:rotate(-4deg)}
   100%{transform:none}
 }
+
+/* Sam's boxes story uses real scene objects instead of a floating summary
+   card. The bag starts on the cartons, follows the chosen branch, and joins
+   them on the entrance floor at the end. Every resting pose is state-driven,
+   so redraws and reduced-motion mode keep the story visually truthful. */
+.sam-door-story{opacity:0;pointer-events:none}
+.stage-bg.has-sam-cargo .sam-door-story{opacity:1}
+.stage-bg.has-sam-cargo .parking-loose-box{opacity:0}
+.sam-door-panel,.sam-cargo-boxes,.sam-cargo-bag{transform-box:fill-box;transform-origin:center}
+.sam-door-panel{transform-origin:100% 50%}
+.stage-bg.has-sam-door-narrow .sam-door-panel{transform:scaleX(.62)}
+.stage-bg.has-sam-door-open .sam-door-panel{transform:scaleX(.22)}
+.stage-bg.has-sam-door-closed .sam-door-panel{transform:scaleX(1)}
+.stage-bg.has-sam-door-closed .sam-cargo-stage{opacity:0}
+.sam-cargo-bag{opacity:0}
+.stage-bg.has-sam-bag-stacked .sam-cargo-bag{opacity:1;transform:none}
+.stage-bg.has-sam-bag-learner .sam-cargo-bag{opacity:1;transform:translate(-210px,73px) rotate(-6deg) scale(.98)}
+.stage-bg.has-sam-bag-sam .sam-cargo-bag{opacity:1;transform:translate(-58px,-10px) rotate(-12deg) scale(.92)}
+.stage-bg.has-sam-boxes-changed .sam-cargo-boxes{transform:translate(12px,-18px) scale(.86)}
+.stage-bg.has-sam-boxes-changed .sam-cargo-bag{opacity:1;transform:translate(-75px,70px) rotate(8deg) scale(.88)}
+.stage-bg.is-sam-bag-to-learner .sam-cargo-bag{animation:samBagToLearner 2.05s cubic-bezier(.18,.76,.22,1) both}
+.stage-bg.is-sam-bag-to-sam .sam-cargo-bag{animation:samBagToSam 2.05s cubic-bezier(.18,.76,.22,1) both}
+.stage-bg.is-sam-door-opening .sam-door-panel{animation:samDoorOpen 1.8s cubic-bezier(.18,.76,.22,1) both}
+.stage-bg.is-sam-door-closing .sam-door-panel{animation:samDoorClose 1.9s cubic-bezier(.2,.7,.24,1) both}
+.stage-bg.is-sam-door-closing .sam-cargo-stage{animation:samCargoBehindDoor 1.9s ease-in both}
+.stage-bg.is-sam-cargo-set-down .sam-cargo-boxes{animation:samBoxesSetDown 2.05s cubic-bezier(.2,.74,.24,1) both}
+.stage-bg.is-sam-cargo-set-down.has-sam-bag-learner .sam-cargo-bag{animation:samBagSetDownLearner 2.05s cubic-bezier(.2,.74,.24,1) both}
+.stage-bg.is-sam-cargo-set-down.has-sam-bag-sam .sam-cargo-bag{animation:samBagSetDownSam 2.05s cubic-bezier(.2,.74,.24,1) both}
+@keyframes samBagToLearner{
+  0%,24%{opacity:1;transform:none}
+  48%{opacity:1;transform:translate(-92px,18px) rotate(5deg) scale(1.02)}
+  74%{opacity:1;transform:translate(-216px,77px) rotate(-8deg) scale(1.02)}
+  88%,100%{opacity:1;transform:translate(-210px,73px) rotate(-6deg) scale(.98)}
+}
+@keyframes samBagToSam{
+  0%,24%{opacity:1;transform:none}
+  47%{opacity:1;transform:translate(-18px,5px) rotate(6deg) scale(1.01)}
+  73%{opacity:1;transform:translate(-62px,-13px) rotate(-15deg) scale(.95)}
+  88%,100%{opacity:1;transform:translate(-58px,-10px) rotate(-12deg) scale(.92)}
+}
+@keyframes samBoxesSetDown{
+  0%,34%{transform:none}
+  76%{transform:translate(14px,-21px) scale(.84)}
+  90%,100%{transform:translate(12px,-18px) scale(.86)}
+}
+@keyframes samBagSetDownLearner{
+  0%,32%{opacity:1;transform:translate(-210px,73px) rotate(-6deg) scale(.98)}
+  76%{transform:translate(-70px,67px) rotate(10deg) scale(.86)}
+  90%,100%{opacity:1;transform:translate(-75px,70px) rotate(8deg) scale(.88)}
+}
+@keyframes samBagSetDownSam{
+  0%,32%{opacity:1;transform:translate(-58px,-10px) rotate(-12deg) scale(.92)}
+  76%{transform:translate(-70px,67px) rotate(10deg) scale(.86)}
+  90%,100%{opacity:1;transform:translate(-75px,70px) rotate(8deg) scale(.88)}
+}
+@keyframes samDoorOpen{0%,24%{transform:scaleX(.62)}76%{transform:scaleX(.18)}90%,100%{transform:scaleX(.22)}}
+@keyframes samDoorClose{0%,44%{transform:scaleX(.22)}88%{transform:scaleX(1.03)}96%,100%{transform:scaleX(1)}}
+@keyframes samCargoBehindDoor{0%,20%{opacity:1}42%,100%{opacity:0}}
 .stage-screen .stage-caption{background:rgba(20,28,46,.94);backdrop-filter:none}
 .stage-screen .conversation-composer{background:rgba(18,25,41,.96);backdrop-filter:none}
 /* The figure is anchored to the top of the stage rather than centred in it.
@@ -1015,7 +1073,8 @@ body{
   .person-art *,.stage-bg .ambient,.stage-bg .context-motion *,.stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .scene-light-beam,.stage-bg .scene-ground-light,.stage-bg .backdrop-art,.stage-moment-fx *{animation:none!important;transition:none!important}
   .stage-story-props *,.stage-weather-layer *{animation:none!important;transition:none!important}
   .wall-light-moving,.wall-light-source,.wall-light-final,.mirror-light-fx *,
-  .mirror-source-prop,.mirror-source-prop *,.mirror-window-prop,.mirror-window-prop *{animation:none!important;transition:none!important}
+  .mirror-source-prop,.mirror-source-prop *,.mirror-window-prop,.mirror-window-prop *,
+  .sam-door-story,.sam-door-story *{animation:none!important;transition:none!important}
   .stage-bg.has-mirror-light-final .wall-light-final,.stage-bg.has-mirror-light-final .mirror-window-prop{opacity:1!important;transform:none!important}
   .stage-bg.has-mirror-light-moving .wall-light-moving,.stage-bg.has-mirror-light-source .wall-light-source{transform:none!important}
   .stage-action-place-mirror .held-mirror-art{opacity:0!important}
@@ -3227,7 +3286,7 @@ function sceneAtmosphere(profile){
   };
   return `<g class="context-motion motion-${profile}">${art[profile]||art.dust}</g>`;
 }
-function sceneBackdrop(id,p,far,mid,near,motion=''){
+function sceneBackdrop(id,p,far,mid,near,motion='',story=''){
   const horizon=p.horizon||500;
   const contactY=Math.min(612,horizon+48);
   const motionProfile=sceneMotionProfile(id),lightSide=sceneLightSide(id);
@@ -3262,6 +3321,7 @@ function sceneBackdrop(id,p,far,mid,near,motion=''){
     <ellipse class="scene-ground-light" cx="200" cy="${contactY}" rx="112" ry="39" fill="url(#${id}-ground)"/>
     <ellipse class="scene-contact" cx="200" cy="${contactY+13}" rx="53" ry="10" fill="#08111e" opacity=".2"/>
     <g class="backdrop-near">${near}</g>
+    ${story?`<g class="backdrop-story">${story}</g>`:''}
     <rect class="scene-edge" width="400" height="700" fill="url(#${id}-edge)"/>
   `};
 }
@@ -3404,7 +3464,36 @@ const PRACTICE_BACKDROPS = {
     <g class="garage-pillar" transform="translate(19 133)"><rect width="45" height="373" fill="#687684"/><path d="M0 195h45v51H0z" fill="#e1bd58"/><path d="M0 210h45M0 231h45" stroke="#333b42" stroke-width="9"/></g>
     <g transform="translate(290 350)"><path d="M0 80l17-50h72l24 50z" fill="#647888"/><rect x="0" y="77" width="113" height="50" rx="15" fill="#526574"/><path d="M25 40h52l17 34H13z" fill="#8fb0bc"/><circle cx="24" cy="123" r="14" fill="#1c252c"/><circle cx="91" cy="123" r="14" fill="#1c252c"/></g>
     <g transform="translate(7 390)"><rect x="0" y="25" width="82" height="80" rx="11" fill="#596d79"/><path d="M9 25l13-30h49l10 30" fill="#91a9b1"/><circle cx="20" cy="103" r="12" fill="#1c252c"/><circle cx="64" cy="103" r="12" fill="#1c252c"/></g>`,`
-    <path d="M0 506h400v194H0z" fill="#292f38"/><path d="M119 506L67 700M281 506l52 194M200 506v194" fill="none" stroke="#d5b85f" stroke-opacity=".72" stroke-width="6"/><g transform="translate(316 540)"><rect width="63" height="47" fill="#9a704d"/><path d="M0 0l31 19L63 0" fill="none" stroke="#6f4c35" stroke-width="4"/></g>`),
+    <path d="M0 506h400v194H0z" fill="#292f38"/><path d="M119 506L67 700M281 506l52 194M200 506v194" fill="none" stroke="#d5b85f" stroke-opacity=".72" stroke-width="6"/><g class="parking-loose-box" transform="translate(316 540)"><rect width="63" height="47" fill="#9a704d"/><path d="M0 0l31 19L63 0" fill="none" stroke="#6f4c35" stroke-width="4"/></g>`, '',
+    `<g class="sam-door-story">
+      <g class="sam-door-threshold">
+        <path d="M260 218h140v300H260z" fill="#313b46" stroke="#74818d" stroke-width="7"/>
+        <path d="M282 245h118v261H282z" fill="#18222c"/>
+        <path d="M260 518h140l-18 22H276z" fill="#879099" stroke="#4d5963" stroke-width="4"/>
+        <g transform="translate(288 279)"><rect width="51" height="24" rx="5" fill="#d9bc64"/><path d="M12 12h27M34 6l7 6-7 6" fill="none" stroke="#3e4b55" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+      </g>
+      <g class="sam-door-panel">
+        <path d="M282 245h118v261H282z" fill="#465664" stroke="#87939e" stroke-width="5"/>
+        <path d="M300 266h82v218h-82z" fill="#3b4b58" stroke="#667784" stroke-width="3"/>
+        <circle cx="294" cy="386" r="5" fill="#e7cc78"/>
+      </g>
+      <path class="sam-entry-ledge" d="M260 443h140l-18 25H276z" fill="#8b959e" stroke="#4d5963" stroke-width="4"/>
+      <g class="sam-cargo-stage" transform="translate(0 -72)">
+        <g class="sam-cargo-boxes">
+          <ellipse class="sam-cargo-shadow" cx="332" cy="523" rx="64" ry="12" fill="#101820" opacity=".34"/>
+          <g class="sam-cargo-box box-lower"><path d="M278 455h94v62h-94z" fill="#a9784d" stroke="#5e412e" stroke-width="4"/><path d="M278 455l47 23 47-23M325 478v39" fill="none" stroke="#745036" stroke-width="4"/><path d="M314 455h22v62h-22" fill="#d8bd83" opacity=".75"/></g>
+          <g class="sam-cargo-box box-upper"><path d="M297 404h68v53h-68z" fill="#b88958" stroke="#64442f" stroke-width="4"/><path d="M297 404l34 18 34-18M331 422v35" fill="none" stroke="#7a5437" stroke-width="3.5"/><path d="M322 404h18v53h-18" fill="#dfc58d" opacity=".78"/></g>
+        </g>
+        <g class="sam-cargo-bag">
+          <ellipse cx="333" cy="411" rx="38" ry="8" fill="#111b23" opacity=".28"/>
+          <path d="M310 378c2-29 47-29 49 0" fill="none" stroke="#203d49" stroke-width="8" stroke-linecap="round"/>
+          <path d="M298 381q35-15 70 0l7 29q-39 13-84 0z" fill="#3f7180" stroke="#1d3d48" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M309 384v29M358 382v30" stroke="#d9a066" stroke-width="5" opacity=".9"/>
+          <path d="M318 392h31v16h-31z" fill="#b85f58" stroke="#713a39" stroke-width="3"/>
+          <path d="M322 396h23" stroke="#f0c27c" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </g>
+    </g>`),
 
   'dog-park':sceneBackdrop('dog-park',{top:'#3e7370',bottom:'#84947a',floor:'#294638',glow:'#d8d483',horizon:486},`
     <g fill="#35694f"><circle cx="21" cy="252" r="94"/><circle cx="89" cy="221" r="66"/><circle cx="380" cy="241" r="96"/><circle cx="320" cy="209" r="62"/></g><path d="M0 413c75-31 132-27 201 9 63-34 126-37 199-8v72H0z" fill="#447657"/>
@@ -4669,38 +4758,37 @@ const PRACTICE_STORIES = [
     goal:'לעזור לסם להכניס ארגזים דרך דלת הבניין',
     open:'סם עומד בחניית הבניין עם שני ארגזים ותיק שמונח מעליהם. הדלת מתחילה להיסגר.',
     ending:'הארגזים והתיק מונחים בבטחה בתוך הבניין, והדלת נסגרת מאחורי סם.',
-    stageInitial:{storyProp:'ready'},
-    stageProp:{beforeIcon:'📦',afterIcon:'✅',beforeLabel:'הארגזים ליד הדלת',afterLabel:'הכול נכנס בבטחה',colorA:'#8a643c',colorB:'#4e3828'},
+    stageInitial:{storyProp:'ready',samBag:'stacked',samDoor:'narrow'},
     beats:[
       {id:'offer',role:'open',ask:{en:'Hello, {name}. This bag is heavy. Can you help me?',he:'שלום. התיק הזה כבד. [[אתה יכול|את יכולה]] לעזור לי?',tl:'הֶלוֹ. דִיס בֶּג אִיז הֶבִי. קֶן יוּ הֶלְפּ מִי?'},options:[
         {id:'carry',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you. I will carry the boxes; please take the bag.',he:'תודה. אני אסחוב את הארגזים; בבקשה [[קח|קחי]] את התיק.',tl:'תֶ׳נְק יוּ. אַיי וִויל קֶרִי דֶה בּוֹקְסֶז; פְּלִיז טֵייק דֶה בֶּג.'},set:{canCarry:true}},
         {id:'cannot',label:'לא, סליחה',answer:{en:'No, sorry',he:'לא, סליחה',tl:'נוֹ, סוֹרִי'},reply:{en:"That's OK. I will carry the bag with the boxes.",he:'זה בסדר. אני אסחוב את התיק יחד עם הארגזים.',tl:'דֶאטְס אוֹקֵיי. אַיי וִויל קֶרִי דֶה בֶּג וִית׳ דֶה בּוֹקְסֶז.'},set:{canCarry:false}},
       ]},
       {id:'slipping_bag',variants:[
-        {id:'carry',when:{canCarry:true},event:{emoji:'👜',he:'כשהדלת ממשיכה להיסגר, התיק מתחיל להחליק מראש הארגז.'},ask:{en:'Quick—the bag is slipping! Have you got it?',he:'מהר—התיק מחליק! תפסת אותו?',tl:'קְוִיק — דֶה בֶּג אִיז סְלִיפִּינְג! הֶב יוּ גוֹט אִיט?'},options:[
+        {id:'carry',when:{canCarry:true},event:{emoji:'👜',he:'כשהדלת ממשיכה להיסגר, התיק מתחיל להחליק מראש הארגז.'},stageAction:{id:'sam-bag-to-learner',gesture:'story-prop-reveal',motion:'react',set:{samBag:'learner'}},ask:{en:'Quick—the bag is slipping! Have you got it?',he:'מהר—התיק מחליק! תפסת אותו?',tl:'קְוִיק — דֶה בֶּג אִיז סְלִיפִּינְג! הֶב יוּ גוֹט אִיט?'},options:[
           {id:'yes',label:'כן, תפסתי אותו',answer:{en:'Yes, I have it',he:'כן, תפסתי אותו',tl:'יֶס, אַיי הֶב אִיט'},reply:{en:'Thank you. Now I can carry the boxes.',he:'תודה. עכשיו אני יכול לסחוב את הארגזים.',tl:'תֶ׳נְק יוּ. נַאוּ אַיי קֶן קֶרִי דֶה בּוֹקְסֶז.'}},
           {id:'help',label:'התיק אצלי',answer:{en:'I have the bag',he:'התיק אצלי',tl:'אַיי הֶב דֶה בֶּג'},reply:{en:'Great. Now I can carry the boxes.',he:'מעולה. עכשיו אני יכול לסחוב את הארגזים.',tl:'גְרֵייט. נַאוּ אַיי קֶן קֶרִי דֶה בּוֹקְסֶז.'}},
         ]},
-        {id:'door',when:{canCarry:false},event:{emoji:'👜',he:'התיק מתחיל להחליק. סם תופס אותו בכתף, אבל הדלת כמעט נסגרת.'},ask:{en:'I have the bag now. Can you help with the door?',he:'התיק אצלי עכשיו. [[אתה יכול|את יכולה]] לעזור עם הדלת?',tl:'אַיי הֶב דֶה בֶּג נַאוּ. קֶן יוּ הֶלְפּ וִית׳ דֶה דוֹר?'},options:[
+        {id:'door',when:{canCarry:false},event:{emoji:'👜',he:'התיק מתחיל להחליק. סם תופס אותו ביד, אבל הדלת כמעט נסגרת.'},stageAction:{id:'sam-catches-bag',gesture:'story-prop-reveal',motion:'react',set:{samBag:'sam'}},ask:{en:'I have the bag now. Can you help with the door?',he:'התיק אצלי עכשיו. [[אתה יכול|את יכולה]] לעזור עם הדלת?',tl:'אַיי הֶב דֶה בֶּג נַאוּ. קֶן יוּ הֶלְפּ וִית׳ דֶה דוֹר?'},options:[
           {id:'help',label:'כן, אני יכול לעזור',answer:{en:'Yes, I can help',he:'כן, אני [[יכול|יכולה]] לעזור',tl:'יֶס, אַיי קֶן הֶלְפּ'},reply:{en:'Thank you. Please open it.',he:'תודה. בבקשה [[פתח|פתחי]] אותה.',tl:'תֶ׳נְק יוּ. פְּלִיז אוֹפֶּן אִיט.'}},
           {id:'problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great. Please open it.',he:'מעולה. בבקשה [[פתח|פתחי]] אותה.',tl:'גְרֵייט. פְּלִיז אוֹפֶּן אִיט.'}},
         ]},
       ]},
       {id:'through_door',variants:[
-        {id:'carry',when:{canCarry:true},event:{emoji:'🚪',he:'[[אתה מחזיק|את מחזיקה]] את התיק בזמן שסם דוחף את הדלת עם הכתף.'},ask:{en:'Can you hold the bag for one more moment?',he:'[[אתה יכול|את יכולה]] להחזיק את התיק עוד רגע?',tl:'קֶן יוּ הוֹלְד דֶה בֶּג פוֹר וַואן מוֹר מוֹמֶנְט?'},options:[
+        {id:'carry',when:{canCarry:true},event:{emoji:'🚪',he:'[[אתה מחזיק|את מחזיקה]] את התיק בזמן שסם דוחף את הדלת עם הכתף.'},stageAction:{id:'sam-pushes-door-open',gesture:'story-prop-reveal',motion:'react',set:{samDoor:'open'}},ask:{en:'Can you hold the bag for one more moment?',he:'[[אתה יכול|את יכולה]] להחזיק את התיק עוד רגע?',tl:'קֶן יוּ הוֹלְד דֶה בֶּג פוֹר וַואן מוֹר מוֹמֶנְט?'},options:[
           {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Good. We are almost inside.',he:'יופי. כמעט נכנסנו.',tl:'גוּד. וִוי אַר אוֹלְמוֹסְט אִינְסַייד.'}},
           {id:'problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great. We are almost inside.',he:'מעולה. כמעט נכנסנו.',tl:'גְרֵייט. וִוי אַר אוֹלְמוֹסְט אִינְסַייד.'}},
         ]},
-        {id:'door',when:{canCarry:false},event:{emoji:'🚪',he:'[[אתה פותח|את פותחת]] את הדלת לרווחה, וסם מתקרב אליה עם כל הדברים.'},ask:{en:'Can you keep the door open for one more moment?',he:'[[אתה יכול|את יכולה]] להשאיר את הדלת פתוחה עוד רגע?',tl:'קֶן יוּ קִיפּ דֶה דוֹר אוֹפֶּן פוֹר וַואן מוֹר מוֹמֶנְט?'},options:[
+        {id:'door',when:{canCarry:false},event:{emoji:'🚪',he:'[[אתה פותח|את פותחת]] את הדלת לרווחה, וסם מתקרב אליה עם כל הדברים.'},stageAction:{id:'learner-opens-door',gesture:'story-prop-reveal',motion:'react',set:{samDoor:'open'}},ask:{en:'Can you keep the door open for one more moment?',he:'[[אתה יכול|את יכולה]] להשאיר את הדלת פתוחה עוד רגע?',tl:'קֶן יוּ קִיפּ דֶה דוֹר אוֹפֶּן פוֹר וַואן מוֹר מוֹמֶנְט?'},options:[
           {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Thank you. I am coming through now.',he:'תודה. אני עובר עכשיו.',tl:'תֶ׳נְק יוּ. אַיי אַם קַאמִינְג תְ׳רוּ נַאוּ.'}},
           {id:'problem',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Great. I am coming through now.',he:'מעולה. אני עובר עכשיו.',tl:'גְרֵייט. אַיי אַם קַאמִינְג תְ׳רוּ נַאוּ.'}},
         ]},
       ]},
-      {id:'set_down',stageAction:{id:'sam-sets-boxes-inside',gesture:'story-prop-change',motion:'reach-low',set:{storyProp:'changed'}},event:{emoji:'📦',he:'סם מניח את שני הארגזים ואת התיק על הרצפה ונושם לרווחה.'},ask:{en:'Everything is here now. Thank you!',he:'הכול כאן עכשיו. תודה!',tl:'אֶבְרִיתִ׳ינְג אִיז הִיר נַאוּ. תֶ׳נְק יוּ!'},options:[
+      {id:'set_down',stageAction:{id:'sam-sets-boxes-inside',gesture:'story-prop-change',motion:'reach-low',set:{storyProp:'changed'}},event:{emoji:'📦',he:'שני הארגזים והתיק מונחים על רצפת הכניסה, וסם נושם לרווחה.'},ask:{en:'Everything is here now. Thank you!',he:'הכול כאן עכשיו. תודה!',tl:'אֶבְרִיתִ׳ינְג אִיז הִיר נַאוּ. תֶ׳נְק יוּ!'},options:[
         {id:'welcome',label:'על לא דבר',answer:{en:"You're welcome",he:'על לא דבר',tl:'יוֹר וֶולְקַם'},reply:{en:'You were a big help.',he:'עזרת לי מאוד.',tl:'יוּ וֶר אַ בִּיג הֶלְפּ.'}},
         {id:'problem',label:'אין בעיה',answer:{en:'No problem',he:'אין בעיה',tl:'נוֹ פְּרוֹבְּלֶם'},reply:{en:'You made this much easier.',he:'הפכת את זה להרבה יותר קל.',tl:'יוּ מֵייד דִיס מַאץ׳ אִיזִיֶר.'}},
       ]},
-      {id:'close',role:'close',ask:{en:'I need to take these upstairs now. Goodbye!',he:'אני צריך לקחת את הדברים למעלה עכשיו. להתראות!',tl:'אַיי נִיד טוּ טֵייק דִיז אַפְּסְטֶרְז נַאוּ. גוּדְבַּיי!'},options:[
+      {id:'close',role:'close',event:{emoji:'🚪',he:'סם נכנס עם הדברים, והדלת נסגרת מאחוריו.'},stageAction:{id:'sam-door-closes',gesture:'story-prop-change',motion:'react',set:{samDoor:'closed'}},ask:{en:'I need to take these upstairs now. Goodbye!',he:'אני צריך לקחת את הדברים למעלה עכשיו. להתראות!',tl:'אַיי נִיד טוּ טֵייק דִיז אַפְּסְטֶרְז נַאוּ. גוּדְבַּיי!'},options:[
         {id:'goodbye',label:'להתראות!',answer:{en:'Goodbye!',he:'להתראות!',tl:'גוּדְבַּיי!'},reply:{en:'Goodbye, {name}!',he:'להתראות!',tl:'גוּדְבַּיי!'}},
         {id:'care',label:'שמור על עצמך!',answer:{en:'Take care!',he:'שמור על עצמך!',tl:'טֵייק קֶר!'},reply:{en:'Thank you. You too!',he:'תודה. גם [[אתה|את]]!',tl:'תֶ׳נְק יוּ. יוּ טוּ!'}},
       ]},
@@ -5779,7 +5867,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.13.0';
+const APP_VERSION = '2.14.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7938,7 +8026,11 @@ function finishPracticeStageActionVisual(session=L, action=session?.pendingStage
     avatar.classList.toggle('has-held-mirror',model.world.mirror==='held');
   }
   const bg=screen.querySelector('.stage-bg');
-  if(bg) bg.classList.remove('is-mirror-action-move','is-mirror-action-find','is-mirror-action-place');
+  if(bg) bg.classList.remove(
+    'is-mirror-action-move','is-mirror-action-find','is-mirror-action-place',
+    'is-sam-bag-to-learner','is-sam-bag-to-sam','is-sam-cargo-set-down',
+    'is-sam-door-opening','is-sam-door-closing'
+  );
   syncStageVisualBlock(screen.querySelector('#stageStoryProps'),model.key,stagePropsHtml(model));
   syncStageVisualBlock(screen.querySelector('#stageWeather'),model.key,stageWeatherHtml(model));
   return true;
@@ -8497,10 +8589,21 @@ function stageWorldClasses(model){
   const mirrorAction=model?.action?.gesture==='move-mirror-light'?' is-mirror-action-move':
     model?.action?.gesture==='find-mirror'?' is-mirror-action-find':
     model?.action?.gesture==='place-mirror'?' is-mirror-action-place':'';
+  const samDoor=['open','closed'].includes(world.samDoor)?world.samDoor:'narrow';
+  const samCargo=model?.storyId==='sam_boxes_at_door'
+    ?' has-sam-cargo has-sam-boxes-'+(world.storyProp==='changed'?'changed':'ready')+
+      ' has-sam-bag-'+(['learner','sam'].includes(world.samBag)?world.samBag:'stacked')+
+      ' has-sam-door-'+samDoor
+    :'';
+  const samAction=model?.action?.id==='sam-bag-to-learner'?' is-sam-bag-to-learner':
+    model?.action?.id==='sam-catches-bag'?' is-sam-bag-to-sam':
+    ['sam-pushes-door-open','learner-opens-door'].includes(model?.action?.id)?' is-sam-door-opening':
+    model?.action?.id==='sam-sets-boxes-inside'?' is-sam-cargo-set-down':
+    model?.action?.id==='sam-door-closes'?' is-sam-door-closing':'';
   return (model?.storyId==='tom_last_shot'?' has-story-ball':'')+
     (['bad','message'].includes(world.connection)?' has-story-connection':'')+
     (model?.storyId==='maya_kitchen_blackout'&&world.storyProp==='ready'?' has-kitchen-blackout':'')+
-    mirrorLight+mirrorAction;
+    mirrorLight+mirrorAction+samCargo+samAction;
 }
 function stageHeldObjectClasses(model){
   const world=model?.world||{},gesture=model?.action?.gesture||'';
