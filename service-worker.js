@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'speak-english-';
-const CACHE_NAME = 'speak-english-v29';
+const CACHE_NAME = 'speak-english-v30';
 const APP_FILES = [
   './',
   './index.html',

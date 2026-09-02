@@ -2368,6 +2368,26 @@ test('a paused lesson resumes from its map row without a duplicate home card', (
   assert.match(app.innerHTML, /onclick="resumeLesson\(\)"/);
 });
 
+test('home puts the active course path first and collapses completed and future units', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 6;
+  state.daysLearned = 3;
+  api.setState(state);
+  api.renderHome();
+
+  const html = app.innerHTML;
+  assert.ok(html.indexOf('המסלול שלך') < html.indexOf('home-stats-strip'));
+  assert.match(html, /id="homeUnitBody0" class="home-unit-body collapsed" aria-hidden="true" inert/);
+  assert.match(html, /id="homeUnitBody1" class="home-unit-body" aria-hidden="false"/);
+  assert.match(html, /id="homeUnitBody2" class="home-unit-body collapsed" aria-hidden="true" inert/);
+  assert.match(html, /class="lesson-row current"[^>]*data-home-current="true"/);
+  assert.match(html, /class="home-path-special"[^>]*onclick="startPractice\(\)"/);
+  assert.doesNotMatch(html, /class="btn practice-cta"/);
+  assert.doesNotMatch(html, />⭐</);
+});
+
 test('invalid or completed checkpoint steps are rejected', () => {
   const seed = new Map();
   const { api } = runtime(seed);
