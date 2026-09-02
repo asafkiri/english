@@ -81,7 +81,8 @@ function runtime(seed = new Map(), options = {}) {
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
-      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
+      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
+      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3418,18 +3419,21 @@ test("Sam's run teaches every stage aloud, then challenges Hebrew to English", (
     'mastery must not remove the Hebrew prompt and turn translation into picture guessing');
 });
 
-test("Sam's worlds use two quiet stages before every gated voice stage", () => {
+test("Sam's runs let the learner freely choose quiet or bonus voice play", () => {
   const { api } = runtime();
-  assert.equal(api.SAM_RUN_PHASES.map(phase => phase.mode).join(','), 'tap,tap,voice');
-  assert.equal(api.SAM_RUN_PHASES.filter(phase => phase.mode === 'tap').length / api.SAM_RUN_PHASES.length, 2/3,
-    'roughly 65% of the journey stays quiet');
+  assert.equal(api.SAM_RUN_PHASES.map(phase => phase.id).join(','), 'learn,speed,final');
+  assert.match(html, /samRunChooseMode\('tap'\)/, 'every run offers quiet play');
+  assert.match(html, /samRunChooseMode\('voice'\)/, 'every run offers voice play');
+  assert.match(html, /\+50% מטבעות/, 'the voluntary harder voice mode advertises its extra reward');
+  assert.match(html, /const voiceBoost=g\.mode==='voice'\?Math\.ceil\(beforeBoost\*\.5\):0/,
+    'voice play pays exactly fifty percent more');
   const oldSave = new Map([[api.SAM_RUN_KEY, JSON.stringify({
     version: 3, stage: 2, stageStars: {0: 3, 1: 2}, phaseByStage: {0: 1, 1: 1, 2: 1},
   })]]);
   const migrated = runtime(oldSave).api.samRunStore();
   assert.equal(migrated.phaseByStage[0], 0, 'a completed old world reopens quietly');
   assert.equal(migrated.phaseByStage[1], 0, 'adjacent completed worlds cannot both reopen as voice stages');
-  assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old voice challenge remains the next challenge');
+  assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
   assert.match(html, /if\(g\.mode==='voice'&&!g\.micReady\)\{ samRunPrepareMicrophone\(\); return; \}/,
     'a voice run must stop before review and countdown until the microphone is ready');
   assert.match(html, /navigator\.mediaDevices\.getUserMedia\(\{audio:true\}\)/,
@@ -3451,7 +3455,7 @@ test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
   assert.match(app.innerHTML, /game-mid/);
   assert.match(app.innerHTML, /game-roadside/);
   assert.match(app.innerHTML, /game-finish/);
-  assert.match(app.innerHTML, /phase-quiet-learn/);
+  assert.match(app.innerHTML, /phase-learn/);
   assert.match(html, /function samRunBurst\(ob\)/, 'correct answers create a particle reward');
   assert.match(html, /world\.classList\.toggle\('zone-2',g\.resolvedCount>=6\)/,
     'the atmosphere progresses during a run');
@@ -3459,4 +3463,23 @@ test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
     'a completed run gets a visible finish-line sequence');
   assert.match(html, /if\(cls==='is-jumping'\) setTimeout\(\(\)=>samRunWorldFx\('is-land',300\),690\)/,
     'jumping has a camera-weighted landing');
+});
+
+test("Sam's optional missions fund a persistent cosmetic shop", () => {
+  const { api, app } = runtime();
+  assert.ok(api.SAM_RUN_MISSIONS.length >= 5);
+  assert.ok(api.SAM_RUN_MISSIONS.every(m => m.reward > 0 && m.target > 0));
+  assert.ok(api.SAM_RUN_SHOP_ITEMS.some(x => x.type === 'outfit' && x.price > 0));
+  assert.ok(api.SAM_RUN_SHOP_ITEMS.some(x => x.type === 'shoes' && x.price > 0));
+  assert.ok(api.SAM_RUN_SHOP_ITEMS.some(x => x.type === 'hair' && x.price > 0));
+  assert.ok(api.SAM_RUN_SHOP_ITEMS.some(x => x.type === 'character' && x.price > 0));
+  assert.ok(api.SAM_RUN_SHOP_ITEMS.some(x => x.type === 'ride' && x.price > 0));
+  assert.equal(api.samRunMissionDone({mission:{metric:'streak',target:5},streakPeak:4}), false);
+  assert.equal(api.samRunMissionDone({mission:{metric:'streak',target:5},streakPeak:5}), true);
+  const store=api.samRunStore(); store.coins=1200; store.owned=['outfit_blue','ride_scooter']; store.equipped={outfit:'outfit_blue',ride:'ride_scooter'}; api.samRunSave(store);
+  api.renderSamRunShop();
+  assert.match(app.innerHTML, /החנות של סם/);
+  assert.match(app.innerHTML, /🪙 1200/);
+  assert.match(app.innerHTML, /class="game-ride"[^>]*>🛴</);
+  assert.match(app.innerHTML, /ג׳קט כחול/);
 });
