@@ -69,6 +69,9 @@ function runtime(seed = new Map(), options = {}) {
       manualMicDone, answerListenQuiz, chooseBranch, next, notePractice, stageCaptionLine, stageCaptionSequence,
       stageCaptionHtml, captionHtml, chatMessagesHtml,
       keepStageCaptionVisible,
+      askConfirm, resolveDialog, exitLesson, unitCallToActionHtml, snoozeMission, missionSnoozed,
+      completeMission, estimateLessonMinutes, lessonEtaLabel, canSayHtml, streakLabel, daysBetween,
+      dateNDaysAgo, UNIT_PROMISES, unitPromise,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -2195,4 +2198,156 @@ test('service worker preserves network success, offline fallback, and unrelated 
   offline = true;
   handlers.fetch({ request, respondWith: promise => { responsePromise = promise; } });
   assert.equal(await (await responsePromise).text(), 'offline-copy');
+});
+
+/* ---- confidence-first changes: proof, honest promises, quiet missions ---- */
+
+test('in-app question sheets replace the browser confirm box', async () => {
+  assert.doesNotMatch(inline, /[^a-zA-Z.]confirm\(/, 'no native confirm() may remain in the app');
+  const { api } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+
+  const first = api.askConfirm({ title: 'לצאת?' });
+  api.resolveDialog(true);
+  assert.equal(await first, true);
+
+  // a newer question closes the older one as "no"; tapping away is also "no"
+  const older = api.askConfirm({ title: 'א' });
+  const newer = api.askConfirm({ title: 'ב' });
+  assert.equal(await older, false);
+  api.resolveDialog(false);
+  assert.equal(await newer, false);
+
+  // cancelling the exit question keeps the lesson exactly where it was
+  api.startLesson(0, false, true);
+  api.exitLesson();
+  api.resolveDialog(false);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.ok(api.getLesson(), 'a cancelled exit must not close the lesson');
+  api.exitLesson();
+  api.resolveDialog(true);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(api.getLesson(), null);
+  assert.ok(api.validSavedSession(api.getState().session), 'leaving keeps the checkpoint');
+});
+
+test('a finished lesson shows the sentences he can now say, with a streak he can read', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+  api.startLesson(0, false, true);
+  const lesson = api.getLesson();
+  lesson.i = lesson.steps.findIndex(step => step.type === 'done');
+  api.renderStep();
+  assert.ok(app.innerHTML.includes('מהיום אתה יכול להגיד'));
+  for (const phrase of api.LESSONS[0].phrases) assert.ok(app.innerHTML.includes(api.ptext(phrase, 'en')));
+  assert.ok(app.innerHTML.includes('יום ראשון ברצף'));
+  assert.ok(!app.innerHTML.includes('1 ימים ברצף'));
+  assert.equal(api.streakLabel(2), 'יומיים ברצף');
+  assert.equal(api.streakLabel(7), '7 ימים ברצף');
+  assert.equal(api.getState().daysLearned, 1);
+  // the same proof sits on the home screen after the lesson
+  const html = api.canSayHtml(0);
+  for (const phrase of api.LESSONS[0].phrases) assert.ok(html.includes(api.ptext(phrase, 'en')));
+});
+
+test('coming back after a break never lands the broken streak on the medal', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 6;
+  state.streak = 6;
+  state.daysLearned = 6;
+  state.lastDoneDate = api.dateNDaysAgo(5);
+  api.setState(state);
+  api.startLesson(6, false, true);
+  const lesson = api.getLesson();
+  lesson.i = lesson.steps.findIndex(step => step.type === 'done');
+  api.renderStep();
+  assert.ok(!app.innerHTML.includes('ברצף'), 'the reset streak must not be shown on the finish screen');
+  assert.ok(app.innerHTML.includes('חזרת אחרי 5 ימים'));
+  assert.equal(api.getState().streak, 1);
+  assert.equal(api.getState().daysLearned, 7, 'the day still counts on the counter that only grows');
+  assert.equal(api.daysBetween('2026-1-1', '2026-1-4'), 3);
+});
+
+test('days learned migrate from old installs and only ever grow', () => {
+  const migrated = runtime(new Map([['speakEnglishV1', JSON.stringify({ onboarded: true, completed: 12, streak: 4 })]]));
+  assert.equal(migrated.api.getState().daysLearned, 12);
+  assert.equal(migrated.api.defaults().daysLearned, 0);
+  assert.equal(migrated.api.defaults().micPrimed, false);
+
+  const seed = new Map([['speakEnglishV1', JSON.stringify({ onboarded: true, completed: 3, daysLearned: 20, progressUpdatedAt: 5 })]]);
+  const { api } = runtime(seed);
+  const state = api.getState();
+  state.daysLearned = 9;
+  api.setState(state);
+  api.save();
+  assert.equal(JSON.parse(seed.get('speakEnglishV1')).daysLearned, 20, 'a stale tab cannot lower the count');
+});
+
+test('a mission can wait quietly for a week and count when done the soft way', () => {
+  const { api } = runtime();
+  const clean = api.normalizeMissions({ 0: { done: true, soft: 1, snoozedUntil: '99' } });
+  assert.equal(clean[0].soft, true);
+  assert.equal(clean[0].snoozedUntil, 99);
+  const merged = api.mergeMissions(
+    { 0: { rehearsed: true, done: false, doneAt: 0, soft: false, snoozedUntil: 500 } },
+    { 0: { rehearsed: true, done: true, doneAt: 7, soft: true, snoozedUntil: 100 } },
+  );
+  assert.equal(merged[0].snoozedUntil, 500);
+  assert.equal(merged[0].soft, true);
+  assert.equal(merged[0].done, true);
+
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 5;
+  state.missions = api.normalizeMissions({ 0: { rehearsed: true } });
+  api.setState(state);
+  assert.ok(api.unitCallToActionHtml().includes('לפתוח את המשימה'));
+  assert.ok(api.unitCallToActionHtml().includes('snoozeMission(0)'), 'the card offers "not now"');
+  api.snoozeMission(0);
+  assert.equal(api.missionSnoozed(0), true);
+  assert.ok(api.unitCallToActionHtml().includes('mission-snoozed'));
+  assert.ok(!api.unitCallToActionHtml().includes('לפתוח את המשימה'), 'a snoozed mission folds into one quiet line');
+  assert.equal(api.missionSnoozed(0, Date.now() + 8 * 864e5), false, 'and comes back after a week');
+
+  api.completeMission(0, true);
+  assert.equal(api.getState().missions[0].done, true);
+  assert.equal(api.getState().missions[0].soft, true);
+  api.completeMission(0, false);
+  assert.equal(api.getState().missions[0].soft, false, 'the real thing later upgrades the record');
+  assert.equal(api.unitCallToActionHtml(), '');
+});
+
+test('the lesson header shows how little is left instead of a stopwatch', () => {
+  const { api, app } = runtime();
+  assert.ok(api.estimateLessonMinutes(0) >= 5);
+  assert.ok(api.estimateLessonMinutes(19) > api.estimateLessonMinutes(0), 'warm-up grows the estimate honestly');
+  assert.ok(api.estimateLessonMinutes(19, true) < api.estimateLessonMinutes(19), 'a replay has no warm-up');
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+  api.startLesson(0, false, true);
+  assert.match(app.innerHTML, /id="timer"[^>]*>עוד כ־\d+ דק׳</);
+  assert.doesNotMatch(app.innerHTML, /id="timer"[^>]*>\d\d:\d\d</);
+  const lesson = api.getLesson();
+  lesson.i = lesson.steps.length - 1;
+  assert.equal(api.lessonEtaLabel(), 'כמעט סיימת');
+  api.stopLessonTimers(false);
+});
+
+test('promises are concrete and no fixed fifteen minutes remain', () => {
+  const manifest = fs.readFileSync(new URL('../manifest.webmanifest', import.meta.url), 'utf8');
+  assert.ok(!html.includes('15 דקות'));
+  assert.ok(!manifest.includes('15 דקות'));
+  const { api, app } = runtime();
+  assert.equal(api.UNIT_PROMISES.length, api.UNITS.length);
+  api.UNIT_PROMISES.forEach(promise => assert.ok(promise.length > 10));
+  // a fresh install boots into onboarding, which promises what unit one delivers
+  assert.ok(app.innerHTML.includes(api.unitPromise(0)));
+  assert.ok(!app.innerHTML.includes('15 דקות ביום'));
 });
