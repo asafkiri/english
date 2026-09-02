@@ -1305,9 +1305,13 @@ body{
 .conversation-option{
   min-height:52px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);border-radius:14px;
   padding:9px 10px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;line-height:1.25;
+  display:flex;align-items:center;justify-content:center;gap:8px;position:relative;
 }
 .conversation-option:active{transform:scale(.98)}
 .conversation-option:last-child:nth-child(odd){grid-column:1/-1}
+.conversation-option .choice-copy{flex:1;text-align:center}
+.conversation-option .choice-mic-icon{width:34px;height:34px;flex:0 0 34px;border-radius:50%;display:grid;place-items:center;background:rgba(52,211,153,.16);color:var(--green);font-size:17px;box-shadow:inset 0 0 0 1px rgba(52,211,153,.28);transition:transform .16s ease,background .16s ease}
+.conversation-option:active .choice-mic-icon{transform:scale(.9);background:rgba(52,211,153,.28)}
 .flow-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px 7px;color:var(--dim);font-size:12px}
 .flow-controls span{flex:1 1 100%;text-align:center}
 .flow-controls button{border:0;background:transparent;color:var(--blue);font:inherit;font-weight:800;padding:7px;min-height:44px;cursor:pointer}
@@ -5933,7 +5937,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.17.1';
+const APP_VERSION = '2.18.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -9925,7 +9929,7 @@ function renderBranchChoice(step){
   const composer=`
     <div class="composer-head"><span class="composer-label">${one?'💬 המשפט שמתאים עכשיו':'💡 רעיונות למה אפשר לענות'}</span><span style="font-size:12px;color:var(--dim)">${one?'אומרים אותו באנגלית':'בחר אחד — ואומרים אותו באנגלית'}</span></div>
     <div class="conversation-options">
-      ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranch(${i})">${esc(fillProfileText(o.label,'he'))}</button>`).join('')}
+      ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranchAndSpeak(${i})" aria-label="${esc(fillProfileText(o.label,'he'))} — בחירה והתחלת דיבור"><span class="choice-copy">${esc(fillProfileText(o.label,'he'))}</span><span class="choice-mic-icon" aria-hidden="true">🎤</span></button>`).join('')}
     </div>`;
   if(usesConversationStage()){
     const currentLine=stageCaptionLine();
@@ -9935,7 +9939,8 @@ function renderBranchChoice(step){
     dialogueShell(chatMessagesHtml(), composer);
   }
 }
-function chooseBranch(optionIndex){
+function chooseBranchAndSpeak(optionIndex){ chooseBranch(optionIndex,true); }
+function chooseBranch(optionIndex,startSpeaking=false){
   const step=L?.steps[L.i];
   if(!step||step.type!=='branchChoice'||!step.options[optionIndex]) return;
   invalidateDialogueFlow(true);
@@ -9958,6 +9963,13 @@ function chooseBranch(optionIndex){
   L.i++;
   saveLessonCheckpoint();
   renderStep();
+  if(startSpeaking&&micAvailable()){
+    const session=L,stepIndex=L.i,target=ptext(option.answer,'en',true);
+    afterRender(()=>{
+      if(!L||L!==session||L.i!==stepIndex||L.steps[L.i]?.type!=='speak'||L.rec) return;
+      micTap(target);
+    });
+  }
 }
 
 /* ---- done ---- */

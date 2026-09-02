@@ -296,6 +296,10 @@ test('guided lessons stay short, keep new English visible, and end on a real sta
   assert.match(app.innerHTML, /person-art modern-v2/);
 
   lesson.i = lesson.steps.findIndex(step => step.type === 'branchChoice');
+  api.renderStep();
+  assert.match(app.innerHTML, /choice-mic-icon/);
+  assert.match(app.innerHTML, /chooseBranchAndSpeak/);
+  assert.match(app.innerHTML, /בחירה והתחלת דיבור/);
   api.chooseBranch(0);
   assert.equal(api.getLesson().curStep.hintLevel, 0);
   assert.match(app.innerHTML, /id="englishHint" hidden/);
