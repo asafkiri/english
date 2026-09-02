@@ -11193,7 +11193,8 @@ if('serviceWorker' in navigator){
 const SAM_RUN_KEY='english.samRun';
 const SAM_RUN_MASTERY=4, SAM_RUN_GOAL=18;
 const SAM_RUN_PHASES=[
-  {id:'quiet',mode:'tap',icon:'👆',title:'שלב שקט',cta:'מתחילים בלחיצה',hint:'בחר את המילה באנגלית — וכל בחירה גם תושמע.'},
+  {id:'quiet_learn',mode:'tap',icon:'👆',title:'שקט · לומדים',cta:'מתחילים בלחיצה',hint:'בחר את המילה באנגלית — וכל בחירה גם תושמע.'},
+  {id:'quiet_speed',mode:'tap',icon:'⚡',title:'שקט · אתגר מהירות',cta:'יוצאים לאתגר',hint:'אותן מילים חוזרות בקצב מהיר יותר — בחר באנגלית והקשב להגייה.'},
   {id:'voice',mode:'voice',icon:'🎤',title:'אתגר קולי',cta:'מוכנים לדבר',hint:'ראה את המילה בעברית ואמור אותה באנגלית.'},
 ];
 /* Each world is deliberately small. Five words can be repeated enough to
@@ -11262,16 +11263,24 @@ const SAM_RUN_THINGS={
 let samRun=null;
 
 function samRunStore(){
-  const base={version:3,best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0};
+  const base={version:4,best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0};
   try{
     const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}');
     const store={...base,...(raw&&typeof raw==='object'?raw:{})};
     store.mastery=store.mastery&&typeof store.mastery==='object'?store.mastery:{};
     store.stageStars=store.stageStars&&typeof store.stageStars==='object'?store.stageStars:{};
     store.phaseByStage=store.phaseByStage&&typeof store.phaseByStage==='object'?store.phaseByStage:{};
-    /* A world completed in the old all-voice game stays completed. Replaying
-       it opens its voice challenge; the learner is never sent backwards. */
-    for(const key of Object.keys(store.stageStars)) if(store.stageStars[key]>0&&store.phaseByStage[key]===undefined) store.phaseByStage[key]=SAM_RUN_PHASES.length-1;
+    /* v3 had one quiet phase followed by voice. Preserve an unfinished voice
+       challenge, but completed worlds restart quietly when replayed. This
+       also repairs migrated saves in which several old worlds all appeared
+       as voice stages next to one another. */
+    if(Number(raw?.version)!==4){
+      if(Number(raw?.version)===3){
+        for(const key of Object.keys(store.phaseByStage)) if(Number(store.phaseByStage[key])===1) store.phaseByStage[key]=2;
+      }
+      for(const key of Object.keys(store.stageStars)) if(store.stageStars[key]>0) store.phaseByStage[key]=0;
+    }
+    store.version=4;
     store.stage=Math.max(0,Math.min(SAM_RUN_STAGES.length-1,Number(store.stage)||0));
     return store;
   }
@@ -11590,7 +11599,8 @@ function samRunSpawn(){
   const last=g.obstacles[g.obstacles.length-1];
   if(last&&!last.resolved&&last.progress<.55){ g.nextSpawnAt=g.time+120; return; }
   const cmd=samRunPickKind(), c=SAM_RUN_COMMANDS[cmd];
-  const travelMs=samRunTravelMs(g.score), warnMs=samRunWarnMs(g.score,g.latencyEma||g.store.latency||0);
+  const phasePace=g.phase.id==='quiet_speed'?.88:1;
+  const travelMs=Math.round(samRunTravelMs(g.score)*phasePace), warnMs=samRunWarnMs(g.score,g.latencyEma||g.store.latency||0);
   const el=document.createElement('div');
   const mastery=g.store.mastery[cmd]||0;
   el.className='game-obstacle ob-vocab is-incoming'+(mastery>=SAM_RUN_MASTERY?' is-mastered':'');
@@ -11784,7 +11794,10 @@ function samRunOver(finished=false){
   const stageComplete=passed&&g.phaseIndex===SAM_RUN_PHASES.length-1;
   const nextPhase=passed&&!stageComplete;
   if(nextPhase) store.phaseByStage[g.stageIndex]=g.phaseIndex+1;
-  if(stageComplete) store.stageStars[g.stageIndex]=Math.max(store.stageStars[g.stageIndex]||0,stars);
+  if(stageComplete){
+    store.stageStars[g.stageIndex]=Math.max(store.stageStars[g.stageIndex]||0,stars);
+    store.phaseByStage[g.stageIndex]=0;
+  }
   const newlyUnlocked=stageComplete&&g.stageIndex===store.stage&&store.stage<SAM_RUN_STAGES.length-1;
   if(newlyUnlocked){ store.stage++; store.phaseByStage[store.stage]=0; }
   const earned=Math.max(1,g.correctCount+stars*2); store.coins=(store.coins||0)+earned;
@@ -11795,12 +11808,13 @@ function samRunOver(finished=false){
   const nextAction=stageComplete
     ? (g.stageIndex<SAM_RUN_STAGES.length-1?`renderSamRun(${g.stageIndex+1})`:'renderSamRun()')
     : nextPhase?`renderSamRun(${g.stageIndex})`:'samRunStart()';
-  const nextLabel=stageComplete?(g.stageIndex<SAM_RUN_STAGES.length-1?'לעולם הבא 🚀':'למפת העולמות 🏆'):nextPhase?'לאתגר הקולי 🎤':'נסה שוב 🔁';
+  const upcoming=nextPhase?SAM_RUN_PHASES[g.phaseIndex+1]:null;
+  const nextLabel=stageComplete?(g.stageIndex<SAM_RUN_STAGES.length-1?'לעולם הבא 🚀':'למפת העולמות 🏆'):nextPhase?`${upcoming.title} ${upcoming.icon}`:'נסה שוב 🔁';
   card.hidden=false;
-  card.innerHTML=`<div class="reward">${stageComplete?'🏆':nextPhase?'🎤':g.lives<=0?'💪':'🎁'}</div><h2>${stageComplete?'העולם הושלם!':nextPhase?'השלב השקט הושלם!':g.lives<=0?'כמעט! יוצאים לעוד ריצה':'ריצה מעולה!'}</h2>
+  card.innerHTML=`<div class="reward">${stageComplete?'🏆':nextPhase?upcoming.icon:g.lives<=0?'💪':'🎁'}</div><h2>${stageComplete?'העולם הושלם!':nextPhase?'השלב הושלם!':g.lives<=0?'כמעט! יוצאים לעוד ריצה':'ריצה מעולה!'}</h2>
     <div class="game-stat"><div><b>${g.correctCount}</b>מילים נכונות</div><div><b>${g.store.streakBest||g.streak}</b>רצף שיא</div><div><b>+${earned}</b>מטבעות</div></div>
     <div class="mastered-list">${mastered.map(id=>`<span>${SAM_RUN_COMMANDS[id].ic} ${SAM_RUN_COMMANDS[id].en} ✓</span>`).join('')}</div>
-    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:nextPhase?'עכשיו אותן מילים חוזרות בלי אפשרויות — אומרים אותן באנגלית.':stageComplete?'זיהית וגם אמרת את כל חמש המילים. הן באמת אצלך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
+    <p>${newlyUnlocked?`פתחת את העולם הבא: <b>${SAM_RUN_STAGES[g.stageIndex+1].title}</b>!`:nextPhase?(upcoming.mode==='voice'?'אחרי שני שלבים שקטים, אותן מילים חוזרות בלי אפשרויות — אומרים אותן באנגלית.':'עוד סיבוב שקט ומהיר יחזק את המילים לפני שמדברים.'):stageComplete?'זיהית וגם אמרת את כל חמש המילים. הן באמת אצלך.':needs.length?`עוד קצת עם ${needs.slice(0,2).map(id=>`<b>${SAM_RUN_COMMANDS[id].en}</b>`).join(' ו־')} והשלב שלך.`:'עוד ריצה אחת והשיא נשבר.'}</p>
     <div class="btn-row"><button class="btn" onclick="${nextAction}">${nextLabel}</button><button class="btn secondary" onclick="renderSamRun()">מפת העולמות</button></div>`;
   const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.best;
   const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=g.mode==='voice'?'כל מילה שאמרת חיזקה את הזיכרון 🧠':'כל בחירה נכונה חיברה בין הכתב לצליל 🔊';

@@ -3418,9 +3418,18 @@ test("Sam's run teaches every stage aloud, then challenges Hebrew to English", (
     'mastery must not remove the Hebrew prompt and turn translation into picture guessing');
 });
 
-test("Sam's worlds alternate a silent learning stage and a gated voice stage", () => {
+test("Sam's worlds use two quiet stages before every gated voice stage", () => {
   const { api } = runtime();
-  assert.equal(api.SAM_RUN_PHASES.map(phase => phase.mode).join(','), 'tap,voice');
+  assert.equal(api.SAM_RUN_PHASES.map(phase => phase.mode).join(','), 'tap,tap,voice');
+  assert.equal(api.SAM_RUN_PHASES.filter(phase => phase.mode === 'tap').length / api.SAM_RUN_PHASES.length, 2/3,
+    'roughly 65% of the journey stays quiet');
+  const oldSave = new Map([[api.SAM_RUN_KEY, JSON.stringify({
+    version: 3, stage: 2, stageStars: {0: 3, 1: 2}, phaseByStage: {0: 1, 1: 1, 2: 1},
+  })]]);
+  const migrated = runtime(oldSave).api.samRunStore();
+  assert.equal(migrated.phaseByStage[0], 0, 'a completed old world reopens quietly');
+  assert.equal(migrated.phaseByStage[1], 0, 'adjacent completed worlds cannot both reopen as voice stages');
+  assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old voice challenge remains the next challenge');
   assert.match(html, /if\(g\.mode==='voice'&&!g\.micReady\)\{ samRunPrepareMicrophone\(\); return; \}/,
     'a voice run must stop before review and countdown until the microphone is ready');
   assert.match(html, /navigator\.mediaDevices\.getUserMedia\(\{audio:true\}\)/,
