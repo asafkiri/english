@@ -3443,3 +3443,20 @@ test("Sam's worlds use two quiet stages before every gated voice stage", () => {
   assert.match(html, /\.game-controls\.mode-voice \.game-words\{display:none\}/,
     'voice stages cannot reveal the English answers under the Hebrew prompt');
 });
+
+test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
+  const { api, app } = runtime();
+  api.renderSamRun(0);
+  assert.match(app.innerHTML, /game-skyfx/);
+  assert.match(app.innerHTML, /game-mid/);
+  assert.match(app.innerHTML, /game-roadside/);
+  assert.match(app.innerHTML, /game-finish/);
+  assert.match(app.innerHTML, /phase-quiet-learn/);
+  assert.match(html, /function samRunBurst\(ob\)/, 'correct answers create a particle reward');
+  assert.match(html, /world\.classList\.toggle\('zone-2',g\.resolvedCount>=6\)/,
+    'the atmosphere progresses during a run');
+  assert.match(html, /world\.classList\.add\('is-finishing'\)/,
+    'a completed run gets a visible finish-line sequence');
+  assert.match(html, /if\(cls==='is-jumping'\) setTimeout\(\(\)=>samRunWorldFx\('is-land',300\),690\)/,
+    'jumping has a camera-weighted landing');
+});

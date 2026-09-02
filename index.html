@@ -1896,6 +1896,43 @@ body{
   background-size:140px 100%;animation:gameScrollLane calc(.32s / var(--speed)) linear infinite;mix-blend-mode:screen}
 .game-world.is-fast .game-speedlines{opacity:.55}
 
+/* A tiny side-scrolling stage rather than a flat exercise card. Three
+   parallax planes move independently; each curriculum world supplies its
+   own silhouettes and roadside life without downloading heavy artwork. */
+.game-skyfx,.game-mid,.game-roadside,.game-dust,.game-finish{position:absolute;inset:0;pointer-events:none}
+.game-skyfx{z-index:0;overflow:hidden;background:
+  radial-gradient(circle at 78% 18%,rgba(255,244,184,.78) 0 5%,rgba(255,244,184,.18) 6% 11%,transparent 12%),
+  linear-gradient(110deg,transparent 18%,rgba(255,255,255,.08) 45%,transparent 66%);transition:filter 1s ease,opacity 1s ease}
+.game-skyfx:before,.game-skyfx:after{content:'';position:absolute;width:92px;height:20px;border-radius:50%;background:rgba(255,255,255,.38);filter:blur(1px);box-shadow:26px -8px 0 3px rgba(255,255,255,.28),-26px 2px 0 -3px rgba(255,255,255,.3);animation:gameCloud 22s linear infinite}
+.game-skyfx:before{top:16%;left:105%}.game-skyfx:after{top:31%;left:130%;transform:scale(.62);animation-duration:31s;animation-delay:-13s;opacity:.65}
+@keyframes gameCloud{to{translate:-620% 0}}
+.game-mid{z-index:1;top:auto;height:32%;bottom:28%;display:flex;align-items:flex-end;gap:clamp(70px,24vw,150px);width:max-content;padding-left:110%;animation:gamePropsMove calc(12s / var(--speed)) linear infinite;filter:saturate(.86) drop-shadow(0 7px 5px rgba(0,0,0,.16));opacity:.7}
+.game-roadside{z-index:2;top:auto;height:27%;bottom:29%;display:flex;align-items:flex-end;gap:clamp(125px,38vw,240px);width:max-content;padding-left:105%;animation:gamePropsMove calc(5.6s / var(--speed)) linear infinite;filter:drop-shadow(0 7px 5px rgba(0,0,0,.28))}
+.game-prop{display:inline-block;line-height:1;transform-origin:50% 100%;animation:gamePropLife 1.7s ease-in-out infinite alternate}.game-mid .game-prop{font-size:34px}.game-roadside .game-prop{font-size:46px}.game-prop:nth-child(2n){animation-delay:-.8s}.game-prop:nth-child(3n){transform:scale(.78)}
+@keyframes gamePropsMove{to{transform:translateX(-155%)}}
+@keyframes gamePropLife{to{translate:0 -3px;rotate:1.5deg}}
+.game-dust{z-index:4;opacity:.42;background-image:radial-gradient(circle,rgba(255,255,255,.65) 0 1px,transparent 1.5px);background-size:31px 27px;mask-image:linear-gradient(transparent 52%,#000);animation:gameDust calc(1.5s / var(--speed)) linear infinite}
+@keyframes gameDust{to{background-position:-93px 27px}}
+.game-world.is-halted .game-mid,.game-world.is-halted .game-roadside,.game-world.is-halted .game-dust{animation-play-state:paused}
+.game-world.phase-quiet-learn .game-dust{opacity:.18}.game-world.phase-quiet-learn .game-speedlines{opacity:0}
+.game-world.phase-quiet-speed{box-shadow:inset 0 0 34px rgba(96,165,250,.18)}
+.game-world.phase-quiet-speed .game-speedlines{opacity:.38}.game-world.phase-quiet-speed .game-roadside{animation-duration:calc(4.5s / var(--speed))}
+.game-world.phase-voice{box-shadow:inset 0 0 38px rgba(52,211,153,.22)}
+.game-world.phase-voice .game-skyfx{filter:hue-rotate(18deg) saturate(1.2)}
+.game-world.phase-voice:after{content:'🎙️';position:absolute;right:10px;top:9px;z-index:5;font-size:16px;opacity:.75;filter:drop-shadow(0 0 8px #34d399);animation:cuePulse 1.2s ease-in-out infinite}
+.game-world.zone-2 .game-skyfx{filter:saturate(1.2) brightness(.93)}.game-world.zone-3 .game-skyfx{filter:saturate(1.35) hue-rotate(-9deg);opacity:.9}
+.game-world.is-success{animation:gameSuccessFlash .42s ease}.game-world.is-combo{animation:gameComboZoom .5s ease}
+@keyframes gameSuccessFlash{45%{box-shadow:inset 0 0 45px rgba(52,211,153,.5)}}
+@keyframes gameComboZoom{45%{transform:scale(1.012);box-shadow:inset 0 0 55px rgba(251,191,36,.38)}}
+.game-world.is-land{animation:gameLand .3s ease}@keyframes gameLand{35%{transform:translateY(3px) scaleY(.994)}70%{transform:translateY(-1px)}}
+.game-burst{position:absolute;z-index:6;width:10px;height:10px;pointer-events:none}
+.game-burst i{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;background:#6ee7b7;box-shadow:0 0 9px currentColor;animation:gameBurst .65s ease-out both;transform:rotate(var(--a)) translateX(8px)}
+.game-burst i:nth-child(2n){background:#fbbf24}.game-burst i:nth-child(3n){background:#93c5fd}
+@keyframes gameBurst{to{opacity:0;transform:rotate(var(--a)) translateX(48px) scale(.2)}}
+.game-finish{z-index:5;left:auto;right:-90px;width:72px;opacity:0;background:repeating-conic-gradient(#fff 0 25%,#111827 0 50%) 0/22px 22px;border-left:5px solid #f8fafc;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+.game-world.is-finishing .game-finish{animation:gameFinishLine 1.15s ease-out both}
+@keyframes gameFinishLine{0%{opacity:1;transform:translateX(0)}100%{opacity:1;transform:translateX(calc(-100vw - 100px))}}
+
 /* Sam: the shared full-body rig, given a run cycle on its real joints */
 .game-runner{position:absolute;left:14%;bottom:var(--ground);width:76px;height:142px;transform-origin:50% 100%;z-index:3}
 .game-runner .person-art{width:100%;height:100%}
@@ -2081,6 +2118,9 @@ body{
 .game-stage-tag{font-size:11px;color:#93c5fd;font-weight:800;white-space:nowrap}
 .game-obstacle.ob-vocab{bottom:calc(var(--ground) + 8px);width:66px;height:76px;justify-content:flex-end}
 .game-obstacle.ob-vocab .ob-body{display:flex;align-items:center;justify-content:center;width:58px;height:58px;border:2px solid rgba(255,255,255,.28);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(15,23,42,.72));font-size:35px;line-height:1;box-shadow:0 10px 20px rgba(0,0,0,.26);animation:gameTreasureBob .8s ease-in-out infinite}
+.phase-quiet-learn .game-obstacle.ob-vocab .ob-body{box-shadow:0 0 0 5px rgba(96,165,250,.1),0 10px 22px rgba(0,0,0,.25);animation-duration:1.05s}
+.phase-quiet-speed .game-obstacle.ob-vocab .ob-body{border-radius:50% 50% 45% 45%;box-shadow:0 0 18px rgba(96,165,250,.38),0 10px 20px rgba(0,0,0,.3)}
+.phase-voice .game-obstacle.ob-vocab .ob-body{width:64px;height:64px;border-color:rgba(52,211,153,.62);box-shadow:0 0 22px rgba(52,211,153,.3),0 12px 24px rgba(0,0,0,.32)}
 .game-obstacle.ob-vocab .ob-body.color-word{background:var(--word-color);box-shadow:0 0 0 5px rgba(255,255,255,.12),0 10px 24px color-mix(in srgb,var(--word-color) 48%,transparent)}
 @keyframes gameTreasureBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
 .game-obstacle.ob-vocab .ob-label{bottom:calc(100% + 2px);min-width:72px;text-align:center;line-height:1.2;border-color:rgba(96,165,250,.62)}
@@ -2110,6 +2150,7 @@ body{
   .game-runner{width:66px;height:124px}
   .game-card h2{font-size:21px}.game-card .big-word{font-size:34px}
 }
+@media(prefers-reduced-motion:reduce){.game-skyfx:before,.game-skyfx:after,.game-mid,.game-roadside,.game-dust,.game-prop{animation:none}.game-world.is-success,.game-world.is-combo,.game-world.is-land{animation:none}}
 @media (prefers-reduced-motion:reduce){
   /* The game is motion the player asked for by opening it. The decorative
      layer goes (shake, speed lines, scrolling street, bobbing labels), but
@@ -11197,6 +11238,22 @@ const SAM_RUN_PHASES=[
   {id:'quiet_speed',mode:'tap',icon:'⚡',title:'שקט · אתגר מהירות',cta:'יוצאים לאתגר',hint:'אותן מילים חוזרות בקצב מהיר יותר — בחר באנגלית והקשב להגייה.'},
   {id:'voice',mode:'voice',icon:'🎤',title:'אתגר קולי',cta:'מוכנים לדבר',hint:'ראה את המילה בעברית ואמור אותה באנגלית.'},
 ];
+const SAM_RUN_SCENERY=[
+  {far:['🏢','🌳','🏠','🏬','🌲','🏫'],near:['🚏','🛴','🪴','🚲']},
+  {far:['🏙️','🎨','🏢','🌈','🏬','🗼'],near:['🎈','🖌️','🚕','🚦']},
+  {far:['🌲','🌳','⛲','🌴','🌿','🏞️'],near:['🐿️','🦋','🪵','🌼']},
+  {far:['🌳','☀️','🌲','⛲','🌿','🧺'],near:['🥪','🧃','🍓','⚽']},
+  {far:['🏫','🌳','🏘️','☁️','🏢','📚'],near:['🚌','🚸','🎒','🛴']},
+  {far:['🏠','🏡','🌳','🏘️','🌲','🏢'],near:['📬','🐈','🪴','🚲']},
+  {far:['🏙️','🏢','🏬','🌆','🏦','🏨'],near:['🚕','🚦','🚌','🛵']},
+  {far:['🌩️','🏙️','⚡','🌌','🏢','✨'],near:['💫','🔥','🔋','⭐']},
+];
+function samRunWorldClass(g){ return `game-world theme-${g.stageIndex} phase-${g.phase.id.replaceAll('_','-')}`; }
+function samRunSceneryHtml(stageIndex){
+  const s=SAM_RUN_SCENERY[stageIndex]||SAM_RUN_SCENERY[0];
+  const props=list=>list.concat(list).map((x,i)=>`<span class="game-prop p${i%4}">${x}</span>`).join('');
+  return `<div class="game-skyfx"></div><div class="game-mid">${props(s.far)}</div><div class="game-roadside">${props(s.near)}</div><div class="game-dust"></div>`;
+}
 /* Each world is deliberately small. Five words can be repeated enough to
    become automatic; the next five arrive only after all five are known. */
 const SAM_RUN_STAGES=[
@@ -11413,8 +11470,8 @@ function renderSamRun(stageIndex=null){
       <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">שיא ${store.best}</div></div>
     </div>
     <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
-    <div class="game-world" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
-      <div class="game-far"></div><div class="game-lane"></div><div class="game-speedlines"></div>
+    <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
+      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
       <div class="game-runner" id="samRunRunner" hidden>${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
       <div id="samRunObstacles"></div>
@@ -11493,7 +11550,7 @@ function samRunStart(){
     speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
-  world.className='game-world'; world.style.setProperty('--speed','1');
+  world.className=samRunWorldClass(g); world.style.setProperty('--speed','1');
   samRunPaintHud();
   const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
   samRunReviewStep(0);
@@ -11687,11 +11744,31 @@ function samRunScore(points, ob){
   const g=samRun;
   g.score+=points;
   samRunFloat('+'+points, ob);
+  samRunBurst(ob);
   samRunPaintHud(true);
   const world=document.getElementById('samRunWorld');
   const speed=samRunSpeedFor(g.score);
-  if(world){ world.style.setProperty('--speed',speed.toFixed(3)); world.classList.toggle('is-fast',speed>1.7); }
+  if(world){
+    world.style.setProperty('--speed',speed.toFixed(3));
+    world.classList.toggle('is-fast',speed>1.7);
+    world.classList.toggle('zone-2',g.resolvedCount>=6);
+    world.classList.toggle('zone-3',g.resolvedCount>=12);
+    samRunWorldFx(g.streak>0&&g.streak%5===0?'is-combo':'is-success',g.streak%5===0?500:420);
+  }
   samRunPaintHud(true);
+}
+function samRunWorldFx(cls,ms=420){
+  const world=document.getElementById('samRunWorld'); if(!world||prefersReducedStageMotion()) return;
+  world.classList.remove(cls); void world.offsetWidth; world.classList.add(cls);
+  setTimeout(()=>{ if(world.isConnected) world.classList.remove(cls); },ms);
+}
+function samRunBurst(ob){
+  const world=document.getElementById('samRunWorld'); if(!world||prefersReducedStageMotion()) return;
+  const burst=document.createElement('div'); burst.className='game-burst';
+  burst.style.left=Math.max(16,Math.min(world.clientWidth-24,ob?.x??world.clientWidth*.5))+'px';
+  burst.style.top=Math.round(world.clientHeight*.58)+'px';
+  burst.innerHTML=Array.from({length:10},(_,i)=>`<i style="--a:${i*36}deg"></i>`).join('');
+  world.appendChild(burst); setTimeout(()=>burst.remove(),750);
 }
 function samRunHit(ob){
   const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
@@ -11710,6 +11787,7 @@ function samRunHit(ob){
 function samRunPose(cls,ms){
   const runner=document.getElementById('samRunRunner'); if(!runner) return;
   runner.classList.remove(cls); void runner.offsetWidth; runner.classList.add(cls);
+  if(cls==='is-jumping') setTimeout(()=>samRunWorldFx('is-land',300),690);
   if(ms) setTimeout(()=>runner.classList.remove(cls),ms);
 }
 /* Sam heard something and is waiting for the word: a tense little crouch */
@@ -11767,7 +11845,10 @@ function samRunCheckFinish(){
   if(g.resolvedCount<SAM_RUN_GOAL) return;
   g.finishing=true;
   g.nextSpawnAt=Infinity;
-  setTimeout(()=>{ if(samRun===g) samRunOver(true); },650);
+  const world=document.getElementById('samRunWorld'),runner=document.getElementById('samRunRunner');
+  if(world) world.classList.add('is-finishing');
+  if(runner) setTimeout(()=>{ if(samRun===g) samRunPose('is-celebrating',800); },360);
+  setTimeout(()=>{ if(samRun===g) samRunOver(true); },1250);
 }
 /* Compatibility hook: old versions paused to unlock a word mid-run. New
    worlds unlock together, so this simply teaches the requested word. */
