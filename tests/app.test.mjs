@@ -58,11 +58,13 @@ function runtime(seed = new Map(), options = {}) {
       applyPracticeChoice, fillPracticeStoryTokens, fillProfileText, materializePracticeBeat,
       initialPracticeStageWorld, initialPracticeVars, applyPracticeStageMutation, enterPracticeStageAction,
       ensurePracticeStageWorld, settlePracticeStageAction, finishPracticeStageActionVisual,
+      schedulePracticeStageActionSettle, pausePracticeStageActionSettle, resumePracticeStageActionSettle,
       practiceStageModel, practiceStageDirection, practiceStageActionDuration,
       prefersReducedStageMotion, practiceStageActionVisualDelay,
       stageDirectionModel, stageDirectionClasses, stageBackdropMomentClasses,
       stageActionClass, stageHeldObjectClasses, stageWorldClasses,
-      PRACTICE_BACKDROPS,
+      PRACTICE_BACKDROPS, sceneBackdrop,
+      physicalStoryPropFace, stagePhysicalStoryPropHtml,
       stagePropsHtml, stageWeatherHtml, syncStageVisualBlock,
       availablePracticeStories, remainingPracticeStories, practiceStoryLengthPool, normalizePracticeStoryIds,
       practiceStoryCycleState, mergePracticeStoryCycles,
@@ -82,6 +84,11 @@ function runtime(seed = new Map(), options = {}) {
   `;
   vm.runInContext(inline + expose, context, { filename: 'index-inline.js' });
   return { api: context.__test, seed, app, context };
+}
+
+function classCount(markup, token) {
+  return [...String(markup).matchAll(/\bclass="([^"]*)"/g)]
+    .filter(([, classes]) => classes.split(/\s+/).includes(token)).length;
 }
 
 test('course content remains intact', () => {
@@ -1381,6 +1388,8 @@ test('every free-practice line has one coherent authored acting direction', () =
 test('authored stage actions are narrated, unique and use the supported world contract', () => {
   const { api } = runtime();
   const gestures = new Set([
+    'lift-cargo', 'bag-to-learner', 'catch-cargo-bag', 'shoulder-door',
+    'walk-through-door', 'set-down-cargo', 'close-door',
     'place-brushes', 'pick-up-phone', 'hand-over-phone', 'phone-to-desk',
     'move-mirror-light', 'find-mirror', 'place-mirror',
     'reveal-wrong-bag', 'replace-bag', 'start-rain', 'stop-rain',
@@ -1390,7 +1399,9 @@ test('authored stage actions are narrated, unique and use the supported world co
     'dog-appears', 'inspect-dog', 'dog-reunion', 'reveal-robot', 'robot-lights',
     'story-prop-change', 'story-prop-reveal',
   ]);
-  const motions = new Set(['reach-low', 'present', 'swap', 'catch', 'offer', 'react', 'celebrate']);
+  const motions = new Set([
+    'reach-low', 'present', 'swap', 'catch', 'catch-high', 'offer', 'react', 'celebrate', 'carry',
+  ]);
   const worldValues = {
     brushes: new Set(['held', 'placed']),
     phone: new Set(['floor', 'held', 'learner', 'desk']),
@@ -1407,13 +1418,38 @@ test('authored stage actions are narrated, unique and use the supported world co
     storyProp: new Set(['ready', 'changed']),
     samBag: new Set(['stacked', 'learner', 'sam']),
     samDoor: new Set(['narrow', 'open', 'closed']),
+    samCargo: new Set(['ground', 'held', 'doorway', 'inside']),
     mirror: new Set(['hidden', 'held', 'placed']),
     mirrorLight: new Set(['hidden', 'moving', 'source', 'final']),
   };
   const ids = [];
   const authoredActionIds = new Set();
   const locations = new Map();
+  const actionsById = new Map();
   const actionStories = new Set();
+
+  const registerAction = (story, action, location, narration) => {
+    if (!action) return;
+    authoredActionIds.add(action.id);
+    assert.ok(narration, `${location}: a visible action needs matching narration`);
+    assert.ok(typeof action.id === 'string' && action.id.trim(), `${location}: missing action id`);
+    assert.ok(gestures.has(action.gesture), `${location}: unsupported ${action.gesture}`);
+    assert.ok(api.STAGE_ACTION_DURATIONS_MS[action.gesture], `${location}: gesture needs an authored duration`);
+    assert.equal(api.practiceStageActionDuration(action), api.STAGE_ACTION_DURATIONS_MS[action.gesture]);
+    if (action.motion) assert.ok(motions.has(action.motion), `${location}: unsupported motion ${action.motion}`);
+    assert.ok(action.set && Object.keys(action.set).length, `${location}: action changes no world state`);
+    for (const [key, value] of Object.entries(action.set)) {
+      assert.ok(worldValues[key]?.has(value), `${location}: unsupported ${key}=${value}`);
+    }
+    if (locations.has(action.id)) {
+      assert.equal(locations.get(action.id), location, `${action.id}: reused by two different beats`);
+    } else {
+      locations.set(action.id, location);
+      actionsById.set(action.id, action);
+      ids.push(action.id);
+      actionStories.add(story.id);
+    }
+  };
 
   for (const story of api.PRACTICE_STORIES) {
     for (const [key, value] of Object.entries(story.stageInitial || {})) {
@@ -1421,25 +1457,11 @@ test('authored stage actions are narrated, unique and use the supported world co
     }
     for (const beat of story.beats) for (const variant of storyVariants(beat)) {
       const action = variant.stageAction || beat.stageAction;
-      if (!action) continue;
-      authoredActionIds.add(action.id);
       const location = `${story.id}/${beat.id}`;
-      assert.ok(variant.event || beat.event, `${location}: a visible action needs matching narration`);
-      assert.ok(typeof action.id === 'string' && action.id.trim(), `${story.id}/${beat.id}: missing action id`);
-      assert.ok(gestures.has(action.gesture), `${story.id}/${beat.id}: unsupported ${action.gesture}`);
-      assert.ok(api.STAGE_ACTION_DURATIONS_MS[action.gesture], `${location}: gesture needs an authored duration`);
-      assert.equal(api.practiceStageActionDuration(action), api.STAGE_ACTION_DURATIONS_MS[action.gesture]);
-      if (action.motion) assert.ok(motions.has(action.motion), `${location}: unsupported motion ${action.motion}`);
-      assert.ok(action.set && Object.keys(action.set).length, `${story.id}/${beat.id}: action changes no world state`);
-      for (const [key, value] of Object.entries(action.set)) {
-        assert.ok(worldValues[key]?.has(value), `${story.id}/${beat.id}: unsupported ${key}=${value}`);
-      }
-      if (locations.has(action.id)) {
-        assert.equal(locations.get(action.id), location, `${action.id}: reused by two different beats`);
-      } else {
-        locations.set(action.id, location);
-        ids.push(action.id);
-        actionStories.add(story.id);
+      registerAction(story, action, location, variant.event || beat.event);
+      for (const option of variant.options || []) {
+        registerAction(story, option.replyStageAction,
+          `${location}/reply/${option.id || 'option'}`, option.replyEvent);
       }
     }
   }
@@ -1450,10 +1472,8 @@ test('authored stage actions are narrated, unique and use the supported world co
   assert.ok(ids.length >= api.PRACTICE_STORIES.length,
     'every story needs an action, and richer stories may contain more than one');
   assert.equal(actionStories.size, api.PRACTICE_STORIES.length, 'every randomly selected story needs a physical event');
-  for (const [id, location] of locations) {
-    const [storyId, beatId] = location.split('/');
-    const beat = api.practiceStoryById(storyId).beats.find(row => row.id === beatId);
-    const action = beat.stageAction || storyVariants(beat).find(row => row.stageAction)?.stageAction;
+  for (const [id] of locations) {
+    const action = actionsById.get(id);
     if (action.motion) assert.match(html, new RegExp(`\\.stage-avatar\\.stage-motion-${action.motion}`),
       `${id}: reusable body motion is missing`);
     else assert.match(html, new RegExp(`\\.stage-avatar\\.stage-action-${action.gesture}`),
@@ -1695,6 +1715,222 @@ test('the living-room portrait is lit from its visible window on the right', () 
   assert.equal(api.PRACTICE_BACKDROPS['living-room'].lightSide, 'right');
 });
 
+test('sceneBackdrop wraps each authored plane in one outer depth layer', () => {
+  const { api } = runtime();
+  const sentinels = {
+    far: '<path data-depth="far"/>',
+    mid: '<path data-depth="mid"/>',
+    near: '<path data-depth="near"/>',
+  };
+  const sample = api.sceneBackdrop(
+    'depth-contract',
+    { top: '#123', bottom: '#234', floor: '#345', glow: '#fff', horizon: 500 },
+    sentinels.far,
+    sentinels.mid,
+    sentinels.near,
+  ).art;
+
+  for (const layer of ['far', 'mid', 'near']) {
+    assert.equal(classCount(sample, `scene-depth-${layer}`), 1,
+      `${layer}: sceneBackdrop needs exactly one depth wrapper`);
+    assert.match(sample, new RegExp(
+      `<g class="scene-depth scene-depth-${layer}">\\s*` +
+      `<g class="backdrop-${layer}">${sentinels[layer]}</g>\\s*</g>`,
+    ), `${layer}: the scene-depth group must be outside the existing backdrop group`);
+  }
+  assert.equal(classCount(sample, 'scene-depth'), 3);
+  assert.ok(sample.indexOf('scene-depth-far') < sample.indexOf('scene-depth-mid'));
+  assert.ok(sample.indexOf('scene-depth-mid') < sample.indexOf('scene-depth-near'));
+
+  for (const [id, backdrop] of Object.entries(api.PRACTICE_BACKDROPS)) {
+    assert.equal(classCount(backdrop.art, 'scene-depth'), 3, `${id}: expected three depth planes`);
+    for (const layer of ['far', 'mid', 'near']) {
+      assert.equal(classCount(backdrop.art, `scene-depth-${layer}`), 1,
+        `${id}: expected one ${layer} depth plane`);
+    }
+  }
+});
+
+test('both Sam offer replies author unique lift-cargo actions', () => {
+  const { api } = runtime();
+  const story = api.practiceStoryById('sam_boxes_at_door');
+  const offer = api.resolvePracticeBeat(story, 0, {});
+  assert.equal(offer.id, 'offer');
+  assert.deepEqual(Array.from(offer.options, option => option.id), ['carry', 'cannot']);
+
+  const actions = Array.from(offer.options, option => option.replyStageAction);
+  assert.ok(actions.every(Boolean), 'each answer needs an action on Sam\'s immediate reply');
+  assert.deepEqual(Array.from(actions, action => action.id), [
+    'sam-lifts-boxes-for-help',
+    'sam-lifts-bag-and-boxes',
+  ]);
+  assert.equal(new Set(actions.map(action => action.id)).size, actions.length,
+    'the two branches must not suppress each other through the one-shot action id');
+  for (const action of actions) {
+    assert.equal(action.gesture, 'lift-cargo');
+    assert.equal(action.motion, 'carry');
+    assert.deepEqual({ ...action.set }, { samCargo: 'held' });
+    assert.equal(api.practiceStageActionDuration(action), api.STAGE_ACTION_DURATIONS_MS['lift-cargo']);
+  }
+});
+
+test('a selected reply action reaches only the NPC reply and waits for its arrival', () => {
+  for (const optionIndex of [0, 1]) {
+    const { api, app } = runtime();
+    const story = api.practiceStoryById('sam_boxes_at_door');
+    const steps = [{ type: 'practiceIntro' }];
+    story.beats.forEach((_, roundIndex) => steps.push(
+      { type: 'practiceBeatPending', roundIndex },
+      { type: 'practiceChoicePending', roundIndex },
+      { type: 'branchPending' },
+      { type: 'branchPending' },
+    ));
+    steps.push({ type: 'practiceDone' });
+    const lesson = {
+      idx: story.min - 1, lesson: api.LESSONS[story.min - 1], steps, i: 2,
+      isReplay: true, isPractice: true, practiceStoryId: story.id,
+      practiceVars: {}, practiceDecisions: [],
+      practiceMeta: {
+        characterId: 'sam', character: api.PRACTICE_CAST.sam,
+        placeEmoji: '📦', place: 'בחניית הבניין', mission: story.goal,
+        role: api.PRACTICE_CAST.sam.role, bg: 'parking-lot',
+      },
+      stageWorld: api.initialPracticeStageWorld(story),
+      stagePlayedActions: [], pendingStageAction: null,
+      elapsedBeforeMs: 0, activeSince: Date.now(), chat: [], chatExpanded: false,
+      tries: 0, attempts: 0, rec: null, timerId: null, runId: `sam-reply-${optionIndex}`,
+    };
+    assert.equal(api.materializePracticeBeat(0, lesson), true);
+    const choice = lesson.steps[2];
+    const option = choice.options[optionIndex];
+    api.setLesson(lesson);
+    api.chooseBranch(optionIndex);
+
+    assert.equal(lesson.i, 3);
+    const learnerSpeak = lesson.steps[3];
+    const npcReply = lesson.steps[4];
+    assert.equal(learnerSpeak.p, option.answer);
+    assert.equal(learnerSpeak.stageAction, undefined,
+      'Sam must not lift the cargo while the learner is still speaking');
+    assert.equal(npcReply.line, option.reply);
+    assert.equal(npcReply.stageAction, option.replyStageAction,
+      'the selected option must copy its action onto its own NPC reply');
+    assert.equal(choice.stageAction, undefined);
+    assert.equal(lesson.pendingStageAction, null);
+    assert.equal(lesson.stageWorld.samCargo, 'ground');
+    assert.doesNotMatch(app.innerHTML, /stage-action-lift-cargo/);
+
+    assert.equal(npcReply.arrived, undefined);
+    assert.equal(api.enterPracticeStageAction(npcReply, lesson), false,
+      'materializing a reply must not commit its action before the line arrives');
+    assert.equal(lesson.stageWorld.samCargo, 'ground');
+    assert.deepEqual(Array.from(lesson.stagePlayedActions), []);
+
+    npcReply.arrived = true;
+    assert.equal(api.enterPracticeStageAction(npcReply, lesson), true);
+    assert.equal(lesson.stageWorld.samCargo, 'held');
+    assert.equal(lesson.pendingStageAction, option.replyStageAction);
+    assert.deepEqual(Array.from(lesson.stagePlayedActions), [option.replyStageAction.id]);
+    assert.match(api.stageActionClass(api.practiceStageModel(lesson)), /stage-action-lift-cargo/);
+    assert.equal(api.enterPracticeStageAction(npcReply, lesson), false,
+      'redrawing the same spoken reply must not lift the boxes twice');
+
+    api.settlePracticeStageAction(lesson);
+    assert.equal(lesson.pendingStageAction, null);
+    assert.equal(lesson.stageWorld.samCargo, 'held');
+    api.stopLessonTimers(false);
+    api.setLesson(null);
+  }
+});
+
+test('other reply-timed events settle on the sentence that announces them', () => {
+  const { api } = runtime();
+  const activity = api.practiceStoryById('school_activity');
+  const oneSlot = api.resolvePracticeBeat(activity, 3, {});
+  assert.ok(oneSlot.options.every(option => option.replyStageAction?.set?.activity === 'selected'));
+  assert.ok(oneSlot.options.every(option => option.replyEvent?.he));
+  assert.equal(api.resolvePracticeBeat(activity, 4, { final: 'music' }).stageAction, null,
+    'the selected card must already be settled before the sister question begins');
+
+  const shot = api.practiceStoryById('tom_last_shot');
+  for (const vars of [{ search: 'quick' }, { search: 'together' }]) {
+    const returnBall = api.resolvePracticeBeat(shot, 4, vars);
+    assert.ok(returnBall.options.every(option => option.replyStageAction?.set?.ball === 'held'));
+    assert.ok(returnBall.options.every(option => option.replyEvent?.he));
+  }
+  assert.equal(api.resolvePracticeBeat(shot, 5, { search: 'quick' }).stageAction, null,
+    'Tom must not wait until the next question to receive the ball');
+});
+
+test('the recess ball visibly stays flat without changing the last-shot basketball', () => {
+  const { api } = runtime();
+  const flat = api.stagePropsHtml({
+    storyId: 'tom_recess_ball', world: { ball: 'lost' }, action: null,
+  });
+  assert.match(flat, /class="stage-prop prop-ball at-lost is-flat"/);
+  assert.match(flat, /class="ball-core flat-ball-core"/);
+
+  const round = api.stagePropsHtml({
+    storyId: 'tom_last_shot', world: { ball: 'lost' }, action: null,
+  });
+  assert.doesNotMatch(round, /is-flat|flat-ball-core/);
+  assert.match(round, /<circle cx="33" cy="78" r="23"/);
+});
+
+test('Sam cargo follows ground to held to doorway to inside on both offer paths', () => {
+  const { api } = runtime();
+  const story = api.practiceStoryById('sam_boxes_at_door');
+  const offer = api.resolvePracticeBeat(story, 0, {});
+
+  for (const option of offer.options) {
+    const session = {
+      isPractice: true, practiceStoryId: story.id, practiceVars: {},
+      stageWorld: api.initialPracticeStageWorld(story),
+      stagePlayedActions: [], pendingStageAction: null,
+    };
+    const states = [session.stageWorld.samCargo];
+    const assertCargoClass = expected => assert.match(
+      api.stageWorldClasses(api.practiceStageModel(session)),
+      new RegExp(`has-sam-cargo-${expected}`),
+      `${option.id}: ${expected} needs a persistent visual resting state`,
+    );
+    assertCargoClass('ground');
+
+    assert.equal(api.enterPracticeStageAction({
+      arrived: true, stageAction: option.replyStageAction,
+    }, session), true);
+    states.push(session.stageWorld.samCargo);
+    assertCargoClass('held');
+    assert.match(api.stageHeldObjectClasses(api.practiceStageModel(session)), /has-sam-cargo-held/,
+      'the load state must be copied onto the actor that owns the hand rig');
+    api.settlePracticeStageAction(session);
+    assert.equal(session.stageWorld.samCargo, 'held');
+
+    session.practiceVars = api.applyPracticeChoice(session.practiceVars, option);
+    const slipping = api.resolvePracticeBeat(story, 1, session.practiceVars).stageAction;
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: slipping }, session), true);
+    api.settlePracticeStageAction(session);
+    assert.equal(session.stageWorld.samCargo, 'held',
+      'catching or handing off the bag must not drop the cartons back to the floor');
+
+    const doorway = api.resolvePracticeBeat(story, 2, session.practiceVars).stageAction;
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: doorway }, session), true);
+    states.push(session.stageWorld.samCargo);
+    assertCargoClass('doorway');
+    api.settlePracticeStageAction(session);
+
+    const inside = api.resolvePracticeBeat(story, 3, session.practiceVars).stageAction;
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: inside }, session), true);
+    states.push(session.stageWorld.samCargo);
+    assertCargoClass('inside');
+    api.settlePracticeStageAction(session);
+    assertCargoClass('inside');
+
+    assert.deepEqual(states, ['ground', 'held', 'doorway', 'inside']);
+    assert.equal(new Set(session.stagePlayedActions).size, session.stagePlayedActions.length);
+  }
+});
+
 test('Sam keeps two real boxes and one visible bag through both doorway branches', () => {
   const { api } = runtime();
   const story = api.practiceStoryById('sam_boxes_at_door');
@@ -1705,6 +1941,7 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
   assert.equal(initialWorld.storyProp, 'ready');
   assert.equal(initialWorld.samBag, 'stacked');
   assert.equal(initialWorld.samDoor, 'narrow');
+  assert.equal(initialWorld.samCargo, 'ground');
 
   const parkingArt = api.PRACTICE_BACKDROPS['parking-lot'].art;
   assert.equal((parkingArt.match(/class="sam-cargo-box /g) || []).length, 2,
@@ -1718,6 +1955,13 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
   assert.match(parkingArt, /class="sam-cargo-boxes">\s*<ellipse class="sam-cargo-shadow"/,
     'the contact shadow must move with the cartons');
 
+  const samActor = api.modernPersonArt(api.PRACTICE_CAST.sam.look, 'speaking');
+  assert.equal((samActor.match(/class="sam-held-box /g) || []).length, 2,
+    'the held version must keep both cartons inside Sam\'s own SVG coordinates');
+  assert.equal(classCount(samActor, 'sam-held-bag'), 1);
+  assert.equal(classCount(samActor, 'sam-cargo-grips'), 1,
+    'painted grip hands must visibly connect the actor to the load');
+
   const makeSession = canCarry => ({
     isPractice: true, practiceStoryId: story.id, practiceVars: { canCarry },
     stageWorld: api.initialPracticeStageWorld(story), stagePlayedActions: [], pendingStageAction: null,
@@ -1728,6 +1972,8 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
   assert.match(api.stageWorldClasses(model), /has-sam-boxes-ready/);
   assert.match(api.stageWorldClasses(model), /has-sam-bag-stacked/);
   assert.match(api.stageWorldClasses(model), /has-sam-door-narrow/);
+  assert.match(api.stageWorldClasses(model), /has-sam-cargo-ground/);
+  assert.doesNotMatch(api.stageHeldObjectClasses(model), /has-sam-cargo-held/);
   assert.doesNotMatch(api.stagePropsHtml(model), /prop-story-card/);
 
   for (const [canCarry, actionId, bagState, actionClass] of [
@@ -1751,6 +1997,7 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
     const throughDoor = api.resolvePracticeBeat(story, 2, { canCarry }).stageAction;
     assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: throughDoor }, session), true);
     assert.equal(session.stageWorld.samDoor, 'open');
+    assert.equal(session.stageWorld.samCargo, 'doorway');
     assert.match(api.stageWorldClasses(api.practiceStageModel(session)), /is-sam-door-opening/);
     api.settlePracticeStageAction(session);
     assert.match(api.stageWorldClasses(api.practiceStageModel(session)), /has-sam-door-open/);
@@ -1758,6 +2005,7 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
     const setDown = api.resolvePracticeBeat(story, 3, { canCarry }).stageAction;
     assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: setDown }, session), true);
     assert.equal(session.stageWorld.storyProp, 'changed');
+    assert.equal(session.stageWorld.samCargo, 'inside');
     assert.equal(session.stageWorld.samBag, bagState,
       'the holder state remains available as the source of the set-down animation');
     const finalClasses = api.stageWorldClasses(api.practiceStageModel(session));
@@ -1779,7 +2027,9 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
     'older saved conversations should receive the new bag state without losing their progress');
   assert.equal(legacy.stageWorld.samDoor, 'narrow');
   assert.match(api.stageWorldClasses(api.practiceStageModel(legacy)), /has-sam-boxes-changed/);
-  assert.match(html, /\.stage-bg\.has-sam-boxes-changed \.sam-cargo-bag\{opacity:1;transform:/,
+  assert.match(api.stageWorldClasses(api.practiceStageModel(legacy)), /has-sam-cargo-inside/,
+    'a completed pre-samCargo checkpoint must not put the boxes back outside');
+  assert.match(html, /\.stage-bg\.has-sam-cargo-inside \.sam-cargo-bag\{opacity:1;transform:/,
     'the completed scene must directly place the bag on the entrance floor');
   assert.match(html, /\.stage-bg\.has-sam-door-closed \.sam-cargo-stage\{opacity:0\}/,
     'closing the door must put the completed cargo behind it');
@@ -1787,6 +2037,14 @@ test('Sam keeps two real boxes and one visible bag through both doorway branches
     'the door must wait for the cargo to move inside before it closes');
   assert.match(html, /@keyframes samCargoBehindDoor\{0%,20%\{opacity:1\}42%,100%\{opacity:0\}\}/,
     'the cargo must clear the doorway before the panel crosses it');
+  assert.match(html, /\.stage-avatar\.has-sam-door-closed:not\(\.stage-action-close-door\) \.person-art\{opacity:\.74/,
+    'Sam must remain visibly present inside the doorway for the final exchange');
+  assert.match(html, /\.stage-avatar\.has-sam-cargo-held \.person-art \.arm \.hand[\s\S]*?\{opacity:0\}/,
+    'the original hands must yield to the load-specific grip hands while Sam carries the cargo');
+  assert.match(html, /@keyframes samLoadAcquire\{0%,40%\{opacity:0;transform:translate\(88px,86px\)/,
+    'the held load needs to begin at the ground stack rather than teleporting into Sam\'s hands');
+  assert.match(html, /\.stage-avatar\.stage-directed\.stage-settled\.has-sam-cargo-held \.person-art \.arm-l[\s\S]*?animation:none/,
+    'the settled idle loop must not detach Sam\'s sleeves from the boxes');
 });
 
 test('the rendered mirror scene keeps one physical mirror through pickup and placement', () => {
@@ -1847,6 +2105,72 @@ test('the rendered mirror scene keeps one physical mirror through pickup and pla
     'the same mirror must remain anchored to the window after Maya releases it');
 });
 
+test('all nine authored stageProp kinds render as physical before-and-after objects', () => {
+  const { api } = runtime();
+  const expectedKinds = [
+    'apples', 'audio', 'bike-key', 'blackout-meal', 'camera',
+    'cue-card', 'sale-sign', 'sink', 'watering',
+  ];
+  const stories = api.PRACTICE_STORIES.filter(story => story.stageProp?.kind);
+  assert.deepEqual(Array.from(stories, story => story.stageProp.kind).sort(), expectedKinds);
+  assert.equal(new Set(stories.map(story => story.stageProp.kind)).size, expectedKinds.length,
+    'each physical prop kind should belong to one authored story');
+
+  for (const story of stories) {
+    const spec = story.stageProp;
+    const kind = spec.kind;
+    const beforeFace = api.physicalStoryPropFace(kind, 'before');
+    const afterFace = api.physicalStoryPropFace(kind, 'after');
+    assert.ok(beforeFace.trim(), `${story.id}: missing physical before artwork`);
+    assert.ok(afterFace.trim(), `${story.id}: missing physical after artwork`);
+    assert.notEqual(beforeFace, afterFace, `${story.id}: the story event needs two visible states`);
+    assert.match(beforeFace, /class="object-shadow"/,
+      `${story.id}: the physical object needs contact with the scene`);
+    assert.match(afterFace, /class="object-shadow"/,
+      `${story.id}: its resolved state needs the same scene contact`);
+
+    const readyModel = api.practiceStageModel({
+      practiceStoryId: story.id, practiceVars: {}, stageWorld: { storyProp: 'ready' },
+      stagePlayedActions: [], pendingStageAction: null,
+    });
+    const ready = api.stagePhysicalStoryPropHtml(readyModel, spec, 'ready', 'story-prop-reveal');
+    assert.match(ready, new RegExp(`physical-story-prop physical-${kind}`));
+    assert.match(ready, /story-prop-ready is-revealing/);
+    assert.ok(ready.includes(beforeFace), `${story.id}: physical renderer skipped its before face`);
+    assert.ok(!ready.includes(afterFace), `${story.id}: resolved face appeared before the event`);
+
+    const changedModel = api.practiceStageModel({
+      practiceStoryId: story.id, practiceVars: {}, stageWorld: { storyProp: 'changed' },
+      stagePlayedActions: [], pendingStageAction: {
+        id: `${story.id}-physical-test`, gesture: 'story-prop-change', motion: 'present',
+      },
+    });
+    const changing = api.stagePhysicalStoryPropHtml(changedModel, spec, 'changed', 'story-prop-change');
+    assert.match(changing, /story-prop-changed is-changing/);
+    assert.ok(changing.includes(beforeFace), `${story.id}: change animation needs its physical source`);
+    assert.ok(changing.includes(afterFace), `${story.id}: change animation needs its physical destination`);
+
+    const settledModel = api.practiceStageModel({
+      practiceStoryId: story.id, practiceVars: {}, stageWorld: { storyProp: 'changed' },
+      stagePlayedActions: [], pendingStageAction: null,
+    });
+    const settled = api.stagePhysicalStoryPropHtml(settledModel, spec, 'changed', '');
+    assert.match(settled, /story-prop-changed/);
+    assert.doesNotMatch(settled, /is-changing|is-revealing/);
+    assert.ok(settled.includes(afterFace), `${story.id}: resolved physical object did not persist`);
+    assert.ok(!settled.includes(beforeFace), `${story.id}: obsolete physical state remained after settling`);
+
+    assert.equal(api.stagePropsHtml(readyModel),
+      api.stagePhysicalStoryPropHtml(readyModel, spec, 'ready', ''),
+      `${story.id}: stagePropsHtml must route this kind through the physical renderer`);
+    for (const rendered of [ready, changing, settled, api.stagePropsHtml(readyModel)]) {
+      assert.doesNotMatch(rendered, /prop-story-card|story-prop-icon|story-prop-label/,
+        `${story.id}: physical story object regressed to the generic floating card`);
+    }
+  }
+  assert.equal(api.physicalStoryPropFace('not-a-real-kind', 'before'), '');
+});
+
 test('every story world renders a persistent prop and held objects share the hand rig', () => {
   const { api } = runtime();
   const modelFor = (storyId, world, vars = {}, action = null) => api.practiceStageModel({
@@ -1876,35 +2200,6 @@ test('every story world renders a persistent prop and held objects share the han
   ];
   for (const [storyId, world, vars, expected] of renderCases) {
     assert.match(api.stagePropsHtml(modelFor(storyId, world, vars)), expected, `${storyId}: missing final prop`);
-  }
-  const genericPropStories = api.PRACTICE_STORIES.filter(story => story.stageProp);
-  assert.ok(genericPropStories.length > 0, 'the expanded catalog needs generic persistent story props');
-  for (const story of genericPropStories) {
-    const ready = api.stagePropsHtml(modelFor(story.id, { storyProp: 'ready' }));
-    assert.match(ready, /prop-story-card[^>]*story-prop-ready/,
-      `${story.id}: generic prop should render in its initial state`);
-    assert.ok(ready.includes(story.stageProp.beforeIcon) && ready.includes(story.stageProp.beforeLabel),
-      `${story.id}: generic prop lost its authored initial content`);
-
-    const revealing = api.stagePropsHtml(modelFor(story.id, { storyProp: 'ready' }, {}, {
-      id: `${story.id}-test-reveal`, gesture: 'story-prop-reveal', motion: 'present',
-    }));
-    assert.match(revealing, /story-prop-ready is-revealing/,
-      `${story.id}: a prop introduced mid-story needs its one-shot reveal class`);
-
-    const changing = api.stagePropsHtml(modelFor(story.id, { storyProp: 'changed' }, {}, {
-      id: `${story.id}-test-change`, gesture: 'story-prop-change', motion: 'present',
-    }));
-    assert.match(changing, /story-prop-changed is-changing/,
-      `${story.id}: generic prop change needs its transition class`);
-
-    const settled = api.stagePropsHtml(modelFor(story.id, { storyProp: 'changed' }));
-    assert.match(settled, /prop-story-card[^>]*story-prop-changed/,
-      `${story.id}: changed generic prop should persist after its action settles`);
-    assert.doesNotMatch(settled, /is-changing/,
-      `${story.id}: settled generic prop must not replay its one-shot animation`);
-    assert.ok(settled.includes(story.stageProp.afterIcon) && settled.includes(story.stageProp.afterLabel),
-      `${story.id}: generic prop lost its authored changed content`);
   }
   assert.match(api.stageWeatherHtml(modelFor('maya_rainy_beach', { weather: 'rain' })), /rain-field/);
   const dogPair = api.stagePropsHtml(modelFor('maya_lost_dog', { lostDog: 'spotted' }, { size: 'small', collar: 'blue' }));
@@ -2053,6 +2348,12 @@ test('stage action markup updates independently and has a reduced-motion final s
     'reduced motion should not show held and placed copies of the mirror together');
   assert.match(reduced, /\.sam-door-story,\.sam-door-story \*\{animation:none!important;transition:none!important\}/,
     'reduced motion should keep Sam\'s cargo in its state-driven resting pose');
+  assert.match(reduced, /\.stage-avatar,\.stage-avatar \.person-art\{animation:none!important;transition:none!important\}/,
+    'reduced motion must also stop root-level character movement and transitions');
+  assert.match(reduced, /\.stage-action-close-door \.person-art\{opacity:\.74!important/,
+    'reduced motion must keep Sam visible inside the doorway during his closing line');
+  assert.match(html, /const actionRemaining=stageActionStarted\?Math\.max\(0,stageActionVisualMs-\(Date\.now\(\)-stageActionStartedAt\)\):0/,
+    'conversation flow should wait only for the unfinished part of an action after speech ends');
 
   const { api: reducedApi } = runtime(new Map(), { matchMedia: query => ({
     matches: query === '(prefers-reduced-motion: reduce)',
@@ -2087,6 +2388,39 @@ test('stage action markup updates independently and has a reduced-motion final s
   assert.equal(timerSession.stageActionSettleTimer, null);
   assert.equal(timerSession.stageCaptionAfterActionTimer, null);
   api.setLesson(null);
+});
+
+test('backgrounding pauses and resumes the remaining stage-action time', () => {
+  const { api } = runtime();
+  const session = {
+    pendingStageAction: { id: 'pause-safe-lift', gesture: 'lift-cargo' },
+    stageActionSettleTimer: null,
+    stageActionSettleDueAt: null,
+    stageActionSettleRemainingMs: null,
+  };
+
+  api.schedulePracticeStageActionSettle(session, 2000);
+  assert.ok(session.stageActionSettleTimer);
+  assert.ok(session.stageActionSettleDueAt > Date.now());
+  assert.equal(api.pausePracticeStageActionSettle(session), true);
+  assert.equal(session.stageActionSettleTimer, null);
+  assert.equal(session.stageActionSettleDueAt, null);
+  assert.ok(session.stageActionSettleRemainingMs > 0 && session.stageActionSettleRemainingMs <= 2000);
+  const pausedRemaining = session.stageActionSettleRemainingMs;
+
+  assert.equal(api.pausePracticeStageActionSettle(session), false,
+    'a duplicate pagehide event must not discard the already preserved delay');
+  assert.equal(session.stageActionSettleRemainingMs, pausedRemaining);
+  assert.equal(api.resumePracticeStageActionSettle(session), true);
+  assert.ok(session.stageActionSettleTimer);
+  assert.equal(session.stageActionSettleRemainingMs, null);
+  assert.ok(session.stageActionSettleDueAt > Date.now());
+  assert.equal(api.resumePracticeStageActionSettle(session), false,
+    'visibilitychange and pageshow must not schedule the same settle twice');
+
+  api.settlePracticeStageAction(session);
+  assert.equal(session.stageActionSettleTimer, null);
+  assert.equal(session.pendingStageAction, null);
 });
 
 test('a free-practice choice fills the next fixed slot without changing progress length', () => {
