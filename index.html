@@ -86,9 +86,9 @@ body{
 .btn-row .btn{flex:1}
 
 /* ---------- home ---------- */
-.hello{margin:14px 2px 16px}
-.hello h1{font-size:26px;font-weight:800;line-height:1.3}
-.hello p{color:var(--dim);font-size:15.5px;margin-top:4px}
+.hello{margin:8px 2px 12px}
+.hello h1{font-size:25px;font-weight:800;line-height:1.3}
+.hello p{color:var(--dim);font-size:14.5px;margin-top:3px}
 .today{position:relative;overflow:hidden;background:linear-gradient(140deg,#153054,#132a45 55%,#12233c);border:1px solid #29466e}
 .today .tag{display:inline-flex;align-items:center;gap:6px;background:rgba(52,211,153,.15);color:var(--green);font-size:13px;font-weight:800;border-radius:999px;padding:4px 12px;margin-bottom:10px}
 .today h2{font-size:23px;font-weight:800;margin-bottom:4px}
@@ -124,6 +124,90 @@ body{
 .lesson-row .info b{display:block;font-size:16px}
 .lesson-row .info span{font-size:13px;color:var(--dim)}
 .lesson-row .mark{font-size:18px}
+.home-focus{
+  position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;
+  padding:13px 14px;margin-bottom:14px;background:linear-gradient(135deg,#15304e,#13263f);
+  border:1px solid #29466e;border-radius:17px;animation:homeFocusIn .38s ease both;
+}
+.home-focus .focus-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;background:rgba(52,211,153,.13);font-size:21px}
+.home-focus.done .focus-icon{background:rgba(52,211,153,.17)}
+.home-focus .focus-copy{flex:1;min-width:0}
+.home-focus .focus-label{font-size:12.5px;font-weight:800;color:var(--green);margin-bottom:2px}
+.home-focus b{display:block;font-size:17px;line-height:1.35}
+.home-focus small{display:block;color:#b9c6e2;font-size:12.5px;line-height:1.4;margin-top:2px}
+.home-map-title{font-size:20px;font-weight:900;margin:17px 2px 9px;display:flex;align-items:center;justify-content:space-between}
+.home-map-title small{font-size:12.5px;color:var(--dim);font-weight:650}
+.course-path{position:relative}
+.home-unit{margin-bottom:9px;animation:homePathIn .38s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+.home-unit-head{
+  width:100%;min-height:62px;display:flex;align-items:center;gap:11px;padding:10px 12px;
+  color:var(--text);font:inherit;text-align:right;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;cursor:pointer;transition:border-color .2s ease,background .2s ease,transform .12s ease;
+}
+.home-unit-head:active{transform:scale(.985)}
+.home-unit.active .home-unit-head{border-color:rgba(52,211,153,.36);background:linear-gradient(135deg,#192d49,#17263e)}
+.home-unit.complete .home-unit-head{min-height:56px}
+.home-unit.future .home-unit-head{opacity:.62}
+.home-unit-emoji{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--card2);font-size:18px;flex-shrink:0}
+.home-unit-copy{flex:1;min-width:0}
+.home-unit-copy b{display:block;font-size:15.5px;line-height:1.35}
+.home-unit-copy span{display:block;color:var(--dim);font-size:12.5px;margin-top:1px}
+.home-unit-progress{font-size:12px;font-weight:850;color:var(--green);white-space:nowrap}
+.home-unit-chevron{font-size:15px;color:var(--dim);transition:transform .3s ease}
+.home-unit-head[aria-expanded="true"] .home-unit-chevron{transform:rotate(180deg)}
+.home-unit-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .32s cubic-bezier(.2,.75,.25,1),opacity .25s ease;opacity:1}
+.home-unit-body.collapsed{grid-template-rows:0fr;opacity:0}
+.home-unit-body-inner{min-height:0;overflow:hidden}
+.home-unit .unit-promise{margin:9px 9px 7px;padding:8px 10px;border-radius:11px;background:rgba(96,165,250,.08);color:#b9c6e2}
+.home-unit-lessons{position:relative;padding-top:2px}
+.home-unit-lessons::before{content:"";position:absolute;right:32px;top:0;bottom:7px;width:2px;background:linear-gradient(var(--line),rgba(52,211,153,.28),var(--line));border-radius:2px}
+.home-unit .lesson-row{position:relative;z-index:1;margin-bottom:7px}
+.home-unit .lesson-row.done{min-height:54px;padding:8px 12px}
+.home-unit .lesson-row.done .num{width:34px;height:34px;border-radius:10px}
+.home-unit .lesson-row.current,.home-unit .lesson-row.paused-here{
+  min-height:72px;padding:14px 13px;border-color:rgba(52,211,153,.6);
+  background:linear-gradient(135deg,#1b3550,#173047);box-shadow:0 10px 28px rgba(0,0,0,.18);
+  animation:homeCurrentIn .7s cubic-bezier(.2,.8,.25,1) both;
+}
+.home-unit .lesson-row.current .info b,.home-unit .lesson-row.paused-here .info b{font-size:18px}
+.home-unit .lesson-row.locked{min-height:49px;padding:7px 12px}
+.home-unit .lesson-row.locked .num{width:32px;height:32px;border-radius:10px}
+.home-path-special{
+  width:calc(100% - 18px);margin:10px 9px 12px;display:flex;align-items:center;gap:11px;padding:12px 13px;
+  color:#fff;font:inherit;text-align:right;background:linear-gradient(135deg,#6556d8,#5443c0);
+  border:1px solid rgba(167,139,250,.45);border-radius:16px;cursor:pointer;box-shadow:0 9px 24px rgba(72,55,180,.18);
+}
+.home-path-special:active{transform:scale(.985)}
+.home-path-special .special-icon{width:39px;height:39px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:20px}
+.home-path-special .special-copy{flex:1}
+.home-path-special b{display:block;font-size:15.5px}.home-path-special small{display:block;font-size:12px;opacity:.82;margin-top:2px}
+.home-path-special .special-arrow{font-size:20px;opacity:.8}
+.home-path-milestone{
+  display:grid;grid-template-columns:44px 1fr;gap:4px 11px;align-items:center;margin:13px 0;
+  padding:13px;background:linear-gradient(145deg,#33290f,#20190c);border:1px solid rgba(251,191,36,.4);border-radius:17px;
+}
+.home-path-milestone .milestone-icon{grid-row:1/3;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:rgba(251,191,36,.12);font-size:23px}
+.home-path-milestone .milestone-copy{min-width:0}.home-path-milestone .milestone-tag{font-size:12px;font-weight:850;color:var(--amber)}
+.home-path-milestone b{display:block;font-size:16px;line-height:1.35}.home-path-milestone small{display:block;color:#cfc3a6;font-size:12px;margin-top:2px}
+.home-path-milestone .milestone-actions{grid-column:1/-1;display:flex;gap:7px;margin-top:8px}
+.home-path-milestone .btn{padding:11px 12px;font-size:14px;border-radius:13px}.home-path-milestone .btn.ghost{width:auto;white-space:nowrap}
+.home-lower{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.home-stats-strip{display:flex;align-items:stretch;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:9px 4px;margin-bottom:9px}
+.home-stat{flex:1;text-align:center;padding:3px 5px;border-inline-start:1px solid var(--line)}
+.home-stat:first-child{border-inline-start:none}
+.home-stat b{display:block;font-size:18px}.home-stat span{font-size:11.5px;color:var(--dim)}
+.home-mission-stat{text-align:center;color:var(--amber);font-size:12.5px;font-weight:750;margin:7px 0 10px}
+.home-review-btn{padding:13px 16px;font-size:15.5px}
+@keyframes homeFocusIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes homePathIn{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:none}}
+@keyframes homeCurrentIn{0%{opacity:0;transform:translateY(8px);box-shadow:0 0 0 0 rgba(52,211,153,.28)}55%{opacity:1;transform:none;box-shadow:0 0 0 9px rgba(52,211,153,0)}100%{box-shadow:0 10px 28px rgba(0,0,0,.18)}}
+@media (max-width:370px){
+  .home-map-title small{display:none}.home-unit-head{padding-inline:10px}.home-unit-progress{font-size:11px}
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-focus,.home-unit,.home-unit .lesson-row.current,.home-unit .lesson-row.paused-here{animation:none}
+  .home-unit-body,.home-unit-chevron{transition:none}
+}
 
 /* ---------- lesson player ---------- */
 .player-top{display:flex;align-items:center;gap:12px;padding:16px 0 14px}
@@ -5937,7 +6021,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.18.0';
+const APP_VERSION = '2.19.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7059,6 +7143,25 @@ function daysBetween(fromDate, toDate){
   if(!a || !b || b < a) return 0;
   return Math.round((b - a) / 864e5);
 }
+function toggleHomeUnit(ui){
+  const body=document.getElementById('homeUnitBody'+ui);
+  const head=document.getElementById('homeUnitHead'+ui);
+  if(!body||!head) return;
+  const willOpen=body.classList.contains('collapsed');
+  body.classList.toggle('collapsed', !willOpen);
+  body.toggleAttribute('inert', !willOpen);
+  body.setAttribute('aria-hidden', String(!willOpen));
+  head.setAttribute('aria-expanded', String(willOpen));
+}
+function revealCurrentHomeLesson(currentUnit){
+  if(currentUnit < 1) return;
+  const row=document.querySelector('[data-home-current="true"]');
+  if(!row?.getBoundingClientRect) return;
+  const rect=row.getBoundingClientRect();
+  const viewport=window.innerHeight||document.documentElement?.clientHeight||0;
+  const reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  if(viewport && rect.bottom > viewport-24) row.scrollIntoView?.({block:'center',behavior:reduced?'auto':'smooth'});
+}
 function renderHome(){
   const doneCount = lessonsDoneToday();
   const doneToday = doneCount > 0;
@@ -7077,67 +7180,75 @@ function renderHome(){
     heroHtml = '';
   } else if(allDone){
     heroHtml = `
-    <div class="card done-today">
-      <div class="big">🏆</div>
-      <h2>סיימת את כל הקורס!</h2>
-      <p>${LESSONS.length} שיעורים, ${LESSONS.length*5} משפטים — הכל שלך עכשיו. תמשיך לחזור ולתרגל כדי שזה יישאר חזק.</p>
-      <button class="btn" onclick="renderReview()">תרגול חופשי 🎯</button>
+    <div class="home-focus done">
+      <span class="focus-icon">🏆</span>
+      <span class="focus-copy"><span class="focus-label">המסלול הושלם</span><b>סיימת את כל הקורס!</b><small>ממשיכים לשמור על האנגלית דרך חזרה ותרגול.</small></span>
     </div>`;
   } else if(doneToday && canStartNew){
     heroHtml = `
-    <div class="card done-today">
-      <div class="big">✅</div>
-      <h2>סיימת את השיעור של היום!</h2>
-      <p>הכי טוב לעצור כאן ולתת למוח לילה לשמור את מה שלמדת.<br>אבל אם אתה מרגיש חזק — יש לך שיעור בונוס אחד ליום. 😉</p>
-      ${canSayHtml(state.completed-1)}
-      <button class="btn" onclick="startLesson(${cur}, false)">🎁 בא לי עוד — שיעור בונוס</button>
-      <button class="btn secondary" style="margin-top:8px" onclick="renderReview()">בא לי לחזור על מילים 🔁</button>
+    <div class="home-focus done">
+      <span class="focus-icon">✅</span>
+      <span class="focus-copy"><span class="focus-label">היעד היומי הושלם</span><b>כל הכבוד — השיעור נשמר</b><small>רוצה עוד? שיעור הבונוס מסומן במסלול.</small></span>
     </div>`;
   } else if(doneToday){
     heroHtml = `
-    <div class="card done-today">
-      <div class="big">🔥🔥</div>
-      <h2>וואו, שני שיעורים ביום!</h2>
-      <p>עשית היום כפול. עכשיו באמת תן למוח לשמור את זה —<br>השיעור הבא נפתח מחר. 😴</p>
-      ${canSayHtml(state.completed-1)}
-      <button class="btn secondary" onclick="renderReview()">בא לי לחזור על מילים 🔁</button>
+    <div class="home-focus done">
+      <span class="focus-icon">🔥</span>
+      <span class="focus-copy"><span class="focus-label">שני שיעורים היום</span><b>עשית היום כפול</b><small>השיעור הבא ייפתח מחר. בינתיים אפשר לחזור ולתרגל.</small></span>
     </div>`;
   } else {
     heroHtml = `
-    <div class="card today">
-      <div class="deco">🎙️</div>
-      <div class="tag">⏱️ ~${estimateLessonMinutes(cur)} דקות · שיעור ${cur+1} מתוך ${LESSONS.length}</div>
-      <h2>${esc(lesson.title)}</h2>
-      <div class="goal">${esc(lesson.goal)}</div>
-      <button class="btn" onclick="startLesson(${cur}, false)">מתחילים את השיעור של היום 🎧</button>
+    <div class="home-focus">
+      <span class="focus-icon">🎧</span>
+      <span class="focus-copy"><span class="focus-label">היום · כ־${estimateLessonMinutes(cur)} דקות</span><b>${esc(lesson.title)}</b><small>${esc(lesson.goal)} · השיעור מסומן במסלול</small></span>
     </div>`;
   }
 
   let listHtml = '';
-  const currentUnit = Math.floor(cur / LESSONS_PER_UNIT);
+  const focusedLesson = paused ? paused.idx : cur;
+  const currentUnit = Math.floor(focusedLesson / LESSONS_PER_UNIT);
   UNITS.forEach((u, ui)=>{
-    listHtml += `<div class="unit"><div class="unit-head"><span>${u.emoji} יחידה ${ui+1} · ${esc(u.title)}</span><span class="bar"></span></div>`;
+    const first=ui*LESSONS_PER_UNIT;
+    const last=Math.min(first+LESSONS_PER_UNIT, LESSONS.length);
+    const unitDone=Math.max(0, Math.min(last-first, state.completed-first));
+    const complete=unitDone >= last-first;
+    const future=first > state.completed;
+    const expanded=ui === currentUnit;
+    const unitState=complete ? 'complete' : future ? 'future' : 'active';
+    const summary=complete ? `${unitDone}/${last-first} הושלמו` : future ? 'ייפתח בהמשך' : `${unitDone}/${last-first} הושלמו`;
+    listHtml += `<section class="home-unit ${unitState}${expanded?' active':''}" style="--i:${ui}">
+      <button id="homeUnitHead${ui}" class="home-unit-head" onclick="toggleHomeUnit(${ui})" aria-expanded="${expanded}" aria-controls="homeUnitBody${ui}">
+        <span class="home-unit-emoji">${u.emoji}</span>
+        <span class="home-unit-copy"><b>יחידה ${ui+1} · ${esc(u.title)}</b><span>${complete?'היחידה הושלמה':future?'עוד נגיע לשם':'היחידה הנוכחית'}</span></span>
+        <span class="home-unit-progress">${complete?'✓ ':future?'🔒 ':''}${summary}</span>
+        <span class="home-unit-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div id="homeUnitBody${ui}" class="home-unit-body${expanded?'':' collapsed'}" aria-hidden="${!expanded}"${expanded?'':' inert'}><div class="home-unit-body-inner">`;
     // the promise is concrete and checkable, and shown only for the unit he is in
     if(ui === currentUnit && !allDone) listHtml += `<div class="unit-promise">בסוף היחידה תדע ${esc(unitPromise(ui))}.</div>`;
-    for(let li = ui*LESSONS_PER_UNIT; li < (ui+1)*LESSONS_PER_UNIT; li++){
+    listHtml += '<div class="home-unit-lessons">';
+    for(let li = first; li < last; li++){
       const l = LESSONS[li];
       const done = li < state.completed;
       const isCur = li === state.completed && !allDone;
-      const locked = li > state.completed;
       const pausedHere = !!paused && paused.idx === li;
-      const cls = done ? 'done' : isCur ? 'current' : 'locked';
-      const mark = pausedHere ? '⏸️' : done ? '⭐' : isCur ? (!canStartNew ? '🌙' : doneToday ? '🎁' : '▶️') : '🔒';
+      const cls = pausedHere ? 'paused-here' : done ? 'done' : isCur ? 'current' : 'locked';
+      const mark = pausedHere ? '⏸️' : done ? '✓' : isCur ? (!canStartNew ? '🌙' : doneToday ? '🎁' : '▶️') : '🔒';
       const subtitle = pausedHere ? 'עצרת כאן — אפשר להמשיך' : done ? 'הושלם — אפשר לחזור עליו' : isCur ? (!canStartNew ? 'נפתח מחר' : doneToday ? 'זמין כשיעור בונוס 🎁' : 'השיעור של היום') : 'עוד נגיע לשם';
       const click = pausedHere ? 'onclick="resumeLesson()"' : done ? `onclick="startLesson(${li}, true)"` : (isCur && canStartNew) ? `onclick="startLesson(${li}, false)"` : '';
       const disabled = !click ? 'disabled' : '';
       listHtml += `
-      <button class="lesson-row ${cls}" ${click} ${disabled}>
+      <button class="lesson-row ${cls}" ${click} ${disabled}${pausedHere||isCur?' data-home-current="true"':''}>
         <span class="num">${li+1}</span>
         <span class="info"><b>${esc(l.title)}</b><span>${subtitle}</span></span>
         <span class="mark" aria-hidden="true">${mark}</span>
       </button>`;
     }
-    listHtml += '</div>';
+    listHtml += '</div></div></div></section>';
+    if(ui === currentUnit && state.completed > 0) listHtml += `
+      <button class="home-path-special" style="--i:${ui+1}" onclick="startPractice()">
+        <span class="special-icon">🗣️</span><span class="special-copy"><b>תרגול שיחה חופשי</b><small>תרגול נוסף עם מה שכבר למדת</small></span><span class="special-arrow" aria-hidden="true">‹</span>
+      </button>`;
   });
 
   hx(`
@@ -7158,20 +7269,21 @@ function renderHome(){
       )}</p>
     </div>
     ${heroHtml}
+    <div class="home-map-title"><span>🗺️ המסלול שלך</span><small>לוחצים על השיעור וממשיכים</small></div>
+    <div class="course-path">${listHtml}</div>
     ${unitCallToActionHtml()}
-    <div class="stats">
-      <div class="stat"><b>${state.completed}</b><span>שיעורים</span></div>
-      <div class="stat"><b>${words}</b><span>משפטים שלך</span></div>
-      <div class="stat"><b>${state.daysLearned}</b><span>ימים שלמדת</span></div>
-      ${missionsDone()?`<div class="stat" style="grid-column:1/-1;border-color:rgba(251,191,36,.45)"><b style="color:var(--amber)">${missionsDone()}</b><span>${missionsDone()===1?'משימה אמיתית שעשית בעולם 🎯':'משימות אמיתיות שעשית בעולם 🎯'}</span></div>`:''}
+    <div class="home-lower">
+      <div class="home-stats-strip">
+        <div class="home-stat"><b>${state.completed}</b><span>שיעורים</span></div>
+        <div class="home-stat"><b>${words}</b><span>משפטים</span></div>
+        <div class="home-stat"><b>${state.daysLearned}</b><span>ימי למידה</span></div>
+      </div>
+      ${missionsDone()?`<div class="home-mission-stat">🎯 ${missionsDone()===1?'משימה אמיתית אחת הושלמה':missionsDone()+' משימות אמיתיות הושלמו'}</div>`:''}
+      ${state.completed > 0 ? `<button class="btn secondary home-review-btn" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
     </div>
-    ${state.completed > 0 ? `
-      <button class="btn practice-cta" onclick="startPractice()">🗣️ תרגול שיחה חופשי<small>בלי הגבלה · שיחה אחרת בכל כניסה</small></button>
-      <button class="btn secondary" style="margin-top:8px" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
-    <div class="section-title">🗺️ המסלול שלך</div>
-    ${listHtml}
     <div style="text-align:center;color:var(--dim);font-size:12px;margin-top:18px">גרסה ${APP_VERSION}</div>
   </div>`);
+  afterRender(()=>revealCurrentHomeLesson(currentUnit));
   // an update that waited through a lesson applies now, on the home screen
   if(typeof pendingServiceWorker !== 'undefined') tryAutoUpdate();
 }
@@ -7994,23 +8106,16 @@ function unitCallToActionHtml(){
       : `<button class="mission-snoozed" onclick="startUnitRehearsal(${u})"><span>🎬</span><span style="flex:1">החזרה הגנרלית של יחידה ${u+1} מחכה, כשתרצה</span><span>לפתוח</span></button>`;
   }
   if(!row.rehearsed) return `
-    <div class="card unit-cta">
-      <div class="tag">🎬 סיימת את יחידה ${u+1} · ${esc(UNITS[u].title)}</div>
-      <h2>החזרה הגנרלית מחכה לך</h2>
-      <p>שיחה אחת ארוכה מכל מה שלמדת ביחידה — ואז המשימה האמיתית.</p>
-      <button class="btn" onclick="startUnitRehearsal(${u})">מתחילים את החזרה 🎬</button>
-      <button class="btn ghost" style="margin-top:5px;padding:8px" onclick="snoozeMission(${u})">לא עכשיו</button>
+    <div class="home-path-milestone">
+      <span class="milestone-icon">🎬</span>
+      <span class="milestone-copy"><span class="milestone-tag">תחנת סיום · יחידה ${u+1}</span><b>החזרה הגנרלית מחכה לך</b><small>שיחה אחת מכל מה שלמדת ביחידה</small></span>
+      <span class="milestone-actions"><button class="btn" onclick="startUnitRehearsal(${u})">מתחילים את החזרה</button><button class="btn ghost" onclick="snoozeMission(${u})">לא עכשיו</button></span>
     </div>`;
   return `
-    <div class="card unit-cta">
-      <div class="tag">🎯 משימה אמיתית · יחידה ${u+1}</div>
-      <h2>${esc(UNIT_MISSIONS[u].emoji)} ${esc(UNIT_MISSIONS[u].title)}</h2>
-      <p>${esc(UNIT_MISSIONS[u].what)}</p>
-      <button class="btn" onclick="renderMissionScreen(${u})">לפתוח את המשימה 🎯</button>
-      <div class="btn-row" style="margin-top:5px">
-        <button class="btn ghost" style="padding:8px" onclick="startUnitRehearsal(${u})">לחזור על החזרה 🎬</button>
-        <button class="btn ghost" style="padding:8px" onclick="snoozeMission(${u})">לא עכשיו</button>
-      </div>
+    <div class="home-path-milestone">
+      <span class="milestone-icon">${esc(UNIT_MISSIONS[u].emoji)}</span>
+      <span class="milestone-copy"><span class="milestone-tag">משימה אמיתית · יחידה ${u+1}</span><b>${esc(UNIT_MISSIONS[u].title)}</b><small>${esc(UNIT_MISSIONS[u].what)}</small></span>
+      <span class="milestone-actions"><button class="btn" onclick="renderMissionScreen(${u})">לפתוח את המשימה</button><button class="btn ghost" onclick="snoozeMission(${u})">לא עכשיו</button></span>
     </div>`;
 }
 
