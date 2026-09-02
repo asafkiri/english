@@ -80,6 +80,8 @@ function runtime(seed = new Map(), options = {}) {
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
+      renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunStore, samRunSave,
+      SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_KEY, STORE_KEY,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3290,4 +3292,67 @@ test('two sentences of one turn are paced like a speaker, not like a stalled rec
   // the end of the turn still gets its full reading window before answering
   assert.match(html, /:\s*Math\.max\(1900,Math\.min\(3400,spokenEn\.length\*38\)\)/,
     'the last sentence of a turn keeps the time to read before the learner answers');
+});
+
+test("Sam's Run: words are matched with the lessons' forgiveness, and the last word said wins", () => {
+  const { api } = runtime();
+  const m = (text, active) => api.samRunMatchCommand(text, active);
+  assert.equal(m('jump'), 'jump');
+  assert.equal(m('Jumped!'), 'jump', 'a past tense still means the move');
+  assert.equal(m('dock'), 'duck', 'the common mishearing lands on the move meant');
+  assert.equal(m('cash'), 'catch');
+  assert.equal(m('hi'), 'hello');
+  assert.equal(m('no wait jump'), 'jump', 'the last word said is the one meant');
+  assert.equal(m('banana'), null);
+  assert.equal(m(''), null);
+  assert.equal(m('cash', ['jump', 'duck']), null, 'a word not yet unlocked is not a command yet');
+  for (const id of api.SAM_RUN_ORDER)
+    assert.equal(m(api.SAM_RUN_COMMANDS[id].en), id, `${id} answers to its own word`);
+});
+
+test("Sam's Run: the street speeds up with the score, then stops speeding up", () => {
+  const { api } = runtime();
+  let prev = 0;
+  for (let s = 0; s <= 120; s += 5) { const v = api.samRunSpeedFor(s); assert.ok(v >= prev, 'speed never drops'); prev = v; }
+  assert.equal(api.samRunSpeedFor(0), 1);
+  assert.equal(api.samRunSpeedFor(70), api.samRunSpeedFor(500), 'a ceiling keeps the voice path fair');
+  assert.ok(api.samRunTravelMs(0) > api.samRunTravelMs(70), 'things arrive faster as the score climbs');
+  assert.ok(api.samRunTravelMs(500) >= 1150, 'a spoken word needs a real moment to be recognised');
+  for (const id of api.SAM_RUN_ORDER)
+    assert.ok(api.SAM_RUN_COMMANDS[id] && api.SAM_RUN_THINGS[id], `${id} has both a word and a thing that answers to it`);
+  assert.equal(api.SAM_RUN_ORDER.filter(id => api.SAM_RUN_UNLOCK[id] === 0).join(','), 'jump,duck',
+    'a first run starts with two words, not five');
+  const thresholds = api.SAM_RUN_ORDER.map(id => api.SAM_RUN_UNLOCK[id]);
+  assert.deepEqual([...thresholds].sort((a, b) => a - b).join(','), thresholds.join(','), 'words unlock in order');
+});
+
+test("Sam's Run: lives beside the lessons, remembers its best, and stays out of the way", () => {
+  const seed = new Map();
+  const { api, app } = runtime(seed);
+  const state = api.defaults(); state.onboarded = true; api.setState(state);
+  api.renderHome();
+  assert.match(app.innerHTML, /class="home-side-game"[^>]*onclick="renderSamRun\(\)"/, 'the game is reachable from home');
+  assert.doesNotMatch(app.innerHTML, /class="btn[^"]*"[^>]*onclick="renderSamRun\(\)"/, 'but not as a primary button');
+  assert.ok(app.innerHTML.indexOf('home-side-game') > app.innerHTML.lastIndexOf('class="btn'), 'it sits below every real button');
+
+  const before = JSON.stringify(api.getState());
+  api.renderSamRun();
+  assert.match(app.innerHTML, /game-screen/);
+  assert.match(app.innerHTML, /data-character="sam"/, 'Sam himself is on the start card');
+  assert.match(app.innerHTML, /JUMP[\s\S]*DUCK/, 'the two starter words are shown');
+  assert.match(app.innerHTML, /is-locked/, 'later words are visibly locked');
+  assert.equal(JSON.stringify(api.getState()), before, 'opening the game must not touch the learner state');
+  assert.equal(api.getLesson(), null, 'and must not open a lesson');
+
+  // its own storage key, never the lesson's
+  assert.notEqual(api.SAM_RUN_KEY, api.STORE_KEY);
+  assert.equal(api.samRunStore().best, 0);
+  api.samRunSave({ ...api.samRunStore(), best: 17, unlocked: ['jump', 'duck', 'stop'] });
+  assert.equal(api.samRunStore().best, 17);
+  assert.ok(!String(seed.get(api.STORE_KEY) || '').includes('samRun'), 'nothing of the game leaks into the lesson state');
+  const again = runtime(seed);
+  assert.equal(again.api.samRunStore().best, 17, 'the best survives a reload');
+  assert.equal(again.api.samRunStore().unlocked.join(','), 'jump,duck,stop', 'so do the words already earned');
+  seed.set(api.SAM_RUN_KEY, '{not json');
+  assert.equal(runtime(seed).api.samRunStore().best, 0, 'a corrupt store falls back instead of crashing the game');
 });
