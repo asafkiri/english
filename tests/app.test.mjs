@@ -341,6 +341,10 @@ test('ordering words animates mistakes back and success continues without anothe
   lesson.i = lesson.steps.findIndex(step => step.type === 'order');
   api.renderStep();
   const step = lesson.steps[lesson.i];
+  assert.match(app.innerHTML, /order-target/);
+  assert.match(app.innerHTML, /המשפט שצריך לבנות/);
+  assert.match(app.innerHTML, new RegExp(step.p.he));
+  assert.match(app.innerHTML, /לחץ על החלקים באנגלית לפי הסדר/);
 
   api.selectOrderChunk(1);
   assert.equal(step.returningChunkId, 1);
