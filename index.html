@@ -1854,6 +1854,219 @@ body{
   .person-art.mouth-js .mouth,
   .person-art.mouth-js .tongue{transition:transform .07s linear,opacity .07s linear!important}
 }
+
+/* ================= Sam's Run: a small game on the side =================
+   An endless runner whose controller is the learner's English voice. Sam
+   runs; things come at him; you say the word in time (or tap it, where a
+   microphone is not an option). The English is not decoration here: no word,
+   no move. Nothing in this block touches the lessons — the game has its own
+   screen, its own storage key and its own recogniser. */
+.home-side-game{display:block;margin:14px auto 0;background:none;border:0;padding:6px 10px;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;opacity:.85}
+.home-side-game:hover,.home-side-game:focus-visible{color:var(--text);opacity:1;outline:none}
+.game-screen{display:flex;flex-direction:column;min-height:100dvh;padding:10px 12px 14px;gap:10px;animation:fadeUp .35s ease both}
+.game-top{display:flex;align-items:center;gap:8px}
+.game-top .xbtn{width:40px;height:40px;font-size:16px}
+.game-title{font-size:17px;font-weight:850;flex:1;white-space:nowrap}
+.game-lives{display:flex;gap:1px;font-size:17px}
+.game-lives i{font-style:normal;transition:transform .25s ease,opacity .25s ease}
+.game-lives i.lost{opacity:.2;transform:scale(.65)}
+.game-scorebox{text-align:center;min-width:52px}
+.game-score{font-variant-numeric:tabular-nums;font-weight:900;font-size:21px;line-height:1}
+.game-score.bump{animation:gameScoreBump .3s ease both}
+@keyframes gameScoreBump{40%{transform:scale(1.28);color:var(--green)}}
+.game-best{font-size:11px;color:var(--dim);margin-top:2px}
+
+/* the world: a street that scrolls, and a sidewalk line the runner and every
+   obstacle share, so a jump, a duck and a crossing dog all read on one floor */
+.game-world{position:relative;width:100%;aspect-ratio:10/9;max-height:50dvh;border-radius:20px;overflow:hidden;border:1px solid var(--line);isolation:isolate;
+  --speed:1;--ground:31%;
+  background:linear-gradient(180deg,#5da8e8 0%,#a9d3f7 46%,#d7ebfb 60%,#cfd6df 60%,#b7bfca 63.5%,#3a4352 63.5%,#2b323d 100%)}
+.game-far{position:absolute;left:0;right:0;top:0;height:60%;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='140' viewBox='0 0 400 140'%3E%3Cg fill='%2394b6d6'%3E%3Crect x='0' y='58' width='58' height='82'/%3E%3Crect x='66' y='22' width='46' height='118'/%3E%3Crect x='120' y='70' width='72' height='70'/%3E%3Crect x='202' y='40' width='40' height='100'/%3E%3Crect x='250' y='64' width='62' height='76'/%3E%3Crect x='320' y='30' width='52' height='110'/%3E%3Crect x='380' y='74' width='20' height='66'/%3E%3C/g%3E%3Cg fill='%23f4f9ff' opacity='.75'%3E%3Crect x='10' y='68' width='8' height='10'/%3E%3Crect x='28' y='68' width='8' height='10'/%3E%3Crect x='10' y='90' width='8' height='10'/%3E%3Crect x='76' y='34' width='8' height='10'/%3E%3Crect x='94' y='34' width='8' height='10'/%3E%3Crect x='76' y='58' width='8' height='10'/%3E%3Crect x='94' y='82' width='8' height='10'/%3E%3Crect x='134' y='82' width='8' height='10'/%3E%3Crect x='160' y='82' width='8' height='10'/%3E%3Crect x='212' y='52' width='8' height='10'/%3E%3Crect x='212' y='76' width='8' height='10'/%3E%3Crect x='262' y='76' width='8' height='10'/%3E%3Crect x='290' y='96' width='8' height='10'/%3E%3Crect x='332' y='44' width='8' height='10'/%3E%3Crect x='352' y='44' width='8' height='10'/%3E%3Crect x='332' y='70' width='8' height='10'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat-x;background-position:0 100%;background-size:auto 100%;
+  animation:gameScrollFar calc(16s / var(--speed)) linear infinite}
+.game-lane{position:absolute;left:0;right:0;top:80%;height:4px;opacity:.7;
+  background-image:repeating-linear-gradient(90deg,#f1e7b8 0 44px,transparent 44px 92px);
+  animation:gameScrollLane calc(.85s / var(--speed)) linear infinite}
+.game-world.is-halted .game-far,.game-world.is-halted .game-lane{animation-play-state:paused}
+@keyframes gameScrollFar{to{background-position:-400px 100%}}
+@keyframes gameScrollLane{to{background-position:-92px 0}}
+.game-speedlines{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s ease;
+  background-image:repeating-linear-gradient(90deg,transparent 0 60px,rgba(255,255,255,.22) 60px 62px,transparent 62px 140px);
+  background-size:140px 100%;animation:gameScrollLane calc(.32s / var(--speed)) linear infinite;mix-blend-mode:screen}
+.game-world.is-fast .game-speedlines{opacity:.55}
+
+/* Sam: the shared full-body rig, given a run cycle on its real joints */
+.game-runner{position:absolute;left:14%;bottom:var(--ground);width:76px;height:142px;transform-origin:50% 100%;z-index:3}
+.game-runner .person-art{width:100%;height:100%}
+.game-runner .person-art.modern-v2 .leg-l{animation:gameRunLegL calc(.44s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .leg-r{animation:gameRunLegR calc(.44s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .arm-l{animation:gameRunArmL calc(.44s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .arm-r{animation:gameRunArmR calc(.44s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .arm-l .forearm{animation:gameRunForearm calc(.44s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .arm-r .forearm{animation:gameRunForearm calc(.44s / var(--speed)) ease-in-out -.22s infinite}
+.game-runner .person-art.modern-v2 .figure{animation:gameRunBob calc(.22s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .torso{animation:gameRunLean calc(.44s / var(--speed)) ease-in-out infinite}
+.game-runner .person-art.modern-v2 .lower-body{animation:none}
+.game-runner .person-art.modern-v2 .ground-shadow{animation:gameRunShadow calc(.22s / var(--speed)) ease-in-out infinite}
+@keyframes gameRunLegL{0%,100%{transform:rotate(-27deg)}50%{transform:rotate(27deg)}}
+@keyframes gameRunLegR{0%,100%{transform:rotate(27deg)}50%{transform:rotate(-27deg)}}
+@keyframes gameRunArmL{0%,100%{transform:rotate(26deg)}50%{transform:rotate(-26deg)}}
+@keyframes gameRunArmR{0%,100%{transform:rotate(-26deg)}50%{transform:rotate(26deg)}}
+@keyframes gameRunForearm{0%,100%{transform:rotate(-38deg)}50%{transform:rotate(-58deg)}}
+@keyframes gameRunBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes gameRunLean{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(-3.5deg)}}
+@keyframes gameRunShadow{0%,100%{transform:scaleX(1);opacity:.38}50%{transform:scaleX(.9);opacity:.3}}
+/* he heard you: a small anticipation while the obstacle is still coming */
+.game-runner.is-armed-jump .person-art.modern-v2 .figure{animation:gameArmJump .38s ease both}
+@keyframes gameArmJump{0%,100%{transform:none}50%{transform:translateY(5px) scaleY(.94) scaleX(1.03)}}
+.game-runner.is-armed-duck .person-art.modern-v2 .figure{animation:gameArmDuck .38s ease both}
+@keyframes gameArmDuck{0%,100%{transform:none}50%{transform:scaleY(.9)}}
+.game-runner.is-armed-stop .person-art.modern-v2 .arm-r{animation:gameArmStop .4s ease both}
+@keyframes gameArmStop{0%,100%{transform:rotate(0)}50%{transform:rotate(-92deg) translate(3px,-2px)}}
+.game-runner.is-armed-catch .person-art.modern-v2 .arm-l,.game-runner.is-armed-catch .person-art.modern-v2 .arm-r{animation:gameCatchReady .4s ease both}
+@keyframes gameCatchReady{0%,100%{transform:rotate(0)}50%{transform:rotate(-60deg)}}
+/* the moves */
+.game-runner.is-jumping .person-art.modern-v2 .figure{animation:gameJump .86s cubic-bezier(.3,.62,.42,1) both}
+@keyframes gameJump{0%{transform:none}10%{transform:translateY(6px) scaleY(.93) scaleX(1.05)}44%{transform:translateY(-96px) scaleY(1.04) scaleX(.98)}78%{transform:translateY(-16px)}90%{transform:translateY(4px) scaleY(.95) scaleX(1.04)}100%{transform:none}}
+.game-runner.is-jumping .person-art.modern-v2 .leg-l{animation:gameJumpLegL .86s ease both}
+.game-runner.is-jumping .person-art.modern-v2 .leg-r{animation:gameJumpLegR .86s ease both}
+.game-runner.is-jumping .person-art.modern-v2 .arm-l,.game-runner.is-jumping .person-art.modern-v2 .arm-r{animation:gameJumpArms .86s ease both}
+@keyframes gameJumpLegL{0%,100%{transform:rotate(0)}38%,68%{transform:rotate(-40deg)}}
+@keyframes gameJumpLegR{0%,100%{transform:rotate(0)}38%,68%{transform:rotate(24deg)}}
+@keyframes gameJumpArms{0%,100%{transform:rotate(0)}38%,68%{transform:rotate(-150deg)}}
+.game-runner.is-jumping .person-art.modern-v2 .ground-shadow{animation:gameJumpShadow .86s ease both}
+@keyframes gameJumpShadow{0%,100%{transform:scaleX(1);opacity:.38}44%{transform:scaleX(.5);opacity:.14}}
+.game-runner.is-ducking .person-art.modern-v2 .figure{animation:gameDuck .74s ease both}
+@keyframes gameDuck{0%,100%{transform:none}22%,78%{transform:scaleY(.62) scaleX(1.1)}}
+.game-runner.is-ducking .person-art.modern-v2 .head{animation:gameDuckHead .74s ease both}
+@keyframes gameDuckHead{0%,100%{transform:none}22%,78%{transform:rotate(14deg) translateY(7px)}}
+.game-runner.is-stopped .person-art.modern-v2 .leg-l,.game-runner.is-stopped .person-art.modern-v2 .leg-r,
+.game-runner.is-stopped .person-art.modern-v2 .arm-l,.game-runner.is-stopped .person-art.modern-v2 .arm-r,
+.game-runner.is-stopped .person-art.modern-v2 .forearm,.game-runner.is-stopped .person-art.modern-v2 .torso,
+.game-runner.is-stopped .person-art.modern-v2 .ground-shadow{animation:none}
+.game-runner.is-stopped .person-art.modern-v2 .figure{animation:gameStopLean .45s ease both}
+@keyframes gameStopLean{0%{transform:none}35%{transform:translateX(-6px) rotate(-7deg)}100%{transform:translateX(-3px) rotate(-4deg)}}
+.game-runner.is-stopped .person-art.modern-v2 .arm-r{animation:gameArmStop .4s ease forwards}
+.game-runner.is-waving .person-art.modern-v2 .arm-r{animation:gameWave .8s ease both}
+@keyframes gameWave{0%,100%{transform:rotate(0)}18%,58%{transform:rotate(-152deg) translate(4px,-3px)}38%,78%{transform:rotate(-126deg) translate(2px,-2px)}}
+.game-runner.is-catching .person-art.modern-v2 .arm-l,.game-runner.is-catching .person-art.modern-v2 .arm-r{animation:gameCatch .6s ease both}
+@keyframes gameCatch{0%,100%{transform:rotate(0)}30%,70%{transform:rotate(-98deg)}}
+.game-runner.is-hit{animation:gameHit .58s ease both}
+@keyframes gameHit{0%,100%{transform:none}18%{transform:translateX(-10px) rotate(-9deg)}42%{transform:translateX(6px) rotate(4deg)}68%{transform:translateX(-3px)}}
+.game-runner.is-hit .person-art{animation:gameHitFlash .58s steps(1) both}
+@keyframes gameHitFlash{0%,40%{opacity:.3}20%,60%,100%{opacity:1}}
+.game-runner.is-safe{animation:gameSafeBlink 1.2s steps(1) both}
+@keyframes gameSafeBlink{0%,20%,40%,60%,80%{opacity:.45}10%,30%,50%,70%,100%{opacity:1}}
+
+/* obstacles share the ground line; each type is one clearly readable shape */
+.game-obstacle{position:absolute;left:0;bottom:var(--ground);will-change:transform;z-index:2;display:flex;flex-direction:column;align-items:center}
+.game-obstacle .ob-label{position:absolute;bottom:100%;margin-bottom:6px;left:50%;transform:translateX(-50%);direction:ltr;
+  font-size:14px;font-weight:900;letter-spacing:.06em;color:#fff;background:rgba(17,24,39,.78);border:1.5px solid rgba(255,255,255,.35);
+  padding:3px 9px;border-radius:999px;white-space:nowrap;animation:gameLabelBob .9s ease-in-out infinite}
+@keyframes gameLabelBob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-4px)}}
+.game-obstacle.ob-sign{bottom:auto;top:0;align-items:center}
+.game-obstacle.ob-sign .ob-pole{width:4px;height:78px;background:#4b5563;border-radius:0 0 3px 3px}
+.game-obstacle.ob-sign .ob-board{margin-top:-2px;width:64px;height:40px;background:#f59e0b;border:3px solid #92400e;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#451a03;letter-spacing:.06em;direction:ltr;
+  transform-origin:50% -6px;animation:gameSignSway 1.8s ease-in-out infinite;box-shadow:0 6px 12px rgba(0,0,0,.25)}
+@keyframes gameSignSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.game-obstacle.ob-sign .ob-label{bottom:auto;top:100%;margin:8px 0 0}
+.game-obstacle.ob-dog{font-size:38px;line-height:1;filter:drop-shadow(0 6px 6px rgba(0,0,0,.25))}
+.game-obstacle.ob-dog .ob-body{animation:gameDogRun .32s ease-in-out infinite;transform:scaleX(-1);display:inline-block}
+@keyframes gameDogRun{0%,100%{transform:scaleX(-1) translateY(0) rotate(0)}50%{transform:scaleX(-1) translateY(-5px) rotate(-6deg)}}
+.game-obstacle.ob-ball{font-size:32px;line-height:1;bottom:calc(var(--ground) + 54px)}
+.game-obstacle.ob-ball .ob-body{display:inline-block;animation:gameBallSpin .9s linear infinite}
+@keyframes gameBallSpin{to{transform:rotate(-360deg)}}
+.game-obstacle.ob-friend{width:52px;height:98px}
+.game-obstacle.ob-friend .person-art{width:100%;height:100%}
+.game-obstacle.ob-friend .person-art.modern-v2 .arm-r{animation:gameWave 1.1s ease-in-out infinite}
+.game-obstacle.ob-friend .ob-label{font-size:12.5px}
+.game-obstacle.is-done{transition:opacity .35s ease,transform .35s ease;opacity:0}
+.game-obstacle.is-poof{animation:gamePoof .42s ease both}
+@keyframes gamePoof{to{opacity:0;transform:translateX(var(--x,0px)) scale(1.6) rotate(12deg)}}
+.game-obstacle.is-caught{animation:gameCaught .5s ease both}
+@keyframes gameCaught{40%{transform:translateX(var(--x,0px)) scale(1.35)}100%{transform:translateX(var(--x,0px)) scale(0);opacity:0}}
+.game-float{position:absolute;z-index:5;font-weight:900;font-size:22px;color:var(--green);text-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;animation:gameFloat 1s ease-out both;direction:ltr}
+.game-float.bad{color:#fb7185}
+@keyframes gameFloat{0%{opacity:0;transform:translateY(8px) scale(.7)}25%{opacity:1;transform:translateY(-6px) scale(1.15)}100%{opacity:0;transform:translateY(-52px) scale(1)}}
+.game-world.is-shake{animation:gameShake .35s ease both}
+@keyframes gameShake{0%,100%{transform:none}25%{transform:translate(-5px,2px)}55%{transform:translate(4px,-2px)}80%{transform:translate(-2px,1px)}}
+.game-countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:6;font-size:64px;font-weight:900;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.5);pointer-events:none;direction:ltr}
+.game-countdown span{animation:gameCount .8s ease both}
+@keyframes gameCount{0%{opacity:0;transform:scale(.4)}30%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1)}}
+
+/* the controller: the words. Chips in voice mode, buttons in tap mode. */
+.game-controls{display:flex;flex-direction:column;gap:8px}
+.game-mode{display:flex;justify-content:center;gap:6px}
+.game-mode button{background:var(--card);border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.game-mode button.on{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.6);color:#6ee7b7}
+.game-words{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.game-word{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px 8px;border-radius:14px;
+  background:var(--card);border:1.5px solid var(--line);color:var(--text);font:inherit;cursor:pointer;direction:ltr;
+  transition:transform .12s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:transparent}
+.game-word .en{font-size:17px;font-weight:900;letter-spacing:.05em}
+.game-word .he{font-size:12px;color:var(--dim);font-weight:600;direction:rtl}
+.game-word .ic{font-size:15px;line-height:1}
+.game-word.is-lit{border-color:rgba(52,211,153,.85);background:rgba(52,211,153,.18);box-shadow:0 0 0 4px rgba(52,211,153,.14);transform:scale(1.05)}
+.game-word.is-locked{opacity:.38;pointer-events:none}
+.game-word.is-locked .en{font-size:13px}
+.game-controls.mode-voice .game-word{cursor:default;border-style:dashed}
+.game-controls.mode-tap .game-word:active{transform:scale(.96)}
+.game-heard{text-align:center;font-size:13.5px;color:var(--dim);min-height:20px;direction:rtl}
+.game-heard .mic{display:inline-block;animation:cuePulse 1.1s ease-in-out infinite}
+.game-heard b{color:#6ee7b7;direction:ltr;unicode-bidi:isolate;font-weight:800}
+
+/* start, new-word and game-over cards sit on top of the world */
+.game-card{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;gap:6px;padding:12px 16px;text-align:center;overflow-y:auto;
+  background:rgba(14,21,36,.82);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:fadeUp .3s ease both}
+/* `safe center`: a card taller than the world anchors to its top and scrolls,
+   instead of centring and losing its heading off the top edge */
+.game-card>*{flex-shrink:0}
+.game-card h2{font-size:21px;margin:0}
+.game-card p{color:#c9d4ec;font-size:14px;margin:0;line-height:1.4;max-width:320px}
+.game-card .btn{width:auto;min-width:150px;margin-top:4px;padding:11px 18px;font-size:16px}
+.game-card .btn-row{display:flex;gap:8px;justify-content:center;width:100%;max-width:340px}
+.game-card .btn-row .btn{min-width:0;flex:1 1 0;max-width:none;padding:11px 10px;font-size:15px;white-space:nowrap}
+.game-card .big-word{direction:ltr;font-size:36px;font-weight:900;letter-spacing:.06em;color:#fff;text-shadow:0 4px 18px rgba(52,211,153,.35);animation:pop .5s ease both}
+.game-card .big-he{font-size:18px;font-weight:800;color:#6ee7b7}
+.game-card .big-ic{font-size:34px;line-height:1}
+.game-card .game-stat{display:flex;gap:18px;justify-content:center;font-size:13px;color:var(--dim)}
+.game-card .game-stat b{display:block;font-size:24px;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.game-card .words-said{direction:ltr;font-size:13px;color:#aebbd2;letter-spacing:.03em}
+.game-card .newbest{color:var(--amber);font-weight:900;font-size:16px;animation:pop .5s ease .2s both}
+.game-intro-runner{width:46px;height:86px;margin:0 auto}
+.game-intro-runner .person-art{width:100%;height:100%}
+@media (max-height:700px){
+  .game-world{max-height:44dvh}
+  .game-runner{width:66px;height:124px}
+  .game-card h2{font-size:21px}.game-card .big-word{font-size:34px}
+}
+@media (prefers-reduced-motion:reduce){
+  /* The game is motion the player asked for by opening it. The decorative
+     layer goes (shake, speed lines, scrolling street, bobbing labels), but
+     the moves that carry the mechanics stay at their authored timing —
+     otherwise a jump completes in .01ms and the game reads as broken. */
+  .game-world.is-shake{animation:none}
+  .game-speedlines{display:none}
+  .game-runner .person-art.modern-v2 .leg-l{animation:gameRunLegL calc(.44s / var(--speed)) ease-in-out infinite!important}
+  .game-runner .person-art.modern-v2 .leg-r{animation:gameRunLegR calc(.44s / var(--speed)) ease-in-out infinite!important}
+  .game-runner .person-art.modern-v2 .arm-l{animation:gameRunArmL calc(.44s / var(--speed)) ease-in-out infinite!important}
+  .game-runner .person-art.modern-v2 .arm-r{animation:gameRunArmR calc(.44s / var(--speed)) ease-in-out infinite!important}
+  .game-runner.is-jumping .person-art.modern-v2 .figure{animation:gameJump .86s cubic-bezier(.3,.62,.42,1) both!important}
+  .game-runner.is-jumping .person-art.modern-v2 .ground-shadow{animation:gameJumpShadow .86s ease both!important}
+  .game-runner.is-ducking .person-art.modern-v2 .figure{animation:gameDuck .74s ease both!important}
+  .game-runner.is-ducking .person-art.modern-v2 .head{animation:gameDuckHead .74s ease both!important}
+  .game-runner.is-stopped .person-art.modern-v2 .leg-l,.game-runner.is-stopped .person-art.modern-v2 .leg-r,
+  .game-runner.is-stopped .person-art.modern-v2 .arm-l,.game-runner.is-stopped .person-art.modern-v2 .arm-r{animation:none!important}
+  .game-runner.is-stopped .person-art.modern-v2 .figure{animation:gameStopLean .45s ease both!important}
+  .game-runner.is-waving .person-art.modern-v2 .arm-r{animation:gameWave .8s ease both!important}
+  .game-runner.is-catching .person-art.modern-v2 .arm-l,.game-runner.is-catching .person-art.modern-v2 .arm-r{animation:gameCatch .6s ease both!important}
+  .game-runner.is-hit{animation:gameHit .58s ease both!important}
+  .game-obstacle.is-poof{animation:gamePoof .42s ease both!important}
+  .game-obstacle.is-caught{animation:gameCaught .5s ease both!important}
+  .game-float{animation:gameFloat 1s ease-out both!important}
+}
 </style>
 </head>
 <body>
@@ -7733,7 +7946,8 @@ function renderHome(){
       ${missionsDone()?`<div class="home-mission-stat">🎯 ${missionsDone()===1?'משימה אמיתית אחת הושלמה':missionsDone()+' משימות אמיתיות הושלמו'}</div>`:''}
       ${state.completed > 0 ? `<button class="btn secondary home-review-btn" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
     </div>
-    <div style="text-align:center;color:var(--dim);font-size:12px;margin-top:18px">גרסה ${APP_VERSION}</div>
+    <button type="button" class="home-side-game" onclick="renderSamRun()">🏃 הריצה של סם · משחק קטן בצד</button>
+    <div style="text-align:center;color:var(--dim);font-size:12px;margin-top:6px">גרסה ${APP_VERSION}</div>
   </div>`);
   afterRender(()=>revealCurrentHomeLesson(currentUnit));
   // an update that waited through a lesson applies now, on the home screen
@@ -10894,6 +11108,507 @@ if('serviceWorker' in navigator){
     }).catch(()=>{});
   });
 }
+/* ================= Sam's Run =================
+   A small game on the side, deliberately unconnected to the lessons.
+
+   The idea is the one thing a language game can do that nothing else can:
+   the learner's English voice is the controller. Sam runs down the street;
+   a box, a low sign, a crossing dog, a friend, a ball come at him; the
+   player says the word in time. No word, no move. New words unlock as the
+   score climbs, so progress in the game is progress in vocabulary. Where
+   there is no microphone the words are buttons — reading under time
+   pressure, which is still the language doing the work.
+
+   It keeps its own storage key, its own recogniser and its own screen, and
+   tears itself down the moment its DOM is gone, so nothing here can leak
+   into a lesson. */
+const SAM_RUN_KEY='english.samRun';
+const SAM_RUN_COMMANDS={
+  jump: {en:'JUMP', he:'קפוץ',   ic:'📦', say:'Jump!',  aliases:['jump','jumped','jumping','hop','jam','junk'],        hint:'קופסה על הדרך? תגיד JUMP וסם יקפוץ מעליה.'},
+  duck: {en:'DUCK', he:'התכופף', ic:'🪧', say:'Duck!',  aliases:['duck','ducked','dock','doc','duct','down'],          hint:'שלט נמוך? תגיד DUCK וסם יתכופף מתחתיו.'},
+  stop: {en:'STOP', he:'עצור',   ic:'🐕', say:'Stop!',  aliases:['stop','stopped','stock','halt','wait'],              hint:'כלב חוצה את הכביש? תגיד STOP וסם יעצור עד שהוא יעבור.'},
+  hello:{en:'HELLO',he:'שלום',   ic:'👋', say:'Hello!', aliases:['hello','hi','hey','hallo','allo','yellow'],          hint:'חבר מנופף לך? תגיד HELLO ותקבל נקודות בונוס.'},
+  catch:{en:'CATCH',he:'תפוס',   ic:'⚽', say:'Catch!', aliases:['catch','caught','ketch','cash','cache','catches'],   hint:'כדור עף לכיוונו? תגיד CATCH וסם יתפוס אותו. בונוס גדול.'},
+};
+const SAM_RUN_ORDER=['jump','duck','stop','hello','catch'];
+/* the score at which each word first appears; the first two are there from the start */
+const SAM_RUN_UNLOCK={jump:0,duck:0,stop:6,hello:14,catch:24};
+/* what each word answers to. execAt is how far along the approach (0..1)
+   the move fires when armed — early enough to be in the air on arrival */
+const SAM_RUN_THINGS={
+  jump: {kind:'box',   danger:true,  points:1, execAt:.8,  move:'is-jumping', hold:860},
+  duck: {kind:'sign',  danger:true,  points:1, execAt:.83, move:'is-ducking', hold:740},
+  stop: {kind:'dog',   danger:true,  points:2, execAt:.78, move:'is-stopped', hold:0},
+  hello:{kind:'friend',danger:false, points:3, execAt:0,   move:'is-waving',  hold:800},
+  catch:{kind:'ball',  danger:false, points:5, execAt:.88, move:'is-catching',hold:600},
+};
+let samRun=null;
+
+function samRunStore(){
+  const base={best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:''};
+  try{ const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}'); return {...base,...(raw&&typeof raw==='object'?raw:{})}; }
+  catch(e){ return base; }
+}
+function samRunSave(store){ try{ localStorage.setItem(SAM_RUN_KEY, JSON.stringify(store)); }catch(e){} }
+/* the run gets faster with the score, then settles: a ceiling keeps the
+   voice path fair, since a word takes a real moment to be recognised */
+function samRunSpeedFor(score){ return 1+Math.min(Math.max(0,score),70)/70*1.15; }
+function samRunTravelMs(score){ return Math.max(1150, Math.round(2550/samRunSpeedFor(score))); }
+/* the last word the player said wins, matched with the same forgiveness the
+   lessons use, so "jumped", "dock" and "cash" all land on the move meant */
+function samRunMatchCommand(text, active=SAM_RUN_ORDER){
+  const tokens=normalize(text).split(/[^a-z']+/).filter(Boolean);
+  for(let i=tokens.length-1;i>=0;i--){
+    const tok=tokens[i];
+    for(const id of active){
+      for(const alias of SAM_RUN_COMMANDS[id].aliases){
+        if(tok===alias||wordsMatch(tok,alias)||(alias.length>=4&&tok.startsWith(alias))) return id;
+      }
+    }
+  }
+  return null;
+}
+
+/* tiny synthesised sounds: no assets, no download, a little life */
+let samRunAudio=null;
+function samRunTone(kind){
+  const spec={
+    jump:  {f:[440,660],      d:.09, t:'sine',     g:.16},
+    duck:  {f:[330,220],      d:.1,  t:'triangle', g:.16},
+    stop:  {f:[196,196],      d:.08, t:'square',   g:.09},
+    hello: {f:[659,880],      d:.12, t:'sine',     g:.16},
+    catch: {f:[784,1175],     d:.09, t:'sine',     g:.16},
+    hit:   {f:[120,80],       d:.17, t:'sawtooth', g:.2},
+    unlock:{f:[523,659,784,1047], d:.11, t:'sine', g:.15},
+    over:  {f:[392,330,262],  d:.18, t:'triangle', g:.14},
+    best:  {f:[523,659,784,1047,1319], d:.1, t:'sine', g:.15},
+    tick:  {f:[880],          d:.06, t:'sine',     g:.1},
+  }[kind];
+  if(!spec) return;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    samRunAudio=samRunAudio||new AC();
+    if(samRunAudio.state==='suspended') samRunAudio.resume().catch(()=>{});
+    const ac=samRunAudio, t0=ac.currentTime;
+    spec.f.forEach((f,i)=>{
+      const o=ac.createOscillator(), g=ac.createGain(), at=t0+i*spec.d;
+      o.type=spec.t; o.frequency.setValueAtTime(f,at);
+      g.gain.setValueAtTime(0.0001,at); g.gain.exponentialRampToValueAtTime(spec.g,at+.012); g.gain.exponentialRampToValueAtTime(.0001,at+spec.d);
+      o.connect(g).connect(ac.destination); o.start(at); o.stop(at+spec.d+.03);
+    });
+  }catch(e){}
+}
+
+function samRunWordsHtml(g){
+  return SAM_RUN_ORDER.map(id=>{
+    const c=SAM_RUN_COMMANDS[id], locked=!g.active.includes(id);
+    return `<button type="button" class="game-word${locked?' is-locked':''}" data-cmd="${id}" onclick="samRunCommand('${id}','tap')" aria-label="${c.en} — ${esc(c.he)}"${locked?' tabindex="-1"':''}>
+      <span class="ic">${locked?'🔒':c.ic}</span><span class="en">${locked?`${SAM_RUN_UNLOCK[id]} נק׳`:c.en}</span><span class="he">${locked?'':esc(c.he)}</span>
+    </button>`;
+  }).join('');
+}
+function samRunHeardHtml(g){
+  if(!g.running) return g.mode==='voice'?'🎤 המיקרופון נדלק כשלוחצים GO. אפשר גם ללחוץ על המילים.':'👆 בלי מיקרופון פה, אז לוחצים על המילים.';
+  if(g.mode!=='voice') return 'לוחצים על המילה הנכונה בזמן 👆';
+  return '<span class="mic">🎤</span> מקשיב… תגיד את המילה';
+}
+function samRunStartCardHtml(store){
+  const locked=SAM_RUN_ORDER.filter(id=>!store.unlocked.includes(id));
+  return `
+    <div class="game-intro-runner">${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
+    <h2>הריצה של סם</h2>
+    <p>סם רץ. <b>אתה</b> אומר לו מה לעשות: באנגלית, בקול, בזמן.</p>
+    <p class="words-said">${store.unlocked.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}${locked.length?` · 🔒 עוד ${locked.length}`:''}</p>
+    <button class="btn" onclick="samRunStart()">GO! 🏃</button>`;
+}
+function renderSamRun(){
+  samRunTeardown();
+  const store=samRunStore();
+  const mode=micAvailable()?(store.mode==='tap'?'tap':'voice'):'tap';
+  samRun={
+    epoch:uiEpoch, store, mode, active:store.unlocked.slice(), running:false, paused:false,
+    score:0, lives:3, time:0, last:0, obstacles:[], nextSpawnAt:0, halted:false, said:{}, hits:{}, cleared:{},
+    raf:0, timer:0, unlockTimer:0, rec:null, heardKeys:new Set(), heardAt:0, lastKind:'', sameKind:0,
+  };
+  const g=samRun;
+  hx(`<div class="screen game-screen">
+    <div class="game-top">
+      <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
+      <div class="game-title">🏃 הריצה של סם</div>
+      <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
+      <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">שיא ${store.best}</div></div>
+    </div>
+    <div class="game-world" id="samRunWorld" style="--speed:1">
+      <div class="game-far"></div><div class="game-lane"></div><div class="game-speedlines"></div>
+      <div class="game-runner" id="samRunRunner" hidden>${personArt(PRACTICE_CAST.sam.look,'waiting','game-sam')}</div>
+      <div id="samRunObstacles"></div>
+      <div class="game-card" id="samRunCard">${samRunStartCardHtml(store)}</div>
+    </div>
+    <div class="game-controls mode-${mode}" id="samRunControls">
+      <div class="game-mode">
+        <button type="button" id="samRunMicBtn" class="${mode==='voice'?'on':''}" onclick="samRunToggleMode()" ${SR?'':'hidden'}>${mode==='voice'?'🎤 מקשיב':'🎤 כבוי'}</button>
+      </div>
+      <div class="game-words" id="samRunWords">${samRunWordsHtml(g)}</div>
+      <div class="game-heard" id="samRunHeard">${samRunHeardHtml(g)}</div>
+    </div>
+  </div>`);
+  g.epoch=uiEpoch;
+}
+function samRunExit(){ samRunTeardown(); renderHome(); }
+function samRunTeardown(){
+  const g=samRun; if(!g) return;
+  g.running=false;
+  if(g.raf) cancelAnimationFrame(g.raf);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer);
+  samRunStopListening();
+  cancelSpeech();
+  samRun=null;
+}
+function samRunToggleMode(){
+  const g=samRun; if(!g) return;
+  samRunSetMode(g.mode==='voice'?'tap':'voice');
+}
+function samRunSetMode(mode){
+  const g=samRun; if(!g) return;
+  if(mode==='voice'&&!SR) mode='tap';
+  g.mode=mode; g.store.mode=mode; samRunSave(g.store);
+  const controls=document.getElementById('samRunControls');
+  if(controls) controls.className='game-controls mode-'+mode;
+  const btn=document.getElementById('samRunMicBtn');
+  if(btn){ btn.classList.toggle('on',mode==='voice'); btn.textContent=mode==='voice'?'🎤 מקשיב':'🎤 כבוי'; }
+  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
+  if(mode==='voice'&&g.running&&!g.paused) samRunListen(); else samRunStopListening();
+}
+
+/* ---- a run ---- */
+function samRunStart(){
+  const g=samRun; if(!g) return;
+  samRunTone('tick');
+  clearTimeout(g.timer);
+  const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
+  const obstacles=document.getElementById('samRunObstacles');
+  if(!runner||!card||!world||!obstacles) return;
+  obstacles.innerHTML='';
+  Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],halted:false,paused:false,said:{},hits:{},cleared:{},lastKind:'',sameKind:0,active:g.store.unlocked.slice()});
+  g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
+  runner.hidden=false; runner.className='game-runner';
+  world.className='game-world'; world.style.setProperty('--speed','1');
+  card.hidden=true; card.innerHTML='';
+  samRunPaintHud();
+  const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
+  g.worldW=world.clientWidth||360; g.runnerX=runner.offsetLeft+runner.offsetWidth/2||60;
+  // 3 · 2 · 1 · GO — long enough for the microphone to open
+  const count=document.createElement('div'); count.className='game-countdown'; world.appendChild(count);
+  const steps=['3','2','1','GO!']; let i=0;
+  const tick=()=>{
+    if(samRun!==g) return;
+    if(i>=steps.length){ count.remove(); samRunGo(); return; }
+    count.innerHTML=`<span>${steps[i++]}</span>`; samRunTone('tick');
+    g.timer=setTimeout(tick,i===steps.length?550:700);
+  };
+  if(g.mode==='voice') samRunListen();
+  tick();
+}
+function samRunGo(){
+  const g=samRun; if(!g) return;
+  g.running=true; g.last=0; g.time=0; g.nextSpawnAt=500;
+  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
+  g.raf=requestAnimationFrame(samRunFrame);
+}
+function samRunFrame(ts){
+  const g=samRun; if(!g||!g.running) return;
+  if(!document.getElementById('samRunWorld')||g.epoch!==uiEpoch){ samRunTeardown(); return; }
+  const dt=g.last?Math.min(50,ts-g.last):16; g.last=ts;
+  if(!g.paused&&!document.hidden){
+    g.time+=dt;
+    // a halt freezes the street, so it must freeze the spawn clock too:
+    // otherwise the next thing spawns right behind the frozen one and the
+    // two arrive as a cluster nobody could answer in time
+    if(g.halted) g.nextSpawnAt+=dt;
+    if(g.time>=g.nextSpawnAt) samRunSpawn();
+    for(const ob of g.obstacles.slice()){
+      if(g.halted&&!ob.crossing) continue;
+      ob.progress+=dt/ob.travelMs;
+      const thing=SAM_RUN_THINGS[ob.cmd];
+      if(!ob.executed&&thing.execAt&&ob.progress>=thing.execAt&&ob.armed===ob.cmd) samRunExecute(ob);
+      if(!ob.resolved&&ob.progress>=1) samRunResolve(ob);
+      if(ob.crossing&&ob.progress>=1.18&&g.halted) samRunUnhalt();
+      if(ob.progress>=1.32){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
+      const x=g.worldW+70-ob.progress*(g.worldW+70-g.runnerX);
+      ob.x=x; ob.el.style.setProperty('--x',x+'px');
+      if(!ob.el.classList.contains('is-poof')&&!ob.el.classList.contains('is-caught')) ob.el.style.transform=`translateX(${x}px)`;
+    }
+  }
+  g.raf=requestAnimationFrame(samRunFrame);
+}
+function samRunPickKind(){
+  const g=samRun;
+  const pool=[];
+  for(const id of g.active){
+    const w=SAM_RUN_THINGS[id].danger?3:1.4;
+    if(id===g.lastKind&&g.sameKind>=2) continue;   // never the same thing three times running
+    for(let i=0;i<Math.round(w*10);i++) pool.push(id);
+  }
+  const id=pick(pool.length?pool:g.active);
+  g.sameKind=id===g.lastKind?g.sameKind+1:1; g.lastKind=id;
+  return id;
+}
+function samRunSpawn(){
+  const g=samRun, host=document.getElementById('samRunObstacles'); if(!host) return;
+  // never put a new thing on the street while the last one is still in the
+  // first half of its approach — one answer at a time is the whole game
+  const last=g.obstacles[g.obstacles.length-1];
+  if(last&&!last.resolved&&last.progress<.55){ g.nextSpawnAt=g.time+120; return; }
+  const cmd=samRunPickKind(), c=SAM_RUN_COMMANDS[cmd], thing=SAM_RUN_THINGS[cmd];
+  const travelMs=samRunTravelMs(g.score);
+  const el=document.createElement('div');
+  el.className='game-obstacle ob-'+thing.kind;
+  // the word rides on the obstacle until this type has been cleared three times
+  const trained=(g.store.cleared[cmd]||0)>=3;
+  const label=trained?'':`<span class="ob-label">${c.en}</span>`;
+  el.innerHTML=({
+    box:`<svg width="46" height="38" viewBox="0 0 46 38" aria-hidden="true"><path d="M2 10h42v26H2z" fill="#c8894a" stroke="#7c4a1d" stroke-width="2.5"/><path d="M2 10l6-8h30l6 8z" fill="#e0a262" stroke="#7c4a1d" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 10v26" stroke="#7c4a1d" stroke-width="2" opacity=".55"/><path d="M8 22h30" stroke="#f3d9b5" stroke-width="3" opacity=".8"/></svg>${label}`,
+    sign:`<div class="ob-pole"></div><div class="ob-board">${pick(['OPEN','SALE','SHOP','CAFE'])}</div>${label}`,
+    dog:`<span class="ob-body">🐕</span>${label}`,
+    friend:`${personArt(PRACTICE_CAST[pick(['maya','tom','nina'])].look,'waiting')}${label}`,
+    ball:`<span class="ob-body">${pick(['⚽','🏀','🎾'])}</span>${label}`,
+  })[thing.kind];
+  host.appendChild(el);
+  const ob={cmd,el,progress:0,travelMs,armed:null,executed:false,resolved:false,crossing:thing.kind==='dog'};
+  g.obstacles.push(ob);
+  // spacing is a share of the approach, so density scales with speed
+  g.nextSpawnAt=g.time+travelMs*(.62+Math.random()*.3);
+}
+/* the player said (or tapped) a word: it arms the next thing coming. Anything
+   said with nothing coming is a free move — Sam does it anyway, because a
+   kid who shouts JUMP at an empty street deserves a jump. */
+function samRunCommand(cmd,source){
+  const g=samRun; if(!g||!g.running||g.paused) return;
+  if(!g.active.includes(cmd)) return;
+  g.said[cmd]=(g.said[cmd]||0)+1;
+  samRunLight(cmd);
+  const target=g.obstacles.find(o=>!o.resolved);
+  const thing=SAM_RUN_THINGS[cmd];
+  if(target){
+    target.armed=cmd;
+    if(cmd==='hello'&&target.cmd==='hello'){ samRunResolve(target); return; }
+    if(target.cmd===cmd){
+      if(target.progress>=thing.execAt) samRunExecute(target);
+      else samRunPose('is-armed-'+cmd,380);
+      return;
+    }
+  }
+  // no matching target: a free move, no consequence
+  if(cmd!=='stop'){ samRunPose(thing.move,thing.hold||600); samRunTone(cmd); }
+}
+function samRunExecute(ob){
+  const g=samRun, thing=SAM_RUN_THINGS[ob.cmd];
+  ob.executed=true;
+  samRunTone(ob.cmd);
+  if(ob.cmd==='stop'){ samRunHalt(); return; }
+  samRunPose(thing.move,thing.hold);
+}
+function samRunHalt(){
+  const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
+  g.halted=true;
+  if(runner){ runner.classList.remove('is-armed-stop'); runner.classList.add('is-stopped'); }
+  if(world) world.classList.add('is-halted');
+}
+function samRunUnhalt(){
+  const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
+  g.halted=false;
+  if(runner) runner.classList.remove('is-stopped');
+  if(world) world.classList.remove('is-halted');
+}
+function samRunResolve(ob){
+  const g=samRun, thing=SAM_RUN_THINGS[ob.cmd];
+  ob.resolved=true;
+  const ok=ob.armed===ob.cmd;
+  if(ok){
+    if(ob.cmd==='hello'){ samRunPose('is-waving',800); samRunTone('hello'); }
+    if(ob.cmd==='catch'){ ob.el.classList.add('is-caught'); }
+    if(!ob.executed&&ob.cmd!=='hello'&&ob.cmd!=='catch') samRunExecute(ob);
+    g.cleared[ob.cmd]=(g.cleared[ob.cmd]||0)+1;
+    g.store.cleared[ob.cmd]=(g.store.cleared[ob.cmd]||0)+1;
+    samRunScore(thing.points, ob);
+    return;
+  }
+  if(!thing.danger){ samRunFloat('…', ob, true); return; }   // a missed bonus just passes by
+  samRunHit(ob);
+}
+function samRunScore(points, ob){
+  const g=samRun;
+  g.score+=points;
+  samRunFloat('+'+points, ob);
+  samRunPaintHud(true);
+  const world=document.getElementById('samRunWorld');
+  const speed=samRunSpeedFor(g.score);
+  if(world){ world.style.setProperty('--speed',speed.toFixed(3)); world.classList.toggle('is-fast',speed>1.7); }
+  for(const id of SAM_RUN_ORDER){
+    if(!g.active.includes(id)&&g.score>=SAM_RUN_UNLOCK[id]){ samRunUnlock(id); break; }
+  }
+}
+function samRunHit(ob){
+  const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
+  g.lives=Math.max(0,g.lives-1);
+  g.hits[ob.cmd]=(g.hits[ob.cmd]||0)+1;
+  if(g.halted) samRunUnhalt();
+  ob.el.classList.add('is-poof');
+  samRunTone('hit');
+  samRunFloat('💥', ob, true);
+  if(runner){ runner.classList.remove('is-jumping','is-ducking','is-armed-jump','is-armed-duck','is-armed-stop','is-armed-catch'); samRunPose('is-hit',580); setTimeout(()=>{ if(samRun===g&&runner.isConnected) samRunPose('is-safe',1200); },600); }
+  if(world&&!prefersReducedStageMotion()){ world.classList.remove('is-shake'); void world.offsetWidth; world.classList.add('is-shake'); }
+  samRunPaintHud();
+  if(g.lives<=0) samRunOver();
+}
+function samRunPose(cls,ms){
+  const runner=document.getElementById('samRunRunner'); if(!runner) return;
+  runner.classList.remove(cls); void runner.offsetWidth; runner.classList.add(cls);
+  if(ms) setTimeout(()=>runner.classList.remove(cls),ms);
+}
+function samRunLight(cmd){
+  document.querySelectorAll('#samRunWords .game-word').forEach(b=>{
+    const on=b.dataset.cmd===cmd;
+    b.classList.toggle('is-lit',on);
+    if(on) setTimeout(()=>b.classList.remove('is-lit'),420);
+  });
+}
+function samRunFloat(text, ob, bad=false){
+  const world=document.getElementById('samRunWorld'); if(!world) return;
+  const f=document.createElement('div');
+  f.className='game-float'+(bad?' bad':''); f.textContent=text;
+  const x=(ob?.x??world.clientWidth*.3), y=world.clientHeight*.42;
+  f.style.left=Math.max(8,Math.min(world.clientWidth-60,x-14))+'px'; f.style.top=y+'px';
+  world.appendChild(f); setTimeout(()=>f.remove(),1000);
+}
+function samRunPaintHud(bump=false){
+  const g=samRun; if(!g) return;
+  const score=document.getElementById('samRunScore');
+  if(score){ score.textContent=String(g.score); if(bump){ score.classList.remove('bump'); void score.offsetWidth; score.classList.add('bump'); } }
+  const lives=document.getElementById('samRunLives');
+  if(lives) lives.querySelectorAll('i').forEach((h,i)=>h.classList.toggle('lost',i>=g.lives));
+}
+/* a new word: the run pauses, Sam says it, the player sees what it answers */
+function samRunUnlock(id){
+  const g=samRun, c=SAM_RUN_COMMANDS[id], card=document.getElementById('samRunCard'); if(!card) return;
+  g.paused=true; samRunStopListening();
+  g.active.push(id);
+  if(!g.store.unlocked.includes(id)) g.store.unlocked.push(id);
+  samRunSave(g.store);
+  samRunTone('unlock');
+  card.hidden=false;
+  card.innerHTML=`
+    <p style="font-weight:800;color:#6ee7b7">מילה חדשה! 🎉</p>
+    <div class="big-ic">${c.ic}</div>
+    <div class="big-word">${c.en}</div>
+    <div class="big-he">${esc(c.he)}</div>
+    <p>${esc(c.hint)}</p>
+    <button class="btn" onclick="samRunResume()">הבנתי ▶</button>`;
+  const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
+  speak(c.say);
+  clearTimeout(g.unlockTimer); g.unlockTimer=setTimeout(()=>{ if(samRun===g&&g.paused) samRunResume(); },3600);
+}
+function samRunResume(){
+  const g=samRun; if(!g||!g.paused) return;
+  clearTimeout(g.unlockTimer);
+  cancelSpeech();
+  const card=document.getElementById('samRunCard'); if(card){ card.hidden=true; card.innerHTML=''; }
+  g.paused=false; g.last=0;
+  // the pause froze time, so nothing arrives the instant play resumes
+  g.nextSpawnAt=Math.max(g.nextSpawnAt,g.time+900);
+  if(g.mode==='voice') samRunListen();
+}
+function samRunOver(){
+  const g=samRun; if(!g) return;
+  g.running=false; if(g.raf) cancelAnimationFrame(g.raf);
+  samRunStopListening();
+  const card=document.getElementById('samRunCard'); if(!card) return;
+  const store=g.store, newBest=g.score>(store.best||0);
+  store.best=Math.max(store.best||0,g.score);
+  for(const [k,v] of Object.entries(g.said)) store.said[k]=(store.said[k]||0)+v;
+  samRunSave(store);
+  samRunTone(newBest?'best':'over');
+  if(newBest&&g.score>=5) confetti();
+  const said=SAM_RUN_ORDER.filter(id=>g.said[id]).map(id=>`${SAM_RUN_COMMANDS[id].en} ×${g.said[id]}`).join(' · ');
+  const worst=Object.entries(g.hits).sort((a,b)=>b[1]-a[1])[0];
+  const tip=g.score<4
+    ? 'טיפ: תגיד את המילה ברגע שאתה רואה מה מגיע. סם מחכה לה.'
+    : worst&&worst[1]>=2 ? `רוב הפעמים זה היה ${SAM_RUN_COMMANDS[worst[0]].ic} — ${SAM_RUN_COMMANDS[worst[0]].hint}`
+    : pick(['עוד קצת והשיא נופל.','סם כבר מחכה לריצה הבאה.','כל מילה שאמרת בקול, נשארת.']);
+  card.hidden=false;
+  card.innerHTML=`
+    <h2>${g.score>=(store.best||0)&&g.score>0?'🏃 ריצה מעולה!':'אופס, סם נפל'}</h2>
+    ${newBest?'<div class="newbest">🏆 שיא חדש!</div>':''}
+    <div class="game-stat"><div><b>${g.score}</b>נקודות</div><div><b>${store.best}</b>שיא</div></div>
+    ${said?`<div class="words-said">${said}</div>`:''}
+    <p>${esc(tip)}</p>
+    <div class="btn-row">
+      <button class="btn" onclick="samRunStart()">עוד פעם 🔁</button>
+      <button class="btn secondary" onclick="samRunExit()">הביתה</button>
+    </div>`;
+  const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.best;
+  const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
+}
+
+/* ---- the microphone as a controller ---- */
+function samRunListen(){
+  const g=samRun; if(!g||!SR||g.mode!=='voice') return;
+  samRunStopListening();
+  let rec; try{ rec=new SR(); }catch(e){ return; }
+  rec.lang='en-US'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=3;
+  g.rec=rec; g.heardKeys=new Set();
+  const live=()=>samRun===g&&g.rec===rec;
+  rec.onstart=()=>{ if(live()) g.heardKeys=new Set(); };
+  rec.onresult=e=>{
+    if(!live()) return;
+    for(let ri=e.resultIndex||0;ri<e.results.length;ri++){
+      const res=e.results[ri]; if(!res) continue;
+      let shown='';
+      for(let ai=0;ai<res.length;ai++){
+        const t=String(res[ai]?.transcript||'').trim(); if(!t) continue;
+        shown=shown||t;
+        const cmd=samRunMatchCommand(t,g.active);
+        if(!cmd) continue;
+        // one move per phrase per word: interim and final results repeat the same text
+        const key=ri+':'+cmd;
+        if(g.heardKeys.has(key)){ samRunShowHeard(t,cmd); break; }
+        g.heardKeys.add(key);
+        samRunShowHeard(t,cmd);
+        samRunCommand(cmd,'voice');
+        break;
+      }
+      if(shown&&!samRunMatchCommand(shown,g.active)) samRunShowHeard(shown,null);
+    }
+  };
+  rec.onerror=e=>{
+    if(!live()) return;
+    const err=e?.error||'';
+    if(err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture'){
+      g.rec=null; samRunSetMode('tap'); toast('אין גישה למיקרופון — משחקים בלחיצות 👆');
+    }
+  };
+  rec.onend=()=>{
+    if(!live()) return;
+    if(g.running&&!g.paused&&g.mode==='voice'){
+      g.heardKeys=new Set();
+      try{ rec.start(); }catch(e){ setTimeout(()=>{ if(live()&&g.running&&!g.paused) try{ rec.start(); }catch(_){ } },300); }
+    }
+  };
+  try{ rec.start(); }catch(e){ g.rec=null; }
+}
+function samRunStopListening(){
+  const g=samRun; if(!g||!g.rec) return;
+  const rec=g.rec; g.rec=null;
+  rec.onresult=rec.onerror=rec.onend=rec.onstart=null;
+  try{ rec.abort(); }catch(e){}
+}
+function samRunShowHeard(text,cmd){
+  const g=samRun, el=document.getElementById('samRunHeard'); if(!g||!el) return;
+  const now=Date.now(); if(!cmd&&now-g.heardAt<250) return; g.heardAt=now;
+  const tail=String(text).trim().split(/\s+/).slice(-3).join(' ');
+  el.innerHTML=cmd?`שמעתי: <b>${esc(SAM_RUN_COMMANDS[cmd].en)}</b> ✓`:`שמעתי: <span dir="ltr">${esc(tail)}</span>`;
+}
+
 if(viewTransitionsEnabled()) document.documentElement?.classList?.add('vt');
 if(state.onboarded) renderHome(); else renderOnboarding();
 </script>
