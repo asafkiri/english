@@ -1310,6 +1310,8 @@ test('authored stage actions are narrated, unique and use the supported world co
     lostDog: new Set(['none', 'spotted', 'identified', 'reunited']),
     robot: new Set(['bag', 'awake', 'lit']),
     storyProp: new Set(['ready', 'changed']),
+    samBag: new Set(['stacked', 'learner', 'sam']),
+    samDoor: new Set(['narrow', 'open', 'closed']),
     mirror: new Set(['hidden', 'held', 'placed']),
     mirrorLight: new Set(['hidden', 'moving', 'source', 'final']),
   };
@@ -1598,6 +1600,100 @@ test('the living-room portrait is lit from its visible window on the right', () 
   assert.equal(api.PRACTICE_BACKDROPS['living-room'].lightSide, 'right');
 });
 
+test('Sam keeps two real boxes and one visible bag through both doorway branches', () => {
+  const { api } = runtime();
+  const story = api.practiceStoryById('sam_boxes_at_door');
+  assert.ok(story);
+  assert.equal(story.stageProp, undefined,
+    'the physical cargo should replace the floating generic summary card');
+  const initialWorld = api.initialPracticeStageWorld(story);
+  assert.equal(initialWorld.storyProp, 'ready');
+  assert.equal(initialWorld.samBag, 'stacked');
+  assert.equal(initialWorld.samDoor, 'narrow');
+
+  const parkingArt = api.PRACTICE_BACKDROPS['parking-lot'].art;
+  assert.equal((parkingArt.match(/class="sam-cargo-box /g) || []).length, 2,
+    'the narrated two cartons must both exist in the scene');
+  assert.equal((parkingArt.match(/class="sam-cargo-bag"/g) || []).length, 1,
+    'the heavy bag must be one persistent physical object');
+  assert.match(parkingArt, /class="sam-door-threshold"/,
+    'the cargo needs a visible building entrance to move through');
+  assert.match(parkingArt, /class="sam-cargo-stage" transform="translate\(0 -72\)"/,
+    'the cargo must stay above the opaque controls on short phones');
+  assert.match(parkingArt, /class="sam-cargo-boxes">\s*<ellipse class="sam-cargo-shadow"/,
+    'the contact shadow must move with the cartons');
+
+  const makeSession = canCarry => ({
+    isPractice: true, practiceStoryId: story.id, practiceVars: { canCarry },
+    stageWorld: api.initialPracticeStageWorld(story), stagePlayedActions: [], pendingStageAction: null,
+  });
+  const initial = makeSession(true);
+  let model = api.practiceStageModel(initial);
+  assert.match(api.stageWorldClasses(model), /has-sam-cargo/);
+  assert.match(api.stageWorldClasses(model), /has-sam-boxes-ready/);
+  assert.match(api.stageWorldClasses(model), /has-sam-bag-stacked/);
+  assert.match(api.stageWorldClasses(model), /has-sam-door-narrow/);
+  assert.doesNotMatch(api.stagePropsHtml(model), /prop-story-card/);
+
+  for (const [canCarry, actionId, bagState, actionClass] of [
+    [true, 'sam-bag-to-learner', 'learner', 'is-sam-bag-to-learner'],
+    [false, 'sam-catches-bag', 'sam', 'is-sam-bag-to-sam'],
+  ]) {
+    const session = makeSession(canCarry);
+    const slip = api.resolvePracticeBeat(story, 1, { canCarry });
+    assert.equal(slip.stageAction.id, actionId);
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: slip.stageAction }, session), true);
+    assert.equal(session.stageWorld.samBag, bagState);
+    model = api.practiceStageModel(session);
+    assert.match(api.stageWorldClasses(model), new RegExp(`has-sam-bag-${bagState}`));
+    assert.match(api.stageWorldClasses(model), new RegExp(actionClass));
+    assert.doesNotMatch(api.stagePropsHtml(model), /prop-story-card/);
+    api.settlePracticeStageAction(session);
+    assert.doesNotMatch(api.stageWorldClasses(api.practiceStageModel(session)), new RegExp(actionClass));
+    assert.match(api.stageWorldClasses(api.practiceStageModel(session)), new RegExp(`has-sam-bag-${bagState}`),
+      'the selected holder must remain visible through the next doorway beat');
+
+    const throughDoor = api.resolvePracticeBeat(story, 2, { canCarry }).stageAction;
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: throughDoor }, session), true);
+    assert.equal(session.stageWorld.samDoor, 'open');
+    assert.match(api.stageWorldClasses(api.practiceStageModel(session)), /is-sam-door-opening/);
+    api.settlePracticeStageAction(session);
+    assert.match(api.stageWorldClasses(api.practiceStageModel(session)), /has-sam-door-open/);
+
+    const setDown = api.resolvePracticeBeat(story, 3, { canCarry }).stageAction;
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: setDown }, session), true);
+    assert.equal(session.stageWorld.storyProp, 'changed');
+    assert.equal(session.stageWorld.samBag, bagState,
+      'the holder state remains available as the source of the set-down animation');
+    const finalClasses = api.stageWorldClasses(api.practiceStageModel(session));
+    assert.match(finalClasses, /has-sam-boxes-changed/);
+    assert.match(finalClasses, /is-sam-cargo-set-down/);
+    assert.match(finalClasses, /has-sam-door-open/);
+    api.settlePracticeStageAction(session);
+
+    const closeDoor = api.resolvePracticeBeat(story, 4, { canCarry }).stageAction;
+    assert.equal(api.enterPracticeStageAction({ arrived: true, stageAction: closeDoor }, session), true);
+    assert.equal(session.stageWorld.samDoor, 'closed');
+    const closedClasses = api.stageWorldClasses(api.practiceStageModel(session));
+    assert.match(closedClasses, /has-sam-door-closed/);
+    assert.match(closedClasses, /is-sam-door-closing/);
+  }
+
+  const legacy = { practiceStoryId: story.id, stageWorld: { storyProp: 'changed' }, stagePlayedActions: [] };
+  assert.equal(api.ensurePracticeStageWorld(legacy).samBag, 'stacked',
+    'older saved conversations should receive the new bag state without losing their progress');
+  assert.equal(legacy.stageWorld.samDoor, 'narrow');
+  assert.match(api.stageWorldClasses(api.practiceStageModel(legacy)), /has-sam-boxes-changed/);
+  assert.match(html, /\.stage-bg\.has-sam-boxes-changed \.sam-cargo-bag\{opacity:1;transform:/,
+    'the completed scene must directly place the bag on the entrance floor');
+  assert.match(html, /\.stage-bg\.has-sam-door-closed \.sam-cargo-stage\{opacity:0\}/,
+    'closing the door must put the completed cargo behind it');
+  assert.match(html, /@keyframes samDoorClose\{0%,44%\{transform:scaleX\(\.22\)\}/,
+    'the door must wait for the cargo to move inside before it closes');
+  assert.match(html, /@keyframes samCargoBehindDoor\{0%,20%\{opacity:1\}42%,100%\{opacity:0\}\}/,
+    'the cargo must clear the doorway before the panel crosses it');
+});
+
 test('the rendered mirror scene keeps one physical mirror through pickup and placement', () => {
   const renderBeat = (beatIndex, stageWorld, stagePlayedActions) => {
     const { api, app } = runtime();
@@ -1860,6 +1956,8 @@ test('stage action markup updates independently and has a reduced-motion final s
     'reduced motion should disable the scene-coordinate pickup transition');
   assert.match(reduced, /\.stage-action-place-mirror\s+\.held-mirror-art\{opacity:0!important\}/,
     'reduced motion should not show held and placed copies of the mirror together');
+  assert.match(reduced, /\.sam-door-story,\.sam-door-story \*\{animation:none!important;transition:none!important\}/,
+    'reduced motion should keep Sam\'s cargo in its state-driven resting pose');
 
   const { api: reducedApi } = runtime(new Map(), { matchMedia: query => ({
     matches: query === '(prefers-reduced-motion: reduce)',
