@@ -5886,7 +5886,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.15.3';
+const APP_VERSION = '2.15.4';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7020,17 +7020,9 @@ function renderHome(){
 
   let heroHtml;
   if(paused){
-    const pl = LESSONS[paused.idx];
-    const pct = Math.round(paused.i / Math.max(1,paused.steps.length-1) * 100);
-    heroHtml = `
-    <div class="card today">
-      <div class="deco">⏯️</div>
-      <div class="tag">המקום שלך נשמר · ${pct}% מהשיעור</div>
-      <h2>ממשיכים מאיפה שעצרת</h2>
-      <div class="goal">שיעור ${paused.idx+1} · ${esc(pl.title)}</div>
-      <button class="btn" onclick="resumeLesson()">המשך בשיעור ▶️</button>
-      <button class="btn ghost" style="margin-top:5px" onclick="restartSavedLesson()">התחל את השיעור מחדש</button>
-    </div>`;
+    // The map already marks the exact paused lesson and resumes it on tap.
+    // A second large resume card duplicated that action and pushed the map down.
+    heroHtml = '';
   } else if(allDone){
     heroHtml = `
     <div class="card done-today">
