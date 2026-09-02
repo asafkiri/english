@@ -5883,7 +5883,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.15.0';
+const APP_VERSION = '2.15.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -9165,7 +9165,7 @@ function renderDialogueSpeak(step){
     <button class="btn ghost" style="padding:7px;margin-top:2px" onclick="next()">המשך עכשיו</button>
   `:`
     <div class="composer-head"><span class="composer-label">💬 עכשיו התור שלך</span><span style="font-size:12px;color:var(--dim)">תגיד באנגלית</span></div>
-    ${L.isPractice?'':`<div class="composer-intent">${esc(he)}</div>`}
+    ${guidedStage?'':`<div class="composer-intent">${esc(he)}</div>`}
     <div id="englishHint" ${hintLevel<1?'hidden':''}><div class="hint-en" dir="ltr" lang="en" style="font-size:20px;text-align:center">${esc(en)}</div></div>
     <div id="translitHint" ${hintLevel<2?'hidden':''}><div class="hint-tl" style="text-align:center;font-size:16px">${esc(tl)}</div></div>
     <div class="composer-actions">
@@ -9183,9 +9183,7 @@ function renderDialogueSpeak(step){
   if(guidedStage){
     const caption=terminal
       ? `<div class="cap-sent">✔️ אמרת: <bdi dir="ltr">${esc(en)}</bdi></div>`
-      : (L.isPractice
-        ? `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">תגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)}</div>`
-        : captionHtml(p,step,{translationDelay:false}));
+      : `<div class="cap-intent">${esc(he)}</div><div class="cap-intent-note">נסה להגיד את זה באנגלית ל${esc(conversationMeta(L.idx).character.name)} · אם קשה, פתח עזרה</div>`;
     stageShell(terminal?'reacting':'listening', caption, composer, terminal?'heard':'listening');
   } else {
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
@@ -9769,7 +9767,7 @@ function chooseBranch(optionIndex){
   const hid=phraseIdForText(option.answer.en,L.idx);
   L.steps.splice(L.i+1,2,
     {type:'speak',p:option.answer,isDlg:true,challenge:true,hid,branch:true,roundIndex:step.roundIndex,
-      hintLevel:L.isPractice?0:1},
+      hintLevel:0},
     {type:'listen',line:option.reply,isBranchReply:true,roundIndex:step.roundIndex,
       practiceBeatId:step.practiceBeatId,practiceVariantId:step.practiceVariantId,
       stageCue:option.stageCue||step.replyStageCue||null}
