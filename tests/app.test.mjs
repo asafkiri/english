@@ -3481,5 +3481,16 @@ test("Sam's optional missions fund a persistent cosmetic shop", () => {
   assert.match(app.innerHTML, /החנות של סם/);
   assert.match(app.innerHTML, /🪙 1200/);
   assert.match(app.innerHTML, /class="game-ride"[^>]*>🛴</);
+  assert.match(app.innerHTML, /תספורות/);
+  assert.match(app.innerHTML, /כלי רכב/);
+  assert.doesNotMatch(app.innerHTML, /ג׳קט כחול/, 'the category landing page stays compact');
+  api.renderSamRunShop('outfit');
   assert.match(app.innerHTML, /ג׳קט כחול/);
+  assert.match(app.innerHTML, /תצוגה מקדימה/);
+  api.renderSamRunShop('hair','hair_pink');
+  assert.equal(api.SAM_RUN_SHOP_ITEMS.filter(x => x.type === 'hair').length, 10);
+  assert.match(app.innerHTML, /קארה ורוד/);
+  assert.match(app.innerHTML, /תצוגה מקדימה · עדיין לא חויבת/);
+  assert.match(app.innerHTML, /1 מתוך 10 פריטים נאספו/);
+  assert.equal(api.samRunStore().coins, 1200, 'previewing an unowned style never spends coins');
 });
