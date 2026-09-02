@@ -75,7 +75,7 @@ function runtime(seed = new Map(), options = {}) {
       askConfirm, resolveDialog, exitLesson, unitCallToActionHtml, snoozeMission, missionSnoozed,
       completeMission, estimateLessonMinutes, lessonEtaLabel, canSayHtml, streakLabel, daysBetween,
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
-      h, hx, afterRender, viewTransitionsEnabled, wordSpans, tokenIndexAt, alignTokens, modernPersonArt,
+      h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -268,12 +268,25 @@ test('guided lessons stay short, keep new English visible, and end on a real sta
   assert.match(app.innerHTML, /משפט חדש · עכשיו אומרים יחד/);
   assert.match(app.innerHTML, /המשפט מולך/);
   assert.match(app.innerHTML, /id="listenFirst"/);
+  assert.match(app.innerHTML, /recall-card learning-card is-intro/);
+  assert.match(app.innerHTML, /data-word-sync/);
+  assert.match(app.innerHTML, /class="w"/);
+  assert.match(app.innerHTML, /id="hintAudio"[^>]*disabled/,
+    'replay stays disabled until the automatic example has finished');
   assert.match(app.innerHTML, /id="speakZone" hidden/,
     'the microphone must wait until the automatic example finishes');
   assert.match(app.innerHTML, /id="micBtn"|אמרתי בקול/,
     'hearing and recording must happen on the same screen');
   assert.doesNotMatch(app.innerHTML, /id="englishHint" hidden/);
   assert.doesNotMatch(app.innerHTML, /id="translitHint" hidden/);
+
+  const feedback=api.learningWordSpans("I'm good, thanks",{matched:[true,false,true]});
+  assert.match(feedback,/heard-ok/);
+  assert.match(feedback,/heard-miss/);
+  const success=api.speakResultHtml('pass','מעולה',{newPhrase:true});
+  assert.match(success,/learning-success-orb/);
+  assert.doesNotMatch(success,/onclick="next\(\)"/,
+    'new phrase success advances automatically instead of adding another tap');
 
   lesson.i = lesson.steps.findIndex(step => step.type === 'listen');
   lesson.steps[lesson.i].arrived = true;
