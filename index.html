@@ -2153,18 +2153,26 @@ body{
 .game-world.lane-game .game-lane-grid i:nth-child(3){left:0;top:47%;width:100%;height:53%;transform:none;background:repeating-linear-gradient(180deg,transparent 0 15%,rgba(255,255,255,.13) 15.3% 15.8%,transparent 16.1% 31%);opacity:.55;animation:gameRoadRush calc(.75s / var(--speed)) linear infinite}
 @keyframes gameRoadRush{to{background-position:0 120px}}
 .game-world.lane-game .game-speedlines{z-index:3;background:repeating-linear-gradient(105deg,transparent 0 72px,rgba(255,255,255,.13) 74px 76px,transparent 78px 150px);opacity:.22}
+.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;bottom:-2%;width:34%;height:58%;translate:-50% 0;clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,rgba(59,130,246,.07) 28%,rgba(96,165,250,.2));filter:drop-shadow(0 0 16px rgba(96,165,250,.3));transition:left .16s cubic-bezier(.18,.82,.28,1);pointer-events:none}
+.game-world.lane-game.is-dragging .game-lane-focus{transition:none;background:linear-gradient(180deg,transparent,rgba(52,211,153,.09) 28%,rgba(52,211,153,.24))}
 
 .game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(270px,76vw);padding:8px 16px;border-color:rgba(147,197,253,.48);background:rgba(8,15,30,.82);font-size:clamp(22px,6vw,31px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
 .game-world.lane-game .game-lane-prompt small{font-size:10px;letter-spacing:.02em}
 .game-world.lane-game .game-streak{z-index:13;top:clamp(186px,25dvh,230px)}
+.game-swipe-hint{display:none}.game-world.lane-game .game-swipe-hint{position:absolute;z-index:14;left:50%;bottom:27%;translate:-50% 0;display:flex;min-width:230px;flex-direction:column;align-items:center;padding:10px 18px;border:1px solid rgba(147,197,253,.4);border-radius:18px;background:rgba(8,15,30,.88);color:#fff;box-shadow:0 12px 28px rgba(0,0,0,.4);opacity:0;transform:translateY(12px) scale(.94);pointer-events:none;transition:opacity .25s ease,transform .25s ease}.game-world.lane-game .game-swipe-hint.show{opacity:1;transform:none}.game-swipe-hint span{font-size:28px;animation:gameSwipeHand 1.15s ease-in-out infinite}.game-swipe-hint b{font-size:15px}.game-swipe-hint small{font-size:10px;color:#bfdbfe}
+@keyframes gameSwipeHand{0%,100%{transform:translateX(-52px) rotate(-10deg)}50%{transform:translateX(52px) rotate(10deg)}}
 
-.game-world.lane-game .game-runner{left:50%;top:auto;bottom:2.5%;width:clamp(84px,24vw,124px);height:clamp(132px,23dvh,202px);z-index:9;transform:translateX(-50%);transition:left .16s cubic-bezier(.2,.85,.35,1),filter .16s ease}
-.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 8px 7px rgba(0,0,0,.28));animation:gameBackBob calc(.22s / var(--speed)) ease-in-out infinite}
+.game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:2.5%;width:clamp(78px,22vw,112px);height:clamp(138px,24dvh,210px);z-index:9;transform:translateX(-50%) rotate(var(--swipe-lean));transition:left .16s cubic-bezier(.18,.82,.28,1),filter .16s ease,transform .09s linear}
+.game-world.lane-game.is-dragging .game-runner{transition:none}
+.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.2s / var(--speed)) ease-in-out infinite}
 .game-back-rig .back-leg,.game-back-rig .back-arm{transform-box:fill-box;transform-origin:50% 12%}.game-back-rig .back-leg-l{animation:gameBackLegL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-leg-r{animation:gameBackLegR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameRunShadow calc(.21s / var(--speed)) ease-in-out infinite}
-@keyframes gameBackBob{50%{transform:translateY(-4px) rotate(-.8deg)}}@keyframes gameBackLegL{0%,100%{transform:rotate(17deg)}50%{transform:rotate(-20deg)}}@keyframes gameBackLegR{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(17deg)}}@keyframes gameBackArmL{0%,100%{transform:rotate(-24deg)}50%{transform:rotate(25deg)}}@keyframes gameBackArmR{0%,100%{transform:rotate(25deg)}50%{transform:rotate(-24deg)}}
+@keyframes gameBackBob{0%,100%{transform:translateY(1px) scaleY(.99)}50%{transform:translateY(-6px) rotate(-1deg) scaleY(1.015)}}@keyframes gameBackLegL{0%,100%{transform:translate(1px,-1px) rotate(25deg)}50%{transform:translate(-2px,2px) rotate(-27deg)}}@keyframes gameBackLegR{0%,100%{transform:translate(2px,2px) rotate(-27deg)}50%{transform:translate(-1px,-1px) rotate(25deg)}}@keyframes gameBackArmL{0%,100%{transform:rotate(-32deg)}50%{transform:rotate(30deg)}}@keyframes gameBackArmR{0%,100%{transform:rotate(30deg)}50%{transform:rotate(-32deg)}}
+.game-runner.switch-left .game-back-rig{animation:gameLaneLeanLeft .26s ease both}.game-runner.switch-right .game-back-rig{animation:gameLaneLeanRight .26s ease both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(147,197,253,.5),transparent 68%);animation:gameLaneDust .3s ease-out both}
+@keyframes gameLaneLeanLeft{35%{transform:translate(-8px,-4px) rotate(-12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneLeanRight{35%{transform:translate(8px,-4px) rotate(12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneDust{to{opacity:0;transform:scale(2.2)}}
 .game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .game-back-rig{transform:translateY(-28px) scale(.82);transform-origin:50% 100%}
 .game-world.lane-game .game-runner.is-hit{animation:gameBackHit .55s ease both}.game-world.lane-game .game-runner.is-safe{animation:gameSafeBlink 1.2s steps(1) both}
 @keyframes gameBackHit{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-65%) rotate(-8deg)}55%{transform:translateX(-37%) rotate(5deg)}}
+.game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
 .game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(82px,26vw,126px);height:clamp(64px,10dvh,88px);margin:0;padding:7px 6px;border-radius:17px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:0 10px 24px rgba(0,0,0,.38)}
 .game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(20px,6vw,30px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
@@ -6836,7 +6844,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.22.0';
+const APP_VERSION = '2.23.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11374,9 +11382,11 @@ function samRunBackAvatarHtml(store){
     <g class="back-arm back-arm-l"><path fill="${clothes}" d="M38 82c-12 8-18 25-20 45l17 4c3-16 9-29 17-37z"/><path fill="${skinShadow}" d="M18 124l17 4-4 29-14-2z"/><circle cx="23" cy="157" r="8" fill="${skin}"/></g>
     <g class="back-arm back-arm-r"><path fill="${clothes}" d="M102 82c12 8 18 25 20 45l-17 4c-3-16-9-29-17-37z"/><path fill="${skinShadow}" d="M105 128l17-4 1 31-14 2z"/><circle cx="116" cy="157" r="8" fill="${skin}"/></g>
     <path class="back-body" fill="${clothes}" d="M42 78c8-8 18-12 28-12s20 4 28 12l6 68c-20 9-48 9-68 0z"/>
-    <path fill="${accent}" d="M65 70h10l5 76H60z" opacity=".75"/><path fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3" d="M45 103h17v18H45m33-18h17v18H78"/>
-    <path fill="${skinShadow}" d="M59 56h22v19c-7 7-15 7-22 0z"/><ellipse cx="70" cy="43" rx="33" ry="37" fill="${skin}"/>
-    ${hairBack}${curls}<path fill="${hair}" d="M38 41c8-10 18-15 32-15s25 5 33 15v-8C100 13 87 3 70 3S40 13 37 33z"/>
+    <path fill="${accent}" opacity=".7" d="M42 79c7 5 12 12 15 22l-5 48-16-3zm56 0c-7 5-12 12-15 22l5 48 16-3z"/>
+    <path fill="none" stroke="rgba(255,255,255,.42)" stroke-width="2.5" d="M70 91v59M47 108h14v15H47m32-15h14v15H79"/>
+    <path fill="${skinShadow}" d="M59 56h22v19c-7 7-15 7-22 0z"/><ellipse cx="37" cy="45" rx="6" ry="9" fill="${skinShadow}"/><ellipse cx="103" cy="45" rx="6" ry="9" fill="${skinShadow}"/><ellipse cx="70" cy="43" rx="33" ry="37" fill="${skin}"/>
+    ${hairBack}${curls}<path fill="${hair}" d="M38 41c8-10 18-15 32-15s25 5 33 15v-8C100 13 87 3 70 3S40 13 37 33z"/><path fill="none" stroke="rgba(255,255,255,.09)" stroke-width="3" d="M49 20c12-8 29-9 43 0"/>
+    <path fill="${accent}" d="M49 79c3-12 11-18 21-18s18 6 21 18l-8 9c-8-7-18-7-26 0z"/><path fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" d="M55 79c9 7 21 7 30 0"/>
   </svg></div>`;
 }
 function samRunMissionFor(store,mode,stageIndex,phaseIndex){
@@ -11670,7 +11680,7 @@ function renderSamRun(stageIndex=null){
     <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
-      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-speedlines"></div><div class="game-finish"></div>
+      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-swipe-hint" id="samRunSwipeHint"><span>👆</span><b>החליקו ימינה ושמאלה</b><small>או לחצו ישירות על המסלול</small></div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
       <div class="game-runner" id="samRunRunner" hidden>${samRunBackAvatarHtml(store)}</div>
       <div id="samRunObstacles"></div>
@@ -11685,23 +11695,47 @@ function renderSamRun(stageIndex=null){
   samRunBindLaneInput(document.getElementById('samRunWorld'),g);
 }
 function samRunBindLaneInput(world,g){
-  if(!world) return; let startX=0;
-  world.addEventListener('pointerdown',e=>{ startX=e.clientX; });
-  world.addEventListener('pointerup',e=>{
-    if(samRun!==g||!g.running||!g.laneGame) return;
-    const dx=e.clientX-startX;
-    if(Math.abs(dx)>=28){ samRunChooseLane(Math.max(0,Math.min(2,g.lane+(dx>0?1:-1)))); return; }
-    if(e.target.closest?.('.lane-gate')) return;
-    const rect=world.getBoundingClientRect(),lane=Math.max(0,Math.min(2,Math.floor((e.clientX-rect.left)/rect.width*3)));
-    samRunChooseLane(lane);
-  });
+  if(!world) return;
+  let startX=0,startY=0,startLane=1,dragging=false,handled=false,pointerId=null;
+  const runner=()=>document.getElementById('samRunRunner'),focus=()=>document.getElementById('samRunLaneFocus');
+  const canPlay=()=>samRun===g&&g.running&&g.laneGame;
+  const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;world.classList.add('is-dragging');return true; };
+  const preview=(x,y)=>{
+    if(!dragging||!canPlay()) return;
+    const rect=world.getBoundingClientRect(),dx=x-startX,dy=y-startY;
+    if(Math.abs(dx)<5||Math.abs(dx)<Math.abs(dy)*.7) return;
+    const base=[20,50,80][startLane],left=Math.max(12,Math.min(88,base+dx/rect.width*100));
+    const r=runner(),f=focus(); if(r){r.style.left=left+'%';r.style.setProperty('--swipe-lean',Math.max(-12,Math.min(12,dx/8))+'deg');} if(f)f.style.left=left+'%';
+    if(!handled&&Math.abs(dx)>=30){ handled=true; samRunChooseLane(startLane+(dx>0?1:-1)); }
+  };
+  const end=(x,y,target)=>{
+    if(!dragging) return; dragging=false; world.classList.remove('is-dragging');
+    if(!canPlay()) return;
+    const dx=x-startX,dy=y-startY;
+    if(!handled&&Math.abs(dx)>=24&&Math.abs(dx)>Math.abs(dy)*.7) samRunChooseLane(startLane+(dx>0?1:-1));
+    else if(!handled&&Math.abs(dx)<18&&Math.abs(dy)<18&&!target?.closest?.('.lane-gate')){
+      const rect=world.getBoundingClientRect(); samRunChooseLane(Math.floor((x-rect.left)/rect.width*3));
+    } else samRunSetLaneVisual(g.lane);
+  };
+  /* Mouse/pen use pointer capture. iOS touch gets its own non-passive path;
+     relying on pointerup alone made a swipe disappear when Safari retargeted
+     the gesture to a gate or browser chrome. */
+  world.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch'||!begin(e.clientX,e.clientY)) return;pointerId=e.pointerId;try{world.setPointerCapture(pointerId);}catch(_){} });
+  world.addEventListener('pointermove',e=>{ if(e.pointerType!=='touch'&&e.pointerId===pointerId)preview(e.clientX,e.clientY); });
+  world.addEventListener('pointerup',e=>{ if(e.pointerType==='touch'||e.pointerId!==pointerId)return;end(e.clientX,e.clientY,e.target);pointerId=null; });
+  world.addEventListener('pointercancel',()=>{dragging=false;pointerId=null;world.classList.remove('is-dragging');samRunSetLaneVisual(g.lane);});
+  world.addEventListener('touchstart',e=>{const t=e.changedTouches[0];if(t)begin(t.clientX,t.clientY);},{passive:true});
+  world.addEventListener('touchmove',e=>{const t=e.changedTouches[0];if(!t||!dragging)return;e.preventDefault();preview(t.clientX,t.clientY);},{passive:false});
+  world.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY,e.target);},{passive:true});
+  world.tabIndex=0;
+  world.addEventListener('keydown',e=>{if(!canPlay()||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));});
 }
 function samRunExit(){ samRunTeardown(); renderHome(); }
 function samRunTeardown(){
   const g=samRun; if(!g) return;
   g.running=false;
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer);
   cancelSpeech();
   samRun=null;
 }
@@ -11759,6 +11793,7 @@ function samRunGo(){
   const g=samRun; if(!g) return;
   g.running=true; g.last=0; g.time=0; g.nextSpawnAt=500;
   const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
+  const hint=document.getElementById('samRunSwipeHint'); if(hint){ hint.classList.add('show'); g.swipeHintTimer=setTimeout(()=>hint.classList.remove('show'),3600); }
   g.raf=requestAnimationFrame(samRunFrame);
 }
 function samRunFrame(ts){
@@ -11826,11 +11861,18 @@ function samRunPickKind(){
   g.sameKind=id===g.lastKind?g.sameKind+1:1; g.lastKind=id;
   return id;
 }
+function samRunSetLaneVisual(lane){
+  lane=Math.max(0,Math.min(2,Number(lane)||0)); const left=['20%','50%','80%'][lane];
+  const runner=document.getElementById('samRunRunner'),focus=document.getElementById('samRunLaneFocus');
+  if(runner){runner.style.left=left;runner.style.setProperty('--swipe-lean','0deg');} if(focus)focus.style.left=left;
+}
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
-  lane=Math.max(0,Math.min(2,Number(lane)||0)); g.lane=lane;
-  const runner=document.getElementById('samRunRunner'),lefts=['20%','50%','80%'];
-  if(runner){ runner.style.left=lefts[lane]; runner.style.transform='translateX(-50%)'; }
+  lane=Math.max(0,Math.min(2,Number(lane)||0)); const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
+  const runner=document.getElementById('samRunRunner');
+  if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';runner.classList.remove('switch-left','switch-right');void runner.offsetWidth;runner.classList.add(cls);setTimeout(()=>runner.classList.remove(cls),260); }
+  const hint=document.getElementById('samRunSwipeHint'); if(hint)hint.classList.remove('show');
+  try{ navigator.vibrate?.(10); }catch(_){}
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
   ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>el.classList.toggle('is-picked',i===lane));

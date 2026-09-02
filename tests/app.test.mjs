@@ -3464,6 +3464,8 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /lane-game/);
   assert.match(app.innerHTML, /game-playing/, 'the run owns the full viewport');
   assert.match(app.innerHTML, /game-back-rig/, 'the equipped character is seen running away from the camera');
+  assert.match(app.innerHTML, /game-lane-focus/, 'the selected road gets immediate visual feedback');
+  assert.match(app.innerHTML, /game-swipe-hint/, 'the first seconds demonstrate the core gesture');
   assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
   assert.match(html, /const distractors=shuffled\(g\.active\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
     'each wave mixes the answer with two live distractors');
@@ -3471,9 +3473,15 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'the approaching gates themselves are playable');
   assert.match(html, /world\.addEventListener\('pointerup'/,
     'the whole road is the input surface');
-  assert.match(html, /const dx=e\.clientX-startX/,
+  assert.match(html, /dx=x-startX/,
     'horizontal swipes move naturally between perspective lanes');
-  assert.match(html, /lefts=\['20%','50%','80%'\]/,
+  assert.match(html, /world\.addEventListener\('touchmove'/,
+    'iOS has a dedicated non-passive swipe path instead of relying on pointerup');
+  assert.match(html, /world\.setPointerCapture\(pointerId\)/,
+    'mouse and pen gestures keep control when they cross a gate');
+  assert.match(html, /navigator\.vibrate\?\.\(10\)/,
+    'supported phones confirm a lane change with light haptics');
+  assert.match(html, /\['20%','50%','80%'\]\[lane\]/,
     'the rear-view runner travels between three screen lanes');
   assert.match(html, /spread=6\+p\*31,y=17\+p\*61,scale=\.3\+p\*\.8/,
     'answer gates grow from the horizon toward the player');
