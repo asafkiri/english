@@ -82,7 +82,8 @@ function runtime(seed = new Map(), options = {}) {
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
-      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave,
+      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
+      setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3475,8 +3476,10 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'the whole road is the input surface');
   assert.match(html, /dx=x-startX/,
     'horizontal swipes move naturally between perspective lanes');
-  assert.match(html, /world\.addEventListener\('touchmove'/,
-    'iOS has a dedicated non-passive swipe path instead of relying on pointerup');
+  assert.match(html, /document\.addEventListener\('touchmove',onTouchMove,\{passive:false,capture:true\}\)/,
+    'iOS tracks the swipe at screen capture level instead of losing it over a gate');
+  assert.match(html, /g\.gestureCleanup=/,
+    'global gesture listeners are removed when the run closes');
   assert.match(html, /world\.setPointerCapture\(pointerId\)/,
     'mouse and pen gestures keep control when they cross a gate');
   assert.match(html, /navigator\.vibrate\?\.\(10\)/,
@@ -3491,6 +3494,36 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'a second three-answer wave never steals control from the active one');
   assert.match(html, /Math\.random\(\)<\.18/, 'rare bonus coins make runs less predictable');
   assert.match(html, /g\.streak===5&&!g\.shield/, 'a five-answer combo earns a one-hit shield');
+});
+
+test("Sam's lane runner completes a real iPhone touch swipe", () => {
+  const { api, context } = runtime();
+  const documentHandlers = {}, worldHandlers = {};
+  context.document.addEventListener = (type, fn) => { documentHandlers[type] = fn; };
+  context.document.removeEventListener = () => {};
+  const classList = { add() {}, remove() {} };
+  const style = () => ({ left: '', setProperty(name, value) { this[name] = value; } });
+  const runner = { style: style(), classList, offsetWidth: 80 };
+  const focus = { style: style() };
+  context.document.getElementById = id => id === 'samRunRunner' ? runner : id === 'samRunLaneFocus' ? focus : null;
+  const world = {
+    classList, tabIndex: -1,
+    addEventListener(type, fn) { worldHandlers[type] = fn; },
+    contains: () => true,
+    getBoundingClientRect: () => ({ left: 0, width: 300 }),
+    setPointerCapture() {},
+  };
+  const game = { running: true, laneGame: true, lane: 1, obstacles: [] };
+  api.setSamRun(game);
+  api.samRunBindLaneInput(world, game);
+  documentHandlers.touchstart({ target: world, composedPath: () => [world], touches: [{ clientX: 150, clientY: 300 }] });
+  let prevented = false;
+  documentHandlers.touchmove({ touches: [{ clientX: 205, clientY: 302 }], preventDefault: () => { prevented = true; } });
+  assert.equal(prevented, true, 'the page must not steal the horizontal gesture');
+  assert.equal(game.lane, 2, 'one right swipe moves from the centre to the right lane');
+  assert.equal(runner.style.left, '80%', 'the character visibly follows the selected lane');
+  assert.equal(focus.style.left, '80%', 'the road highlight moves with the character');
+  documentHandlers.touchend({ target: world, changedTouches: [{ clientX: 205, clientY: 302 }] });
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {

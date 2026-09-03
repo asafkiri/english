@@ -2165,6 +2165,7 @@ body{
 .game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:2.5%;width:clamp(78px,22vw,112px);height:clamp(138px,24dvh,210px);z-index:9;transform:translateX(-50%) rotate(var(--swipe-lean));transition:left .16s cubic-bezier(.18,.82,.28,1),filter .16s ease,transform .09s linear}
 .game-world.lane-game.is-dragging .game-runner{transition:none}
 .game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.2s / var(--speed)) ease-in-out infinite}
+.game-back-rig .back-body,.game-back-rig .back-leg>path,.game-back-rig .back-arm>path{stroke:#172033;stroke-width:2;stroke-linejoin:round}.game-back-rig .back-body{filter:drop-shadow(0 4px 3px rgba(0,0,0,.22))}
 .game-back-rig .back-leg,.game-back-rig .back-arm{transform-box:fill-box;transform-origin:50% 12%}.game-back-rig .back-leg-l{animation:gameBackLegL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-leg-r{animation:gameBackLegR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameRunShadow calc(.21s / var(--speed)) ease-in-out infinite}
 @keyframes gameBackBob{0%,100%{transform:translateY(1px) scaleY(.99)}50%{transform:translateY(-6px) rotate(-1deg) scaleY(1.015)}}@keyframes gameBackLegL{0%,100%{transform:translate(1px,-1px) rotate(25deg)}50%{transform:translate(-2px,2px) rotate(-27deg)}}@keyframes gameBackLegR{0%,100%{transform:translate(2px,2px) rotate(-27deg)}50%{transform:translate(-1px,-1px) rotate(25deg)}}@keyframes gameBackArmL{0%,100%{transform:rotate(-32deg)}50%{transform:rotate(30deg)}}@keyframes gameBackArmR{0%,100%{transform:rotate(30deg)}50%{transform:rotate(-32deg)}}
 .game-runner.switch-left .game-back-rig{animation:gameLaneLeanLeft .26s ease both}.game-runner.switch-right .game-back-rig{animation:gameLaneLeanRight .26s ease both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(147,197,253,.5),transparent 68%);animation:gameLaneDust .3s ease-out both}
@@ -2174,7 +2175,7 @@ body{
 @keyframes gameBackHit{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-65%) rotate(-8deg)}55%{transform:translateX(-37%) rotate(5deg)}}
 .game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
-.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(82px,26vw,126px);height:clamp(64px,10dvh,88px);margin:0;padding:7px 6px;border-radius:17px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:0 10px 24px rgba(0,0,0,.38)}
+.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(88px,27vw,132px);height:clamp(68px,10dvh,92px);margin:0;padding:8px 6px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(20px,6vw,30px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
 .game-obstacle.lane-wave.is-caught{animation:gameGateWin .48s ease both}.game-obstacle.lane-wave.is-poof{animation:gameGateMiss .48s ease both}
 @keyframes gameGateWin{55%{filter:brightness(1.55)}to{opacity:0}}@keyframes gameGateMiss{25%{filter:saturate(1.8)}45%{translate:-5px 0}65%{translate:5px 0}to{opacity:0}}
@@ -6844,7 +6845,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.23.0';
+const APP_VERSION = '2.24.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11379,8 +11380,8 @@ function samRunBackAvatarHtml(store){
     <ellipse class="back-shadow" cx="70" cy="211" rx="39" ry="8" fill="rgba(0,0,0,.35)"/>
     <g class="back-leg back-leg-l"><path fill="${pants}" d="M43 139h25l-5 57H42z"/><path fill="${shoes}" d="M41 188h23l5 18c-9 7-24 7-34 1z"/></g>
     <g class="back-leg back-leg-r"><path fill="${pants}" d="M72 139h25l1 57H77z"/><path fill="${shoes}" d="M77 188h23l5 19c-11 6-26 6-34-1z"/></g>
-    <g class="back-arm back-arm-l"><path fill="${clothes}" d="M38 82c-12 8-18 25-20 45l17 4c3-16 9-29 17-37z"/><path fill="${skinShadow}" d="M18 124l17 4-4 29-14-2z"/><circle cx="23" cy="157" r="8" fill="${skin}"/></g>
-    <g class="back-arm back-arm-r"><path fill="${clothes}" d="M102 82c12 8 18 25 20 45l-17 4c-3-16-9-29-17-37z"/><path fill="${skinShadow}" d="M105 128l17-4 1 31-14 2z"/><circle cx="116" cy="157" r="8" fill="${skin}"/></g>
+    <g class="back-arm back-arm-l"><path fill="${clothes}" d="M43 79C29 81 20 94 19 112l16 5c3-11 8-19 17-24z"/><path fill="${skinShadow}" d="M19 108l17 5c-2 12 1 22 9 31l-12 10c-13-12-18-28-14-46z"/><circle cx="37" cy="151" r="8" fill="${skin}"/></g>
+    <g class="back-arm back-arm-r"><path fill="${clothes}" d="M97 79c14 2 23 15 24 33l-16 5c-3-11-8-19-17-24z"/><path fill="${skinShadow}" d="M104 113l17-5c4 18-1 34-14 46l-12-10c8-9 11-19 9-31z"/><circle cx="103" cy="151" r="8" fill="${skin}"/></g>
     <path class="back-body" fill="${clothes}" d="M42 78c8-8 18-12 28-12s20 4 28 12l6 68c-20 9-48 9-68 0z"/>
     <path fill="${accent}" opacity=".7" d="M42 79c7 5 12 12 15 22l-5 48-16-3zm56 0c-7 5-12 12-15 22l5 48 16-3z"/>
     <path fill="none" stroke="rgba(255,255,255,.42)" stroke-width="2.5" d="M70 91v59M47 108h14v15H47m32-15h14v15H79"/>
@@ -11724,9 +11725,23 @@ function samRunBindLaneInput(world,g){
   world.addEventListener('pointermove',e=>{ if(e.pointerType!=='touch'&&e.pointerId===pointerId)preview(e.clientX,e.clientY); });
   world.addEventListener('pointerup',e=>{ if(e.pointerType==='touch'||e.pointerId!==pointerId)return;end(e.clientX,e.clientY,e.target);pointerId=null; });
   world.addEventListener('pointercancel',()=>{dragging=false;pointerId=null;world.classList.remove('is-dragging');samRunSetLaneVisual(g.lane);});
-  world.addEventListener('touchstart',e=>{const t=e.changedTouches[0];if(t)begin(t.clientX,t.clientY);},{passive:true});
-  world.addEventListener('touchmove',e=>{const t=e.changedTouches[0];if(!t||!dragging)return;e.preventDefault();preview(t.clientX,t.clientY);},{passive:false});
-  world.addEventListener('touchend',e=>{const t=e.changedTouches[0];if(t)end(t.clientX,t.clientY,e.target);},{passive:true});
+  let touchOwned=false;
+  const touchStartsInWorld=e=>e.composedPath?.().includes(world)||world.contains?.(e.target)||e.target===world;
+  const onTouchStart=e=>{ if(!touchStartsInWorld(e))return;const t=e.touches?.[0]||e.changedTouches?.[0];touchOwned=!!t&&begin(t.clientX,t.clientY); };
+  const onTouchMove=e=>{ if(!touchOwned)return;const t=e.touches?.[0]||e.changedTouches?.[0];if(!t)return;e.preventDefault();preview(t.clientX,t.clientY); };
+  const onTouchEnd=e=>{ if(!touchOwned)return;const t=e.changedTouches?.[0];touchOwned=false;if(t)end(t.clientX,t.clientY,e.target);else{dragging=false;samRunSetLaneVisual(g.lane);} };
+  /* Capture on the document keeps the gesture alive even when Safari moves
+     the finger from the road onto a gate, the runner or the HUD. */
+  document.addEventListener('touchstart',onTouchStart,{passive:true,capture:true});
+  document.addEventListener('touchmove',onTouchMove,{passive:false,capture:true});
+  document.addEventListener('touchend',onTouchEnd,{passive:true,capture:true});
+  document.addEventListener('touchcancel',onTouchEnd,{passive:true,capture:true});
+  g.gestureCleanup=()=>{
+    document.removeEventListener?.('touchstart',onTouchStart,{capture:true});
+    document.removeEventListener?.('touchmove',onTouchMove,{capture:true});
+    document.removeEventListener?.('touchend',onTouchEnd,{capture:true});
+    document.removeEventListener?.('touchcancel',onTouchEnd,{capture:true});
+  };
   world.tabIndex=0;
   world.addEventListener('keydown',e=>{if(!canPlay()||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));});
 }
@@ -11734,6 +11749,7 @@ function samRunExit(){ samRunTeardown(); renderHome(); }
 function samRunTeardown(){
   const g=samRun; if(!g) return;
   g.running=false;
+  g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
   clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer);
   cancelSpeech();
