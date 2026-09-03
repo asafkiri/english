@@ -7053,7 +7053,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.42.0';
+const APP_VERSION = '2.42.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -13233,7 +13233,7 @@ function samRunDecodeRecordedWord(text){
   samRunRecordedWords.set(key,promise);
   return promise;
 }
-function samRunPlayRecordedWord(text,ob,lane,onResult){
+function samRunPlayRecordedWord(text,ob,lane,onResult,afterResolve){
   const key=samRunRecordedKey(text);
   if(!window.SAM_RUN_VOICE?.audio?.[key]||!samRunAudio) return false;
   const g=samRun,request=++samRunRecordedRequest;
@@ -13252,7 +13252,10 @@ function samRunPlayRecordedWord(text,ob,lane,onResult){
     }catch(_){}
   }
   Promise.all([samRunDecodeRecordedWord(key),resumed]).then(([buffer])=>{
-    if(request!==samRunRecordedRequest||samRun!==g||!g?.running||ob.resolved||ob.chosenLane!==lane){
+    /* A word spoken as the reward for a correct answer is played on purpose
+       after the wave resolves, so "already resolved" must not silence it —
+       that check is only here to drop a word the player has moved on from. */
+    if(request!==samRunRecordedRequest||samRun!==g||!g?.running||(ob.resolved&&!afterResolve)||ob.chosenLane!==lane){
       finish(false); return;
     }
     if(!buffer){ finish(samRunSay(text)); return; }
@@ -13281,7 +13284,7 @@ function samRunPromptPop(prompt){
   clearTimeout(prompt._popOff);
   prompt._popOff=setTimeout(()=>{ if(prompt.isConnected) prompt.classList.remove('is-new'); },440);
 }
-function samRunSpeakLane(ob,lane,arrival=false){
+function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
   if(!ob||!ob.options||!ob.options.length||(arrival&&(ob.arrivalSpoken||ob.arrivalPending))) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0));
   if(ob.correctLane!=null&&lane!==ob.correctLane) return;
@@ -13295,7 +13298,7 @@ function samRunSpeakLane(ob,lane,arrival=false){
     if(played) ob.arrivalSpoken=true;
   };
   if(arrival) ob.arrivalPending=true;
-  if(!samRunPlayRecordedWord(spoken,ob,lane,finish)) finish(samRunSay(spoken));
+  if(!samRunPlayRecordedWord(spoken,ob,lane,finish,afterResolve)) finish(samRunSay(spoken));
 }
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
@@ -13332,6 +13335,11 @@ function samRunSpawnLaneWave(){
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
   g.obstacles.push(ob);
   const prompt=document.getElementById('samRunLanePrompt'); if(prompt){ prompt.classList.remove('is-sentence'); prompt.removeAttribute('aria-live'); prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`; samRunPromptPop(prompt); }
+  /* Already standing on the answer when the wave arrives is still a right
+     answer, and it has to sound like one. Nothing is given away by this: the
+     gate below only speaks the correct lane, so a runner standing anywhere
+     else hears nothing until they find it. */
+  samRunSpeakLane(ob,g.lane,true);
   g.nextSpawnAt=g.time+warnMs+travelMs*(.78+Math.random()*.16);
 }
 function samRunStartSentence(){
@@ -13382,6 +13390,7 @@ function samRunSpawnSentenceWave(){
      the learner can place the word rather than merely copy it. */
   g.sentenceHint=null;
   samRunSentencePrompt();
+  samRunSpeakLane(ob,g.lane,true);
   g.nextSpawnAt=g.time+warnMs+travelMs*(.7+Math.random()*.12);
 }
 function samRunAdvanceSentence(ob){
@@ -13534,7 +13543,7 @@ function samRunResolve(ob){
     samRunUpdateWords(ob.cmd);
     /* Never moved because the right lane was already underfoot: the word still
        has to be heard, so it lands with the answer rather than before it. */
-    if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane);
+    if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);
     if(ob.sentenceWave) samRunAdvanceSentence(ob);
     samRunCheckFinish();
     return;
