@@ -2236,12 +2236,27 @@ body{
 .game-back-rig{display:block}
 .game-back-rig .back-body,.game-back-rig .back-thigh,.game-back-rig .back-shin,.game-back-rig .back-shoe,.game-back-rig .back-upper-arm,.game-back-rig .back-forearm{stroke:#172033;stroke-width:1.7;stroke-linejoin:round}
 .game-back-rig .back-leg,.game-back-rig .back-knee,.game-back-rig .back-arm,.game-back-rig .back-elbow,.game-back-rig .back-torso,.game-back-rig .back-head{transform-box:view-box}
-.game-back-rig .back-head{transform-origin:70px 52px}
+/* Secondary motion — the thing that was missing entirely. Every part of the
+   runner moved on exactly the same beat as every other part, which is what
+   makes a rig with a correct gait still read as carved from one block: real
+   hair, a cap and a ponytail arrive LATE and overshoot. These run on the bob's
+   own clock, an eighth of a cycle behind it, so they are always catching up —
+   and the heavier the hair, the further it travels.
+   The head, meanwhile, does the opposite: a runner's head stays level while
+   the body bobs underneath it, so it counters a fraction of the bounce. */
+.game-back-rig .back-head{transform-origin:70px 52px;animation:gameBackHeadSteady calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-hair-mass,.game-back-rig .back-cap,.game-back-rig .back-hair-length,.game-back-rig .back-hair-bun,.game-back-rig .back-hair-puff{transform-box:view-box}
+.game-back-rig .back-hair-mass,.game-back-rig .back-cap{transform-origin:70px 14px;animation:gameBackHairLag calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-hair-length,.game-back-rig .back-hair-bun{transform-origin:70px 18px;animation:gameBackHairSwing calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-hair-puff{transform-origin:88px 16px;animation:gameBackHairSwing calc(.74s / var(--run-cadence,1)) linear infinite}
+@keyframes gameBackHeadSteady{0%,100%{transform:translateY(0)}12%{transform:translateY(-.7px)}37%{transform:translateY(.8px)}62%{transform:translateY(-.7px)}87%{transform:translateY(.8px)}}
+@keyframes gameBackHairLag{0%,50%,100%{transform:translateY(0) rotate(0)}12%,62%{transform:translateY(2px) rotate(1.4deg)}25%,75%{transform:translateY(0) rotate(0)}37%,87%{transform:translateY(-2px) rotate(-1.4deg)}}
+@keyframes gameBackHairSwing{0%,50%,100%{transform:translateY(0) rotate(0)}12%,62%{transform:translateY(3.4px) rotate(2.4deg)}25%,75%{transform:translateY(.2px) rotate(.2deg)}37%,87%{transform:translateY(-3px) rotate(-2.2deg)}}
 .game-back-rig .back-leg-l{transform-origin:59px 135px;animation:gameBackLegL calc(.74s / var(--run-cadence,1)) linear infinite}.game-back-rig .back-leg-r{transform-origin:81px 135px;animation:gameBackLegR calc(.74s / var(--run-cadence,1)) linear infinite}
 .game-back-rig .back-knee-l{transform-origin:56px 187px;animation:gameBackKneeL calc(.74s / var(--run-cadence,1)) linear infinite}.game-back-rig .back-knee-r{transform-origin:84px 187px;animation:gameBackKneeR calc(.74s / var(--run-cadence,1)) linear infinite}
-.game-back-rig .back-arm-l{transform-origin:43px 68px;animation:gameBackArmL calc(.74s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-arm-r{transform-origin:97px 68px;animation:gameBackArmR calc(.74s / var(--run-cadence,1)) ease-in-out infinite}
-.game-back-rig .back-elbow-l{transform-origin:34px 92px;animation:gameBackElbowL calc(.74s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-elbow-r{transform-origin:106px 92px;animation:gameBackElbowR calc(.74s / var(--run-cadence,1)) ease-in-out infinite}
-.game-back-rig .back-torso{transform-origin:70px 132px;animation:gameBackTwist calc(.74s / var(--run-cadence,1)) ease-in-out infinite}
+.game-back-rig .back-arm-l{transform-origin:43px 68px;animation:gameBackArmL calc(.74s / var(--run-cadence,1)) linear infinite}.game-back-rig .back-arm-r{transform-origin:97px 68px;animation:gameBackArmR calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-elbow-l{transform-origin:34px 92px;animation:gameBackElbowL calc(.74s / var(--run-cadence,1)) linear infinite}.game-back-rig .back-elbow-r{transform-origin:106px 92px;animation:gameBackElbowR calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-torso{transform-origin:70px 132px;animation:gameBackTwist calc(.74s / var(--run-cadence,1)) linear infinite}
 /* Six distinct phases keep the foot planted through contact, compress the knee,
    push backwards, then recover through the centre. The small rotations read as
    forward running from behind instead of two legs scissoring sideways. */
@@ -2251,9 +2266,9 @@ body{
 @keyframes gameBackLegR{0%,100%{transform:translate(1px,-2px) rotate(-3deg) scaleY(1.025)}16%{transform:translate(1px,-4px) rotate(0) scaleY(.96)}34%{transform:translate(0,-1px) rotate(2deg) scaleY(.94)}50%{transform:translate(-1px,2px) rotate(3deg) scaleY(.94)}68%{transform:translate(-1px,4px) rotate(1deg) scaleY(.89)}84%{transform:translate(0,1px) rotate(-2deg) scaleY(.97)}}
 @keyframes gameBackKneeL{0%,100%{transform:rotate(-9deg) scaleY(.9)}16%{transform:rotate(-13deg) scaleY(.84)}34%{transform:rotate(-3deg) scaleY(.96)}50%{transform:rotate(5deg)}68%{transform:rotate(-5deg) scaleY(.91)}84%{transform:rotate(-10deg) scaleY(.87)}}
 @keyframes gameBackKneeR{0%,100%{transform:rotate(5deg)}16%{transform:rotate(-5deg) scaleY(.91)}34%{transform:rotate(-10deg) scaleY(.87)}50%{transform:rotate(-9deg) scaleY(.9)}68%{transform:rotate(-13deg) scaleY(.84)}84%{transform:rotate(-3deg) scaleY(.96)}}
-@keyframes gameBackArmL{0%,100%{transform:rotate(-7deg) translateY(1px)}50%{transform:rotate(8deg) translateY(-1px)}}@keyframes gameBackArmR{0%,100%{transform:rotate(8deg) translateY(-1px)}50%{transform:rotate(-7deg) translateY(1px)}}
-@keyframes gameBackElbowL{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(7deg)}}@keyframes gameBackElbowR{0%,100%{transform:rotate(7deg)}50%{transform:rotate(-9deg)}}
-@keyframes gameBackTwist{0%,100%{transform:rotate(.8deg) translateX(.4px)}50%{transform:rotate(-.8deg) translateX(-.4px)}}
+@keyframes gameBackArmL{0%,100%{transform:rotate(-7deg) translateY(1.4px)}16%{transform:rotate(-4.5deg) translateY(1px)}34%{transform:rotate(1.5deg) translateY(0)}50%{transform:rotate(7.5deg) translateY(-1.4px)}68%{transform:rotate(4.5deg) translateY(-1px)}84%{transform:rotate(-2deg) translateY(.5px)}}@keyframes gameBackArmR{0%,100%{transform:rotate(7.5deg) translateY(-1.4px)}16%{transform:rotate(4.5deg) translateY(-1px)}34%{transform:rotate(-2deg) translateY(.5px)}50%{transform:rotate(-7deg) translateY(1.4px)}68%{transform:rotate(-4.5deg) translateY(1px)}84%{transform:rotate(1.5deg) translateY(0)}}
+@keyframes gameBackElbowL{0%,100%{transform:rotate(-2deg)}16%{transform:rotate(2deg)}34%{transform:rotate(11deg)}50%{transform:rotate(18deg)}68%{transform:rotate(13deg)}84%{transform:rotate(5deg)}}@keyframes gameBackElbowR{0%,100%{transform:rotate(18deg)}16%{transform:rotate(13deg)}34%{transform:rotate(5deg)}50%{transform:rotate(-2deg)}68%{transform:rotate(2deg)}84%{transform:rotate(11deg)}}
+@keyframes gameBackTwist{0%,100%{transform:rotate(2.2deg) translateX(1px)}16%{transform:rotate(1.5deg) translateX(.7px)}34%{transform:rotate(-.7deg) translateX(-.3px)}50%{transform:rotate(-2.2deg) translateX(-1px)}68%{transform:rotate(-1.5deg) translateX(-.7px)}84%{transform:rotate(.7deg) translateX(.3px)}}
 .game-runner.switch-left .back-lane-root{animation:gameLaneLeanLeft .24s cubic-bezier(.2,.76,.26,1) both}.game-runner.switch-right .back-lane-root{animation:gameLaneLeanRight .24s cubic-bezier(.2,.76,.26,1) both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,color-mix(in srgb,var(--world-accent) 48%,transparent),transparent 68%);animation:gameLaneDust .28s ease-out both}
 @keyframes gameLaneLeanLeft{38%{transform:translate(-5px,-2px) rotate(-5deg)}100%{transform:none}}@keyframes gameLaneLeanRight{38%{transform:translate(5px,-2px) rotate(5deg)}100%{transform:none}}@keyframes gameLaneDust{to{opacity:0;transform:scale(2.1)}}
 .game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .back-ride-offset{transform:translateY(-25px) scale(.82)}
@@ -7053,7 +7068,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.44.1';
+const APP_VERSION = '2.45.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.

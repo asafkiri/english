@@ -4895,6 +4895,43 @@ test("later runs mix in words the player already met in earlier worlds", () => {
   assert.ok(own.filter(id => drawn.has(id)).length >= 4, 'without crowding out the world being learned');
 });
 
+test("the runner's whole body shares one gait, and the hair arrives late", () => {
+  /* The legs already ran on six phases while the arms and elbows carried two
+     keyframes each, so the top half of the runner swung like a metronome over
+     a body that was actually running. Everything is on the same grid now. */
+  const stops = name => {
+    const m = html.match(new RegExp('@keyframes ' + name + '\\{([^}]*\\})*[^}]*\\}'));
+    assert.ok(m, name + ' exists');
+    return (m[0].match(/\d+%\{/g) || []).length + (m[0].match(/0%,100%\{/g) || []).length;
+  };
+  for (const part of ['gameBackArmL', 'gameBackArmR', 'gameBackElbowL', 'gameBackElbowR', 'gameBackTwist'])
+    assert.ok(stops(part) >= 6, part + ' is posed across the stride, not swung between two extremes');
+
+  /* An elbow that bends hardest as the arm drives forward and opens on the way
+     back is the difference between an arm swinging and an arm pumping. */
+  const elbow = html.match(/@keyframes gameBackElbowL\{[^@]*/)[0];
+  const angles = [...elbow.matchAll(/rotate\((-?[\d.]+)deg\)/g)].map(m => parseFloat(m[1]));
+  assert.ok(Math.max(...angles) - Math.min(...angles) > 12, 'the elbow really drives through the cycle');
+
+  /* Secondary motion: nothing on the runner used to lag behind anything else,
+     which is what made a correct gait still read as one carved piece. */
+  assert.match(html, /\.game-back-rig \.back-hair-mass,\.game-back-rig \.back-cap\{[^}]*animation:gameBackHairLag/,
+    'hair and cap trail the body');
+  assert.match(html, /\.game-back-rig \.back-hair-length,\.game-back-rig \.back-hair-bun\{[^}]*animation:gameBackHairSwing/,
+    'and long hair, which has further to travel, swings wider');
+  assert.match(html, /\.game-back-rig \.back-head\{[^}]*animation:gameBackHeadSteady/,
+    'while the head counters the bounce instead of following it');
+  /* The lag is the whole point: the body bobs at 0 and 50, so the hair must
+     reach the same place later, not at the same instant. */
+  assert.match(html, /@keyframes gameBackBob\{0%,50%,100%/, 'the body bobs on the half-cycle');
+  assert.match(html, /@keyframes gameBackHairLag\{0%,50%,100%\{[^}]*\}12%,62%/,
+    'and the hair reaches its low point an eighth of a stride behind it');
+
+  /* All of it still stops dead when the phone asks for less motion. */
+  assert.match(html, /\.game-world\.lane-game \.game-back-rig \*\{animation:none!important\}/,
+    'reduced motion silences every part of the rig, including the new ones');
+});
+
 test("the game's front door shows the shop and every world behind it", () => {
   const { api } = runtime();
   const store = api.samRunStore();
