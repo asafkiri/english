@@ -3451,8 +3451,16 @@ test("Sam's runs start directly without microphone friction", () => {
     'and never through a timer, which is what iOS drops');
   assert.match(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.resume\(\)/,
     'the game resumes the synthesis queue itself — iOS leaves it paused');
-  assert.doesNotMatch(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.cancel\(\)[\s\S]*?\n\}/,
-    'and never cancels: a cancel and a speak in one tick wedges iOS for the rest of the run');
+  /* A word arriving while the voice is still busy interrupts it — dropping it
+     meant that sliding between lanes faster than a word takes to say let the
+     child hear only the first one. The cancel that makes room must never share
+     a tick with the speak that follows it, which is what wedges the iOS queue
+     for the rest of the run, so the speak waits for its own timer and a token
+     makes sure only the newest word survives that wait. */
+  assert.match(html, /speechSynthesis\.cancel\(\);\s*clearTimeout\(samRunSayTimer\);\s*samRunSayTimer=setTimeout\(\(\)=>\{\s*if\(token!==samRunSayToken\) return;/,
+    'a busy voice is interrupted, and the new word waits a tick for the cancel to settle');
+  assert.match(html, /\},50\);\n    \} else speechSynthesis\.speak\(u\);/,
+    'while a free voice still speaks straight inside the swipe, so iOS gets its first utterance from a gesture');
   assert.match(html, /const u = new SpeechSynthesisUtterance\('a'\);/,
     'the iOS unlock speaks a real letter — a whitespace utterance is nothing to say, so it unlocked nothing');
 });

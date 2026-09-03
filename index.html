@@ -6947,7 +6947,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.39.0';
+const APP_VERSION = '2.39.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12228,7 +12228,7 @@ function samRunTeardown(){
   g.running=false;
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer); clearTimeout(samRunSayTimer);
   cancelSpeech();
   samRun=null;
 }
@@ -12825,16 +12825,35 @@ function samRunSetLaneVisual(lane){
    It never cancels, either — a cancel and a speak in the same tick is what
    wedges the iOS queue for the rest of the run. If a word is still playing
    this one is skipped, which costs a single word and never the whole game. */
+let samRunSayToken=0, samRunSayTimer=null;
 function samRunSay(text){
   if(!text||!('speechSynthesis' in window)) return;
+  const token=++samRunSayToken;
   try{
     speechSynthesis.resume();
-    if(speechSynthesis.speaking||speechSynthesis.pending) return;
     const u=new SpeechSynthesisUtterance(String(text));
     u.lang='en-US';
     const v=pickVoice(); if(v) u.voice=v;
-    u.rate=state.slowSpeech?.85:1; u.pitch=1; u.volume=1;
-    speechSynthesis.speak(u);
+    /* Single words, said a touch quicker than a lesson reads them, so one
+       finishes before the child has picked the next lane. */
+    u.rate=state.slowSpeech?.85:1.1; u.pitch=1; u.volume=1;
+    /* Sliding between lanes faster than a word takes to say used to mean only
+       the first one was ever heard: anything arriving while the voice was busy
+       was dropped. The new word interrupts the old one instead — that is what
+       the child is asking for by moving on. What must NOT happen is a cancel
+       and a speak in the same tick, which is what wedges the iOS queue for the
+       rest of the run; the cancel gets its own tick to settle, and the token
+       makes sure only the newest word survives that wait.
+       The first word of a run always takes the branch below, spoken straight
+       inside the swipe, so iOS still gets its utterance from a user gesture. */
+    if(speechSynthesis.speaking||speechSynthesis.pending){
+      speechSynthesis.cancel();
+      clearTimeout(samRunSayTimer);
+      samRunSayTimer=setTimeout(()=>{
+        if(token!==samRunSayToken) return;
+        try{ speechSynthesis.resume(); speechSynthesis.speak(u); }catch(_){}
+      },50);
+    } else speechSynthesis.speak(u);
   }catch(_){}
 }
 function samRunChooseLane(lane){
