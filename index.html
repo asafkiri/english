@@ -2348,6 +2348,7 @@ body{
 </head>
 <body>
 <div id="app"></div>
+<script src="./runner-voice.js"></script>
 <script>
 'use strict';
 /* =====================================================================
@@ -6944,7 +6945,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.40.1';
+const APP_VERSION = '2.40.2';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11890,6 +11891,43 @@ function samRunMatchCommand(text, active=SAM_RUN_ORDER){
 
 /* tiny synthesised sounds: no assets, no download, a little life */
 let samRunAudio=null;
+/* iOS 16 and earlier route Web Audio through the silent-switch channel. A
+   silent media element kept alive during the run opens the media channel as
+   well; iOS 17+ gets the explicit Audio Session API path instead. */
+const SAM_RUN_SILENT_MEDIA='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//MgxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIsQnAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxE8AAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVf/zIMR2AAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/8yDEnQAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVV//MixMQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/8yLE1wAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIsTXAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVV//MixNcAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/8yLE1wAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIsTXAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVV//MixNcAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/8yLE1wAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zIsTXAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+let samRunMediaBridge=null, samRunPreviousAudioSession=null;
+function samRunIsIOS(){
+  const ua=String(navigator.userAgent||''),platform=String(navigator.platform||'');
+  return /iPad|iPhone|iPod/.test(ua)||(platform==='MacIntel'&&Number(navigator.maxTouchPoints)>1);
+}
+function samRunBeginAudioSession(){
+  try{
+    if(navigator.audioSession){
+      if(samRunPreviousAudioSession===null) samRunPreviousAudioSession=navigator.audioSession.type||'auto';
+      try{
+        navigator.audioSession.type='playback';
+        if(navigator.audioSession.type==='playback') return;
+      }catch(_){}
+    }
+    if(samRunIsIOS()&&window.Audio){
+      samRunMediaBridge=samRunMediaBridge||new window.Audio(SAM_RUN_SILENT_MEDIA);
+      samRunMediaBridge.loop=true;
+      Promise.resolve(samRunMediaBridge.play()).catch(()=>{});
+    }
+  }catch(_){}
+}
+function samRunEndAudioSession(){
+  try{
+    if(navigator.audioSession&&samRunPreviousAudioSession!==null){
+      navigator.audioSession.type=samRunPreviousAudioSession;
+      samRunPreviousAudioSession=null;
+    }
+    if(samRunMediaBridge){
+      samRunMediaBridge.pause();
+      samRunMediaBridge.currentTime=0;
+    }
+  }catch(_){}
+}
 function samRunTone(kind){
   const spec={
     jump:  {f:[440,660],      d:.09, t:'sine',     g:.16},
@@ -11907,7 +11945,9 @@ function samRunTone(kind){
   try{
     const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
     samRunAudio=samRunAudio||new AC();
-    if(samRunAudio.state==='suspended') samRunAudio.resume().catch(()=>{});
+    /* WebKit also exposes a non-standard "interrupted" state after calls or
+       backgrounding. Treat every recoverable non-running state alike. */
+    if(samRunAudio.state!=='running'&&samRunAudio.state!=='closed') Promise.resolve(samRunAudio.resume()).catch(()=>{});
     const ac=samRunAudio, t0=ac.currentTime;
     spec.f.forEach((f,i)=>{
       const o=ac.createOscillator(), g=ac.createGain(), at=t0+i*spec.d;
@@ -12230,13 +12270,24 @@ function samRunTeardown(){
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
   clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer);
+  /* A decode may still be finishing, or a short lane clip may still be
+     playing. Invalidate both when the game closes so no word leaks onto the
+     home screen or into the next run. */
+  samRunRecordedRequest++;
+  try{ samRunRecordedSource?.stop(); }catch(_){}
+  samRunRecordedSource=null;
+  samRunEndAudioSession();
   cancelSpeech();
   samRun=null;
 }
 /* ---- a run ---- */
 function samRunStart(){
   const g=samRun; if(!g) return;
+  /* This is called directly by the Start-button click, while iOS still grants
+     permission to choose/unlock the audible media route. */
+  samRunBeginAudioSession();
   samRunTone('tick');
+  samRunVoiceUntil=0;
   clearTimeout(g.timer); clearTimeout(g.reviewTimer);
   /* Prime iOS with a real, audible utterance inside the Start-button tap.
      The global silent primer may be discarded, leaving direct-to-game visits
@@ -12842,12 +12893,12 @@ function samRunSetLaneVisual(lane){
    short backlog cap keeps the queue from running on after the gate is gone. */
 let samRunVoiceUntil=0;
 function samRunSay(text){
-  if(!text||!('speechSynthesis' in window)) return;
+  if(!text||!('speechSynthesis' in window)) return false;
   try{
     const word=String(text), now=Date.now();
     /* A word and a bit is as far behind as the voice may fall: any more and it
        is still naming lanes the child has already left. */
-    if(samRunVoiceUntil-now>820) return;
+    if(samRunVoiceUntil-now>820) return false;
     const rate=state.slowSpeech?.85:1.15;
     const u=new SpeechSynthesisUtterance(word);
     u.lang='en-US';
@@ -12859,15 +12910,93 @@ function samRunSay(text){
     speechSynthesis.resume();
     speechSynthesis.speak(u);
     samRunVoiceUntil=Math.max(now,samRunVoiceUntil)+Math.max(300,word.length*72)/rate;
-  }catch(_){}
+    return true;
+  }catch(_){ return false; }
+}
+/* Lane words are gameplay sounds, not narration. iOS can silently discard a
+   timer-driven speechSynthesis utterance even though the same word works from
+   a swipe. Short recorded clips use the AudioContext that the Start tap has
+   already unlocked for the game's tones, so a new wave can speak on its own.
+   Each clip is decoded only the first time it is needed. */
+const samRunRecordedWords=new Map();
+let samRunRecordedSource=null, samRunRecordedRequest=0;
+function samRunRecordedKey(text){ return String(text||'').trim().toLowerCase().replace(/’/g,"'"); }
+function samRunDecodeAudioBuffer(data){
+  /* Safari originally exposed callbacks here and added the Promise overload
+     later. Supplying both makes the same pack work on old installed PWAs and
+     current browsers; the first completion wins. */
+  return new Promise(resolve=>{
+    let complete=false;
+    const finish=buffer=>{ if(!complete){ complete=true; resolve(buffer||null); } };
+    try{
+      const pending=samRunAudio.decodeAudioData(data,finish,()=>finish(null));
+      if(pending&&typeof pending.then==='function') pending.then(finish,()=>finish(null));
+    }catch(_){ finish(null); }
+  });
+}
+function samRunDecodeRecordedWord(text){
+  const key=samRunRecordedKey(text),packed=window.SAM_RUN_VOICE?.audio?.[key];
+  if(!packed||!samRunAudio) return Promise.resolve(null);
+  if(samRunRecordedWords.has(key)) return samRunRecordedWords.get(key);
+  const promise=(()=>{
+    const raw=atob(packed),bytes=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++) bytes[i]=raw.charCodeAt(i);
+    return samRunDecodeAudioBuffer(bytes.buffer.slice(0));
+  })().then(buffer=>{
+    if(!buffer) samRunRecordedWords.delete(key);
+    return buffer;
+  }).catch(()=>{ samRunRecordedWords.delete(key); return null; });
+  samRunRecordedWords.set(key,promise);
+  return promise;
+}
+function samRunPlayRecordedWord(text,ob,lane,onResult){
+  const key=samRunRecordedKey(text);
+  if(!window.SAM_RUN_VOICE?.audio?.[key]||!samRunAudio) return false;
+  const g=samRun,request=++samRunRecordedRequest;
+  let settled=false;
+  const finish=played=>{ if(!settled){ settled=true; onResult?.(played); } };
+  /* A foregrounded PWA may suspend an already-unlocked context. Calling
+     resume here is harmless for an automatic arrival and succeeds immediately
+     when this path came from the player's lane tap. */
+  let resumed=Promise.resolve();
+  if(samRunAudio.state!=='running'&&samRunAudio.state!=='closed'){
+    try{
+      const attempt=Promise.resolve(samRunAudio.resume()).catch(()=>{});
+      /* A blocked WebKit resume can remain pending instead of rejecting. Do
+         not let one such promise leave this wave permanently "pending". */
+      resumed=Promise.race([attempt,new Promise(resolve=>setTimeout(resolve,450))]);
+    }catch(_){}
+  }
+  Promise.all([samRunDecodeRecordedWord(key),resumed]).then(([buffer])=>{
+    if(request!==samRunRecordedRequest||samRun!==g||!g?.running||ob.resolved||ob.chosenLane!==lane){
+      finish(false); return;
+    }
+    if(!buffer){ finish(samRunSay(text)); return; }
+    try{
+      if(samRunAudio.state!=='running'){ finish(samRunSay(text)); return; }
+      try{ samRunRecordedSource?.stop(); }catch(_){}
+      const source=samRunAudio.createBufferSource();
+      source.buffer=buffer; source.connect(samRunAudio.destination); source.start();
+      samRunRecordedSource=source;
+      source.onended=()=>{ if(samRunRecordedSource===source) samRunRecordedSource=null; };
+      finish(true);
+    }catch(_){ finish(samRunSay(text)); }
+  });
+  return true;
 }
 function samRunSpeakLane(ob,lane,arrival=false){
-  if(!ob||!ob.options||!ob.options.length||(arrival&&ob.arrivalSpoken)) return;
+  if(!ob||!ob.options||!ob.options.length||(arrival&&(ob.arrivalSpoken||ob.arrivalPending))) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0));
-  if(arrival) ob.arrivalSpoken=true;
   const chosen=ob.options[lane];
   const word=SAM_RUN_COMMANDS[chosen];
-  samRunSay(ob.sentenceWave?String(chosen).toLowerCase():(word?word.say||word.en:chosen));
+  const spoken=ob.sentenceWave?String(chosen).toLowerCase():(word?word.say||word.en:chosen);
+  const finish=played=>{
+    if(!arrival) return;
+    ob.arrivalPending=false;
+    if(played) ob.arrivalSpoken=true;
+  };
+  if(arrival) ob.arrivalPending=true;
+  if(!samRunPlayRecordedWord(spoken,ob,lane,finish)) finish(samRunSay(spoken));
 }
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
