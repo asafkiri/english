@@ -6947,7 +6947,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.39.3';
+const APP_VERSION = '2.39.4';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12241,6 +12241,10 @@ function samRunStart(){
   const g=samRun; if(!g) return;
   samRunTone('tick');
   clearTimeout(g.timer); clearTimeout(g.reviewTimer);
+  /* Prime iOS with a real, audible utterance inside the Start-button tap.
+     The global silent primer may be discarded, leaving direct-to-game visits
+     locked until another screen happens to speak first. */
+  samRunSay('Ready');
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
   const obstacles=document.getElementById('samRunObstacles'), rush=document.getElementById('samRunRush');
   if(!runner||!card||!world||!obstacles) return;
