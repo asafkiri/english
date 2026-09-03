@@ -6944,7 +6944,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.40.0';
+const APP_VERSION = '2.40.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12861,6 +12861,14 @@ function samRunSay(text){
     samRunVoiceUntil=Math.max(now,samRunVoiceUntil)+Math.max(300,word.length*72)/rate;
   }catch(_){}
 }
+function samRunSpeakLane(ob,lane,arrival=false){
+  if(!ob||!ob.options||!ob.options.length||(arrival&&ob.arrivalSpoken)) return;
+  lane=Math.max(0,Math.min(2,Number(lane)||0));
+  if(arrival) ob.arrivalSpoken=true;
+  const chosen=ob.options[lane];
+  const word=SAM_RUN_COMMANDS[chosen];
+  samRunSay(ob.sentenceWave?String(chosen).toLowerCase():(word?word.say||word.en:chosen));
+}
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0)); const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
@@ -12875,9 +12883,7 @@ function samRunChooseLane(lane){
      can only ever move one lane, so there is no second word to talk over and
      nothing to debounce — the debounce only ever moved the word out of the
      gesture and made iOS drop it. */
-  const chosen=ob.options[lane];
-  const word=SAM_RUN_COMMANDS[chosen];
-  samRunSay(ob.sentenceWave?String(chosen).toLowerCase():(word?word.say||word.en:chosen));
+  samRunSpeakLane(ob,lane);
 }
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
@@ -12899,6 +12905,7 @@ function samRunSpawnLaneWave(){
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
   g.obstacles.push(ob);
   const prompt=document.getElementById('samRunLanePrompt'); if(prompt) prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`;
+  samRunSpeakLane(ob,g.lane,true);
   g.nextSpawnAt=g.time+warnMs+travelMs*(.78+Math.random()*.16);
 }
 function samRunStartSentence(){
@@ -12928,9 +12935,11 @@ function samRunSpawnSentenceWave(){
   el.className='game-obstacle lane-wave sentence-wave is-incoming';
   el.innerHTML=options.map((w,i)=>`<button type="button" class="lane-gate is-word${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}" style="font-size:${samRunGateFont(w,g.worldW).toFixed(1)}px" onclick="samRunChooseLane(${i})">${esc(w)}</button>`).join('');
   host.appendChild(el);
-  g.obstacles.push({id:++g.obstacleSeq,cmd:word,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],
-    progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,sentenceWave:true,bonus:false,mastery:0});
+  const ob={id:++g.obstacleSeq,cmd:word,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],
+    progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,sentenceWave:true,bonus:false,mastery:0};
+  g.obstacles.push(ob);
   samRunSentencePrompt();
+  samRunSpeakLane(ob,g.lane,true);
   g.nextSpawnAt=g.time+warnMs+travelMs*(.7+Math.random()*.12);
 }
 function samRunAdvanceSentence(ob){
