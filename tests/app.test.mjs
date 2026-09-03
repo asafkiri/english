@@ -87,8 +87,8 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
-      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
-      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
+      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
+      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup, SAM_RUN_FEATURE_SAY,
       setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -3611,6 +3611,14 @@ test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
     'a completed run gets a visible finish-line sequence');
   assert.match(html, /if\(cls==='is-jumping'\) setTimeout\(\(\)=>samRunWorldFx\('is-land',300\),690\)/,
     'jumping has a camera-weighted landing');
+  assert.match(html, /\.game-world\.lane-game \.game-runner\.is-collecting[^\n]*\.back-air-root\{animation:gameBackCollectHop/,
+    'a correct lane answer reaches the rear-view rig with a grounded reaction');
+  assert.match(html, /\.game-world\.lane-game \.game-runner\.is-celebrating \.back-air-root\{animation:gameBackCelebrateHop/,
+    'the rear-view rig owns a finish-line celebration too');
+  assert.match(html, /if\(g\.laneGame\) samRunPose\('is-collecting',480\)/,
+    'resolving a correct lane answer actually starts that reaction');
+  assert.match(html, /runner\.classList\.remove\('is-collecting'\); samRunPose\('is-celebrating'\)/,
+    'the finish celebration cannot be hidden behind the final answer reaction');
 });
 
 test("Sam's quiet game is a real three-lane runner rather than a word queue", () => {
@@ -3621,10 +3629,18 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /lane-game/);
   assert.match(app.innerHTML, /game-playing/, 'the run owns the full viewport');
   assert.match(app.innerHTML, /game-back-rig/, 'the equipped character is seen running away from the camera');
-  assert.match(app.innerHTML, /viewBox="0 0 140 240"/,
+  assert.match(app.innerHTML, /viewBox="0 0 140 260"/,
     'the runner uses taller, human-like proportions');
-  assert.match(app.innerHTML, /<ellipse cx="70" cy="38" rx="24" ry="29"/,
-    'the head no longer dominates the torso like a cartoon mascot');
+  assert.match(app.innerHTML, /<ellipse cx="70" cy="26" rx="18" ry="22"/,
+    'the smaller head leaves more than five head lengths for an athletic body');
+  assert.match(app.innerHTML, /back-ground-shadow[\s\S]*?back-lane-root[\s\S]*?back-air-root[\s\S]*?back-run-bob/,
+    'ground contact, lane lean, air action and run cadence own separate transforms');
+  assert.doesNotMatch(app.innerHTML, /<svg class="game-back-rig"[^>]*>[\s\S]{0,120}<ellipse class="back-shadow"/,
+    'the shadow is no longer inside the jumping rig');
+  const rideStore = api.samRunStore();
+  rideStore.equipped = { ...rideStore.equipped, ride: 'ride_scooter' };
+  assert.match(api.samRunBackAvatarHtml(rideStore), /back-lane-root[\s\S]*?back-air-root[\s\S]*?game-back-ride[\s\S]*?back-ride-offset/,
+    'equipped rides travel through lane changes and jumps with the character');
   assert.match(app.innerHTML, /game-lane-focus/, 'the selected road gets immediate visual feedback');
   assert.match(app.innerHTML, /game-swipe-hint/, 'the first seconds demonstrate the core gesture');
   assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
@@ -3806,7 +3822,8 @@ test("the lane runner shares one perspective camera", () => {
   const at = p => api.samRunDepth(p);
   const horizon = at(0), mid = at(.5), near = at(1);
   assert.equal(Math.round(horizon.y), 40, 'the road starts on the painted horizon');
-  assert.equal(Math.round(near.y), 80, 'and reaches the player just above his head');
+  assert.equal(Math.round(near.y), 96, 'and reaches the foot plane instead of resolving beside his head');
+  assert.ok(at(.985).y > 94, 'the collision beat is visibly at the runner before it resolves');
   assert.ok(horizon.scale < mid.scale && mid.scale < near.scale, 'things only ever grow on the way in');
   // 1/z, not a straight line: most of the travel belongs to the final moments
   assert.ok(mid.y - horizon.y < (near.y - horizon.y) * .4,
@@ -3818,20 +3835,44 @@ test("the lane runner shares one perspective camera", () => {
 });
 
 test("the road between questions carries coins, roadworks and depth traffic", () => {
-  const { api } = runtime();
-  assert.match(html, /\.game-rush \.rush-coin\{font-size:58px;[\s\S]*?animation:none\}/,
-    'coins stay large and face the player instead of vanishing edge-on');
+  const { api, context } = runtime();
+  assert.match(html, /\.game-rush \.rush-coin,\.game-coin-flight\{width:54px;height:54px;[\s\S]*?radial-gradient[\s\S]*?animation:none\}/,
+    'coins use one large, fixed gold face instead of a platform emoji');
+  assert.match(html, /\.game-rush \.rush-coin:after,\.game-coin-flight:after\{content:'★'/,
+    'the gold coin has its own embossed mark on every phone');
+  const takeFrames = html.match(/@keyframes gameCoinTake\{[^\n]+/)?.[0] || '';
+  assert.match(takeFrames, /scale:/, 'collection can brighten and shrink the gold face');
+  assert.doesNotMatch(takeFrames, /transform:/,
+    'collection never replaces the inline perspective transform and teleports a coin to the origin');
+  const coinSpawner = html.match(/function samRunSpawnCoins[\s\S]*?(?=function samRunSpawnHurdle)/)?.[0] || '';
+  assert.doesNotMatch(coinSpawner, /🪙/, 'road coins never inherit the silver iOS emoji artwork');
+  assert.match(html, /id="samRunRunWallet"[\s\S]*?id="samRunRunCoins"/,
+    'collected gold has a live destination in the run HUD');
   assert.doesNotMatch(html, /@keyframes gameCoinSpin/,
     'coins do not spin while the player is trying to see their lane');
   assert.match(html, /if\(g\.laneGame\) samRunRunRoad\(dt\)/,
     'the run loop drives the road, not just the questions');
   assert.match(html, /samRunSpawnRush\('stone'\)/, 'lane stones stream out of the horizon');
+  assert.match(html, /for\(const side of \[-1,1\]\)/,
+    'each depth beat paints both lane seams instead of random white debris');
+  assert.match(html, /\.game-world\.lane-game \.game-mid\{[\s\S]*?animation:none!important/,
+    'the distant city no longer scrolls sideways against the forward camera');
+  assert.match(html, /el\.className='rush-hurdle'; el\.innerHTML='<span><\/span><span><\/span><span><\/span>'/,
+    'single-lane roadworks use a consistent cone graphic rather than an emoji barrier');
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
   assert.match(html, /if\(!g\.finishing&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in');
   assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
     'the first, gentlest phase of a world stays a pure reading run');
   assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
+
+  const markerHost = { children: [], appendChild(node) { this.children.push(node); } };
+  context.document.getElementById = id => id === 'samRunRush' ? markerHost : null;
+  context.document.createElement = () => ({ className: '', style: {}, remove() {} });
+  const markerGame = { props: [], stageIndex: 0 };
+  api.setSamRun(markerGame);
+  api.samRunSpawnRush('stone');
+  assert.deepEqual(markerGame.props.map(p => p.side), [-1, 1], 'the paired markers share one depth and stay parallel');
 
   const style = () => ({ setProperty(n, v) { this[n] = v; } });
   const el = () => ({ style: style(), classList: { list: [], add(c) { this.list.push(c); } }, remove() {} });
@@ -3850,6 +3891,20 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
 
 test("walls give the road a vertical axis that can only be answered by reading", () => {
   const { api, context } = runtime();
+  assert.match(html, /const SAM_RUN_AIR_LEAD_MS=340/,
+    'queued actions begin close enough to contact for the visible pose to match collision');
+  assert.match(html, /48%\{transform:translateY\(-94px\)\}/,
+    'the jump apex visibly clears the full-height bar');
+  assert.match(html, /pu\.kind==='duck'\?'translate\(-50%,-350%\)'/,
+    'the overhead beam clears the fully crouched head instead of clipping through it');
+  assert.match(html, /gameDuckBackHead[\s\S]*?translateY\(50px\)/,
+    'ducking folds the head and torso under the overhead beam');
+  assert.match(html, /\.game-runner\.is-air-duck \.back-elbow-l\{animation:gameDuckElbowL/,
+    'the elbows stop their running cycle and join the crouch');
+  assert.match(html, /\.game-back-avatar\.has-ride \.back-air-root\{animation:none\}[^\n]*gameRideDuckRider/,
+    'ducking lowers the rider without sinking an equipped vehicle into the road');
+  assert.match(html, /\.game-world\.lane-game \.game-runner\.is-hit\{animation:gameBackHit \.55s ease both!important\}/,
+    'reduced-motion mode keeps the rear-view hit reaction on the correct axis');
   assert.match(html, /el\.style\.width=Math\.round\(g\.worldW\*\.93\)\+'px'/,
     'a wall spans the whole road: stepping around it is not one of the options');
   assert.match(html, /el\.innerHTML=`<b class="wall-command"><span>\$\{jump\?'⬆':'⬇'\}<\/span>\$\{jump\?'JUMP':'DUCK'\}<\/b>`;/,
@@ -3891,26 +3946,33 @@ test("walls give the road a vertical axis that can only be answered by reading",
     assert.equal(game.lives, 3, 'and still never costs a heart');
   }
 
-  // jumping a little early still clears it — being cautious must not be punished
-  // harder than being late
-  const early = (ms, life) => {
-    Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, runCoinBonus: 0, air: null });
-    game.lastAir = { kind: 'jump', at: game.time - ms };
-    api.samRunTakePickup(wall('jump', life));
-    return game.streak;
-  };
-  assert.equal(early(400), 5, 'a jump made a moment too soon still carries him over');
-  assert.equal(early(1200), 5, 'and so does one made as soon as the wall became readable');
-  assert.equal(early(1600), 0, 'but one made long before does not');
-  /* How long the wall was coming IS how long it was readable. A flat window
-     was shorter than the journey once the road sped up, so a child who read
-     the wall at the horizon and jumped at once was told he had missed it. */
-  const slow = 2400 * api.samRunPace(game);
-  assert.equal(early(1600, slow), 5, 'a wall that spent longer coming remembers a gesture made earlier');
-  assert.equal(early(2600, slow), 0, 'but not one made before it was on the road at all');
+  // An early read is accepted, while the visible jump waits for the physical
+  // contact beat. This preserves forgiving input without a magical collision.
+  Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, runCoinBonus: 0, coinsRun: 0, air: null, lastAir: null, queuedAir: null });
+  const queued = wall('jump', 2600); queued.p = 0; game.pickups = [queued];
+  api.samRunAirborne('jump');
+  assert.equal(game.air, null, 'a far wall does not make the character jump and land immediately');
+  assert.equal(game.queuedAir.pickup, queued, 'but the early swipe is remembered for that exact wall');
+  assert.ok(runner.classList.contains('is-ready-jump'), 'a restrained anticipation pose confirms the input');
+  queued.p = 1 - 340 * api.samRunPace(game) / queued.life;
+  api.samRunMaybeStartQueuedAir();
+  assert.equal(game.air.kind, 'jump', 'the authored jump begins as the wall enters the contact window');
+  assert.equal(game.queuedAir, null);
+  api.samRunTakePickup(queued);
+  assert.equal(game.streak, 5, 'the queued early read clears the wall during the visible pose');
+
+  Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, air: null, queuedAir: null, pickups: [] });
+  game.lastAir = { kind: 'jump', at: game.time - 1000, until: game.time - 400 };
+  api.samRunTakePickup(wall('jump'));
+  assert.equal(game.streak, 0, 'a character who landed long ago no longer passes through the wall');
+
+  Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, air: null });
+  game.lastAir = { kind: 'jump', at: game.time - 700, until: game.time - 100 };
+  api.samRunTakePickup(wall('jump'));
+  assert.equal(game.streak, 5, 'a small landing grace still covers a dropped frame at contact');
   // one gesture clears one wall — a tunnel still needs a duck per beam
   Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, air: null });
-  game.lastAir = { kind: 'duck', at: game.time - 200 };
+  game.lastAir = { kind: 'duck', at: game.time - 400, until: game.time + 100 };
   api.samRunTakePickup(wall('duck'));
   assert.equal(game.streak, 5, 'the first beam is cleared');
   api.samRunTakePickup(wall('duck'));
