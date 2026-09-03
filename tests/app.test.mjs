@@ -83,7 +83,7 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
-      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear,
+      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3658,7 +3658,7 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
   assert.match(html, /if\(!g\.finishing&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in');
-  assert.match(html, /const runnerToys=g\.phase\.id!=='learn', roll=Math\.random\(\)/,
+  assert.match(html, /const runnerToys=g\.phase\.id!=='learn', final=g\.phase\.id==='final';/,
     'the first, gentlest phase of a world stays a pure reading run');
   assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
 
@@ -3722,6 +3722,48 @@ test("walls give the road a vertical axis that can only be answered by reading",
   assert.equal(api.samRunRoadClear(game, 1800), true, 'but a beat later the road is its own');
   game.obstacles = [];
   assert.equal(api.samRunRoadClear(game, 1000), true, 'an empty road is always clear');
+});
+
+test("the final challenge is the fastest gear and the only one that pairs walls", () => {
+  const { api, context } = runtime();
+  assert.match(html, /const phasePace=g\.phase\.id==='final'\?\.74:g\.phase\.id==='speed'\?\.82:1;/,
+    'each phase of a world is a gear, and the final challenge is the quickest');
+  assert.match(html, /warnMs=g\.phase\.id==='final'\?500:650/,
+    'and gives the shortest look at a wave before it starts moving');
+  // it is named the final challenge, so it must not be gentler than the speed one
+  const wave = id => Math.round(api.samRunTravelMs(0) * (id === 'final' ? .74 : id === 'speed' ? .82 : 1))
+    + (id === 'final' ? 500 : 650);
+  assert.ok(wave('learn') > wave('speed') && wave('speed') > wave('final'),
+    'the three phases of a world are a monotone difficulty curve');
+
+  const host = { children: [], appendChild(el) { this.children.push(el); } };
+  context.document.getElementById = id => id === 'samRunRush' ? host : null;
+  const batchesFor = phase => {
+    const g = { phase: { id: phase }, score: 0, time: 0, worldW: 300, worldH: 600,
+      obstacles: [], pickups: [], props: [], nextPickupAt: 0, taught: {} };
+    api.setSamRun(g);
+    const out = [];
+    for (let i = 0; i < 400; i++) {
+      g.pickups.length = 0; g.time = 1; g.nextPickupAt = -1;
+      api.samRunSpawnPickup();
+      const walls = g.pickups.filter(x => x.wide);
+      if (walls.length) out.push({ walls, coins: g.pickups.filter(x => x.kind === 'coin').length });
+    }
+    return out;
+  };
+
+  const final = batchesFor('final'), speed = batchesFor('speed');
+  assert.ok(final.length > 40 && speed.length > 40, 'walls are a regular part of both later phases');
+  assert.ok(speed.every(b => b.walls.length === 1), 'the speed challenge never doubles up');
+  const pairs = final.filter(b => b.walls.length === 2);
+  assert.ok(pairs.length > final.length * .25, 'pairs are frequent enough to be the final challenge’s signature');
+  assert.ok(pairs.every(b => b.walls[0].kind !== b.walls[1].kind),
+    'a pair is always one gesture and then the other — never a repeat, so the second wall has to be read');
+  assert.ok(pairs.every(b => b.walls[1].life > b.walls[0].life),
+    'and the second wall of a pair is always the one further out');
+  assert.ok(final.some(b => b.coins > 0) && speed.some(b => b.coins > 0),
+    'a wall and a line of coins can share one gap');
+  assert.equal(batchesFor('learn').length, 0, 'the learn phase still has no walls at all');
 });
 
 test("later runs mix in words the player already met in earlier worlds", () => {
