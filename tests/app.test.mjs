@@ -3472,16 +3472,18 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'each wave mixes the answer with two live distractors');
   assert.match(html, /onclick="samRunChooseLane\(\$\{i\}\)"/,
     'the approaching gates themselves are playable');
-  assert.match(html, /world\.addEventListener\('pointerup'/,
+  assert.match(html, /document\.addEventListener\('pointerup',onPointerEnd,\{passive:false,capture:true\}\)/,
     'the whole road is the input surface');
   assert.match(html, /dx=x-startX/,
     'horizontal swipes move naturally between perspective lanes');
   assert.match(html, /document\.addEventListener\('touchmove',onTouchMove,\{passive:false,capture:true\}\)/,
-    'iOS tracks the swipe at screen capture level instead of losing it over a gate');
+    'older iOS versions retain a classic touch-event fallback');
   assert.match(html, /g\.gestureCleanup=/,
     'global gesture listeners are removed when the run closes');
   assert.match(html, /world\.setPointerCapture\(pointerId\)/,
-    'mouse and pen gestures keep control when they cross a gate');
+    'all pointer gestures keep control when they cross a gate');
+  assert.match(html, /document\.addEventListener\('click',onClickCapture,\{capture:true\}\)/,
+    'a completed swipe suppresses the accidental lane-button click beneath the finger');
   assert.match(html, /navigator\.vibrate\?\.\(10\)/,
     'supported phones confirm a lane change with light haptics');
   assert.match(html, /\['20%','50%','80%'\]\[lane\]/,
@@ -3524,6 +3526,52 @@ test("Sam's lane runner completes a real iPhone touch swipe", () => {
   assert.equal(runner.style.left, '80%', 'the character visibly follows the selected lane');
   assert.equal(focus.style.left, '80%', 'the road highlight moves with the character');
   documentHandlers.touchend({ target: world, changedTouches: [{ clientX: 205, clientY: 302 }] });
+});
+
+test("Sam's lane runner handles iPhone Pointer Events without turning the swipe into a tap", () => {
+  const { api, context } = runtime();
+  context.window.PointerEvent = function PointerEvent() {};
+  const documentHandlers = {}, worldHandlers = {};
+  context.document.addEventListener = (type, fn) => { documentHandlers[type] = fn; };
+  context.document.removeEventListener = () => {};
+  const classList = { add() {}, remove() {} };
+  const style = () => ({ left: '', setProperty(name, value) { this[name] = value; } });
+  const runner = { style: style(), classList, offsetWidth: 80 };
+  const focus = { style: style() };
+  context.document.getElementById = id => id === 'samRunRunner' ? runner : id === 'samRunLaneFocus' ? focus : null;
+  let captured = null, released = null;
+  const world = {
+    classList, tabIndex: -1,
+    addEventListener(type, fn) { worldHandlers[type] = fn; },
+    contains: () => true,
+    getBoundingClientRect: () => ({ left: 0, width: 300 }),
+    setPointerCapture(id) { captured = id; },
+    releasePointerCapture(id) { released = id; },
+  };
+  const game = { running: true, laneGame: true, lane: 1, obstacles: [] };
+  api.setSamRun(game);
+  api.samRunBindLaneInput(world, game);
+  assert.ok(documentHandlers.pointerdown && documentHandlers.pointermove && documentHandlers.pointerup,
+    'pointer-capable iPhones bind the pointer path at document capture level');
+  let prevented = 0;
+  const common = { pointerId: 7, pointerType: 'touch', target: world, composedPath: () => [world], cancelable: true, preventDefault: () => { prevented++; } };
+  documentHandlers.pointerdown({ ...common, clientX: 150, clientY: 300 });
+  documentHandlers.pointermove({ ...common, clientX: 190, clientY: 302 });
+  documentHandlers.pointerup({ ...common, clientX: 190, clientY: 302 });
+  assert.equal(captured, 7);
+  assert.equal(released, 7);
+  assert.equal(game.lane, 2, 'a touch pointer swipe moves to the adjacent lane');
+  assert.equal(runner.style.left, '80%', 'the runner visibly follows the swipe');
+  assert.ok(prevented >= 3, 'Safari never gets to reinterpret the gesture as page movement');
+  let clickPrevented = false, clickStopped = false;
+  documentHandlers.click({
+    target: world, composedPath: () => [world],
+    preventDefault: () => { clickPrevented = true; },
+    stopPropagation: () => { clickStopped = true; },
+    stopImmediatePropagation() {},
+  });
+  assert.equal(clickPrevented, true, 'the synthetic click following a swipe is cancelled');
+  assert.equal(clickStopped, true, 'the synthetic click cannot select the gate beneath the finger');
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {
