@@ -2238,7 +2238,10 @@ body{
    own width in pixels and then simply rides the camera's scale. */
 .game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:space-between;overflow:hidden;padding:0 11px;gap:8px;height:40px;border-radius:10px;border:2px solid rgba(255,255,255,.66);color:#fff;font-size:21px;font-weight:950;letter-spacing:.07em;direction:ltr;text-shadow:0 2px 7px rgba(0,0,0,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
 .game-rush .rush-bar{background:repeating-linear-gradient(45deg,#f59e0b 0 15px,#27313f 15px 30px)}
-.game-rush .rush-bar b,.game-rush .rush-beam b{white-space:nowrap}
+.game-rush .rush-bar b,.game-rush .rush-beam b{white-space:nowrap;transform:scale(var(--lbl,1))}
+.game-rush .rush-bar b:first-child,.game-rush .rush-beam b:first-child{transform-origin:left center}
+.game-rush .rush-bar b:last-child,.game-rush .rush-beam b:last-child{transform-origin:right center}
+.game-rush .rush-bar span,.game-rush .rush-beam span{transform:scale(var(--lbl,1));transform-origin:center}
 .game-rush .rush-beam{background:repeating-linear-gradient(45deg,#60a5fa 0 15px,#233043 15px 30px)}
 .game-rush .rush-beam:after{content:'';position:absolute;left:6%;right:6%;top:100%;height:190%;background:linear-gradient(180deg,rgba(96,165,250,.3),transparent);pointer-events:none}
 .game-rush .rush-gap{display:flex;gap:5px;height:46px;padding:0}
@@ -6940,7 +6943,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.35.0';
+const APP_VERSION = '2.36.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12542,7 +12545,7 @@ function samRunSpawnPickup(){
 
   if(choice==='tunnel'||choice==='slider'){
     /* Both are aimed at the gap, like a wall, and for the same reason. */
-    const first=Math.max(1800,gateIn+780);
+    const first=Math.max(2200,gateIn+780);
     if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
     const last=choice==='tunnel'?samRunSpawnTunnel(first,speed):(samRunSpawnGap(first,speed),first);
     g.nextPickupAt=g.time+last+700+Math.random()*400;
@@ -12556,7 +12559,7 @@ function samRunSpawnPickup(){
        after the live question gave a wall 780ms whenever there was no question
        on the road — the shortest approach exactly when it should be the
        easiest. Staying clear of the gates is samRunRoadClear's job. */
-    const first=Math.max(1800,gateIn+780);
+    const first=Math.max(2200,gateIn+780);
     if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
     const kind=Math.random()<.55?'jump':'duck';
     samRunSpawnWall(kind,first,speed);
@@ -12586,6 +12589,11 @@ function samRunSpawnPickup(){
 function samRunPaintPickup(pu){
   const g=samRun,{y,scale,spread}=samRunDepth(pu.p);
   if(pu.kind==='slide'&&!pu.slid&&pu.p>=pu.slideAt){ pu.slid=true; pu.free=pu.free2; samRunPaintGap(pu); }
+  /* The bar shrinks into the distance but its word must not: scaled with the
+     camera the label spent the first two thirds of its approach under 12px,
+     which left only the last half second to read JUMP or DUCK. The label is
+     counter-scaled to a floor, so it is legible from the moment it appears. */
+  if(pu.wide&&pu.kind!=='slide') pu.el.style.setProperty('--lbl',Math.min(2.2,Math.max(1,.62/scale)).toFixed(2));
   const x=pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*spread/100);
   /* scale() sits to the left of the anchoring translate so the anchor shrinks
      with the thing itself — otherwise a distant object is lifted by its full
