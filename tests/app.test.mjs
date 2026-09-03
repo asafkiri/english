@@ -87,9 +87,9 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
-      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
+      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
-      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup, SAM_RUN_FEATURE_SAY,
+      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
       setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3631,8 +3631,14 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /game-back-rig/, 'the equipped character is seen running away from the camera');
   assert.match(app.innerHTML, /viewBox="0 0 140 260"/,
     'the runner uses taller, human-like proportions');
-  assert.match(app.innerHTML, /<ellipse cx="70" cy="26" rx="18" ry="22"/,
-    'the smaller head leaves more than five head lengths for an athletic body');
+  assert.match(app.innerHTML, /class="back-hair-mass"/,
+    'the road character shows a covered back of the head rather than a blank face');
+  assert.doesNotMatch(app.innerHTML, /<ellipse cx="70" cy="26" rx="18" ry="22" fill=/,
+    'the old face-shaped skin oval is gone from the rear-view runner');
+  assert.match(app.innerHTML, /M48 78Q70 90 92 78/,
+    'a shoulder yoke makes the jacket read unmistakably from behind');
+  assert.doesNotMatch(app.innerHTML, /M70 72v61|M51 93h12v15H51/,
+    'front zipper and chest-pocket marks are not drawn on the runner\'s back');
   assert.match(app.innerHTML, /back-ground-shadow[\s\S]*?back-lane-root[\s\S]*?back-air-root[\s\S]*?back-run-bob/,
     'ground contact, lane lean, air action and run cadence own separate transforms');
   assert.doesNotMatch(app.innerHTML, /<svg class="game-back-rig"[^>]*>[\s\S]{0,120}<ellipse class="back-shadow"/,
@@ -3642,7 +3648,10 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(api.samRunBackAvatarHtml(rideStore), /back-lane-root[\s\S]*?back-air-root[\s\S]*?game-back-ride[\s\S]*?back-ride-offset/,
     'equipped rides travel through lane changes and jumps with the character');
   assert.match(app.innerHTML, /game-lane-focus/, 'the selected road gets immediate visual feedback');
-  assert.match(app.innerHTML, /game-swipe-hint/, 'the first seconds demonstrate the core gesture');
+  assert.doesNotMatch(app.innerHTML, /game-swipe-hint/,
+    'tutorial cards never cover a live lane or obstacle');
+  assert.match(app.innerHTML, /↔️ לוחצים על המסלול הנכון · ⬆️ למעלה קופצים · ⬇️ למטה מתכופפים/,
+    'the controls are explained on the start card before the road begins');
   assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
   assert.match(html, /const distractors=shuffled\(choices\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
     'each wave mixes the answer with two live distractors');
@@ -4126,8 +4135,8 @@ test("the endless run is measured in metres and hands out its mechanics by dista
   assert.match(html, /g\.finishing\|\|g\.lives<=0\|\|g\.endless\) return;/,
     'an endless run has no finish line to reach — only the hearts can stop it');
   assert.match(html, /g\.distance\+=dt\/1000\*8\.5\*samRunPace\(g\)/, 'distance is what the run accumulates');
-  assert.match(html, /const scene=Math\.floor\(metre\/700\)%SAM_RUN_STAGES\.length/,
-    'and the roadside rolls into the next world as it goes');
+  assert.match(html, /const scene=\(\(g\.sceneOrigin\|\|0\)\+Math\.floor\(metre\/700\)\)%SAM_RUN_STAGES\.length/,
+    'and the roadside rolls forward from the scene the run actually opened on');
 });
 
 test("the late road adds a gap that moves and a tunnel to stay down through", () => {
@@ -4142,8 +4151,9 @@ test("the late road adds a gap that moves and a tunnel to stay down through", ()
     assert.equal(api.samRunUnlocked(endless(at[feature]), feature), true);
     assert.equal(api.samRunUnlocked({ phase: { id: 'final' }, score: 0 }, feature), false,
       `a world never travels far enough to earn ${feature}`);
-    assert.ok(api.SAM_RUN_FEATURE_SAY[feature], `${feature} has to announce itself when it first appears`);
   }
+  assert.doesNotMatch(html, /SAM_RUN_FEATURE_SAY|samRunAnnounce|samRunSwipeHint/,
+    'new road mechanics arrive without interrupting play with announcement cards');
 
   // three cells, exactly one of them open, and the open one moves on the way in
   const cells = () => Array.from({ length: 3 }, () => {
@@ -4257,16 +4267,92 @@ test("sentence rounds rebuild a phrase the child already learned whole", () => {
     "the decoys are the sentence's own other words, so the wave asks which comes NEXT");
   assert.match(html, /if\(!ob\.sentenceWave\)\{\s*\n\s*g\.runSeen\[ob\.cmd\]/,
     'a sentence word keeps no mastery of its own — HOW and ARE do not belong in that record');
-  // the wrong-word branch, read on its own: combo yes, heart no
+  // A wrong word now teaches and retries the same slot. It should not punish a
+  // child for failing to infer an order from three moving cards.
   const wrongBranch = html.slice(html.indexOf('if(ob.sentenceWave){'));
   const branchBody = wrongBranch.slice(0, wrongBranch.indexOf('return;'));
-  assert.match(branchBody, /g\.cleanStreak=0;/, 'a word in the wrong place costs the combo');
-  assert.ok(!branchBody.includes('samRunHit('), 'and never a heart');
-  assert.match(branchBody, /samRunAdvanceSentence\(ob\)/, 'and the sentence still carries him to its end');
+  assert.doesNotMatch(branchBody, /g\.streak=0|samRunHit\(/,
+    'a wrong sentence word costs neither the visible combo nor a heart');
+  assert.match(branchBody, /g\.cleanStreak=0;/,
+    'but the separate no-mistakes mission remains honest');
+  assert.match(branchBody, /g\.sentenceHint=ob\.cmd;/,
+    'the expected word is revealed in the sentence itself');
+  assert.match(branchBody, /samRunSentencePrompt\(\)/,
+    'the correction is rendered immediately');
+  assert.match(branchBody, /g\.nextSpawnAt=Math\.max\(g\.nextSpawnAt,g\.time\+950\)/,
+    'the child gets time to read the correction before the same slot returns');
+  assert.match(html, /g\.sentenceHint=null;\s*\n\s*samRunSentencePrompt\(\);/,
+    'the revealed answer becomes a question again when the retry gates arrive');
+  assert.doesNotMatch(branchBody, /samRunAdvanceSentence\(ob\)/,
+    'a wrong choice cannot silently advance the sentence');
+  assert.match(html, /samRunSentencePrompt\(\);\s*\n\s*g\.nextSpawnAt=Math\.max\(g\.nextSpawnAt,g\.time\+700\);/,
+    'the sentence panel gets a readable preview before its first gates move');
+  assert.match(html, /samRunStartSentence\(\); return;/,
+    'starting a sentence cannot spawn its first word in the same frame');
+  assert.match(html, /game-lane-prompt\.is-sentence[^}]*width:min\(420px,calc\(100% - 22px\)\)/,
+    'the sentence prompt uses almost the full phone width');
+  assert.match(html, /game-sentence\{[^}]*font-size:clamp\(20px,5\.4vw,26px\)[^}]*white-space:normal/,
+    'the assembled English is large and wraps instead of clipping');
+  assert.match(html, /game-world\.lane-game \.game-lane-prompt\.is-sentence \.sentence-kicker\{[^}]*font-size:13px/,
+    'the sentence instruction is not reduced back to the normal 10px prompt size');
+  assert.match(html, /@media \(max-height:700px\)\{\.game-world\.lane-game \.game-lane-prompt\.is-sentence\{top:138px/,
+    'short phones keep the sentence panel above the approaching gates');
+  assert.doesNotMatch(html, /class="sentence-gap"/,
+    'line wrapping cannot strand a direction arrow away from its word');
   assert.match(html, /g\.nextSpawnAt=Math\.max\(g\.nextSpawnAt,g\.time\+1500\);/,
     'the road is held for a beat so the finished sentence can be seen and heard');
   assert.match(html, /if\(g\.sentence\) samRunSpawnSentenceWave\(\); else samRunSpawnLaneWave\(\);/,
     'a sentence owns the road until it is finished');
+});
+
+test("a wrong sentence choice teaches, retries, and advances only after correction", () => {
+  const { api, context } = runtime();
+  const classList = () => ({ add() {}, remove() {}, toggle() {}, contains: () => false });
+  const prompt = { innerHTML: '', classList: classList(), setAttribute() {}, removeAttribute() {} };
+  const host = { children: [], appendChild(el) { this.children.push(el); } };
+  context.document.createElement = () => ({
+    className: '', innerHTML: '', style: {}, classList: classList(), remove() {},
+    querySelectorAll: () => Array.from({ length: 3 }, () => ({ classList: classList() })),
+  });
+  context.document.getElementById = id => id === 'samRunObstacles' ? host : id === 'samRunLanePrompt' ? prompt : null;
+
+  const sentence = { say: 'Good morning', he: 'בוקר טוב', words: ['GOOD', 'MORNING'] };
+  const game = {
+    endless: true, distance: 500, phase: api.SAM_RUN_ENDLESS_PHASE, score: 0, time: 1000,
+    worldW: 390, worldH: 700, lane: 1, laneGame: true, lives: 3, shield: 0,
+    sentence, sentenceAt: 0, sentenceHint: null, sentenceWords: ['GOOD', 'MORNING', 'HELLO'],
+    obstacles: [], pickups: [], obstacleSeq: 0, nextSpawnAt: 0, resolvedCount: 0, correctCount: 0,
+    streak: 4, cleanStreak: 4, streakPeak: 4, cleanPeak: 4, runSeen: {}, cleared: {},
+    store: { mastery: {}, cleared: {}, totalCorrect: 0, streakBest: 4, bestDistance: 0, latency: 0 },
+  };
+  api.setSamRun(game);
+  const wrong = {
+    cmd: 'GOOD', armed: 'MORNING', sentenceWave: true, laneWave: true, resolved: false,
+    correctLane: 0, chosenLane: 1, bonus: false, el: context.document.createElement('div'),
+  };
+  game.obstacles.push(wrong);
+  api.samRunResolve(wrong);
+
+  assert.equal(game.sentenceAt, 0, 'the wrong choice stays on the same word');
+  assert.equal(game.sentenceHint, 'GOOD');
+  assert.match(prompt.innerHTML, />GOOD</, 'the correction is visible during the teaching beat');
+  assert.equal(game.streak, 4, 'the visible combo survives');
+  assert.equal(game.cleanStreak, 0, 'the no-mistakes mission does not count the error');
+  assert.equal(game.lives, 3, 'sentence practice never takes a heart');
+  assert.equal(game.resolvedCount, 0, 'the retry cannot inflate progress');
+  assert.equal(game.nextSpawnAt, 1950);
+
+  game.time = game.nextSpawnAt;
+  api.samRunSpawnSentenceWave();
+  const retry = game.obstacles.at(-1);
+  assert.equal(retry.cmd, 'GOOD', 'the same word returns');
+  assert.equal(game.sentenceHint, null, 'the answer is hidden once the retry starts');
+  assert.match(prompt.innerHTML, />\?</, 'the current slot becomes a question again');
+  retry.armed = retry.cmd;
+  api.samRunResolve(retry);
+  assert.equal(game.sentenceAt, 1, 'one correct retry advances exactly one slot');
+  assert.equal(game.resolvedCount, 1);
+  assert.equal(game.correctCount, 1);
 });
 
 test("the endless run is built from this child's own words, and remembers his record", () => {
