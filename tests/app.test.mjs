@@ -83,7 +83,7 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
-      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
+      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup, SAM_RUN_FEATURE_SAY,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -3442,7 +3442,7 @@ test("Sam's runs start directly without microphone friction", () => {
   assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
   assert.doesNotMatch(html, /function samRunPrepareMicrophone/,
     'starting the runner never requests microphone permission');
-  assert.match(html, /speak\(ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say\)/,
+  assert.match(html, /const say=ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say;\n  clearTimeout\(g\.sayTimer\);\n  g\.sayTimer=setTimeout\(\(\)=>\{ if\(samRun===g&&g\.running\) speak\(say\); \},110\);/,
     'every lane selection still pronounces the English word');
 });
 
@@ -3506,7 +3506,7 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'the rear-view runner travels between three screen lanes');
   assert.match(html, /const \{y,scale,spread\}=samRunDepth\(ob\.progress\)/,
     'answer gates ride the same perspective camera as the rest of the road');
-  assert.match(html, /speak\(ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say\)/,
+  assert.match(html, /const say=ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say;\n  clearTimeout\(g\.sayTimer\);\n  g\.sayTimer=setTimeout\(\(\)=>\{ if\(samRun===g&&g\.running\) speak\(say\); \},110\);/,
     'every lane choice reinforces its English pronunciation');
   assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,
     'a second three-answer wave never steals control from the active one');
@@ -3696,7 +3696,7 @@ test("walls give the road a vertical axis that can only be answered by reading",
   const classList = () => { const list = []; return { list, add(c) { list.push(c); }, remove(c) { const i = list.indexOf(c); if (i >= 0) list.splice(i, 1); }, contains: c => list.includes(c) }; };
   const runner = { classList: classList(), offsetWidth: 80, style: { setProperty() {} } };
   context.document.getElementById = id => id === 'samRunRunner' ? runner : null;
-  const wall = kind => ({ el: { classList: classList(), style: {}, remove() {} }, kind, lane: 1, wide: true, p: .95, done: false });
+  const wall = (kind, life = 1300) => ({ el: { classList: classList(), style: {}, remove() {} }, kind, lane: 1, wide: true, p: .95, life, done: false });
   const game = { running: true, laneGame: true, lane: 1, worldW: 300, worldH: 600, streak: 5, cleanStreak: 5,
     lives: 3, score: 0, runCoinBonus: 0, time: 1000, air: null, obstacles: [], pickups: [], props: [], mission: null,
     phase: { id: 'final' }, nextSpawnAt: Infinity };
@@ -3727,15 +3727,21 @@ test("walls give the road a vertical axis that can only be answered by reading",
 
   // jumping a little early still clears it — being cautious must not be punished
   // harder than being late
-  const early = ms => {
+  const early = (ms, life) => {
     Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, runCoinBonus: 0, air: null });
     game.lastAir = { kind: 'jump', at: game.time - ms };
-    api.samRunTakePickup(wall('jump'));
+    api.samRunTakePickup(wall('jump', life));
     return game.streak;
   };
   assert.equal(early(400), 5, 'a jump made a moment too soon still carries him over');
   assert.equal(early(1200), 5, 'and so does one made as soon as the wall became readable');
   assert.equal(early(1600), 0, 'but one made long before does not');
+  /* How long the wall was coming IS how long it was readable. A flat window
+     was shorter than the journey once the road sped up, so a child who read
+     the wall at the horizon and jumped at once was told he had missed it. */
+  const slow = 2400 * api.samRunPace(game);
+  assert.equal(early(1600, slow), 5, 'a wall that spent longer coming remembers a gesture made earlier');
+  assert.equal(early(2600, slow), 0, 'but not one made before it was on the road at all');
   // one gesture clears one wall — a tunnel still needs a duck per beam
   Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, air: null });
   game.lastAir = { kind: 'duck', at: game.time - 200 };
@@ -3747,7 +3753,8 @@ test("walls give the road a vertical axis that can only be answered by reading",
   // a wall is aimed at the gap, never at the same depth as a live gate
   game.obstacles = [{ resolved: false, laneWave: true, progress: .5, travelMs: 2000 }];
   assert.equal(api.samRunRoadClear(game, 1000), false, 'a wall may not land on top of the gate it shares the road with');
-  assert.equal(api.samRunRoadClear(game, 1800), true, 'but a beat later the road is its own');
+  assert.equal(api.samRunRoadClear(game, 1700), false, 'nor close on its heels — half a second is not time to think');
+  assert.equal(api.samRunRoadClear(game, 2200), true, 'but a clear beat later the road is its own');
   game.obstacles = [];
   assert.equal(api.samRunRoadClear(game, 1000), true, 'an empty road is always clear');
   // the wave that has not spawned yet occupies its slot too
@@ -3755,8 +3762,10 @@ test("walls give the road a vertical axis that can only be answered by reading",
   const wave = api.samRunWaveTiming(game);
   assert.equal(api.samRunRoadClear(game, 200 + wave.warnMs + wave.travelMs), false,
     'a wall may not be scheduled into the slot the next question is about to take');
-  assert.equal(api.samRunRoadClear(game, 200 + wave.warnMs + wave.travelMs + 900), true,
-    'but the road past it is free again');
+  // squarely between two waves is the one place a wall belongs
+  const period = wave.warnMs + wave.travelMs * .86;
+  assert.equal(api.samRunRoadClear(game, 200 + wave.warnMs + wave.travelMs + Math.round(period / 2)), true,
+    'but the road between two of them is free');
 });
 
 test("the final challenge is the fastest gear and the only one that pairs walls", () => {
@@ -3799,6 +3808,53 @@ test("the final challenge is the fastest gear and the only one that pairs walls"
   assert.ok(final.some(b => b.coins > 0) && speed.some(b => b.coins > 0),
     'a wall and a line of coins can share one gap');
   assert.equal(batchesFor('learn').length, 0, 'the learn phase still has no walls at all');
+});
+
+test("a wall keeps its beat away from the questions at every pace, and the road never runs out of them", () => {
+  const { api, context } = runtime();
+  const host = { children: [], appendChild(el) { this.children.push(el); } };
+  context.document.getElementById = id => id === 'samRunRush' ? host : null;
+  // the sliding gap paints its own cells, so the stub has to have some
+  context.document.createElement = () => ({ className: '', innerHTML: '', style: {},
+    classList: { add() {}, toggle() {} }, setAttribute() {}, appendChild() {}, remove() {},
+    querySelectorAll: () => [0, 1, 2].map(() => ({ classList: { toggle() {}, add() {} } })) });
+  const endlessAt = d => ({ endless: true, distance: d, score: 0, time: 0, worldW: 300, worldH: 600,
+    phase: api.SAM_RUN_ENDLESS_PHASE, obstacles: [], pickups: [], props: [], nextPickupAt: 0, taught: {} });
+
+  // the room a wall demands has to shrink with the wave period: the questions
+  // come every 1.3s at full speed, so a flat 900ms forbade the whole road
+  for (const d of [400, 1200, 2000, 2600]) {
+    const g = endlessAt(d), wave = api.samRunWaveTiming(g), period = wave.warnMs + wave.travelMs * .86;
+    assert.ok(api.samRunGateSep(period) * 2 < period,
+      `at ${d}m two separations must still fit inside one wave period, or no wall can ever be placed`);
+  }
+
+  // and with a question on the road, a wall is walked forward to a clear slot
+  const walls = d => {
+    const g = endlessAt(d);
+    api.setSamRun(g);
+    let seen = 0, tooClose = 0;
+    for (let i = 0; i < 300; i++) {
+      g.pickups.length = 0; g.time = 1; g.nextPickupAt = -1;
+      // a live question, at a fresh point of its approach each time
+      g.obstacles = [{ resolved: false, laneWave: true, progress: (i % 10) / 10, travelMs: 1800 }];
+      api.samRunSpawnPickup();
+      const wave = api.samRunWaveTiming(g), sep = api.samRunGateSep(wave.warnMs + wave.travelMs * .86);
+      const gate = (1 - g.obstacles[0].progress) * g.obstacles[0].travelMs, pace = api.samRunPace(g);
+      for (const pu of g.pickups.filter(x => x.wide)) {
+        seen++;
+        // life/pace is the journey the wall actually makes, and it must not
+        // end in the same moment the child is reading the word
+        if (Math.abs(pu.life / pace - gate) < sep * .75) tooClose++;
+      }
+    }
+    return { seen, tooClose };
+  };
+  for (const d of [700, 1400, 2200, 2600]) {
+    const { seen, tooClose } = walls(d);
+    assert.ok(seen > 30, `walls must keep coming at ${d}m — the road gets harder with distance, not emptier`);
+    assert.equal(tooClose, 0, `and none of them lands on the word the child is still reading at ${d}m`);
+  }
 });
 
 test("the endless run is measured in metres and hands out its mechanics by distance", () => {
@@ -3880,7 +3936,7 @@ test("the late road adds a gap that moves and a tunnel to stay down through", ()
     cleanStreak: 6, lives: 3, runCoinBonus: 0, time: 0, obstacles: [], pickups: [], props: [], phase: { id: 'endless' } };
   api.setSamRun(game);
 
-  const gap = api.samRunSpawnGap(1200, 1);
+  const gap = api.samRunSpawnGap(1200);
   const openLane = () => made[0].findIndex(c => c.classList.contains('open'));
   assert.equal(made[0].filter(c => c.classList.contains('open')).length, 1, 'exactly one lane is ever open');
   assert.equal(openLane(), gap.free);
@@ -3906,14 +3962,20 @@ test("the late road adds a gap that moves and a tunnel to stay down through", ()
 
   // the tunnel is three low beams at an even rhythm
   game.pickups.length = 0; made = [];
-  const end = api.samRunSpawnTunnel(1100, 1);
+  const end = api.samRunSpawnTunnel(1100);
   const beams = game.pickups.filter(x => x.wide);
   assert.equal(beams.length, 3);
   assert.ok(beams.every(x => x.kind === 'duck'), 'a tunnel is stayed down through, not jumped');
-  const arrivals = beams.map(x => x.life * .94);
+  /* p advances by dt/life*pace, so the journey a beam actually makes is
+     life/pace — and that has to be the time it was asked for, or everything
+     placed around it is placed in the wrong second. */
+  const pace = api.samRunPace(game);
+  const arrivals = beams.map(x => x.life / pace);
+  assert.ok(pace > 1.2, 'the fixture has to be at a real pace for this to prove anything');
+  assert.ok(Math.abs(arrivals[0] - 1100) < 1, 'a beam asked to arrive in 1100ms takes 1100ms to arrive');
   assert.ok(Math.abs((arrivals[1] - arrivals[0]) - (arrivals[2] - arrivals[1])) < 30, 'evenly spaced');
   assert.ok(arrivals[2] - arrivals[1] > 700, 'and far enough apart to duck again between them');
-  assert.ok(end >= arrivals[2], 'the gap after it is measured from the last beam, not the first');
+  assert.ok(end >= arrivals[2] - 1, 'the gap after it is measured from the last beam, not the first');
 
   assert.match(html, /if\(g\.air&&g\.air\.until>g\.time\+220\) return;/,
     'the mid-air lock is short enough that three ducks are a rhythm rather than a race');

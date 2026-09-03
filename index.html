@@ -2162,13 +2162,13 @@ body{
 /* The tarmac and its two edge lines are the same trapezoid the camera walks:
    half a road width of 15.8% at the horizon, 55.5% where it leaves the bottom
    of the screen. Anything the run loop places on the road lands on it exactly. */
-.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:0;top:var(--horizon);width:100%;height:60%;clip-path:polygon(34.2% 0,65.8% 0,111.8% 100%,-11.8% 100%);background:linear-gradient(180deg,#404b58,#141d2a 82%);box-shadow:inset 0 0 70px rgba(0,0,0,.35)}
+.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:0;top:var(--horizon);width:100%;height:60%;clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);background:linear-gradient(180deg,#404b58,#141d2a 82%);box-shadow:inset 0 0 70px rgba(0,0,0,.35)}
 .game-world.lane-game .game-lane-grid i{position:absolute;z-index:1;left:0;top:var(--horizon);width:100%;height:60%;rotate:none;transform:none;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.92));box-shadow:none}
-.game-world.lane-game .game-lane-grid i:nth-child(1){clip-path:polygon(33.5% 0,34.8% 0,-9.3% 100%,-14.3% 100%)}
-.game-world.lane-game .game-lane-grid i:nth-child(2){clip-path:polygon(65.2% 0,66.5% 0,114.3% 100%,109.3% 100%)}
-.game-world.lane-game .game-lane-grid i:nth-child(3){top:var(--horizon);background:radial-gradient(ellipse at 50% 0,rgba(147,197,253,.22),transparent 62%);clip-path:polygon(34.2% 0,65.8% 0,111.8% 100%,-11.8% 100%);opacity:.75}
+.game-world.lane-game .game-lane-grid i:nth-child(1){clip-path:polygon(30.8% 0,32.1% 0,-7.6% 100%,-12.6% 100%)}
+.game-world.lane-game .game-lane-grid i:nth-child(2){clip-path:polygon(67.9% 0,69.2% 0,112.6% 100%,107.6% 100%)}
+.game-world.lane-game .game-lane-grid i:nth-child(3){top:var(--horizon);background:radial-gradient(ellipse at 50% 0,rgba(147,197,253,.22),transparent 62%);clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);opacity:.75}
 .game-world.lane-game .game-speedlines{z-index:3;background:repeating-linear-gradient(105deg,transparent 0 72px,rgba(255,255,255,.13) 74px 76px,transparent 78px 150px);opacity:.22}
-.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:42%;height:60%;translate:-50% 0;clip-path:polygon(37.3% 0,62.7% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,rgba(59,130,246,.07) 28%,rgba(96,165,250,.2));filter:drop-shadow(0 0 16px rgba(96,165,250,.3));transition:left .16s cubic-bezier(.18,.82,.28,1);pointer-events:none}
+.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:40%;height:60%;translate:-50% 0;clip-path:polygon(34.6% 0,65.4% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,rgba(59,130,246,.07) 28%,rgba(96,165,250,.2));filter:drop-shadow(0 0 16px rgba(96,165,250,.3));transition:left .16s cubic-bezier(.18,.82,.28,1);pointer-events:none}
 .game-world.lane-game.is-dragging .game-lane-focus{transition:none;background:linear-gradient(180deg,transparent,rgba(52,211,153,.09) 28%,rgba(52,211,153,.24))}
 
 .game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(270px,76vw);padding:8px 16px;border-color:rgba(147,197,253,.48);background:rgba(8,15,30,.82);font-size:clamp(22px,6vw,31px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
@@ -2200,13 +2200,16 @@ body{
 @keyframes gameBackHit{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-65%) rotate(-8deg)}55%{transform:translateX(-37%) rotate(5deg)}}
 .game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
-.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(88px,27vw,132px);height:clamp(68px,10dvh,92px);margin:0;padding:7px 3px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;font-size:16px;letter-spacing:0;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(80px,24.6vw,120px);height:clamp(68px,10dvh,92px);margin:0;padding:7px 3px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;font-size:17px;letter-spacing:0;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .game-obstacle.lane-wave .lane-gate.is-word{justify-content:center;font-size:21px;letter-spacing:.02em;direction:ltr;border-color:rgba(196,181,253,.6);background:linear-gradient(145deg,rgba(79,60,130,.95),rgba(22,18,42,.95))}
 .game-lane-prompt .game-sentence{display:block;direction:ltr;margin-top:1px;font-size:.68em;letter-spacing:.05em;color:#ddd6fe}
 .game-lane-prompt .game-sentence b{color:#fff}
 .game-lane-prompt .game-sentence em{color:#fde68a;font-style:normal}
 .game-lane-prompt .game-sentence i{display:inline-block;width:1.4em;border-bottom:.09em solid rgba(255,255,255,.4);vertical-align:.18em}
 .game-lane-prompt .game-sentence.done b{color:#6ee7b7}
+/* Only the few words that cannot fit give any size back. WEDNESDAY and
+   BEAUTIFUL are rare; JUMP and RED are not, and they get the full size. */
+.game-obstacle.lane-wave .lane-gate.is-long{font-size:14px}
 .game-obstacle.lane-wave .lane-gate.from-lesson:before{content:'📚';position:absolute;top:3px;left:5px;font-size:11px;opacity:.95;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .game-obstacle.lane-wave .lane-gate.from-lesson{border-color:rgba(253,230,138,.6)}
 .game-start-lesson{margin-top:6px;padding:6px 10px;border:1px dashed rgba(253,230,138,.5);border-radius:12px;color:#fde68a;font-size:12px;font-weight:800}
@@ -6944,7 +6947,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.37.0';
+const APP_VERSION = '2.38.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7527,7 +7530,11 @@ function speak(text, cb){
     if(micHint) micHint.textContent='ההשמעה עצרה את ההאזנה — לחץ שוב על המיקרופון כשתהיה מוכן';
   }
   const token=++speechToken;
-  speechSynthesis.cancel();
+  /* Cancel only when there is something to cancel, and let the cancel settle
+     before the next utterance. iOS wedges its synthesis queue when the two land
+     in the same tick, and everything after it goes silent. */
+  const busy=speechSynthesis.speaking||speechSynthesis.pending;
+  if(busy) speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/___/g,''));
   u.lang = 'en-US';
   const v = pickVoice(); if(v) u.voice = v;
@@ -7549,7 +7556,8 @@ function speak(text, cb){
   // left talking to itself, so stop the animation on a generous deadline too
   setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) finish(); },
     Math.max(6000, u.text.length*220));
-  speechSynthesis.speak(u);
+  if(busy) setTimeout(()=>{ if(token===speechToken) speechSynthesis.speak(u); },0);
+  else speechSynthesis.speak(u);
 }
 
 /* ---------------- lip sync ----------------
@@ -11819,7 +11827,10 @@ function samRunUnlocked(g,feature){
 function samRunEndlessWords(store,completed){
   const course=SAM_RUN_COURSE_WORDS.filter(w=>w[6]<Math.max(0,Math.floor(Number(completed)||0))).map(w=>w[0]);
   const own=SAM_RUN_STAGES.flatMap(s=>s.words.map(w=>w[0]));
-  if(course.length>=8) return {active:course,filler:own};
+  /* Sam's own forty words carry a child who has barely started the course. The
+     moment his lessons can carry a run on their own they stop appearing at all —
+     being asked for a word no lesson has taught is worse than a thinner pool. */
+  if(course.length>=8) return {active:course,filler:[]};
   return {active:course.concat(shuffled(own).slice(0,12-course.length)),filler:own};
 }
 function samRunMedalsFor(metres){ return SAM_RUN_MEDALS.filter(x=>metres>=x.m); }
@@ -12212,7 +12223,7 @@ function samRunTeardown(){
   g.running=false;
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer); clearTimeout(g.sayTimer);
   cancelSpeech();
   samRun=null;
 }
@@ -12403,8 +12414,12 @@ function samRunRunRoad(dt){
    gates, coins, kerb stones and scenery always agree about where the road is. */
 function samRunDepth(progress){
   const p=Math.max(0,Math.min(1.18,progress));
-  const scale=.34/(1-.66*p);
-  return {scale,y:40+(scale-.34)/.66*40,spread:31*scale};
+  /* The near end is unchanged — lanes still sit where they always did when a
+     thing reaches the player — but the far end starts closer, so a word is a
+     third larger the whole way in. A bigger font could not fix this on its own:
+     the camera scaled it straight back down again. */
+  const scale=.44/(1-.60*p);
+  return {scale,y:40+(scale-.44)/.66*40,spread:28*scale};
 }
 /* Depth traffic. Between questions the road used to be empty, so the player
    had no reason to move and nothing to measure the speed against. Lane stones
@@ -12444,28 +12459,76 @@ function samRunPaintRush(pr){
 /* A wall spans the road and carries a word, so it must never reach the player
    at the same moment as an answer gate — at the same depth they simply hide
    each other. Walls wait for a clear stretch; coins are small enough to share. */
-function samRunRoadClear(g,arriveMs){
-  if(g.obstacles.some(ob=>!ob.resolved&&ob.laneWave&&Math.abs((1-ob.progress)*ob.travelMs-arriveMs)<520)) return false;
-  /* The waves that have not spawned yet count too. Checking only what is
-     already on the road let a wall be scheduled into a slot a question was
-     about to take — and the second wall of a pair reaches far enough ahead to
-     land in the wave after next, so project a few of them. */
+/* Every question the player will meet in the next few seconds, as the time
+   each one arrives. The waves that have not spawned yet count too: checking
+   only what is already on the road let a wall be scheduled into a slot a
+   question was about to take — and the second wall of a pair reaches far
+   enough ahead to land in the wave after next, so project a few of them. */
+function samRunWaveArrivals(g){
+  const arrivals=[];
+  /* A question that has been answered early is still coming down the road, and
+     the child is still watching it land. Skipping those left a wall free to
+     arrive on top of one. */
+  for(const ob of g.obstacles) if(ob.laneWave){
+    const a=(1-ob.progress)*ob.travelMs;
+    if(a>0) arrivals.push(a);
+  }
   const {travelMs,warnMs}=samRunWaveTiming(g);
   const period=warnMs+travelMs*.86;
   let spawnIn=Number.isFinite(g.nextSpawnAt)?g.nextSpawnAt-g.time:Infinity;
-  for(let i=0;i<3&&Number.isFinite(spawnIn);i++,spawnIn+=period){
-    if(Math.abs(spawnIn+warnMs+travelMs-arriveMs)<520) return false;
+  for(let i=0;i<3&&Number.isFinite(spawnIn);i++,spawnIn+=period) arrivals.push(spawnIn+warnMs+travelMs);
+  return {arrivals,period};
+}
+/* How much road a wall needs to itself. It has to be a share of the wave
+   period rather than a flat number of milliseconds: at full speed the
+   questions come every 1.3s, and a fixed 900ms kept both halves of every gap
+   forbidden, which starved the road of walls entirely past the first
+   kilometre. As a share, the beat between reading and jumping survives at
+   every pace and the walls keep coming. */
+function samRunGateSep(period){ return Math.min(900,Math.round(period*.42)); }
+function samRunRoadClear(g,arriveMs){
+  const {arrivals,period}=samRunWaveArrivals(g),sep=samRunGateSep(period);
+  return !arrivals.some(a=>Math.abs(a-arriveMs)<sep);
+}
+/* Rather than abandon a wall because the stretch it wanted is busy, walk it
+   forward into the next clear slot. Giving up simply dropped the wall, so a
+   crowded road got quieter exactly when it should get harder. */
+/* A tunnel is three beams and a pair is two walls, and every one of them has
+   to miss the questions — checking only the first left the later ones free to
+   land on a word, which is most of what a run at speed actually threw at the
+   player. Pass the whole shape's offsets and the slot is found for all of it
+   at once. */
+function samRunAimClear(g,wanted,offsets){
+  const {arrivals,period}=samRunWaveArrivals(g),sep=samRunGateSep(period);
+  const at=offsets&&offsets.length?offsets:[0];
+  if(!arrivals.length) return wanted;
+  const gapAt=t=>Math.min(...at.map(o=>Math.min(...arrivals.map(a=>Math.abs(a-t-o)))));
+  let best=wanted,bestGap=-1;
+  for(let t=wanted;t<=wanted+period+240;t+=110){
+    const gap=gapAt(t);
+    if(gap>=sep) return Math.round(t);
+    if(gap>bestGap){ bestGap=gap; best=t; }
   }
-  return true;
+  /* Nowhere on this stretch is properly clear: better no wall than one landing
+     on a word. */
+  return bestGap>=sep*.75?Math.round(best):null;
 }
 /* Everything on the road is placed by when it should REACH the player rather
    than by how fast it travels, so one arrival time can be shared between a
    wall, the coins beside it and the question already on its way. */
-/* The ceiling has to clear the furthest thing anything schedules — a tunnel's
-   third beam is aimed nearly three seconds out, and clamping it pulled that
-   beam forward into the second one's landing. */
-function samRunLifeFor(arriveMs,speed){ return Math.max(820,Math.min(3400,arriveMs*speed/.94)); }
-function samRunSpawnWall(kind,arriveMs,speed){
+/* A pickup's p advances by dt/life*speed while a question's advances by
+   dt/travelMs, so a pickup's real journey is life/speed and its life has to be
+   stretched by the pace to reach the player when it was asked to. Getting this
+   wrong is what put a wall on top of the word before it: at full pace a wall
+   aimed two seconds out arrived in under one, inside the beat the scheduler
+   had just cleared for reading. The clamps are in real milliseconds — the
+   ceiling only guards against nonsense, since a tunnel's third beam is aimed
+   well past three seconds and clamping that pulled the beam forward into the
+   second one's landing. */
+function samRunLifeFor(arriveMs){ return Math.max(820,Math.min(6000,arriveMs))*samRunPace(samRun); }
+/* ...and the way back: how long until this pickup actually reaches the player. */
+function samRunPickupIn(pu){ return (1-pu.p)*pu.life/samRunPace(samRun); }
+function samRunSpawnWall(kind,arriveMs){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return null;
   const jump=kind==='jump', el=document.createElement('i');
   el.className=jump?'rush-bar':'rush-beam';
@@ -12477,11 +12540,11 @@ function samRunSpawnWall(kind,arriveMs,speed){
   el.innerHTML=word+`<span>${jump?'⬆':'⬇'}</span>`+word;
   el.style.width=Math.round(g.worldW*.93)+'px';
   host.appendChild(el);
-  const pu={el,kind,lane:1,wide:true,p:0,life:samRunLifeFor(arriveMs,speed),done:false};
+  const pu={el,kind,lane:1,wide:true,p:0,life:samRunLifeFor(arriveMs),done:false};
   g.pickups.push(pu); samRunTeachAir(kind);
   return pu;
 }
-function samRunSpawnGap(arriveMs,speed){
+function samRunSpawnGap(arriveMs){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return null;
   const el=document.createElement('i');
   el.className='rush-gap';
@@ -12492,24 +12555,24 @@ function samRunSpawnGap(arriveMs,speed){
   /* The gap moves once on the way in, so being in the right lane early is not
      the same as being in the right lane when it arrives. */
   const pu={el,kind:'slide',lane:1,wide:true,free,free2:free===1?(Math.random()<.5?0:2):1,
-    slideAt:.45+Math.random()*.15,slid:false,p:0,life:samRunLifeFor(arriveMs,speed),done:false};
+    slideAt:.45+Math.random()*.15,slid:false,p:0,life:samRunLifeFor(arriveMs),done:false};
   g.pickups.push(pu); samRunPaintGap(pu);
   return pu;
 }
 function samRunPaintGap(pu){
   pu.el.querySelectorAll('b').forEach((cell,i)=>cell.classList.toggle('open',i===pu.free));
 }
-function samRunSpawnTunnel(arriveMs,speed){
+function samRunSpawnTunnel(arriveMs){
   const g=samRun;
   for(let i=0;i<3;i++){
-    const pu=samRunSpawnWall('duck',arriveMs+i*780,speed);
+    const pu=samRunSpawnWall('duck',arriveMs+i*780);
     if(pu) pu.el.classList.add('is-tunnel');
   }
   return arriveMs+2*780;
 }
-function samRunSpawnCoins(lane,arriveMs,speed){
+function samRunSpawnCoins(lane,arriveMs){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
-  const life=samRunLifeFor(arriveMs,speed);
+  const life=samRunLifeFor(arriveMs);
   for(let i=0;i<3;i++){
     const el=document.createElement('i');
     el.className='rush-coin'; el.textContent='🪙';
@@ -12517,18 +12580,17 @@ function samRunSpawnCoins(lane,arriveMs,speed){
     g.pickups.push({el,kind:'coin',lane,p:-i*.13,life,done:false});
   }
 }
-function samRunSpawnHurdle(lane,arriveMs,speed){
+function samRunSpawnHurdle(lane,arriveMs){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
   const el=document.createElement('i');
   el.className='rush-hurdle'; el.textContent='🚧';
   host.appendChild(el);
-  g.pickups.push({el,kind:'hurdle',lane,p:0,life:samRunLifeFor(arriveMs,speed),done:false});
+  g.pickups.push({el,kind:'hurdle',lane,p:0,life:samRunLifeFor(arriveMs),done:false});
 }
 function samRunSpawnPickup(){
   const g=samRun; if(!g||!document.getElementById('samRunRush')) return;
   /* The first, gentlest pass through a world stays a pure reading run. */
   const pairs=samRunUnlocked(g,'pairs');
-  const speed=samRunPace(g);
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
   const gateIn=live?Math.max(0,(1-live.progress)*live.travelMs):0;
   const lane=()=>Math.floor(Math.random()*3);
@@ -12545,10 +12607,11 @@ function samRunSpawnPickup(){
   for(const [what,weight] of menu){ roll-=weight; if(roll<0){ choice=what; break; } }
 
   if(choice==='tunnel'||choice==='slider'){
-    /* Both are aimed at the gap, like a wall, and for the same reason. */
-    const first=Math.max(2200,gateIn+780);
-    if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
-    const last=choice==='tunnel'?samRunSpawnTunnel(first,speed):(samRunSpawnGap(first,speed),first);
+    /* Both are aimed at the gap, like a wall, and for the same reason. The
+       tunnel books the whole stretch its three beams need, not just the first. */
+    const first=samRunAimClear(g,Math.max(2200,gateIn+1100),choice==='tunnel'?[0,780,1560]:[0]);
+    if(first==null){ g.nextPickupAt=g.time+400; return; }
+    const last=choice==='tunnel'?samRunSpawnTunnel(first):(samRunSpawnGap(first),first);
     g.nextPickupAt=g.time+last+700+Math.random()*400;
     return;
   }
@@ -12560,31 +12623,34 @@ function samRunSpawnPickup(){
        after the live question gave a wall 780ms whenever there was no question
        on the road — the shortest approach exactly when it should be the
        easiest. Staying clear of the gates is samRunRoadClear's job. */
-    const first=Math.max(2200,gateIn+780);
-    if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
-    const kind=Math.random()<.55?'jump':'duck';
-    samRunSpawnWall(kind,first,speed);
-    let last=first;
     /* The final challenge sends them in pairs, close enough behind that Sam is
        still landing from the first. The second is always the opposite wall, so
-       it has to be read — a pair can never be cleared by repeating a gesture. */
-    if(pairs&&Math.random()<.55&&samRunRoadClear(g,first+1020)){
-      samRunSpawnWall(kind==='jump'?'duck':'jump',first+1020,speed);
+       it has to be read — a pair can never be cleared by repeating a gesture.
+       The pair is decided before the slot is chosen, so the second wall gets
+       the same clear road the first one does. */
+    const wantPair=pairs&&Math.random()<.55;
+    const first=samRunAimClear(g,Math.max(2200,gateIn+1100),wantPair?[0,1020]:[0]);
+    if(first==null){ g.nextPickupAt=g.time+400; return; }
+    const kind=Math.random()<.55?'jump':'duck';
+    samRunSpawnWall(kind,first);
+    let last=first;
+    if(wantPair){
+      samRunSpawnWall(kind==='jump'?'duck':'jump',first+1020);
       last=first+1020;
     }
     /* A wall and a line of coins may now share one gap. Reading the wall early
        leaves time to pick a lane, so the coins are the reward for reading it
        early rather than a second thing competing for the same moment. */
-    if(samRunUnlocked(g,'coins')&&Math.random()<.55) samRunSpawnCoins(lane(),first,speed);
+    if(samRunUnlocked(g,'coins')&&Math.random()<.55) samRunSpawnCoins(lane(),first);
     g.nextPickupAt=g.time+last+660+Math.random()*460;
     return;
   }
   if(choice==='hurdle'){
-    samRunSpawnHurdle(lane(),1150,speed);
+    samRunSpawnHurdle(lane(),1150);
     g.nextPickupAt=g.time+1450+Math.random()*650;
     return;
   }
-  samRunSpawnCoins(lane(),1150,speed);
+  samRunSpawnCoins(lane(),1150);
   g.nextPickupAt=g.time+(pairs?1520:1900)+Math.random()*700;
 }
 function samRunPaintPickup(pu){
@@ -12629,7 +12695,11 @@ function samRunTakePickup(pu){
      approach counts as readable. A wall asks whether he saw JUMP or DUCK, not
      whether he can hit one frame, so only the wrong gesture fails. The gesture
      is then spent, so one duck cannot carry him through a whole tunnel. */
-  if(pu.wide&&(g.air?.kind===pu.kind||(g.lastAir?.kind===pu.kind&&g.time-g.lastAir.at<=1400))){
+  /* "The whole approach" has to mean the approach this wall actually made: a
+     flat window was shorter than the journey at speed, so a child who read the
+     wall the moment it appeared and jumped straight away was told he missed. */
+  const readable=Math.max(1400,pu.life/samRunPace(g)||0);
+  if(pu.wide&&(g.air?.kind===pu.kind||(g.lastAir?.kind===pu.kind&&g.time-g.lastAir.at<=readable))){
     g.lastAir=null;
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
     g.clearedWalls=(g.clearedWalls||0)+1;
@@ -12724,8 +12794,13 @@ function samRunChooseLane(lane){
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
   ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>el.classList.toggle('is-picked',i===lane));
+  /* Passing through the middle lane to reach the far one fired two words back
+     to back, and the first was cancelled mid-syllable — which is most of why
+     the game sounded silent. Say the word he actually settled on. */
   const chosen=ob.options[lane];
-  speak(ob.sentenceWave?chosen.toLowerCase():SAM_RUN_COMMANDS[chosen].say);
+  const say=ob.sentenceWave?chosen.toLowerCase():SAM_RUN_COMMANDS[chosen].say;
+  clearTimeout(g.sayTimer);
+  g.sayTimer=setTimeout(()=>{ if(samRun===g&&g.running) speak(say); },110);
 }
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
@@ -12739,7 +12814,7 @@ function samRunSpawnLaneWave(){
   const {travelMs,warnMs}=samRunWaveTiming(g);
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'');
-  el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}${choice.lesson===undefined?'':' from-lesson'}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
+  el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}${choice.lesson===undefined?'':' from-lesson'}${choice.en.length>=8?' is-long':''}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
   host.appendChild(el);
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
   g.obstacles.push(ob);
@@ -12803,6 +12878,32 @@ function samRunSpawn(){
   // first half of its approach — one answer at a time is the whole game
   const last=g.obstacles[g.obstacles.length-1];
   if(last&&!last.resolved&&(g.laneGame||last.progress<.55)){ g.nextSpawnAt=g.time+120; return; }
+  /* The other half of keeping words and walls apart, and the half that cannot
+     be wrong. A wall is placed against a projection of where the coming
+     questions will land, and that projection drifts: a wave waits while the
+     last one is unanswered, and each one picks its own spacing. Here nothing
+     is guessed — the walls are already on the road and this wave's arrival is
+     known — so a wave that would land on a wall waits for the road to clear.
+     Without it the child still met a word and a wall in the same instant. */
+  const wave=samRunWaveTiming(g);
+  const waveIn=wave.warnMs+wave.travelMs, waveSep=samRunGateSep(wave.warnMs+wave.travelMs*.86);
+  const walls=g.pickups.filter(pu=>pu.wide&&!pu.done).map(samRunPickupIn);
+  if(walls.length){
+    const roomAfter=d=>Math.min(...walls.map(w=>Math.abs(w-waveIn-d)));
+    if(roomAfter(0)<waveSep){
+      /* Far enough to clear a whole tunnel if it has to: three beams 780ms
+         apart leave no slot between them, so the wave has to go before all of
+         them or wait for the last. */
+      let best=0,bestRoom=roomAfter(0),d=60;
+      for(;d<=3000;d+=60){
+        const room=roomAfter(d);
+        if(room>=waveSep) break;
+        if(room>bestRoom){ bestRoom=room; best=d; }
+      }
+      g.nextSpawnAt=g.time+(d<=3000?d:best);
+      if(d<=3000||best>0) return;
+    }
+  }
   if(g.laneGame){
     /* A sentence owns the road until it is done: one word per wave, in order,
        so the phrase gets rebuilt rather than recognised. */
