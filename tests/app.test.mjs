@@ -3450,17 +3450,22 @@ test("Sam's runs start directly without microphone friction", () => {
   assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
   assert.doesNotMatch(html, /function samRunPrepareMicrophone/,
     'starting the runner never requests microphone permission');
-  /* The word is said inside the swipe that chose it. A newly arriving wave
-     also says the already-selected lane once, so standing still never turns a
-     new question silent. */
+  /* Only the right answer is ever spoken. Reading out whichever lane the
+     runner was crossing taught wrong words as often as right ones, and saying
+     one as a wave arrived handed over the answer before the question had been
+     read at all. */
   assert.match(html, /function samRunSpeakLane\(ob,lane,arrival=false\)\{[\s\S]*?if\(!samRunPlayRecordedWord\(spoken,ob,lane,finish\)\) finish\(samRunSay\(spoken\)\);/,
     'all lane speech prefers the recorded gameplay path and retains speech synthesis as fallback');
+  assert.match(html, /function samRunSpeakLane\(ob,lane,arrival=false\)\{[\s\S]*?if\(ob\.correctLane!=null&&lane!==ob\.correctLane\) return;/,
+    'a lane that is not the answer is never pronounced');
   assert.match(html, /function samRunChooseLane\(lane\)\{[\s\S]*?samRunSpeakLane\(ob,lane\);/,
-    'every lane selection pronounces its English word');
-  assert.match(html, /function samRunSpawnLaneWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
-    'a new vocabulary wave pronounces the lane where the runner already stands');
-  assert.match(html, /function samRunSpawnSentenceWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
-    'a new sentence wave pronounces the lane where the runner already stands');
+    'finding the right lane pronounces its English word');
+  assert.doesNotMatch(html, /samRunSpeakLane\(ob,g\.lane,true\)/,
+    'and nothing is spoken as a wave arrives, which would give the answer away');
+  assert.match(html, /if\(!ob\.spokeCorrect\) samRunSpeakLane\(ob,ob\.correctLane\);/,
+    'a runner already standing in the right lane still hears the word, with the answer');
+  assert.doesNotMatch(html, /function samRunSpawnSentenceWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
+    'nor does a sentence wave — its next word would be handed over before it was asked for');
   assert.match(html, /const finish=played=>\{[\s\S]*?if\(played\) ob\.arrivalSpoken=true;/,
     'a wave is marked spoken only after a playback path really starts it');
   assert.match(html, /function samRunStart\(\)\{[\s\S]*?samRunTone\('tick'\);\n  samRunVoiceUntil=0;/,
