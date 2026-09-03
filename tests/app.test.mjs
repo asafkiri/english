@@ -3451,6 +3451,8 @@ test("Sam's runs start directly without microphone friction", () => {
     'and never through a timer, which is what iOS drops');
   assert.match(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.resume\(\)/,
     'the game resumes the synthesis queue itself — iOS leaves it paused');
+  assert.match(html, /function samRunStart\(\)\{[\s\S]*?samRunSay\('Ready'\);/,
+    'a direct game visit primes iOS speech from the Start-button tap');
   /* Nothing the game says may go through a cancel. Asking iOS whether it is
      speaking and skipping if so let the child hear only the first word of a
      fast run; cancelling to make room silenced the phone outright, because a
