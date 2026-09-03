@@ -3442,8 +3442,19 @@ test("Sam's runs start directly without microphone friction", () => {
   assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
   assert.doesNotMatch(html, /function samRunPrepareMicrophone/,
     'starting the runner never requests microphone permission');
-  assert.match(html, /const say=ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say;\n  clearTimeout\(g\.sayTimer\);\n  g\.sayTimer=setTimeout\(\(\)=>\{ if\(samRun===g&&g\.running\) speak\(say\); \},110\);/,
-    'every lane selection still pronounces the English word');
+  /* The word is said inside the swipe that chose it. Deferring it by even a
+     tick carries it out of the gesture, and iOS Safari will not speak outside
+     one — which is why the game had been silent on a real phone. */
+  assert.match(html, /samRunSay\(ob\.sentenceWave\?String\(chosen\)\.toLowerCase\(\):\(word\?word\.say\|\|word\.en:chosen\)\);/,
+    'every lane selection pronounces the English word, synchronously');
+  assert.doesNotMatch(html, /g\.sayTimer=setTimeout/,
+    'and never through a timer, which is what iOS drops');
+  assert.match(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.resume\(\)/,
+    'the game resumes the synthesis queue itself — iOS leaves it paused');
+  assert.doesNotMatch(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.cancel\(\)[\s\S]*?\n\}/,
+    'and never cancels: a cancel and a speak in one tick wedges iOS for the rest of the run');
+  assert.match(html, /const u = new SpeechSynthesisUtterance\('a'\);/,
+    'the iOS unlock speaks a real letter — a whitespace utterance is nothing to say, so it unlocked nothing');
 });
 
 test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
@@ -3504,9 +3515,15 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'supported phones confirm a lane change with light haptics');
   assert.match(html, /\['20%','50%','80%'\]\[lane\]/,
     'the rear-view runner travels between three screen lanes');
-  assert.match(html, /const \{y,scale,spread\}=samRunDepth\(ob\.progress\)/,
-    'answer gates ride the same perspective camera as the rest of the road');
-  assert.match(html, /const say=ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say;\n  clearTimeout\(g\.sayTimer\);\n  g\.sayTimer=setTimeout\(\(\)=>\{ if\(samRun===g&&g\.running\) speak\(say\); \},110\);/,
+  /* Everything on the road shares one camera except the one thing that has to
+     be read. Three gates on the scene camera were 42px wide at the horizon,
+     which is 7.5px of English — no font size survives that, so the gates get
+     their own gentler camera and arrive already legible. */
+  assert.match(html, /const \{y,scale,spread\}=samRunGateDepth\(ob\.progress\)/,
+    'answer gates get the gentle camera, so the word can be read on arrival');
+  assert.match(html, /samRunPaintPickup[\s\S]{0,900}samRunDepth\(pu\.p\)/,
+    'while the walls and coins still ride the real perspective');
+  assert.match(html, /samRunSay\(ob\.sentenceWave\?String\(chosen\)/,
     'every lane choice reinforces its English pronunciation');
   assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,
     'a second three-answer wave never steals control from the active one');
