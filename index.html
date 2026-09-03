@@ -1875,6 +1875,9 @@ body{
 .game-score.bump{animation:gameScoreBump .3s ease both}
 @keyframes gameScoreBump{40%{transform:scale(1.28);color:var(--green)}}
 .game-best{font-size:11px;color:var(--dim);margin-top:2px}
+.game-run-wallet{display:flex;align-items:center;gap:4px;min-width:42px;padding:4px 7px;border:1px solid rgba(252,211,77,.38);border-radius:999px;background:rgba(55,35,6,.58);color:#fff2a8;font-size:12px;font-weight:950;font-variant-numeric:tabular-nums;direction:ltr;box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.game-run-wallet i{position:relative;display:block;width:17px;height:17px;border:1px solid #fff0a3;border-radius:50%;background:radial-gradient(circle at 34% 27%,#fff8c2 0 11%,#facc15 13% 54%,#c76a00 56% 100%);box-shadow:inset 0 0 0 2px #f5a800,0 0 5px rgba(250,204,21,.48)}
+.game-run-wallet.bump{animation:gameWalletBump .32s ease both}@keyframes gameWalletBump{45%{transform:scale(1.16);background:rgba(146,88,4,.78)}}
 
 /* the world: a street that scrolls, and a sidewalk line the runner and every
    obstacle share, so a jump, a duck and a crossing dog all read on one floor */
@@ -1934,7 +1937,7 @@ body{
 @keyframes gameFinishLine{0%{opacity:1;transform:translateX(0)}100%{opacity:1;transform:translateX(calc(-100vw - 100px))}}
 .game-lane-grid{display:none;position:absolute;inset:7% 0 9%;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 32%,rgba(255,255,255,.22) 32% 33%,transparent 33% 65%,rgba(255,255,255,.22) 65% 66%,transparent 66%);perspective:500px}.game-world.lane-game .game-lane-grid{display:block}.game-world.lane-game .game-lane{display:none}.game-world.lane-game .game-runner{bottom:auto;top:36%;width:66px;height:123px}.game-world.lane-game .game-roadside{opacity:.62}.game-world.lane-game .game-far{opacity:.78}
 .game-lane-prompt{display:none;position:absolute;top:8px;left:50%;translate:-50% 0;z-index:7;min-width:150px;padding:5px 13px;border-radius:999px;background:rgba(9,15,29,.86);border:1px solid rgba(255,255,255,.28);color:#fff;text-align:center;font-size:17px;font-weight:950;box-shadow:0 5px 18px rgba(0,0,0,.28)}.game-world.lane-game .game-lane-prompt{display:block}.game-lane-prompt small{display:block;color:#bfdbfe;font-size:9px;font-weight:750}
-.game-obstacle.lane-wave{bottom:auto;top:7%;width:92px;height:84%;justify-content:initial;transform-origin:50% 50%}.lane-gate{position:absolute;left:0;width:88px;height:29%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,.3);border-radius:16px;background:linear-gradient(145deg,rgba(30,64,110,.94),rgba(15,23,42,.94));color:#fff;box-shadow:0 9px 20px rgba(0,0,0,.3);font-size:13px;font-weight:950;letter-spacing:.035em;direction:ltr;transition:.16s ease}.lane-gate:nth-child(1){top:0}.lane-gate:nth-child(2){top:35.5%}.lane-gate:nth-child(3){top:71%}.lane-gate span{font-size:22px}.lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.2),0 9px 20px rgba(0,0,0,.3);transform:scale(1.06)}.lane-gate.is-correct{border-color:#34d399;background:rgba(16,185,129,.35)}.lane-gate.is-wrong{border-color:#fb7185;background:rgba(190,24,93,.35)}.lane-wave.is-bonus .lane-gate.is-answer:after{content:'🪙 +3';position:absolute;left:4px;top:4px;color:#fde68a;font-size:9px;letter-spacing:0}.game-obstacle.lane-wave.is-incoming::after{right:auto;left:-7px;top:44%;bottom:auto;margin:0}.lane-wave.is-incoming{opacity:.95}.lane-wave.is-incoming .lane-gate{filter:saturate(.75)}.game-obstacle.lane-wave.is-caught{animation:gameLaneWin .5s ease both}.game-obstacle.lane-wave.is-poof{animation:gameLaneHit .48s ease both}@keyframes gameLaneWin{45%{filter:brightness(1.8);transform:translateX(var(--x)) scale(1.08)}to{opacity:0;transform:translateX(var(--x)) scale(.82)}}@keyframes gameLaneHit{35%{filter:saturate(1.7);transform:translateX(var(--x)) translateY(4px)}to{opacity:0;transform:translateX(var(--x)) scale(1.25)}}
+.game-obstacle.lane-wave{bottom:auto;top:7%;width:92px;height:84%;justify-content:initial;transform-origin:50% 50%}.lane-gate{position:absolute;left:0;width:88px;height:29%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid rgba(255,255,255,.3);border-radius:16px;background:linear-gradient(145deg,rgba(30,64,110,.94),rgba(15,23,42,.94));color:#fff;box-shadow:0 9px 20px rgba(0,0,0,.3);font-size:13px;font-weight:950;letter-spacing:.035em;direction:ltr;transition:.16s ease}.lane-gate:nth-child(1){top:0}.lane-gate:nth-child(2){top:35.5%}.lane-gate:nth-child(3){top:71%}.lane-gate span{font-size:22px}.lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.2),0 9px 20px rgba(0,0,0,.3);transform:scale(1.06)}.lane-gate.is-correct{border-color:#34d399;background:rgba(16,185,129,.35)}.lane-gate.is-wrong{border-color:#fb7185;background:rgba(190,24,93,.35)}.lane-wave.is-bonus .lane-gate.is-answer:after{content:'+3';position:absolute;left:5px;top:5px;min-width:24px;padding:2px 5px;border:1px solid #ffe89b;border-radius:999px;background:linear-gradient(145deg,#fff3a6,#f59e0b 58%,#9a5200);color:#5b3100;font-size:9px;font-weight:1000;letter-spacing:0;box-shadow:0 2px 7px rgba(245,158,11,.45)}.game-obstacle.lane-wave.is-incoming::after{right:auto;left:-7px;top:44%;bottom:auto;margin:0}.lane-wave.is-incoming{opacity:.95}.lane-wave.is-incoming .lane-gate{filter:saturate(.75)}.game-obstacle.lane-wave.is-caught{animation:gameLaneWin .5s ease both}.game-obstacle.lane-wave.is-poof{animation:gameLaneHit .48s ease both}@keyframes gameLaneWin{45%{filter:brightness(1.8);transform:translateX(var(--x)) scale(1.08)}to{opacity:0;transform:translateX(var(--x)) scale(.82)}}@keyframes gameLaneHit{35%{filter:saturate(1.7);transform:translateX(var(--x)) translateY(4px)}to{opacity:0;transform:translateX(var(--x)) scale(1.25)}}
 .game-world.has-shield .game-runner:after{content:'🛡️';position:absolute;inset:-7px;border:2px solid rgba(96,165,250,.72);border-radius:50%;display:grid;place-items:start end;font-size:18px;box-shadow:0 0 22px rgba(96,165,250,.55);animation:cuePulse 1s ease-in-out infinite}.game-world.shield-pop{animation:gameShieldPop .45s ease}@keyframes gameShieldPop{45%{box-shadow:inset 0 0 65px rgba(96,165,250,.65)}}
 
 /* Sam: the shared full-body rig, given a run cycle on its real joints */
@@ -2141,6 +2144,7 @@ body{
 .game-screen.game-playing{position:fixed;inset:0;z-index:70;width:100%;max-width:none;min-height:100dvh;margin:0;padding:max(9px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));overflow:hidden;background:#0d1424;animation:none;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 .game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{position:relative;z-index:20;max-width:720px;width:100%;margin-inline:auto;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .game-playing>.game-top{padding:4px 5px;border-radius:15px;background:rgba(8,15,30,.56)}
+.game-playing>.game-top .game-title{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .game-playing>.game-mission,.game-playing>.game-bonus-mission{background-color:rgba(8,15,30,.72);box-shadow:0 5px 18px rgba(0,0,0,.2)}
 .game-playing>.game-world{position:absolute;inset:0;width:100%;height:100%;max-height:none;aspect-ratio:auto;border:0;border-radius:0;touch-action:none!important;overscroll-behavior:none;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .game-playing>.lane-controls{display:none!important}
@@ -2152,23 +2156,36 @@ body{
    road, its edge lines, the lane highlight and the JS camera in samRunDepth()
    all start here. It sits on the sky/ground seam of the background gradient,
    so the road no longer climbs over the skyline the way it used to. */
-.game-world.lane-game{--horizon:40%;--ground:9%;background:linear-gradient(180deg,#234879 0%,#6fa4c9 28%,#9eb7c4 40%,#2c3542 40%,#0d1420 100%)!important}
+.game-world.lane-game{--horizon:40%;--ground:9%;--sky-top:#18365f;--sky-mid:#6597bb;--haze:#d3c7a7;--road-top:#46515d;--road-low:#101826;--world-accent:#60a5fa;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 28%,var(--haze) 40%,var(--road-top) 40%,var(--road-low) 100%)!important}
+.game-world.lane-game.theme-0{--sky-top:#17365e;--sky-mid:#6ea3c8;--haze:#d4c6a4;--road-top:#46525e;--road-low:#101927;--world-accent:#60a5fa}
+.game-world.lane-game.theme-1{--sky-top:#45255f;--sky-mid:#c56f86;--haze:#ffd19a;--road-top:#51434d;--road-low:#171522;--world-accent:#f0abfc}
+.game-world.lane-game.theme-2{--sky-top:#143f49;--sky-mid:#5a9b8d;--haze:#c5d4a6;--road-top:#3d514b;--road-low:#101d1d;--world-accent:#6ee7b7}
+.game-world.lane-game.theme-3{--sky-top:#285b85;--sky-mid:#80bad0;--haze:#ffe0a0;--road-top:#52605e;--road-low:#18201f;--world-accent:#fcd34d}
+.game-world.lane-game.theme-4{--sky-top:#335184;--sky-mid:#8aa9cd;--haze:#d9d4b8;--road-top:#4a5362;--road-low:#151a27;--world-accent:#93c5fd}
+.game-world.lane-game.theme-5{--sky-top:#59334d;--sky-mid:#d17c6f;--haze:#ffd197;--road-top:#58484a;--road-low:#1e171d;--world-accent:#fb923c}
+.game-world.lane-game.theme-6{--sky-top:#101d44;--sky-mid:#394f78;--haze:#8b84a2;--road-top:#303a50;--road-low:#0b1020;--world-accent:#818cf8}
+.game-world.lane-game.theme-7{--sky-top:#11162f;--sky-mid:#313a61;--haze:#6c7190;--road-top:#303646;--road-low:#090d19;--world-accent:#22d3ee}
 .game-world.lane-game .game-far{height:41%;opacity:.95;filter:saturate(.92) contrast(1.06);background-size:auto 84%;background-position:center bottom}
 .game-world.lane-game .game-skyfx{height:41%;opacity:.72}
-.game-world.lane-game .game-mid{bottom:50%;height:20%;opacity:.5}
+.game-world.lane-game .game-mid{bottom:58%;height:16%;width:100%;padding:0;justify-content:space-around;gap:clamp(12px,5vw,38px);opacity:.34;filter:saturate(.72) blur(.8px);animation:none!important;transform:none!important;transition:opacity .18s ease}
+.game-world.lane-game .game-mid .game-prop:nth-child(n+7){display:none}
+.game-world.lane-game.scene-changing .game-mid{opacity:0}
 .game-world.lane-game .game-roadside{bottom:34%;height:20%;opacity:.45;filter:blur(.4px) drop-shadow(0 5px 4px rgba(0,0,0,.25))}
 .game-world.lane-game .game-dust{z-index:3;mask-image:linear-gradient(transparent 42%,#000);opacity:.25}
 .game-world.lane-game .game-lane-grid{display:block;inset:0;z-index:2;overflow:hidden;background:linear-gradient(180deg,transparent 0 40%,rgba(10,18,31,.1) 40% 100%);perspective:none}
 /* The tarmac and its two edge lines are the same trapezoid the camera walks:
    half a road width of 15.8% at the horizon, 55.5% where it leaves the bottom
    of the screen. Anything the run loop places on the road lands on it exactly. */
-.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:0;top:var(--horizon);width:100%;height:60%;clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);background:linear-gradient(180deg,#404b58,#141d2a 82%);box-shadow:inset 0 0 70px rgba(0,0,0,.35)}
+.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:0;top:var(--horizon);width:100%;height:60%;clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);background:linear-gradient(180deg,color-mix(in srgb,var(--road-top) 92%,#fff),var(--road-low) 82%);box-shadow:inset 0 0 76px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.18)}
+.game-world.lane-game .game-lane-grid:after{content:'';position:absolute;left:0;top:var(--horizon);width:100%;height:calc(60% + 90px);clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);background:repeating-linear-gradient(180deg,transparent 0 54px,rgba(255,255,255,.04) 55px 57px,transparent 58px 82px);opacity:.5;animation:gameRoadFlow calc(.72s / var(--speed)) linear infinite;will-change:transform}
+@keyframes gameRoadFlow{to{transform:translateY(82px)}}
 .game-world.lane-game .game-lane-grid i{position:absolute;z-index:1;left:0;top:var(--horizon);width:100%;height:60%;rotate:none;transform:none;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.92));box-shadow:none}
 .game-world.lane-game .game-lane-grid i:nth-child(1){clip-path:polygon(30.8% 0,32.1% 0,-7.6% 100%,-12.6% 100%)}
 .game-world.lane-game .game-lane-grid i:nth-child(2){clip-path:polygon(67.9% 0,69.2% 0,112.6% 100%,107.6% 100%)}
-.game-world.lane-game .game-lane-grid i:nth-child(3){top:var(--horizon);background:radial-gradient(ellipse at 50% 0,rgba(147,197,253,.22),transparent 62%);clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);opacity:.75}
-.game-world.lane-game .game-speedlines{z-index:3;background:repeating-linear-gradient(105deg,transparent 0 72px,rgba(255,255,255,.13) 74px 76px,transparent 78px 150px);opacity:.22}
-.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:40%;height:60%;translate:-50% 0;clip-path:polygon(34.6% 0,65.4% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,rgba(59,130,246,.07) 28%,rgba(96,165,250,.2));filter:drop-shadow(0 0 16px rgba(96,165,250,.3));transition:left .16s cubic-bezier(.18,.82,.28,1);pointer-events:none}
+.game-world.lane-game .game-lane-grid i:nth-child(3){top:var(--horizon);background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--world-accent) 28%,transparent),transparent 62%);clip-path:polygon(31.5% 0,68.5% 0,110.1% 100%,-10.1% 100%);opacity:.78}
+.game-road-atmosphere{display:none}.game-world.lane-game .game-road-atmosphere{display:block;position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--haze) 26%,transparent),transparent 22%),linear-gradient(90deg,rgba(4,8,18,.32),transparent 20% 80%,rgba(4,8,18,.32));box-shadow:inset 0 -90px 95px rgba(2,6,18,.25)}
+.game-world.lane-game .game-speedlines{z-index:3;background:linear-gradient(102deg,transparent 0 16%,rgba(255,255,255,.1) 16.2% 16.5%,transparent 16.8% 83%,rgba(255,255,255,.1) 83.3% 83.6%,transparent 84%);opacity:.16}
+.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:40%;height:60%;translate:-50% 0;clip-path:polygon(34.6% 0,65.4% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--world-accent) 8%,transparent) 28%,color-mix(in srgb,var(--world-accent) 22%,transparent));filter:drop-shadow(0 0 16px color-mix(in srgb,var(--world-accent) 34%,transparent));transition:left .22s cubic-bezier(.2,.78,.24,1);pointer-events:none}
 .game-world.lane-game.is-dragging .game-lane-focus{transition:none;background:linear-gradient(180deg,transparent,rgba(52,211,153,.09) 28%,rgba(52,211,153,.24))}
 
 .game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(210px,58vw);padding:6px 14px;border-color:rgba(147,197,253,.48);background:rgba(8,15,30,.82);font-size:clamp(17px,4.4vw,23px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
@@ -2177,30 +2194,40 @@ body{
 .game-swipe-hint{display:none}.game-world.lane-game .game-swipe-hint{position:absolute;z-index:14;left:50%;bottom:27%;translate:-50% 0;display:flex;min-width:230px;flex-direction:column;align-items:center;padding:10px 18px;border:1px solid rgba(147,197,253,.4);border-radius:18px;background:rgba(8,15,30,.88);color:#fff;box-shadow:0 12px 28px rgba(0,0,0,.4);opacity:0;transform:translateY(12px) scale(.94);pointer-events:none;transition:opacity .25s ease,transform .25s ease}.game-world.lane-game .game-swipe-hint.show{opacity:1;transform:none}.game-swipe-hint span{font-size:28px;animation:gameSwipeHand 1.15s ease-in-out infinite}.game-swipe-hint b{font-size:15px}.game-swipe-hint small{font-size:10px;color:#bfdbfe}
 @keyframes gameSwipeHand{0%,100%{transform:translateX(-52px) rotate(-10deg)}50%{transform:translateX(52px) rotate(10deg)}}
 
-.game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:2.5%;width:clamp(78px,22vw,112px);height:clamp(138px,24dvh,210px);z-index:9;transform:translateX(-50%) rotate(var(--swipe-lean));transition:left .16s cubic-bezier(.18,.82,.28,1),filter .16s ease,transform .09s linear}
+.game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:1.5%;width:clamp(96px,15.6dvh,121px);height:clamp(178px,29dvh,224px);z-index:9;transform:translateX(-50%);transition:left .22s cubic-bezier(.2,.78,.24,1),filter .18s ease}
 .game-world.lane-game.is-dragging .game-runner{transition:none}
-.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.32s / var(--run-cadence,1)) linear infinite}
-.game-back-rig .back-body,.game-back-rig .back-thigh,.game-back-rig .back-shin,.game-back-rig .back-shoe,.game-back-rig .back-arm>path{stroke:#172033;stroke-width:2;stroke-linejoin:round}.game-back-rig .back-body{filter:drop-shadow(0 4px 3px rgba(0,0,0,.22))}
-.game-back-rig .back-leg,.game-back-rig .back-knee,.game-back-rig .back-arm{transform-box:view-box}.game-back-rig .back-leg-l{transform-origin:58px 143px;animation:gameBackLegL calc(.64s / var(--run-cadence,1)) cubic-bezier(.45,0,.55,1) infinite}.game-back-rig .back-leg-r{transform-origin:82px 143px;animation:gameBackLegR calc(.64s / var(--run-cadence,1)) cubic-bezier(.45,0,.55,1) infinite}.game-back-rig .back-knee-l{transform-origin:57px 183px;animation:gameBackKneeL calc(.64s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-knee-r{transform-origin:83px 183px;animation:gameBackKneeR calc(.64s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-arm{transform-origin:70px 75px}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.64s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.64s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-body{transform-box:view-box;transform-origin:70px 148px;animation:gameBackTwist calc(.64s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameBackShadow calc(.32s / var(--run-cadence,1)) ease-in-out infinite}
-/* Rear-view run cycle: depth is suggested through foreshortening and knee
-   compression, rather than swinging two rigid legs sideways like scissors. */
-@keyframes gameBackBob{0%,100%{transform:translateY(1px) rotate(.25deg)}50%{transform:translateY(-4px) rotate(-.25deg)}}
-@keyframes gameBackLegL{0%,100%{transform:translate(-1px,1px) rotate(5deg) scaleY(.93)}25%{transform:translate(0,-1px) rotate(1deg) scaleY(.98)}50%{transform:translate(1px,0) rotate(-5deg) scaleY(1.025)}75%{transform:translate(0,1px) rotate(0) scaleY(.97)}}
-@keyframes gameBackLegR{0%,100%{transform:translate(1px,0) rotate(-5deg) scaleY(1.025)}25%{transform:translate(0,1px) rotate(0) scaleY(.97)}50%{transform:translate(-1px,1px) rotate(5deg) scaleY(.93)}75%{transform:translate(0,-1px) rotate(1deg) scaleY(.98)}}
-@keyframes gameBackKneeL{0%,100%{transform:rotate(-8deg) translateY(-1px) scaleY(.86)}25%{transform:rotate(1deg) scaleY(.95)}50%{transform:rotate(4deg) scaleY(1)}75%{transform:rotate(-2deg) scaleY(.92)}}
-@keyframes gameBackKneeR{0%,100%{transform:rotate(4deg) scaleY(1)}25%{transform:rotate(-2deg) scaleY(.92)}50%{transform:rotate(-8deg) translateY(-1px) scaleY(.86)}75%{transform:rotate(1deg) scaleY(.95)}}
-@keyframes gameBackArmL{0%,100%{transform:translateX(1px) rotate(-8deg)}50%{transform:translateX(-1px) rotate(8deg)}}
-@keyframes gameBackArmR{0%,100%{transform:translateX(-1px) rotate(8deg)}50%{transform:translateX(1px) rotate(-8deg)}}
-@keyframes gameBackTwist{0%,100%{transform:rotate(1.2deg) translateX(.5px)}50%{transform:rotate(-1.2deg) translateX(-.5px)}}
-@keyframes gameBackShadow{0%,100%{transform:scaleX(.92);opacity:.34}50%{transform:scaleX(.78);opacity:.25}}
-.game-runner.switch-left .game-back-rig{animation:gameLaneLeanLeft .26s ease both}.game-runner.switch-right .game-back-rig{animation:gameLaneLeanRight .26s ease both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(147,197,253,.5),transparent 68%);animation:gameLaneDust .3s ease-out both}
-@keyframes gameLaneLeanLeft{35%{transform:translate(-8px,-4px) rotate(-12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneLeanRight{35%{transform:translate(8px,-4px) rotate(12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneDust{to{opacity:0;transform:scale(2.2)}}
-.game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .game-back-rig{transform:translateY(-28px) scale(.82);transform-origin:50% 100%}
+.game-back-avatar,.back-lane-root,.back-air-root,.back-ride-offset,.back-run-bob,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}
+.back-ground-shadow{position:absolute;z-index:0;left:50%;bottom:0;width:58%;height:6.5%;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.52),rgba(0,0,0,.18) 55%,transparent 72%);filter:blur(1px);transform-origin:center;animation:gameBackShadow calc(.37s / var(--run-cadence,1)) ease-in-out infinite}
+.back-lane-root{z-index:2;transform:rotate(var(--swipe-lean));transform-origin:50% 92%;transition:transform .1s linear}
+.back-air-root,.back-ride-offset{transform-origin:50% 100%}.back-run-bob{animation:gameBackBob calc(.37s / var(--run-cadence,1)) ease-in-out infinite}
+.game-back-rig{display:block}
+.game-back-rig .back-body,.game-back-rig .back-thigh,.game-back-rig .back-shin,.game-back-rig .back-shoe,.game-back-rig .back-upper-arm,.game-back-rig .back-forearm{stroke:#172033;stroke-width:1.7;stroke-linejoin:round}
+.game-back-rig .back-leg,.game-back-rig .back-knee,.game-back-rig .back-arm,.game-back-rig .back-elbow,.game-back-rig .back-torso,.game-back-rig .back-head{transform-box:view-box}
+.game-back-rig .back-leg-l{transform-origin:59px 135px;animation:gameBackLegL calc(.74s / var(--run-cadence,1)) linear infinite}.game-back-rig .back-leg-r{transform-origin:81px 135px;animation:gameBackLegR calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-knee-l{transform-origin:56px 187px;animation:gameBackKneeL calc(.74s / var(--run-cadence,1)) linear infinite}.game-back-rig .back-knee-r{transform-origin:84px 187px;animation:gameBackKneeR calc(.74s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-arm-l{transform-origin:43px 68px;animation:gameBackArmL calc(.74s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-arm-r{transform-origin:97px 68px;animation:gameBackArmR calc(.74s / var(--run-cadence,1)) ease-in-out infinite}
+.game-back-rig .back-elbow-l{transform-origin:34px 92px;animation:gameBackElbowL calc(.74s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-elbow-r{transform-origin:106px 92px;animation:gameBackElbowR calc(.74s / var(--run-cadence,1)) ease-in-out infinite}
+.game-back-rig .back-torso{transform-origin:70px 132px;animation:gameBackTwist calc(.74s / var(--run-cadence,1)) ease-in-out infinite}
+/* Six distinct phases keep the foot planted through contact, compress the knee,
+   push backwards, then recover through the centre. The small rotations read as
+   forward running from behind instead of two legs scissoring sideways. */
+@keyframes gameBackBob{0%,50%,100%{transform:translateY(1px)}25%,75%{transform:translateY(-2px)}}
+@keyframes gameBackShadow{0%,50%,100%{transform:scaleX(.96);opacity:.42}25%,75%{transform:scaleX(.84);opacity:.31}}
+@keyframes gameBackLegL{0%,100%{transform:translate(-1px,2px) rotate(3deg) scaleY(.94)}16%{transform:translate(-1px,4px) rotate(1deg) scaleY(.89)}34%{transform:translate(0,1px) rotate(-2deg) scaleY(.97)}50%{transform:translate(1px,-2px) rotate(-3deg) scaleY(1.025)}68%{transform:translate(1px,-4px) rotate(0) scaleY(.96)}84%{transform:translate(0,-1px) rotate(2deg) scaleY(.94)}}
+@keyframes gameBackLegR{0%,100%{transform:translate(1px,-2px) rotate(-3deg) scaleY(1.025)}16%{transform:translate(1px,-4px) rotate(0) scaleY(.96)}34%{transform:translate(0,-1px) rotate(2deg) scaleY(.94)}50%{transform:translate(-1px,2px) rotate(3deg) scaleY(.94)}68%{transform:translate(-1px,4px) rotate(1deg) scaleY(.89)}84%{transform:translate(0,1px) rotate(-2deg) scaleY(.97)}}
+@keyframes gameBackKneeL{0%,100%{transform:rotate(-9deg) scaleY(.9)}16%{transform:rotate(-13deg) scaleY(.84)}34%{transform:rotate(-3deg) scaleY(.96)}50%{transform:rotate(5deg)}68%{transform:rotate(-5deg) scaleY(.91)}84%{transform:rotate(-10deg) scaleY(.87)}}
+@keyframes gameBackKneeR{0%,100%{transform:rotate(5deg)}16%{transform:rotate(-5deg) scaleY(.91)}34%{transform:rotate(-10deg) scaleY(.87)}50%{transform:rotate(-9deg) scaleY(.9)}68%{transform:rotate(-13deg) scaleY(.84)}84%{transform:rotate(-3deg) scaleY(.96)}}
+@keyframes gameBackArmL{0%,100%{transform:rotate(-7deg) translateY(1px)}50%{transform:rotate(8deg) translateY(-1px)}}@keyframes gameBackArmR{0%,100%{transform:rotate(8deg) translateY(-1px)}50%{transform:rotate(-7deg) translateY(1px)}}
+@keyframes gameBackElbowL{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(7deg)}}@keyframes gameBackElbowR{0%,100%{transform:rotate(7deg)}50%{transform:rotate(-9deg)}}
+@keyframes gameBackTwist{0%,100%{transform:rotate(.8deg) translateX(.4px)}50%{transform:rotate(-.8deg) translateX(-.4px)}}
+.game-runner.switch-left .back-lane-root{animation:gameLaneLeanLeft .24s cubic-bezier(.2,.76,.26,1) both}.game-runner.switch-right .back-lane-root{animation:gameLaneLeanRight .24s cubic-bezier(.2,.76,.26,1) both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,color-mix(in srgb,var(--world-accent) 48%,transparent),transparent 68%);animation:gameLaneDust .28s ease-out both}
+@keyframes gameLaneLeanLeft{38%{transform:translate(-5px,-2px) rotate(-5deg)}100%{transform:none}}@keyframes gameLaneLeanRight{38%{transform:translate(5px,-2px) rotate(5deg)}100%{transform:none}}@keyframes gameLaneDust{to{opacity:0;transform:scale(2.1)}}
+.game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .back-ride-offset{transform:translateY(-25px) scale(.82)}
 .game-world.lane-game .game-runner.is-hit{animation:gameBackHit .55s ease both}.game-world.lane-game .game-runner.is-safe{animation:gameSafeBlink 1.2s steps(1) both}
 @keyframes gameBackHit{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-65%) rotate(-8deg)}55%{transform:translateX(-37%) rotate(5deg)}}
 .game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
-.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(92px,25.5vw,124px);height:clamp(72px,10.6dvh,98px);margin:0;padding:6px 4px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;font-size:21px;letter-spacing:-.01em;line-height:1.05;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;left:0!important;top:0!important;width:clamp(92px,25.5vw,124px);height:clamp(72px,10.6dvh,98px);margin:0;padding:6px 4px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:transform,opacity;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;font-size:21px;letter-spacing:-.01em;line-height:1.05;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);background-color:rgba(11,20,37,.94)}
 .game-obstacle.lane-wave .lane-gate.is-word{justify-content:center;letter-spacing:.02em;direction:ltr;border-color:rgba(196,181,253,.6);background:linear-gradient(145deg,rgba(79,60,130,.95),rgba(22,18,42,.95))}
 .game-lane-prompt .game-sentence{display:block;direction:ltr;margin-top:1px;font-size:.68em;letter-spacing:.05em;color:#ddd6fe}
 .game-lane-prompt .game-sentence b{color:#fff}
@@ -2213,7 +2240,7 @@ body{
 .game-obstacle.lane-wave .lane-gate.from-lesson:before{content:'📚';position:absolute;top:3px;left:5px;font-size:11px;opacity:.95;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .game-obstacle.lane-wave .lane-gate.from-lesson{border-color:rgba(253,230,138,.6)}
 .game-start-lesson{margin-top:6px;padding:6px 10px;border:1px dashed rgba(253,230,138,.5);border-radius:12px;color:#fde68a;font-size:12px;font-weight:800}
-.game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(15px,4.2vw,21px);line-height:1}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
+.game-obstacle.lane-wave .lane-gate span{font-size:clamp(15px,4.2vw,21px);line-height:1}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
 .game-obstacle.lane-wave.is-caught{animation:gameGateWin .48s ease both}.game-obstacle.lane-wave.is-poof{animation:gameGateMiss .48s ease both}
 @keyframes gameGateWin{55%{filter:brightness(1.55)}to{opacity:0}}@keyframes gameGateMiss{25%{filter:saturate(1.8)}45%{translate:-5px 0}65%{translate:5px 0}to{opacity:0}}
 
@@ -2231,12 +2258,19 @@ body{
 .game-rush i{position:absolute;left:0;top:0;display:block;line-height:1;transform-origin:0 0;will-change:transform,opacity}
 .game-rush .rush-stone{width:13px;height:52px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.96));box-shadow:0 0 14px rgba(191,219,254,.45)}
 .game-rush .rush-prop{font-size:64px;filter:drop-shadow(0 10px 7px rgba(0,0,0,.4))}
-.game-rush .rush-coin{font-size:58px;filter:drop-shadow(0 0 4px #fff7b2) drop-shadow(0 0 14px rgba(251,191,36,.95));animation:none}
-.game-rush .rush-hurdle{font-size:52px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+.game-rush .rush-coin,.game-coin-flight{width:54px;height:54px;border:3px solid #ffe990;border-radius:50%;background:radial-gradient(circle at 34% 28%,#fffbd0 0 6%,#ffe678 7% 22%,#f9b929 23% 54%,#d88305 55% 76%,#7c3e00 77% 100%);box-shadow:inset 0 0 0 4px #ffc83e,inset 0 0 0 7px rgba(126,61,0,.34),0 0 6px #fff1a5,0 0 17px rgba(245,158,11,.72);animation:none}
+.game-rush .rush-coin:before,.game-coin-flight:before{content:'';position:absolute;inset:9px;border:2px solid rgba(255,243,170,.78);border-radius:50%;box-shadow:inset 0 2px 2px rgba(255,255,255,.36)}
+.game-rush .rush-coin:after,.game-coin-flight:after{content:'★';position:absolute;inset:0;display:grid;place-items:center;color:#8b4a00;font-size:23px;font-weight:1000;text-shadow:0 1px rgba(255,244,165,.55)}
+.game-rush .rush-hurdle{display:flex;align-items:flex-end;justify-content:center;gap:2px;width:66px;height:48px;padding-bottom:6px;filter:drop-shadow(0 8px 7px rgba(0,0,0,.45))}
+.game-rush .rush-hurdle:after{content:'';position:absolute;left:3px;right:3px;bottom:0;height:8px;border-radius:4px;background:repeating-linear-gradient(90deg,#f8fafc 0 9px,#ef4444 9px 18px);box-shadow:0 2px 0 #7f1d1d}
+.game-rush .rush-hurdle span{display:block;width:18px;height:38px;clip-path:polygon(50% 0,100% 100%,0 100%);background:repeating-linear-gradient(180deg,#f97316 0 11px,#fff 11px 16px,#f97316 16px 28px);border-radius:3px}
 .game-rush .rush-coin.is-taken{animation:gameCoinTake .34s ease-out both}
 .game-rush .rush-hurdle.is-struck{animation:gameHurdleHit .34s ease-out both}
-@keyframes gameCoinTake{to{opacity:0;translate:0 -46px;filter:brightness(2.2)}}
+@keyframes gameCoinTake{45%{filter:brightness(1.7);scale:1.12}to{opacity:0;translate:0 -24px;scale:.72}}
 @keyframes gameHurdleHit{to{opacity:0;rotate:38deg;translate:0 26px}}
+.game-coin-flight{position:absolute;z-index:18;left:0;top:0;width:34px;height:34px;pointer-events:none;transform-origin:center;animation:gameCoinFly .56s cubic-bezier(.22,.72,.25,1) both}
+.game-coin-flight:before{inset:6px}.game-coin-flight:after{font-size:15px}
+@keyframes gameCoinFly{0%{opacity:1;transform:translate(0,0) scale(.72)}35%{opacity:1;transform:translate(var(--coin-mid-x),var(--coin-mid-y)) scale(1)}100%{opacity:.12;transform:translate(var(--coin-dx),var(--coin-dy)) scale(.32)}}
 /* Walls run the full width of the road, so the element is spawned at the road's
    own width in pixels and then simply rides the camera's scale. */
 .game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:center;overflow:visible;padding:0 11px;height:48px;border-radius:10px;border:3px solid rgba(255,255,255,.82);color:#fff;direction:ltr;box-shadow:0 10px 24px rgba(0,0,0,.5)}
@@ -2261,25 +2295,51 @@ body{
 .game-world.lane-game .game-swipe-hint.is-air{top:calc(var(--horizon) - 8%);bottom:auto;min-width:210px;padding:8px 15px}
 .game-world.lane-game .game-swipe-hint.is-air span{font-size:23px}
 .game-world.lane-game .game-swipe-hint.is-air b{font-size:14px}
-.game-world.lane-game .game-runner.is-air-jump .game-back-avatar{animation:gameLaneJump .64s cubic-bezier(.26,.62,.4,1) both}
-.game-world.lane-game .game-runner.is-air-duck .game-back-avatar{animation:gameLaneDuck .56s ease both}
-.game-runner.is-air-jump .back-shadow{animation:gameJumpShadow .64s ease both}
-@keyframes gameLaneJump{0%{transform:translateY(5px) scaleY(.88) scaleX(1.08)}20%{transform:translateY(-58px) scaleY(1.07) scaleX(.95)}52%{transform:translateY(-82px) scaleY(1.02)}80%{transform:translateY(-14px)}92%{transform:translateY(6px) scaleY(.92) scaleX(1.06)}100%{transform:none}}
-@keyframes gameLaneDuck{0%,100%{transform:none}18%,82%{transform:translateY(30px) scaleY(.55) scaleX(1.14)}}
+.game-world.lane-game .game-runner.is-ready-jump .back-air-root{transform:translateY(2px) rotate(-1.5deg)}.game-world.lane-game .game-runner.is-ready-duck .back-air-root{transform:translateY(3px) rotate(2deg)}
+.game-world.lane-game .game-runner.is-air-jump .back-air-root{animation:gameLaneJump .64s cubic-bezier(.24,.65,.36,1) both}.game-world.lane-game .game-runner.is-air-duck .back-air-root{animation:gameLaneDuck .56s cubic-bezier(.26,.67,.35,1) both}
+.game-runner.is-air-jump .back-ground-shadow{animation:gameBackJumpShadow .64s ease both}.game-runner.is-air-jump .back-run-bob,.game-runner.is-air-duck .back-run-bob{animation-play-state:paused}
+.game-runner.is-air-jump .back-leg-l{animation:gameJumpLegL .64s ease both}.game-runner.is-air-jump .back-leg-r{animation:gameJumpLegR .64s ease both}.game-runner.is-air-jump .back-knee-l{animation:gameJumpKneeL .64s ease both}.game-runner.is-air-jump .back-knee-r{animation:gameJumpKneeR .64s ease both}
+.game-runner.is-air-jump .back-arm-l{animation:gameJumpArmL .64s ease both}.game-runner.is-air-jump .back-arm-r{animation:gameJumpArmR .64s ease both}.game-runner.is-air-jump .back-elbow-l{animation:gameJumpElbowL .64s ease both}.game-runner.is-air-jump .back-elbow-r{animation:gameJumpElbowR .64s ease both}.game-runner.is-air-jump .back-torso{animation:gameJumpTorso .64s ease both}
+.game-runner.is-air-duck .back-leg-l{animation:gameDuckLegL .56s ease both}.game-runner.is-air-duck .back-leg-r{animation:gameDuckLegR .56s ease both}.game-runner.is-air-duck .back-knee-l{animation:gameDuckKneeL .56s ease both}.game-runner.is-air-duck .back-knee-r{animation:gameDuckKneeR .56s ease both}.game-runner.is-air-duck .back-arm-l{animation:gameDuckArmL .56s ease both}.game-runner.is-air-duck .back-arm-r{animation:gameDuckArmR .56s ease both}.game-runner.is-air-duck .back-elbow-l{animation:gameDuckElbowL .56s ease both}.game-runner.is-air-duck .back-elbow-r{animation:gameDuckElbowR .56s ease both}.game-runner.is-air-duck .back-torso{animation:gameDuckTorso .56s ease both}.game-runner.is-air-duck .back-head{animation:gameDuckBackHead .56s ease both}
+@keyframes gameLaneJump{0%{transform:translateY(4px)}18%{transform:translateY(-52px)}48%{transform:translateY(-94px)}70%{transform:translateY(-72px)}90%{transform:translateY(2px)}100%{transform:none}}
+@keyframes gameBackJumpShadow{0%,100%{transform:scaleX(.96);opacity:.42}46%{transform:scaleX(.55);opacity:.15}}
+@keyframes gameJumpLegL{0%,100%{transform:none}25%,66%{transform:translate(6px,-3px) rotate(-9deg) scaleY(.84)}}@keyframes gameJumpLegR{0%,100%{transform:none}25%,66%{transform:translate(-5px,-2px) rotate(8deg) scaleY(.86)}}
+@keyframes gameJumpKneeL{0%,100%{transform:none}25%,66%{transform:rotate(-30deg) translateY(-7px) scaleY(.76)}}@keyframes gameJumpKneeR{0%,100%{transform:none}25%,66%{transform:rotate(27deg) translateY(-8px) scaleY(.78)}}
+@keyframes gameJumpArmL{0%,100%{transform:none}25%,66%{transform:rotate(-14deg)}}@keyframes gameJumpArmR{0%,100%{transform:none}25%,66%{transform:rotate(14deg)}}@keyframes gameJumpElbowL{0%,100%{transform:none}25%,66%{transform:rotate(-18deg)}}@keyframes gameJumpElbowR{0%,100%{transform:none}25%,66%{transform:rotate(18deg)}}@keyframes gameJumpTorso{0%,100%{transform:none}25%,66%{transform:rotate(-2deg) translateY(-2px)}}
+@keyframes gameLaneDuck{0%,100%{transform:none}20%,82%{transform:translateY(30px) rotate(6deg)}}
+@keyframes gameDuckLegL{0%,100%{transform:none}20%,82%{transform:translate(-5px,3px) rotate(-16deg) scaleY(.72)}}@keyframes gameDuckLegR{0%,100%{transform:none}20%,82%{transform:translate(5px,3px) rotate(16deg) scaleY(.72)}}
+@keyframes gameDuckKneeL{0%,100%{transform:none}20%,82%{transform:rotate(35deg) translateY(-10px) scaleY(.7)}}@keyframes gameDuckKneeR{0%,100%{transform:none}20%,82%{transform:rotate(-35deg) translateY(-10px) scaleY(.7)}}
+@keyframes gameDuckArmL{0%,100%{transform:none}20%,82%{transform:rotate(-12deg) translateY(16px)}}@keyframes gameDuckArmR{0%,100%{transform:none}20%,82%{transform:rotate(12deg) translateY(16px)}}@keyframes gameDuckElbowL{0%,100%{transform:none}20%,82%{transform:rotate(-28deg)}}@keyframes gameDuckElbowR{0%,100%{transform:none}20%,82%{transform:rotate(28deg)}}@keyframes gameDuckTorso{0%,100%{transform:none}20%,82%{transform:translateY(28px) rotate(10deg)}}@keyframes gameDuckBackHead{0%,100%{transform:none}20%,82%{transform:translateY(50px) rotate(10deg)}}
+/* A ride follows jumps, but ducking folds only the rider. Moving the shared
+   air root down would push a scooter or car through the road surface. */
+.game-world.lane-game .game-runner.is-air-duck .game-back-avatar.has-ride .back-air-root{animation:none}.game-world.lane-game .game-runner.is-air-duck .game-back-avatar.has-ride .back-ride-offset{animation:gameRideDuckRider .56s ease both}
+@keyframes gameRideDuckRider{0%,100%{transform:translateY(-25px) scale(.82)}20%,82%{transform:translateY(-5px) scale(.82)}}
 .game-world.lane-game.is-bump{animation:gameBump .34s ease}
 @keyframes gameBump{30%{transform:translateY(7px) rotate(-.5deg)}62%{transform:translateY(-3px) rotate(.4deg)}}
-.game-runner.is-stumble .game-back-rig{animation:gameStumble .42s ease both}
+.game-runner.is-stumble .back-air-root{animation:gameStumble .42s ease both}
 @keyframes gameStumble{30%{transform:translateY(6px) rotate(-9deg) scaleY(.9)}62%{transform:translateY(-2px) rotate(6deg)}to{transform:none}}
+/* Correct answers and the finish line need to reach the rear-view rig too.
+   These live on the action root, so they never replace lane steering or the
+   planted run cycle with an unrelated full-character transform. */
+.game-world.lane-game .game-runner.is-collecting:not(.is-air-jump):not(.is-air-duck) .back-air-root{animation:gameBackCollectHop .48s cubic-bezier(.22,.72,.26,1) both}
+.game-world.lane-game .game-runner.is-collecting .back-run-bob,.game-world.lane-game .game-runner.is-celebrating .back-run-bob{animation-play-state:paused}
+.game-world.lane-game .game-runner.is-collecting .back-arm-r{animation:gameBackCollectArm .48s ease both}.game-world.lane-game .game-runner.is-collecting .back-elbow-r{animation:gameBackCollectElbow .48s ease both}.game-world.lane-game .game-runner.is-collecting .back-torso{animation:gameBackCollectTorso .48s ease both}
+@keyframes gameBackCollectHop{0%,100%{transform:none}38%{transform:translateY(-10px) scale(.99,1.015)}72%{transform:translateY(-2px)}}
+@keyframes gameBackCollectArm{0%,100%{transform:none}34%,68%{transform:rotate(20deg)}}@keyframes gameBackCollectElbow{0%,100%{transform:none}34%,68%{transform:rotate(58deg)}}@keyframes gameBackCollectTorso{0%,100%{transform:none}34%,68%{transform:rotate(-3deg) translateY(-2px)}}
+.game-world.lane-game .game-runner.is-celebrating .back-air-root{animation:gameBackCelebrateHop .8s cubic-bezier(.2,.7,.3,1) both}.game-world.lane-game .game-runner.is-celebrating .back-ground-shadow{animation:gameBackCelebrateShadow .8s ease both}
+.game-world.lane-game .game-runner.is-celebrating .back-arm-l{animation:gameBackCelebrateArmL .8s ease both}.game-world.lane-game .game-runner.is-celebrating .back-arm-r{animation:gameBackCelebrateArmR .8s ease both}.game-world.lane-game .game-runner.is-celebrating .back-elbow-l{animation:gameBackCelebrateElbowL .8s ease both}.game-world.lane-game .game-runner.is-celebrating .back-elbow-r{animation:gameBackCelebrateElbowR .8s ease both}.game-world.lane-game .game-runner.is-celebrating .back-torso{animation:gameBackCelebrateTorso .8s ease both}
+@keyframes gameBackCelebrateHop{0%,100%{transform:none}28%{transform:translateY(-29px)}55%{transform:translateY(0)}76%{transform:translateY(-12px)}}@keyframes gameBackCelebrateShadow{0%,55%,100%{transform:scaleX(.96);opacity:.42}28%{transform:scaleX(.58);opacity:.17}76%{transform:scaleX(.75);opacity:.25}}
+@keyframes gameBackCelebrateArmL{0%,100%{transform:none}24%,78%{transform:rotate(-31deg)}}@keyframes gameBackCelebrateArmR{0%,100%{transform:none}24%,78%{transform:rotate(31deg)}}@keyframes gameBackCelebrateElbowL{0%,100%{transform:none}24%,78%{transform:rotate(-46deg)}}@keyframes gameBackCelebrateElbowR{0%,100%{transform:none}24%,78%{transform:rotate(46deg)}}@keyframes gameBackCelebrateTorso{0%,100%{transform:none}28%{transform:rotate(-3deg)}76%{transform:rotate(3deg)}}
 /* The sideways-scrolling kerb belongs to the old side-on camera: behind Sam's
    back it slid across the picture instead of coming toward him. The rush layer
    owns that job now. */
 .game-world.lane-game .game-roadside{display:none}
-.game-world.lane-game .game-mid{bottom:58%;height:16%;opacity:.34;filter:saturate(.7) blur(1.1px)}
 .game-world.lane-game .game-dust{opacity:.5}
 .game-world.lane-game .game-speedlines{opacity:.3}
 .game-world.lane-game.is-fast .game-speedlines{opacity:.72}
+.game-world.is-halted .back-run-bob,.game-world.is-halted .back-ground-shadow,.game-world.is-halted .game-back-rig *,.game-world.is-halted .game-lane-grid:after{animation-play-state:paused!important}
 
-@media (min-width:760px){.game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{max-width:680px}.game-world.lane-game .game-lane-prompt{top:150px}.game-world.lane-game .game-runner{width:116px;height:194px}.game-obstacle.lane-wave .lane-gate{width:128px}}
+@media (min-width:760px){.game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{max-width:680px}.game-world.lane-game .game-lane-prompt{top:150px}.game-world.lane-game .game-runner{width:121px;height:224px}.game-obstacle.lane-wave .lane-gate{width:128px}}
 .game-streak{position:absolute;top:10px;left:10px;z-index:6;padding:4px 8px;border-radius:999px;background:rgba(15,23,42,.74);font-size:12px;font-weight:850;direction:ltr;opacity:0;transform:translateY(-5px);transition:.2s ease}.game-streak.on{opacity:1;transform:none}.game-streak.hot{color:#fbbf24;box-shadow:0 0 16px rgba(251,191,36,.24)}
 .game-stage-tag{font-size:11px;color:#93c5fd;font-weight:800;white-space:nowrap}
 .game-obstacle.ob-vocab{bottom:calc(var(--ground) + 8px);width:66px;height:76px;justify-content:flex-end}
@@ -2326,6 +2386,18 @@ body{
      otherwise a jump completes in .01ms and the game reads as broken. */
   .game-world.is-shake{animation:none}
   .game-speedlines{display:none}
+  .game-world.lane-game .game-far{animation:none!important}
+  .game-world.lane-game .game-lane-grid:after,.game-world.lane-game .back-run-bob,.game-world.lane-game .back-ground-shadow,.game-world.lane-game .game-back-rig *{animation:none!important}
+  .game-world.lane-game .game-runner.is-collecting .back-air-root,.game-world.lane-game .game-runner.is-celebrating .back-air-root{animation:none!important}
+  .game-world.lane-game .game-runner.is-air-jump .back-air-root{animation:gameLaneJump .64s cubic-bezier(.24,.65,.36,1) both!important}
+  .game-world.lane-game .game-runner.is-air-duck .back-air-root{animation:gameLaneDuck .56s cubic-bezier(.26,.67,.35,1) both!important}
+  .game-world.lane-game .game-runner.is-air-jump .back-ground-shadow{animation:gameBackJumpShadow .64s ease both!important}
+  .game-world.lane-game .game-runner.is-air-duck .back-leg-l{transform:translate(-5px,3px) rotate(-16deg) scaleY(.72)!important}.game-world.lane-game .game-runner.is-air-duck .back-leg-r{transform:translate(5px,3px) rotate(16deg) scaleY(.72)!important}
+  .game-world.lane-game .game-runner.is-air-duck .back-knee-l{transform:rotate(35deg) translateY(-10px) scaleY(.7)!important}.game-world.lane-game .game-runner.is-air-duck .back-knee-r{transform:rotate(-35deg) translateY(-10px) scaleY(.7)!important}
+  .game-world.lane-game .game-runner.is-air-duck .back-arm-l{transform:rotate(-12deg) translateY(16px)!important}.game-world.lane-game .game-runner.is-air-duck .back-arm-r{transform:rotate(12deg) translateY(16px)!important}
+  .game-world.lane-game .game-runner.is-air-duck .back-elbow-l{transform:rotate(-28deg)!important}.game-world.lane-game .game-runner.is-air-duck .back-elbow-r{transform:rotate(28deg)!important}
+  .game-world.lane-game .game-runner.is-air-duck .back-torso{transform:translateY(28px) rotate(10deg)!important}.game-world.lane-game .game-runner.is-air-duck .back-head{transform:translateY(50px) rotate(10deg)!important}
+  .game-world.lane-game .game-runner.is-air-duck .game-back-avatar.has-ride .back-air-root{animation:none!important}.game-world.lane-game .game-runner.is-air-duck .game-back-avatar.has-ride .back-ride-offset{animation:none!important;transform:translateY(-5px) scale(.82)!important}
   .game-runner .person-art.modern-v2 .leg-l{animation:gameRunLegL calc(.44s / var(--speed)) ease-in-out infinite!important}
   .game-runner .person-art.modern-v2 .leg-r{animation:gameRunLegR calc(.44s / var(--speed)) ease-in-out infinite!important}
   .game-runner .person-art.modern-v2 .arm-l{animation:gameRunArmL calc(.44s / var(--speed)) ease-in-out infinite!important}
@@ -2340,6 +2412,7 @@ body{
   .game-runner.is-waving .person-art.modern-v2 .arm-r{animation:gameWave .8s ease both!important}
   .game-runner.is-catching .person-art.modern-v2 .arm-l,.game-runner.is-catching .person-art.modern-v2 .arm-r{animation:gameCatch .6s ease both!important}
   .game-runner.is-hit{animation:gameHit .58s ease both!important}
+  .game-world.lane-game .game-runner.is-hit{animation:gameBackHit .55s ease both!important}
   .game-obstacle.is-poof{animation:gamePoof .42s ease both!important}
   .game-obstacle.is-caught{animation:gameCaught .5s ease both!important}
   .game-float{animation:gameFloat 1s ease-out both!important}
@@ -6945,7 +7018,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.40.2';
+const APP_VERSION = '2.40.3';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11447,10 +11520,10 @@ const SAM_RUN_SCENERY=[
   {far:['🌩️','🏙️','⚡','🌌','🏢','✨'],near:['💫','🔥','🔋','⭐']},
 ];
 function samRunWorldClass(g){ return `game-world theme-${g.stageIndex} phase-${g.phase.id} mode-${g.mode||'tap'}${g.mode==='tap'?' lane-game':''}`; }
+function samRunSceneryProps(list){ return list.concat(list).map((x,i)=>`<span class="game-prop p${i%4}">${x}</span>`).join(''); }
 function samRunSceneryHtml(stageIndex){
   const s=SAM_RUN_SCENERY[stageIndex]||SAM_RUN_SCENERY[0];
-  const props=list=>list.concat(list).map((x,i)=>`<span class="game-prop p${i%4}">${x}</span>`).join('');
-  return `<div class="game-skyfx"></div><div class="game-mid">${props(s.far)}</div><div class="game-roadside">${props(s.near)}</div><div class="game-dust"></div>`;
+  return `<div class="game-skyfx"></div><div class="game-mid">${samRunSceneryProps(s.far)}</div><div class="game-roadside">${samRunSceneryProps(s.near)}</div><div class="game-dust"></div>`;
 }
 const SAM_RUN_SHOP_ITEMS=[
   {id:'outfit_default',type:'outfit',name:'הבגד המקורי',icon:'🧥',price:0},
@@ -11507,22 +11580,18 @@ function samRunBackAvatarHtml(store){
   const clothes=l.clothes||'#2fa87a',accent=l.accent||'#1f7f5c',pants=l.pants||'#29483f',shoes=l.shoes||'#6e4f39';
   const longHair=['long','bob','bun-side'].includes(l.hairStyle),curly=l.hairStyle==='curly';
   const hairBack=longHair
-    ? `<path fill="${hair}" d="M45 40c0-21 10-32 25-32s25 11 25 32v37H45z"/>`
-    : `<path fill="${hair}" d="M46 39C46 18 56 8 70 8s24 10 24 31c-6-7-14-10-24-10S52 32 46 39z"/>`;
-  const curls=curly?`<g fill="${hair}"><circle cx="50" cy="26" r="7"/><circle cx="59" cy="17" r="8"/><circle cx="70" cy="15" r="8"/><circle cx="82" cy="18" r="8"/><circle cx="91" cy="29" r="7"/></g>`:'';
-  return `<div class="game-back-avatar${ride?' has-ride':''}">${ride?`<span class="game-back-ride" aria-hidden="true">${ride}</span>`:''}<svg class="game-back-rig" viewBox="0 0 140 240" aria-hidden="true">
-    <ellipse class="back-shadow" cx="70" cy="232" rx="31" ry="7" fill="rgba(0,0,0,.35)"/>
-    <g class="back-leg back-leg-l"><path class="back-thigh" fill="${pants}" d="M48 140h21l-4 45H47z"/><g class="back-knee back-knee-l"><path class="back-shin" fill="${pants}" d="M47 179h18l-2 43H47z"/><path class="back-shoe" fill="${shoes}" d="M46 215h18l5 12c-7 5-19 6-27 2z"/></g></g>
-    <g class="back-leg back-leg-r"><path class="back-thigh" fill="${pants}" d="M71 140h21l1 45H75z"/><g class="back-knee back-knee-r"><path class="back-shin" fill="${pants}" d="M75 179h18v43H77z"/><path class="back-shoe" fill="${shoes}" d="M76 215h18l5 13c-8 5-20 5-27 0z"/></g></g>
-    <g class="back-arm back-arm-l"><path fill="${clothes}" d="M47 73c-10 3-16 13-17 28l13 4c2-10 5-17 11-22z"/><path fill="${skinShadow}" d="M30 98l13 4c-1 18 3 35 10 49l-11 7c-10-17-15-39-12-60z"/><ellipse cx="47" cy="158" rx="6" ry="8" fill="${skin}"/></g>
-    <g class="back-arm back-arm-r"><path fill="${clothes}" d="M93 73c10 3 16 13 17 28l-13 4c-2-10-5-17-11-22z"/><path fill="${skinShadow}" d="M97 102l13-4c3 21-2 43-12 60l-11-7c7-14 11-31 10-49z"/><ellipse cx="93" cy="158" rx="6" ry="8" fill="${skin}"/></g>
-    <path class="back-body" fill="${clothes}" d="M47 72c7-5 15-8 23-8s16 3 23 8l5 71c-16 8-40 8-56 0z"/>
-    <path fill="${accent}" opacity=".72" d="M47 73c5 5 9 12 11 21l-4 51-12-2zm46 0c-5 5-9 12-11 21l4 51 12-2z"/>
-    <path fill="none" stroke="rgba(255,255,255,.38)" stroke-width="2" d="M70 85v61M51 105h12v14H51m26-14h12v14H77"/>
-    <path fill="${skinShadow}" d="M62 57h16v14c-5 5-11 5-16 0z"/><ellipse cx="45" cy="39" rx="4" ry="7" fill="${skinShadow}"/><ellipse cx="95" cy="39" rx="4" ry="7" fill="${skinShadow}"/><ellipse cx="70" cy="38" rx="24" ry="29" fill="${skin}"/>
-    ${hairBack}${curls}<path fill="${hair}" d="M47 36c6-8 14-12 23-12s18 4 24 12v-6C92 13 83 5 70 5s-22 8-24 25z"/><path fill="none" stroke="rgba(255,255,255,.09)" stroke-width="2.5" d="M55 18c9-6 21-6 31 0"/>
-    <path fill="${accent}" d="M54 72c3-8 8-12 16-12s13 4 16 12l-6 8c-6-5-14-5-20 0z"/><path fill="none" stroke="rgba(255,255,255,.26)" stroke-width="2" d="M59 71c7 5 15 5 22 0"/>
-  </svg></div>`;
+    ? `<path fill="${hair}" d="M50 27C50 10 58 3 70 3s20 7 20 24v46H50z"/>`
+    : `<path fill="${hair}" d="M51 28C51 10 59 3 70 3s19 7 19 25c-5-6-11-9-19-9s-14 3-19 9z"/>`;
+  const curls=curly?`<g fill="${hair}"><circle cx="54" cy="18" r="5"/><circle cx="61" cy="10" r="6"/><circle cx="70" cy="8" r="6"/><circle cx="79" cy="11" r="6"/><circle cx="86" cy="20" r="5"/></g>`:'';
+  return `<div class="game-back-avatar${ride?' has-ride':''}"><i class="back-ground-shadow" aria-hidden="true"></i><div class="back-lane-root"><div class="back-air-root">${ride?`<span class="game-back-ride" aria-hidden="true">${ride}</span>`:''}<div class="back-ride-offset"><div class="back-run-bob"><svg class="game-back-rig" viewBox="0 0 140 260" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <g class="back-leg back-leg-l"><path class="back-thigh" fill="${pants}" d="M49 130c5-3 13-3 20 0l-4 60-19 1z"/><g class="back-knee back-knee-l"><path class="back-shin" fill="${pants}" d="M46 184h19l-2 54-17 1z"/><path class="back-shoe" fill="${shoes}" d="M45 232h19l6 13c-8 7-21 8-29 2z"/></g></g>
+    <g class="back-leg back-leg-r"><path class="back-thigh" fill="${pants}" d="M71 130c7-3 15-3 20 0l3 61-19-1z"/><g class="back-knee back-knee-r"><path class="back-shin" fill="${pants}" d="M75 184h19v55l-17-1z"/><path class="back-shoe" fill="${shoes}" d="M76 232h19l5 15c-9 6-22 5-29-2z"/></g></g>
+    <path fill="${accent}" stroke="#172033" stroke-width="1.7" d="M48 126c11 4 33 4 44 0l-3 18c-12 6-26 6-38 0z"/>
+    <g class="back-arm back-arm-l"><path class="back-upper-arm" fill="${clothes}" d="M45 64c-10 2-17 12-18 27l14 4c2-10 6-17 11-22z"/><g class="back-elbow back-elbow-l"><path class="back-forearm" fill="${skinShadow}" d="M27 88l14 4c-1 18 2 34 9 47l-12 7c-9-16-14-37-11-58z"/><ellipse cx="43" cy="148" rx="5.5" ry="7" fill="${skin}"/></g></g>
+    <g class="back-arm back-arm-r"><path class="back-upper-arm" fill="${clothes}" d="M95 64c10 2 17 12 18 27l-14 4c-2-10-6-17-11-22z"/><g class="back-elbow back-elbow-r"><path class="back-forearm" fill="${skinShadow}" d="M99 92l14-4c3 21-2 42-11 58l-12-7c7-13 10-29 9-47z"/><ellipse cx="97" cy="148" rx="5.5" ry="7" fill="${skin}"/></g></g>
+    <g class="back-torso"><path class="back-body" fill="${clothes}" d="M45 63c8-6 16-8 25-8s17 2 25 8l5 66c-17 9-43 9-60 0z"/><path fill="${accent}" opacity=".8" d="M45 64c6 6 10 13 12 22l-4 47-13-4zm50 0c-6 6-10 13-12 22l4 47 13-4z"/><path fill="none" stroke="rgba(255,255,255,.36)" stroke-width="1.8" d="M70 72v61M51 93h12v15H51m26-15h12v15H77"/><path fill="${accent}" d="M55 61c3-8 8-12 15-12s12 4 15 12l-6 8c-6-4-12-4-18 0z"/><path fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.7" d="M60 60c6 5 14 5 20 0"/></g>
+    <g class="back-head"><path fill="${skinShadow}" d="M64 43h12v13c-4 4-8 4-12 0z"/><ellipse cx="51" cy="27" rx="3" ry="5" fill="${skinShadow}"/><ellipse cx="89" cy="27" rx="3" ry="5" fill="${skinShadow}"/><ellipse cx="70" cy="26" rx="18" ry="22" fill="${skin}"/>${hairBack}${curls}<path fill="${hair}" d="M52 26c5-7 11-10 18-10s14 3 18 10v-5C87 8 80 1 70 1S53 8 52 21z"/><path fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2" d="M59 11c7-4 15-4 22 0"/></g>
+  </svg></div></div></div></div></div>`;
 }
 /* A run used to draw on five words and show three of them per wave, which is
    why it ran out of surprises so quickly. From the speed challenge onward the
@@ -12119,7 +12188,7 @@ function renderSamRun(stageIndex=null,endless=false){
     distance:0,lastMetre:-1,announced:{},
     sentences,sentenceWords:[...new Set(sentences.flatMap(x=>x.words))],
     sentence:null,sentenceAt:0,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,queuedAir:null,taught:{},clearedWalls:0,
     review:endless?endlessWords.filler:samRunReviewPool(store,stageIndex,phaseIndex),
     lesson:endless?[]:(phaseIndex?samRunLessonPool(state.completed,6):[]),
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
@@ -12129,13 +12198,14 @@ function renderSamRun(stageIndex=null,endless=false){
     <div class="game-top">
       <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
       <div class="game-title">${phase.icon} ${esc(endless?phase.title:stage.title)} <small class="game-build">v${APP_VERSION}</small></div>
+      <div class="game-run-wallet" id="samRunRunWallet" aria-label="מטבעות זהב שנאספו"><i aria-hidden="true"></i><b id="samRunRunCoins" aria-live="polite">0</b></div>
       <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
       <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">${endless?`שיא ${store.bestDistance||0} מ׳`:`שיא ${store.best}`}</div></div>
     </div>
     <div class="game-mission"><span>${endless?'📏':'🎯'} <b id="samRunMissionText">${endless?'0 מ׳':`0/${SAM_RUN_GOAL}`}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
-      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-swipe-hint" id="samRunSwipeHint"><span>👆</span><b>החליקו ימינה ושמאלה</b><small>או לחצו ישירות על המסלול</small></div><div class="game-speedlines"></div><div class="game-finish"></div>
+      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-road-atmosphere"></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-swipe-hint" id="samRunSwipeHint"><span>👆</span><b>החליקו ימינה ושמאלה</b><small>או לחצו ישירות על המסלול</small></div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
       <div class="game-runner" id="samRunRunner" hidden>${samRunBackAvatarHtml(store)}</div>
       <div id="samRunObstacles"></div>
@@ -12178,7 +12248,7 @@ function samRunBindLaneInput(worldAtBind,g){
     if(axis==='y'){ if(!handled&&Math.abs(dy)>=20) airFromSwipe(dy); return; }
     if(axis!=='x') return;
     const base=[20,50,80][startLane],left=Math.max(12,Math.min(88,base+dx/rect.width*100));
-    const r=runner(),f=focus(); if(r){r.style.left=left+'%';r.style.setProperty('--swipe-lean',Math.max(-12,Math.min(12,dx/8))+'deg');} if(f)f.style.left=left+'%';
+    const r=runner(),f=focus(); if(r){r.style.left=left+'%';r.style.setProperty('--swipe-lean',Math.max(-5,Math.min(5,dx/14))+'deg');} if(f)f.style.left=left+'%';
     if(!handled&&Math.abs(dx)>=18) chooseFromSwipe(startLane+(dx>0?1:-1));
   };
   const end=(x,y,target)=>{
@@ -12300,11 +12370,11 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,taught:{},clearedWalls:0,distance:0,lastMetre:-1,announced:{},
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,taught:{},clearedWalls:0,distance:0,lastMetre:-1,announced:{},
     sentence:null,sentenceAt:0,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
-  runner.classList.remove('is-air-jump','is-air-duck');
+  runner.classList.remove('is-air-jump','is-air-duck','is-ready-jump','is-ready-duck');
   /* Leave transform to the stylesheet: the lane runner's rule already centres
      the character and folds in --swipe-lean, so an inline transform here would
      freeze him upright through every swipe. */
@@ -12355,6 +12425,7 @@ function samRunBeginCountdown(){
 function samRunGo(){
   const g=samRun; if(!g) return;
   g.running=true; g.last=0; g.time=0; g.nextSpawnAt=500;
+  const world=document.getElementById('samRunWorld'); if(world){ world.classList.remove('is-halted'); world.classList.add('is-running'); }
   const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
   const hint=document.getElementById('samRunSwipeHint'); if(hint){ hint.classList.add('show'); g.swipeHintTimer=setTimeout(()=>hint.classList.remove('show'),3600); }
   g.raf=requestAnimationFrame(samRunFrame);
@@ -12394,11 +12465,11 @@ function samRunFrame(ts){
       if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
       if(ob.laneWave){
         const {y,scale,spread}=samRunGateDepth(ob.progress);
-        ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100);
+        ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100); ob.y=g.worldH*y/100;
         ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
         ob.el.querySelectorAll('.lane-gate').forEach((gate,i)=>{
-          const x=50+(i-1)*spread;
-          gate.style.left=x+'%'; gate.style.top=y+'%'; gate.style.transform=`translate(-50%,-50%) scale(${scale})`;
+          const x=g.worldW*(50+(i-1)*spread)/100;
+          gate.style.transform=`translate(${x.toFixed(1)}px,${ob.y.toFixed(1)}px) translate(-50%,-50%) scale(${scale})`;
         });
       } else {
         const startX=g.worldW-62;
@@ -12441,8 +12512,13 @@ function samRunSwapScene(index){
   g.stageIndex=index; g.stage=SAM_RUN_STAGES[index];
   /* samRunWorldClass rebuilds the class list from scratch, so the classes the
      run has earned since it started have to be carried across by hand. */
-  const earned=['is-fast','zone-2','zone-3','has-shield'].filter(c=>world.classList.contains(c));
+  const earned=['is-running','is-fast','zone-2','zone-3','has-shield'].filter(c=>world.classList.contains(c));
   world.className=samRunWorldClass(g)+(earned.length?' '+earned.join(' '):'');
+  const mid=world.querySelector?.('.game-mid'),scene=SAM_RUN_SCENERY[index]||SAM_RUN_SCENERY[0];
+  if(mid){
+    world.classList.add('scene-changing');
+    setTimeout(()=>{ if(samRun===g&&mid.isConnected!==false){ mid.innerHTML=samRunSceneryProps(scene.far); world.classList.remove('scene-changing'); } },170);
+  }
   samRunAnnounce({icon:g.stage.icon,title:g.stage.title,hint:'עולם חדש על המסלול'});
 }
 /* Everything on the road that is not a question: kerb stones, roadside
@@ -12464,9 +12540,10 @@ function samRunRunRoad(dt){
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
   if(!g.finishing&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
   samRunLand();
+  samRunMaybeStartQueuedAir();
   for(const pu of g.pickups.slice()){
     pu.p+=dt/pu.life*speed;
-    if(!pu.done&&pu.p>=.94&&(pu.wide||pu.lane===g.lane)) samRunTakePickup(pu);
+    if(!pu.done&&pu.p>=.985&&(pu.wide||pu.lane===g.lane)) samRunTakePickup(pu);
     if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
     if(pu.p>0) samRunPaintPickup(pu);
   }
@@ -12478,12 +12555,12 @@ function samRunRunRoad(dt){
    gates, coins, kerb stones and scenery always agree about where the road is. */
 function samRunDepth(progress){
   const p=Math.max(0,Math.min(1.18,progress));
-  /* The near end is unchanged — lanes still sit where they always did when a
-     thing reaches the player — but the far end starts closer, so a word is a
-     third larger the whole way in. A bigger font could not fix this on its own:
-     the camera scaled it straight back down again. */
   const scale=.44/(1-.60*p);
-  return {scale,y:40+(scale-.44)/.66*40,spread:28*scale};
+  /* p=1 is the runner's foot plane, not the middle of his body. The old
+     camera resolved a coin at y≈75%, visibly beside his head. This easing
+     holds objects near the vanishing point, then lands them at y=96%. */
+  const near=Math.min(1,p), y=40+56*Math.pow(near,1.55)+(p>1?(p-1)*58:0);
+  return {scale,y,spread:28*scale};
 }
 /* The answer gates are the one thing on the road that must be READ, and
    perspective and reading are in direct conflict. Sharing the scene camera
@@ -12515,17 +12592,20 @@ function samRunGateFont(word,worldW){
    and roadside scenery now stream out of the horizon on the same camera. */
 function samRunSpawnRush(kind){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
-  const el=document.createElement('i');
-  const side=Math.random()<.5?-1:1;
   if(kind==='stone'){
-    el.className='rush-stone';
-    g.props.push({el,kind,side,p:0,life:1150});
-  }else{
-    const set=SAM_RUN_SCENERY[g.stageIndex]||SAM_RUN_SCENERY[0];
-    el.className='rush-prop';
-    el.textContent=pick(Math.random()<.45?set.far:set.near);
-    g.props.push({el,kind:'prop',side,p:0,life:1450});
+    /* One timestamp creates both lane seams. Random single dashes looked like
+       debris drifting across the road instead of markings in perspective. */
+    for(const side of [-1,1]){
+      const el=document.createElement('i'); el.className='rush-stone';
+      host.appendChild(el); g.props.push({el,kind,side,p:0,life:1150});
+    }
+    return;
   }
+  const el=document.createElement('i'),side=Math.random()<.5?-1:1;
+  const set=SAM_RUN_SCENERY[g.stageIndex]||SAM_RUN_SCENERY[0];
+  el.className='rush-prop';
+  el.textContent=pick(Math.random()<.45?set.far:set.near);
+  g.props.push({el,kind:'prop',side,p:0,life:1450});
   host.appendChild(el);
 }
 function samRunPaintRush(pr){
@@ -12661,7 +12741,7 @@ function samRunSpawnCoins(lane,arriveMs){
   const life=samRunLifeFor(arriveMs);
   for(let i=0;i<3;i++){
     const el=document.createElement('i');
-    el.className='rush-coin'; el.textContent='🪙';
+    el.className='rush-coin'; el.setAttribute?.('aria-hidden','true');
     host.appendChild(el);
     g.pickups.push({el,kind:'coin',lane,p:-i*.13,life,done:false});
   }
@@ -12669,7 +12749,7 @@ function samRunSpawnCoins(lane,arriveMs){
 function samRunSpawnHurdle(lane,arriveMs){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
   const el=document.createElement('i');
-  el.className='rush-hurdle'; el.textContent='🚧';
+  el.className='rush-hurdle'; el.innerHTML='<span></span><span></span><span></span>';
   host.appendChild(el);
   g.pickups.push({el,kind:'hurdle',lane,p:0,life:samRunLifeFor(arriveMs),done:false});
 }
@@ -12748,19 +12828,20 @@ function samRunPaintPickup(pu){
      counter-scaled to a floor, so it is legible from the moment it appears. */
   if(pu.wide&&pu.kind!=='slide') pu.el.style.setProperty('--lbl',Math.min(2.5,Math.max(1,.82/scale)).toFixed(2));
   const x=pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*spread/100);
+  pu.x=x; pu.y=g.worldH*y/100;
   /* scale() sits to the left of the anchoring translate so the anchor shrinks
      with the thing itself — otherwise a distant object is lifted by its full
      unscaled height and floats above the road. */
-  const anchor=pu.kind==='duck'?'translate(-50%,-235%)':pu.wide?'translate(-50%,-100%)':'translate(-50%,-85%)';
-  pu.el.style.transform=`translate(${x.toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) scale(${scale.toFixed(3)}) ${anchor}`;
+  const anchor=pu.kind==='duck'?'translate(-50%,-350%)':pu.wide?'translate(-50%,-100%)':'translate(-50%,-85%)';
+  pu.el.style.transform=`translate(${x.toFixed(1)}px,${pu.y.toFixed(1)}px) scale(${scale.toFixed(3)}) ${anchor}`;
   pu.el.style.opacity=Math.min(1,pu.p*5).toFixed(2);
 }
 function samRunTakePickup(pu){
   const g=samRun; pu.done=true;
-  const at={x:pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*.31)};
+  const at={x:pu.x??(pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*.31)),y:pu.y??g.worldH*.9};
   if(pu.kind==='coin'){
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
-    pu.el.classList.add('is-taken'); samRunTone('tick'); samRunFloat('🪙 +1',at);
+    pu.el.classList.add('is-taken'); samRunCoinFlight(at); samRunTone('tick'); samRunFloat('+1',at); samRunPaintHud(true);
     return;
   }
   if(pu.kind==='slide'){
@@ -12768,7 +12849,7 @@ function samRunTakePickup(pu){
       g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
       g.clearedWalls=(g.clearedWalls||0)+1;
       pu.el.classList.add('is-cleared');
-      samRunTone('catch'); samRunFloat('דרך הפתח! 🪙',at); samRunWorldFx('is-success',360);
+      samRunTone('catch'); samRunFloat('דרך הפתח! +1',at); samRunPaintHud(true); samRunWorldFx('is-success',360);
       return;
     }
     pu.el.classList.add('is-cleared');
@@ -12777,20 +12858,17 @@ function samRunTakePickup(pu){
     samRunTone('hit'); samRunPaintHud(); samRunWorldFx('is-bump',360); samRunPose('is-stumble',420);
     return;
   }
-  /* Any matching gesture made once the wall was readable counts, and the whole
-     approach counts as readable. A wall asks whether he saw JUMP or DUCK, not
-     whether he can hit one frame, so only the wrong gesture fails. The gesture
-     is then spent, so one duck cannot carry him through a whole tunnel. */
-  /* "The whole approach" has to mean the approach this wall actually made: a
-     flat window was shorter than the journey at speed, so a child who read the
-     wall the moment it appeared and jumped straight away was told he missed. */
-  const readable=Math.max(1400,pu.life/samRunPace(g)||0);
-  if(pu.wide&&(g.air?.kind===pu.kind||(g.lastAir?.kind===pu.kind&&g.time-g.lastAir.at<=readable))){
+  /* The action now starts near contact even when its swipe was queued early,
+     so collision can follow the pose on screen instead of remembering an
+     invisible jump for the entire approach. A tiny landing grace covers a
+     dropped frame without letting one gesture clear the next beam. */
+  const landed=g.lastAir?.kind===pu.kind&&g.time<=(g.lastAir.until||g.lastAir.at)+180;
+  if(pu.wide&&(g.air?.kind===pu.kind||landed)){
     g.lastAir=null;
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
     g.clearedWalls=(g.clearedWalls||0)+1;
     pu.el.classList.add('is-cleared');
-    samRunTone('catch'); samRunFloat(pu.kind==='jump'?'JUMP! 🪙':'DUCK! 🪙',at);
+    samRunTone('catch'); samRunFloat(pu.kind==='jump'?'JUMP! +1':'DUCK! +1',at); samRunPaintHud(true);
     samRunWorldFx('is-success',360);
     return;
   }
@@ -12798,6 +12876,7 @@ function samRunTakePickup(pu){
      miss costs is the combo, which is exactly what a player who is only
      steering will feel. */
   pu.el.classList.add(pu.wide?'is-cleared':'is-struck');
+  if(pu.wide&&g.queuedAir){ g.queuedAir=null; document.getElementById('samRunRunner')?.classList.remove('is-ready-jump','is-ready-duck'); }
   if(g.streak>=2) samRunFloat('הרצף נקטע!',at,true); else samRunFloat('💨',at,true);
   g.streak=0; g.cleanStreak=0;
   samRunTone('hit'); samRunPaintHud();
@@ -12807,24 +12886,46 @@ function samRunTakePickup(pu){
 /* Up and down. Lanes answer the question, the vertical axis answers the road,
    and the two never compete: a jump can never cost an answer and a lane change
    can never cost a jump. */
-function samRunAirborne(kind){
-  const g=samRun; if(!g||!g.running||!g.laneGame) return;
-  /* Long enough that a jump cannot be restarted at its apex, short enough that
-     three ducks through a tunnel are a rhythm rather than a race. */
-  if(g.air&&g.air.until>g.time+220) return;
-  g.air={kind,until:g.time+(kind==='jump'?640:560)};
-  /* Remembered past the landing so a player who jumps a little early still
-     clears the wall. Without it, being cautious was punished harder than
-     being late. */
-  g.lastAir={kind,at:g.time};
+const SAM_RUN_AIR_LEAD_MS=340;
+function samRunStartAir(kind){
+  const g=samRun; if(!g||!g.running||!g.laneGame) return false;
+  if(g.air&&g.air.until>g.time+220) return false;
+  const duration=kind==='jump'?640:560;
+  g.queuedAir=null; g.air={kind,until:g.time+duration}; g.lastAir={kind,at:g.time,until:g.time+duration};
   const runner=document.getElementById('samRunRunner');
   if(runner){
-    runner.classList.remove('is-air-jump','is-air-duck'); void runner.offsetWidth;
+    runner.classList.remove('is-ready-jump','is-ready-duck','is-air-jump','is-air-duck'); void runner.offsetWidth;
     runner.classList.add(kind==='jump'?'is-air-jump':'is-air-duck');
   }
   samRunTone(kind==='jump'?'jump':'tick');
   try{ navigator.vibrate?.(8); }catch(_){}
   const hint=document.getElementById('samRunSwipeHint'); if(hint) hint.classList.remove('show');
+  return true;
+}
+function samRunAirborne(kind){
+  const g=samRun; if(!g||!g.running||!g.laneGame) return;
+  if(g.air&&g.air.until>g.time+220) return;
+  const target=(g.pickups||[]).filter(p=>!p.done&&p.wide&&p.kind===kind).sort((a,b)=>samRunPickupIn(a)-samRunPickupIn(b))[0];
+  const runner=document.getElementById('samRunRunner');
+  /* An early swipe is accepted immediately but the visible move waits for the
+     contact beat. This keeps generous input without showing Sam land a full
+     second before the wall and then magically pass through it. */
+  if(target&&samRunPickupIn(target)>SAM_RUN_AIR_LEAD_MS){
+    g.queuedAir={kind,pickup:target};
+    if(runner){ runner.classList.remove('is-ready-jump','is-ready-duck'); runner.classList.add(kind==='jump'?'is-ready-jump':'is-ready-duck'); }
+    try{ navigator.vibrate?.(4); }catch(_){}
+    const hint=document.getElementById('samRunSwipeHint'); if(hint) hint.classList.remove('show');
+    return;
+  }
+  samRunStartAir(kind);
+}
+function samRunMaybeStartQueuedAir(){
+  const g=samRun,q=g?.queuedAir; if(!g||!q) return;
+  const runner=document.getElementById('samRunRunner');
+  if(q.pickup.done||!(g.pickups||[]).includes(q.pickup)){
+    g.queuedAir=null; if(runner) runner.classList.remove('is-ready-jump','is-ready-duck'); return;
+  }
+  if(!g.air&&samRunPickupIn(q.pickup)<=SAM_RUN_AIR_LEAD_MS) samRunStartAir(q.kind);
 }
 function samRunLand(){
   const g=samRun; if(!g||!g.air||g.time<g.air.until) return;
@@ -13002,7 +13103,7 @@ function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0)); const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
   const runner=document.getElementById('samRunRunner');
-  if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';runner.classList.remove('switch-left','switch-right');void runner.offsetWidth;runner.classList.add(cls);setTimeout(()=>runner.classList.remove(cls),260); }
+  if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';runner.classList.remove('switch-left','switch-right');void runner.offsetWidth;runner.classList.add(cls);setTimeout(()=>runner.classList.remove(cls),250); }
   const hint=document.getElementById('samRunSwipeHint'); if(hint)hint.classList.remove('show');
   try{ navigator.vibrate?.(10); }catch(_){}
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
@@ -13080,8 +13181,9 @@ function samRunAdvanceSentence(ob){
   g.sentence=null; g.sentenceAt=0;
   g.sentencesDone=(g.sentencesDone||0)+1;
   g.runCoinBonus=(g.runCoinBonus||0)+5;
+  g.coinsRun=(g.coinsRun||0)+5;
   g.nextSentenceAt=(g.distance||0)+520+Math.random()*220;
-  samRunFloat('💬 +5 🪙',ob);
+  samRunFloat('💬 +5 זהב',ob); samRunCoinFlight(ob); samRunPaintHud();
   samRunWorldFx('is-combo',520);
   samRunSay(s.say);
   /* Hold the road for a beat. Without this the next question overwrites the
@@ -13208,11 +13310,12 @@ function samRunResolve(ob){
   }
   if(ok){
     ob.el.classList.add('is-caught');
+    if(g.laneGame) samRunPose('is-collecting',480);
     g.correctCount++; g.streak++; g.cleanStreak=(g.cleanStreak||0)+1;
     g.streakPeak=Math.max(g.streakPeak||0,g.streak); g.cleanPeak=Math.max(g.cleanPeak||0,g.cleanStreak);
     g.store.totalCorrect=(g.store.totalCorrect||0)+1;
     g.store.streakBest=Math.max(g.store.streakBest||0,g.streak);
-    if(ob.bonus){ g.runCoinBonus=(g.runCoinBonus||0)+3; samRunFloat('🪙 +3',ob); }
+    if(ob.bonus){ g.runCoinBonus=(g.runCoinBonus||0)+3; g.coinsRun=(g.coinsRun||0)+3; samRunFloat('+3 זהב',ob); samRunCoinFlight(ob); samRunPaintHud(); }
     if(g.streak===5&&!g.shield){ g.shield=1; const world=document.getElementById('samRunWorld'); if(world) world.classList.add('has-shield'); samRunFloat('🛡️ מגן!',ob); samRunTone('unlock'); }
     samRunTone(ob.cmd==='jump'?'jump':'catch');
     samRunScore(1+Math.min(4,Math.floor(g.streak/5)),ob);
@@ -13251,7 +13354,7 @@ function samRunScore(points, ob){
     world.style.setProperty('--speed',speed.toFixed(3));
     /* The scenery may accelerate strongly, but a human cadence only rises a
        little. Tying both to the same multiplier made Sam's legs buzz. */
-    world.style.setProperty('--run-cadence',Math.min(1.22,1+(speed-1)*.28).toFixed(3));
+    world.style.setProperty('--run-cadence',Math.min(1.12,1+(speed-1)*.16).toFixed(3));
     world.classList.toggle('is-fast',speed>1.7);
     world.classList.toggle('zone-2',g.resolvedCount>=6);
     world.classList.toggle('zone-3',g.resolvedCount>=12);
@@ -13264,11 +13367,22 @@ function samRunWorldFx(cls,ms=420){
   world.classList.remove(cls); void world.offsetWidth; world.classList.add(cls);
   setTimeout(()=>{ if(world.isConnected) world.classList.remove(cls); },ms);
 }
+function samRunCoinFlight(at){
+  const world=document.getElementById('samRunWorld'),wallet=document.getElementById('samRunRunWallet');
+  if(!world||!wallet||prefersReducedStageMotion()||!world.getBoundingClientRect||!wallet.getBoundingClientRect) return;
+  const wr=world.getBoundingClientRect(),tr=wallet.getBoundingClientRect(),x=at?.x??world.clientWidth*.5,y=at?.y??world.clientHeight*.9;
+  const coin=document.createElement('i'); coin.className='game-coin-flight'; coin.setAttribute?.('aria-hidden','true');
+  const dx=tr.left+tr.width/2-wr.left-x,dy=tr.top+tr.height/2-wr.top-y;
+  coin.style.left=(x-17)+'px'; coin.style.top=(y-17)+'px';
+  coin.style.setProperty('--coin-dx',dx+'px'); coin.style.setProperty('--coin-dy',dy+'px');
+  coin.style.setProperty('--coin-mid-x',dx*.28+'px'); coin.style.setProperty('--coin-mid-y',dy*.18-28+'px');
+  world.appendChild(coin); setTimeout(()=>coin.remove(),620);
+}
 function samRunBurst(ob){
   const world=document.getElementById('samRunWorld'); if(!world||prefersReducedStageMotion()) return;
   const burst=document.createElement('div'); burst.className='game-burst';
   burst.style.left=Math.max(16,Math.min(world.clientWidth-24,ob?.x??world.clientWidth*.5))+'px';
-  burst.style.top=Math.round(world.clientHeight*.58)+'px';
+  burst.style.top=Math.max(20,Math.min(world.clientHeight-30,ob?.y??world.clientHeight*.58))+'px';
   burst.innerHTML=Array.from({length:10},(_,i)=>`<i style="--a:${i*36}deg"></i>`).join('');
   world.appendChild(burst); setTimeout(()=>burst.remove(),750);
 }
@@ -13327,7 +13441,7 @@ function samRunFloat(text, ob, bad=false){
   const world=document.getElementById('samRunWorld'); if(!world) return;
   const f=document.createElement('div');
   f.className='game-float'+(bad?' bad':''); f.textContent=text;
-  const x=(ob?.x??world.clientWidth*.3), y=world.clientHeight*(samRun?.laneGame?.66:.42);
+  const x=(ob?.x??world.clientWidth*.3), y=ob?.y??world.clientHeight*(samRun?.laneGame?.66:.42);
   f.style.left=Math.max(8,Math.min(world.clientWidth-60,x-14))+'px'; f.style.top=y+'px';
   world.appendChild(f); setTimeout(()=>f.remove(),1000);
 }
@@ -13335,6 +13449,10 @@ function samRunPaintHud(bump=false){
   const g=samRun; if(!g) return;
   const score=document.getElementById('samRunScore');
   if(score){ score.textContent=String(g.score); if(bump){ score.classList.remove('bump'); void score.offsetWidth; score.classList.add('bump'); } }
+  const coins=document.getElementById('samRunRunCoins'),wallet=document.getElementById('samRunRunWallet');
+  const coinValue=String(g.coinsRun||0),coinChanged=!!coins&&coins.textContent!==coinValue;
+  if(coins) coins.textContent=coinValue;
+  if(wallet&&coinChanged){ wallet.classList.remove('bump'); void wallet.offsetWidth; wallet.classList.add('bump'); }
   const lives=document.getElementById('samRunLives');
   if(lives) lives.querySelectorAll('i').forEach((h,i)=>h.classList.toggle('lost',i>=g.lives));
   const mt=document.getElementById('samRunMissionText');
@@ -13363,8 +13481,8 @@ function samRunCheckFinish(){
   g.nextSpawnAt=Infinity;
   const world=document.getElementById('samRunWorld'),runner=document.getElementById('samRunRunner');
   if(world) world.classList.add('is-finishing');
-  if(runner) setTimeout(()=>{ if(samRun===g) samRunPose('is-celebrating',800); },360);
-  setTimeout(()=>{ if(samRun===g) samRunOver(true); },1250);
+  if(runner) setTimeout(()=>{ if(samRun===g){ runner.classList.remove('is-collecting'); samRunPose('is-celebrating'); } },500);
+  setTimeout(()=>{ if(samRun===g) samRunOver(true); },1380);
 }
 /* Compatibility hook: old versions paused to unlock a word mid-run. New
    worlds unlock together, so this simply teaches the requested word. */
@@ -13376,6 +13494,7 @@ function samRunResume(){ const g=samRun;if(g)g.paused=false; }
 function samRunOver(finished=false){
   const g=samRun; if(!g||!g.running) return;
   g.running=false; if(g.raf) cancelAnimationFrame(g.raf);
+  const world=document.getElementById('samRunWorld'); if(world){ world.classList.remove('is-running'); world.classList.add('is-halted'); }
   const card=document.getElementById('samRunCard'); if(!card) return;
   const store=g.store, newBest=g.score>(store.best||0);
   store.best=Math.max(store.best||0,g.score);
