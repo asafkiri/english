@@ -3442,11 +3442,19 @@ test("Sam's runs start directly without microphone friction", () => {
   assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
   assert.doesNotMatch(html, /function samRunPrepareMicrophone/,
     'starting the runner never requests microphone permission');
-  /* The word is said inside the swipe that chose it. Deferring it by even a
-     tick carries it out of the gesture, and iOS Safari will not speak outside
-     one — which is why the game had been silent on a real phone. */
-  assert.match(html, /samRunSay\(ob\.sentenceWave\?String\(chosen\)\.toLowerCase\(\):\(word\?word\.say\|\|word\.en:chosen\)\);/,
-    'every lane selection pronounces the English word, synchronously');
+  /* The word is said inside the swipe that chose it. A newly arriving wave
+     also says the already-selected lane once, so standing still never turns a
+     new question silent. */
+  assert.match(html, /function samRunSpeakLane\(ob,lane,arrival=false\)\{[\s\S]*?samRunSay\(ob\.sentenceWave\?String\(chosen\)\.toLowerCase\(\):\(word\?word\.say\|\|word\.en:chosen\)\);/,
+    'all lane speech uses one synchronous path');
+  assert.match(html, /function samRunChooseLane\(lane\)\{[\s\S]*?samRunSpeakLane\(ob,lane\);/,
+    'every lane selection pronounces its English word');
+  assert.match(html, /function samRunSpawnLaneWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
+    'a new vocabulary wave pronounces the lane where the runner already stands');
+  assert.match(html, /function samRunSpawnSentenceWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
+    'a new sentence wave pronounces the lane where the runner already stands');
+  assert.match(html, /arrival&&ob\.arrivalSpoken[\s\S]*?if\(arrival\) ob\.arrivalSpoken=true;/,
+    'arrival speech can happen only once per wave');
   assert.doesNotMatch(html, /g\.sayTimer=setTimeout/,
     'and never through a timer, which is what iOS drops');
   assert.match(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.resume\(\)/,
