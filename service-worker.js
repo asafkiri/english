@@ -1,8 +1,12 @@
 const CACHE_PREFIX = 'speak-english-';
-const CACHE_NAME = 'speak-english-v63';
+const CACHE_NAME = 'speak-english-v64';
 const APP_FILES = [
   './',
   './index.html',
+  './runner-voice.js',
+  './THIRD_PARTY_NOTICES.md',
+  './LICENSES/Apache-2.0.txt',
+  './LICENSES/Flite-CMU.txt',
   './manifest.webmanifest',
   './icon.svg',
   './icon-192.png',
