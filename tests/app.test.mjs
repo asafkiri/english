@@ -99,7 +99,7 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
-      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
+      samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
       setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
@@ -4830,6 +4830,43 @@ test("later runs mix in words the player already met in earlier worlds", () => {
   for (let i = 0; i < 400; i++) { drawn.add(api.samRunPickKind()); game.sameKind = 0; }
   assert.ok(speed.some(id => drawn.has(id)), 'review words really do come up as questions');
   assert.ok(own.filter(id => drawn.has(id)).length >= 4, 'without crowding out the world being learned');
+});
+
+test("the game's front door shows the shop and every world behind it", () => {
+  const { api } = runtime();
+  const store = api.samRunStore();
+  store.coins = 430;
+  store.owned = api.SAM_RUN_SHOP_ITEMS.filter(x => x.price > 0).slice(0, 3).map(x => x.id);
+  store.stage = 2;
+  store.stageStars = { 0: 3 };
+  for (const id of api.SAM_RUN_STAGES[0].words.map(w => w[0])) store.mastery[id] = api.SAM_RUN_MASTERY;
+
+  /* The shop is drawn, not written. A child does not shop at a word. */
+  const art = api.samRunShopArt();
+  assert.match(art, /^<svg /, 'the shopfront is inline art, so it works offline like the rest of the app');
+  assert.ok(!/<image|xlink:href|https?:/.test(art), 'and pulls in nothing from outside the file');
+  assert.ok((art.match(/<circle/g) || []).length >= 15, 'the awning frill runs the whole width rather than stopping short');
+
+  const shop = api.samRunShopCardHtml(store);
+  assert.match(shop, /onclick="renderSamRunShop\(\)"/, 'the shopfront is the way in');
+  assert.match(shop, /🪙 430/, 'it shows what the player has to spend');
+  assert.match(shop, /3\/\d+ פריטים שלך/, 'and how much of the shop is already theirs');
+
+  /* Eight worlds that were two screens deep, now at the front door. */
+  const worlds = api.samRunWorldsHtml(store);
+  for (let i = 0; i < api.SAM_RUN_STAGES.length; i++)
+    assert.match(worlds, new RegExp(`onclick="renderSamRun\\(${i}\\)"`), `world ${i + 1} can be opened from the hub`);
+  assert.match(worlds, /⭐⭐⭐/, 'a finished world wears its stars');
+  assert.match(worlds, /כאן אתה/, 'and the one in progress says so');
+
+  const first = api.samRunWorldStats(store, 0);
+  assert.equal(first.mastered, first.total, 'the shared reading of a world counts mastered words');
+  assert.equal(api.samRunWorldStats(store, 7).mastered, 0, 'and an untouched world reads as empty');
+
+  /* The hub carries both, and still leads with the run itself. */
+  const hub = api.samRunHubHtml(store);
+  assert.ok(hub.indexOf('game-hub-go') < hub.indexOf('game-shop-card'), 'the run is still the first thing offered');
+  assert.ok(hub.includes('game-shop-card') && hub.includes('game-world-grid'), 'the front door carries the shop and the worlds');
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {

@@ -2121,7 +2121,36 @@ body{
 .game-map-hero{position:relative;overflow:hidden;border:1px solid rgba(96,165,250,.3);border-radius:22px;padding:16px;background:linear-gradient(145deg,rgba(37,99,235,.2),rgba(16,185,129,.1));text-align:center}
 .game-map-hero:after{content:'';position:absolute;inset:auto -15% -70% 20%;height:150px;background:radial-gradient(circle,rgba(52,211,153,.22),transparent 68%);pointer-events:none}
 .game-map-hero h2{font-size:23px;margin:0 0 4px}.game-map-hero p{margin:0;color:var(--dim);font-size:13px;line-height:1.45}
-.game-map-actions{position:relative;z-index:2;display:flex;justify-content:center;gap:8px;margin-top:10px}.game-map-actions button{border:1px solid rgba(251,191,36,.5);border-radius:999px;background:rgba(251,191,36,.12);color:#fde68a;padding:7px 13px;font:inherit;font-size:12px;font-weight:850;cursor:pointer}
+.game-map-actions{position:relative;z-index:2;display:flex;justify-content:center;gap:8px;margin-top:10px}
+/* --- the shop, drawn --- */
+.game-shop-card{display:block;width:100%;margin-top:12px;padding:0 0 12px;border:1px solid rgba(242,182,50,.34);border-radius:22px;background:linear-gradient(165deg,rgba(60,45,20,.55),rgba(26,37,64,.92));color:var(--text);font:inherit;text-align:center;cursor:pointer;overflow:hidden;transition:transform .18s ease,border-color .18s ease}
+.game-shop-card:active{transform:scale(.985)}
+.game-shop-card:hover{border-color:rgba(242,182,50,.62)}
+.shop-card-art{padding:10px 12px 2px;background:radial-gradient(120% 90% at 50% 0,rgba(242,182,50,.16),transparent 68%)}
+.shop-art{display:block;width:100%;max-width:260px;margin:0 auto;height:auto}
+.shop-card-body{display:grid;gap:2px;padding:2px 14px 0}
+.shop-card-body strong{font-size:19px;font-weight:950}
+.shop-card-body small{color:var(--dim);font-size:12px}
+.shop-card-coins{margin-top:4px;font-size:13px;font-weight:800;color:#fbbf24}
+.shop-card-cta{margin-top:6px;justify-self:center;padding:6px 16px;border-radius:999px;background:rgba(242,182,50,.16);border:1px solid rgba(242,182,50,.4);color:#fde68a;font-size:13px;font-weight:800}
+/* --- the worlds, visible from the front door --- */
+.game-hub-worlds{margin-top:16px}
+.hub-worlds-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.hub-worlds-head h3{margin:0;font-size:17px}
+.hub-worlds-head span{color:var(--dim);font-size:12px;font-weight:800}
+.hub-worlds-sub{margin:2px 0 10px;color:var(--dim);font-size:12.5px}
+.game-world-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.game-world-card{display:grid;justify-items:center;gap:3px;padding:11px 8px 10px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(155deg,var(--card2),var(--card));color:var(--text);font:inherit;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
+.game-world-card:active{transform:scale(.97)}
+.game-world-card.current{border-color:rgba(96,165,250,.7);box-shadow:0 0 0 3px rgba(96,165,250,.14)}
+.game-world-card.done{border-color:rgba(52,211,153,.55)}
+.wc-icon{font-size:27px;line-height:1.1}
+.wc-name{font-size:13.5px;font-weight:900;text-align:center;line-height:1.2}
+.wc-stars{font-size:11px;letter-spacing:1px}
+.wc-bar{width:100%;height:5px;margin-top:3px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.wc-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#34d399,#60a5fa)}
+.game-world-card small{color:var(--dim);font-size:11px}
+.game-world-card.done small{color:#6ee7b7}.game-map-actions button{border:1px solid rgba(251,191,36,.5);border-radius:999px;background:rgba(251,191,36,.12);color:#fde68a;padding:7px 13px;font:inherit;font-size:12px;font-weight:850;cursor:pointer}
 .game-map-progress{height:8px;border-radius:999px;background:rgba(15,23,42,.68);overflow:hidden;margin-top:11px}
 .game-map-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#34d399,#60a5fa);transition:width .4s ease}
 .game-stage-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -7024,7 +7053,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.41.1';
+const APP_VERSION = '2.42.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12165,6 +12194,51 @@ function samRunStartCardHtml(store){
    medals, not a ladder of worlds: the course is the only curriculum now, and
    the run is where it gets practised. The worlds are still here, one button
    down, as focused practice on the runner's own starter words. */
+/* The shop used to be a word on a button. A child does not shop at a word, so
+   here is the shop itself: a striped awning, a lit window with something in
+   it, and a door standing open. Drawn rather than photographed, because the
+   whole app is one file and has to work offline. */
+function samRunShopArt(){
+  const RED='#e2584f', CREAM='#f7f3e8', stripes=[], scallops=[];
+  for(let i=0;i<8;i++) stripes.push(`<rect x="${18+i*23}" y="30" width="23" height="28" fill="${i%2?CREAM:RED}"/>`);
+  /* Each scallop takes the colour of the stripe it hangs from, so the frill
+     reads as the same piece of cloth. */
+  for(let i=0;i<15;i++){ const cx=+(24+i*172/14).toFixed(2); scallops.push(`<circle cx="${cx}" cy="53" r="6" fill="${Math.floor((cx-18)/23)%2?CREAM:RED}"/>`); }
+  return `<svg class="shop-art" viewBox="0 0 220 132" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="samShopWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#33477190"/><stop offset="1" stop-color="#1d2942"/></linearGradient>
+      <linearGradient id="samShopGlass" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#9ecbff"/><stop offset="1" stop-color="#2b4a75"/></linearGradient>
+      <clipPath id="samShopAwning"><path d="M18 30h184v28H18z"/></clipPath>
+    </defs>
+    <ellipse cx="110" cy="124" rx="84" ry="6" fill="#050b18" opacity=".45"/>
+    <rect x="26" y="40" width="168" height="82" rx="10" fill="url(#samShopWall)"/>
+    <rect x="26" y="40" width="168" height="82" rx="10" fill="none" stroke="#42598a" stroke-width="2"/>
+    <g><rect x="104" y="16" width="12" height="18" rx="3" fill="#42598a"/>
+      <rect x="72" y="4" width="76" height="24" rx="12" fill="#f2b632"/>
+      <path d="M99 12h22v10a4 4 0 0 1-4 4h-14a4 4 0 0 1-4-4z" fill="#1d2942"/>
+      <path d="M104.5 12.5v-2a5.5 5.5 0 0 1 11 0v2" fill="none" stroke="#1d2942" stroke-width="2.2" stroke-linecap="round"/></g>
+    <g clip-path="url(#samShopAwning)">${stripes.join('')}</g>
+    ${scallops.join('')}
+    <rect x="40" y="68" width="82" height="44" rx="7" fill="url(#samShopGlass)"/>
+    <path d="M46 108 96 72h13L59 108z" fill="#ffffff" opacity=".16"/>
+    <path d="M63 82l7-4 5 3 5-3 7 4-3 6-4-2v13H70V86l-4 2z" fill="#f8fafc" opacity=".92"/>
+    <path d="M92 100h13c5 0 9 2 9 5v3H92z" fill="#34d399"/><path d="M92 96h5v12h-5z" fill="#2bb583"/>
+    <rect x="40" y="68" width="82" height="44" rx="7" fill="none" stroke="#5f7cae" stroke-width="2"/>
+    <rect x="136" y="64" width="44" height="58" rx="6" fill="#16213a"/>
+    <rect x="136" y="64" width="44" height="58" rx="6" fill="none" stroke="#5f7cae" stroke-width="2"/>
+    <rect x="143" y="72" width="30" height="20" rx="4" fill="#9ecbff" opacity=".35"/>
+    <circle cx="145" cy="104" r="3.2" fill="#f2b632"/>
+    <circle cx="35" cy="20" r="8" fill="#f2b632"/><circle cx="35" cy="20" r="5" fill="#d99a1f"/>
+    <circle cx="188" cy="26" r="6" fill="#f2b632"/><circle cx="188" cy="26" r="3.6" fill="#d99a1f"/>
+  </svg>`;
+}
+/* One reading of a world's state, so the hub gallery and the training list can
+   never disagree about how far the player has got. */
+function samRunWorldStats(store,i){
+  const stage=SAM_RUN_STAGES[i], ids=stage.words.map(w=>w[0]);
+  const mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
+  return {stage,ids,mastered,total:ids.length,stars:store.stageStars[i]||0};
+}
 function samRunHubHtml(store){
   const words=samRunEndlessWords(store,state.completed);
   const course=SAM_RUN_COURSE_WORDS.filter(w=>w[6]<Math.max(0,Math.floor(Number(state.completed)||0))).length;
@@ -12182,8 +12256,52 @@ function samRunHubHtml(store){
       <p class="game-hub-words">${course
         ?`📚 ${course} ${course===1?'מילה שלמדת רצה':'מילים שלמדת רצות'} איתך`
         :`📚 כל שיעור שתסיים מוסיף מילים לריצה · בינתיים ${words.active.length} מילים של סם`} · 🪙 ${store.coins||0}</p>
-      <div class="game-map-actions"><button onclick="renderSamRunShop()">🛍️ חנות ועיצוב</button><button onclick="renderSamRunMap()">🎯 אימון ממוקד</button></div>
-    </div></div>`;
+      <div class="game-map-actions"><button onclick="renderSamRunMap()">🎯 אימון ממוקד</button></div>
+    </div>
+    ${samRunShopCardHtml(store)}
+    ${samRunWorldsHtml(store)}
+  </div>`;
+}
+/* The shop is the reason to collect coins, so it gets a shopfront the child can
+   look at rather than a line of text at the bottom of the screen. */
+function samRunShopCardHtml(store){
+  const buyable=SAM_RUN_SHOP_ITEMS.filter(x=>x.price>0);
+  const owned=buyable.filter(x=>(store.owned||[]).includes(x.id)).length;
+  const coins=store.coins||0;
+  const next=buyable.filter(x=>!(store.owned||[]).includes(x.id)).sort((a,b)=>a.price-b.price)[0];
+  const afford=buyable.filter(x=>!(store.owned||[]).includes(x.id)&&x.price<=coins).length;
+  return `<button class="game-shop-card" onclick="renderSamRunShop()">
+    <div class="shop-card-art">${samRunShopArt()}</div>
+    <div class="shop-card-body">
+      <strong>החנות של סם</strong>
+      <small>בגדים · נעליים · תספורות · דמויות · כלי רכב</small>
+      <span class="shop-card-coins">🪙 ${coins} · ${owned}/${buyable.length} פריטים שלך</span>
+      <span class="shop-card-cta">${afford
+        ?`${afford} ${afford===1?'פריט שאפשר לקנות עכשיו':'פריטים שאפשר לקנות עכשיו'} ›`
+        :next?`עוד ${next.price-coins} 🪙 ל${esc(next.name)} ›`:'נכנסים לחנות ›'}</span>
+    </div></button>`;
+}
+/* Eight worlds, five words each. They were only reachable two screens deep, so
+   a child never knew there was anything to open. */
+function samRunWorldsHtml(store){
+  const cards=SAM_RUN_STAGES.map((stage,i)=>{
+    const {ids,mastered,total,stars}=samRunWorldStats(store,i);
+    const done=mastered>=total;
+    return `<button class="game-world-card${i===store.stage?' current':''}${done?' done':''}" onclick="renderSamRun(${i})">
+      <span class="wc-icon">${stage.icon}</span>
+      <span class="wc-name">${esc(stage.title)}</span>
+      <span class="wc-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</span>
+      <span class="wc-bar"><i style="width:${Math.round(mastered/total*100)}%"></i></span>
+      <small>${mastered}/${total} מילים${i===store.stage?' · כאן אתה':''}</small>
+    </button>`;
+  }).join('');
+  const learned=SAM_RUN_STAGES.reduce((n,_,i)=>n+samRunWorldStats(store,i).mastered,0);
+  const all=SAM_RUN_STAGES.reduce((n,st)=>n+st.words.length,0);
+  return `<div class="game-hub-worlds">
+    <div class="hub-worlds-head"><h3>🗺️ העולמות של סם</h3><span>${learned}/${all} מילים</span></div>
+    <p class="hub-worlds-sub">כל עולם הוא חמש מילים חדשות. אפשר להיכנס לכל אחד מהם, בקצב שלך.</p>
+    <div class="game-world-grid">${cards}</div>
+  </div>`;
 }
 function samRunMapHtml(store){
   const curriculum=SAM_RUN_STAGES.flatMap(stage=>stage.words.map(w=>w[0]));
