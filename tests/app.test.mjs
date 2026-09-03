@@ -84,6 +84,7 @@ function runtime(seed = new Map(), options = {}) {
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
+      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3351,9 +3352,13 @@ test("Sam's Run: lives beside the lessons, remembers its best, and stays out of 
   const before = JSON.stringify(api.getState());
   api.renderSamRun();
   assert.match(app.innerHTML, /game-screen/);
-  assert.match(app.innerHTML, /data-character="sam"/, 'Sam himself is on the start card');
-  assert.match(app.innerHTML, /JUMP[\s\S]*DUCK/, 'the two starter words are shown');
-  assert.match(app.innerHTML, /is-locked/, 'later words are visibly locked');
+  assert.match(app.innerHTML, /data-character="sam"/, 'Sam himself is on the hub');
+  assert.match(app.innerHTML, /onclick="renderSamRunEndless\(\)"/, 'the endless run is the front door');
+  assert.match(app.innerHTML, /השיא שלך במטרים/, 'and a personal best is what it shows');
+  assert.match(app.innerHTML, /onclick="renderSamRunMap\(\)"/, 'the worlds are one button down as focused practice');
+  api.renderSamRunMap();
+  assert.match(app.innerHTML, /JUMP[\s\S]*DUCK/, 'which still lists every world and its words');
+  assert.doesNotMatch(app.innerHTML, /is-locked/, 'and no longer locks any of them behind the others');
   assert.equal(JSON.stringify(api.getState()), before, 'opening the game must not touch the learner state');
   assert.equal(api.getLesson(), null, 'and must not open a lesson');
 
@@ -3400,8 +3405,8 @@ test("Sam's word journey persists mastery without leaking into lesson progress",
   assert.equal(fresh.api.samRunStore().mastery.jump, api.SAM_RUN_MASTERY);
   assert.equal(fresh.api.samRunStore().stageStars[0], 2);
   assert.equal(fresh.api.samRunStore().coins, 23);
-  fresh.api.renderSamRun();
-  assert.match(fresh.app.innerHTML, /מסע המילים של סם/);
+  fresh.api.renderSamRunMap();
+  assert.match(fresh.app.innerHTML, /אימון ממוקד/);
   assert.match(fresh.app.innerHTML, /<b>1<\/b> מתוך 40 מילים/);
   assert.match(fresh.app.innerHTML, /צובעים את העיר/);
   assert.equal(JSON.stringify(api.getState()), before);
@@ -3658,7 +3663,7 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
   assert.match(html, /if\(!g\.finishing&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in');
-  assert.match(html, /const runnerToys=g\.phase\.id!=='learn', final=g\.phase\.id==='final';/,
+  assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
     'the first, gentlest phase of a world stays a pure reading run');
   assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
 
@@ -3681,8 +3686,8 @@ test("walls give the road a vertical axis that can only be answered by reading",
   const { api, context } = runtime();
   assert.match(html, /el\.style\.width=Math\.round\(g\.worldW\*\.93\)\+'px'/,
     'a wall spans the whole road: stepping around it is not one of the options');
-  assert.match(html, /el\.innerHTML=`<b>\$\{jump\?'JUMP':'DUCK'\}<\/b>/,
-    'and it carries the English word for the gesture it wants');
+  assert.match(html, /el\.innerHTML=word\+`<span>\$\{jump\?'⬆':'⬇'\}<\/span>`\+word;/,
+    'and carries the English word at both ends, where a row of gates cannot hide it');
   assert.match(html, /transform-origin:0 0/,
     'the rush layer anchors from its top-left so a scaled wall stays centred on the road');
 
@@ -3691,7 +3696,8 @@ test("walls give the road a vertical axis that can only be answered by reading",
   context.document.getElementById = id => id === 'samRunRunner' ? runner : null;
   const wall = kind => ({ el: { classList: classList(), style: {}, remove() {} }, kind, lane: 1, wide: true, p: .95, done: false });
   const game = { running: true, laneGame: true, lane: 1, worldW: 300, worldH: 600, streak: 5, cleanStreak: 5,
-    lives: 3, score: 0, runCoinBonus: 0, time: 1000, air: null, obstacles: [], pickups: [], props: [], mission: null };
+    lives: 3, score: 0, runCoinBonus: 0, time: 1000, air: null, obstacles: [], pickups: [], props: [], mission: null,
+    phase: { id: 'final' }, nextSpawnAt: Infinity };
   api.setSamRun(game);
 
   api.samRunAirborne('jump');
@@ -3722,6 +3728,13 @@ test("walls give the road a vertical axis that can only be answered by reading",
   assert.equal(api.samRunRoadClear(game, 1800), true, 'but a beat later the road is its own');
   game.obstacles = [];
   assert.equal(api.samRunRoadClear(game, 1000), true, 'an empty road is always clear');
+  // the wave that has not spawned yet occupies its slot too
+  game.nextSpawnAt = game.time + 200;
+  const wave = api.samRunWaveTiming(game);
+  assert.equal(api.samRunRoadClear(game, 200 + wave.warnMs + wave.travelMs), false,
+    'a wall may not be scheduled into the slot the next question is about to take');
+  assert.equal(api.samRunRoadClear(game, 200 + wave.warnMs + wave.travelMs + 900), true,
+    'but the road past it is free again');
 });
 
 test("the final challenge is the fastest gear and the only one that pairs walls", () => {
@@ -3764,6 +3777,81 @@ test("the final challenge is the fastest gear and the only one that pairs walls"
   assert.ok(final.some(b => b.coins > 0) && speed.some(b => b.coins > 0),
     'a wall and a line of coins can share one gap');
   assert.equal(batchesFor('learn').length, 0, 'the learn phase still has no walls at all');
+});
+
+test("the endless run is measured in metres and hands out its mechanics by distance", () => {
+  const { api } = runtime();
+  const endless = d => ({ endless: true, distance: d, score: 0, phase: api.SAM_RUN_ENDLESS_PHASE });
+
+  // a world winds up with its score; the endless road winds up with distance
+  assert.equal(api.samRunPace(endless(0)), 1);
+  assert.ok(api.samRunPace(endless(1300)) > api.samRunPace(endless(400)), 'the run keeps accelerating');
+  assert.equal(api.samRunPace(endless(9999)), api.samRunPace(endless(2600)), 'but it tops out rather than becoming impossible');
+  assert.equal(api.samRunPace({ score: 0, phase: { id: 'learn' } }), api.samRunSpeedFor(0),
+    'a world run is untouched and still paces off its score');
+
+  const far = api.samRunWaveTiming(endless(2600)), near = api.samRunWaveTiming(endless(0));
+  assert.ok(far.travelMs < near.travelMs && far.warnMs < near.warnMs, 'waves tighten as the run gets longer');
+  assert.ok(far.travelMs >= 1100 && far.warnMs >= 400, 'and stop tightening while still readable');
+
+  // mechanics arrive by the metre, in a fixed order, and never before their sign
+  const at = api.SAM_RUN_FEATURE_AT;
+  assert.ok(at.coins < at.walls && at.walls < at.hurdles && at.hurdles < at.pairs,
+    'the run introduces itself one mechanic at a time');
+  for (const [feature, metre] of Object.entries(at)) {
+    assert.equal(api.samRunUnlocked(endless(Math.max(0, metre - 1)), feature), metre === 0,
+      `${feature} must not appear before ${metre}m`);
+    assert.equal(api.samRunUnlocked(endless(metre), feature), true, `${feature} appears at ${metre}m`);
+  }
+  // a world still gates the same things by phase, exactly as before
+  const world = id => ({ phase: { id }, score: 0 });
+  assert.equal(api.samRunUnlocked(world('learn'), 'walls'), false);
+  assert.equal(api.samRunUnlocked(world('speed'), 'walls'), true);
+  assert.equal(api.samRunUnlocked(world('speed'), 'pairs'), false);
+  assert.equal(api.samRunUnlocked(world('final'), 'pairs'), true);
+
+  // medals are cumulative and ordered
+  assert.equal(api.samRunMedalsFor(0).length, 0);
+  assert.equal(api.samRunMedalsFor(api.SAM_RUN_MEDALS[0].m).length, 1);
+  assert.equal(api.samRunMedalsFor(99999).length, api.SAM_RUN_MEDALS.length);
+  const metres = api.SAM_RUN_MEDALS.map(x => x.m);
+  assert.deepEqual(metres.join(), [...metres].sort((a, b) => a - b).join(), 'medals climb');
+
+  assert.match(html, /g\.finishing\|\|g\.lives<=0\|\|g\.endless\) return;/,
+    'an endless run has no finish line to reach — only the hearts can stop it');
+  assert.match(html, /g\.distance\+=dt\/1000\*8\.5\*samRunPace\(g\)/, 'distance is what the run accumulates');
+  assert.match(html, /const scene=Math\.floor\(metre\/700\)%SAM_RUN_STAGES\.length/,
+    'and the roadside rolls into the next world as it goes');
+});
+
+test("the endless run is built from this child's own words, and remembers his record", () => {
+  const seed = new Map();
+  const { api } = runtime(seed);
+
+  // a child who has barely started still gets a playable game
+  const cold = api.samRunEndlessWords(api.samRunStore(), 0);
+  assert.ok(cold.active.length >= 8, "the runner's own words carry a child who has not started the course");
+  assert.ok(cold.filler.length === 40);
+  // once the course has taught enough, it takes over entirely
+  const warm = api.samRunEndlessWords(api.samRunStore(), 13);
+  const courseIds = new Set(api.SAM_RUN_COURSE_WORDS.map(w => w[0]));
+  assert.ok(warm.active.length > 20 && warm.active.every(id => courseIds.has(id)),
+    'a child deep in the course runs on his own vocabulary');
+  assert.ok(warm.active.every(id => api.SAM_RUN_COMMANDS[id].lesson < 13), 'and never on a lesson he has not reached');
+  assert.ok(api.samRunEndlessWords(api.samRunStore(), 30).active.length >= warm.active.length,
+    'the pool only ever widens with more lessons');
+
+  const store = api.samRunStore();
+  assert.equal(store.bestDistance, 0);
+  assert.deepEqual(store.medals.join(), '');
+  api.samRunSave({ ...store, bestDistance: 1240, medals: [250, 600, 9999] });
+  const back = runtime(seed).api.samRunStore();
+  assert.equal(back.bestDistance, 1240, 'the record survives a reload');
+  assert.deepEqual(back.medals.join(), '250,600', 'and a medal that does not exist is dropped rather than shown');
+
+  assert.match(html, /store\.bestDistance=Math\.max\(store\.bestDistance\|\|0,metres\)/,
+    'a shorter run can never lower the record');
+  assert.match(html, /onclick="renderSamRunEndless\(\)"/, 'the hub starts the run');
 });
 
 test("every game word drawn from the course is really taught by the course", () => {
@@ -3839,8 +3927,8 @@ test("a run carries the words this child has earned in the course", () => {
   const recentShare = api.samRunLessonPool(13, 6).filter(id => lessonOf(id) >= 10).length;
   assert.ok(recentShare >= 2, 'while what was just taught gets the bigger share');
 
-  assert.match(html, /lesson:phaseIndex\?samRunLessonPool\(state\.completed,6\):\[\]/,
-    'the pool is read from the course itself, and stays out of a world�s first teaching pass');
+  assert.match(html, /lesson:endless\?\[\]:\(phaseIndex\?samRunLessonPool\(state\.completed,6\):\[\]\)/,
+    "the pool is read from the course itself, and stays out of a world's first teaching pass");
   assert.match(html, /g\.active\.concat\(g\.review\|\|\[\],g\.lesson\|\|\[\]\)/,
     'course words can be the answer as well as a distractor');
   assert.match(html, /choice\.lesson===undefined\?'':' from-lesson'/,
