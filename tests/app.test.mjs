@@ -5,6 +5,10 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const runnerVoiceJs = fs.readFileSync(new URL('../runner-voice.js', import.meta.url), 'utf8');
+const runnerVoiceWindow = {};
+vm.runInNewContext(runnerVoiceJs, { window: runnerVoiceWindow });
+const runnerVoice = runnerVoiceWindow.SAM_RUN_VOICE;
 const inline = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 if (!inline) throw new Error('inline app script not found');
 
@@ -44,7 +48,7 @@ function runtime(seed = new Map(), options = {}) {
     setTimeout, clearTimeout, setInterval, clearInterval,
     requestAnimationFrame: fn => setTimeout(fn, 0),
     cancelAnimationFrame: id => clearTimeout(id),
-    Date, Math, JSON, Map, Set, String, Number, Array, Object, Promise,
+    Date, Math, JSON, Map, Set, String, Number, Array, Object, Promise, atob,
   });
   const expose = `
     ;globalThis.__test = {
@@ -81,11 +85,12 @@ function runtime(seed = new Map(), options = {}) {
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
+      samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup, SAM_RUN_FEATURE_SAY,
-      setSamRun:v=>{samRun=v},
+      setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -2967,6 +2972,9 @@ test('PWA update code is versioned and does not clear local progress', () => {
   assert.match(sw, /SKIP_WAITING/);
   assert.match(html, /updateViaCache:'none'/);
   assert.doesNotMatch(sw, /localStorage/);
+  for(const asset of ['runner-voice.js','THIRD_PARTY_NOTICES.md','LICENSES/Apache-2.0.txt','LICENSES/Flite-CMU.txt']){
+    assert.ok(sw.includes(`'./${asset}'`), `${asset} is preserved in the offline app`);
+  }
 });
 
 test('service worker preserves network success, offline fallback, and unrelated caches', async () => {
@@ -3445,16 +3453,18 @@ test("Sam's runs start directly without microphone friction", () => {
   /* The word is said inside the swipe that chose it. A newly arriving wave
      also says the already-selected lane once, so standing still never turns a
      new question silent. */
-  assert.match(html, /function samRunSpeakLane\(ob,lane,arrival=false\)\{[\s\S]*?samRunSay\(ob\.sentenceWave\?String\(chosen\)\.toLowerCase\(\):\(word\?word\.say\|\|word\.en:chosen\)\);/,
-    'all lane speech uses one synchronous path');
+  assert.match(html, /function samRunSpeakLane\(ob,lane,arrival=false\)\{[\s\S]*?if\(!samRunPlayRecordedWord\(spoken,ob,lane,finish\)\) finish\(samRunSay\(spoken\)\);/,
+    'all lane speech prefers the recorded gameplay path and retains speech synthesis as fallback');
   assert.match(html, /function samRunChooseLane\(lane\)\{[\s\S]*?samRunSpeakLane\(ob,lane\);/,
     'every lane selection pronounces its English word');
   assert.match(html, /function samRunSpawnLaneWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
     'a new vocabulary wave pronounces the lane where the runner already stands');
   assert.match(html, /function samRunSpawnSentenceWave\(\)\{[\s\S]*?samRunSpeakLane\(ob,g\.lane,true\);/,
     'a new sentence wave pronounces the lane where the runner already stands');
-  assert.match(html, /arrival&&ob\.arrivalSpoken[\s\S]*?if\(arrival\) ob\.arrivalSpoken=true;/,
-    'arrival speech can happen only once per wave');
+  assert.match(html, /const finish=played=>\{[\s\S]*?if\(played\) ob\.arrivalSpoken=true;/,
+    'a wave is marked spoken only after a playback path really starts it');
+  assert.match(html, /function samRunStart\(\)\{[\s\S]*?samRunTone\('tick'\);\n  samRunVoiceUntil=0;/,
+    'each run starts with a fresh speech backlog clock');
   assert.doesNotMatch(html, /g\.sayTimer=setTimeout/,
     'and never through a timer, which is what iOS drops');
   assert.match(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.resume\(\)/,
@@ -3474,7 +3484,7 @@ test("Sam's runs start directly without microphone friction", () => {
     'the game never cancels — that is the call that wedges iOS for the rest of the page');
   assert.doesNotMatch(sayFn, /speechSynthesis\.speaking|speechSynthesis\.pending/,
     'and never asks iOS whether it is speaking, because that answer cannot be trusted');
-  assert.match(sayFn, /if\(samRunVoiceUntil-now>820\) return;/,
+  assert.match(sayFn, /if\(samRunVoiceUntil-now>820\) return false;/,
     'it keeps its own reckoning instead, and drops a word only once the voice is a word behind');
   assert.match(sayFn, /speechSynthesis\.speak\(u\);/,
     'every word is handed over synchronously, inside the swipe that chose it');
@@ -3494,6 +3504,96 @@ test("Sam's runs start directly without microphone friction", () => {
     'and nothing cancels a queue that is already empty — the runner does that on every start');
   assert.match(html, /const u = new SpeechSynthesisUtterance\('a'\);/,
     'the iOS unlock speaks a real letter — a whitespace utterance is nothing to say, so it unlocked nothing');
+});
+
+test("Sam's lane vocabulary has offline recorded pronunciation", async () => {
+  const { api, context } = runtime();
+  assert.match(html, /<script src="\.\/runner-voice\.js"><\/script>/,
+    'the pronunciation pack loads before the game code');
+  assert.match(runnerVoiceJs, /Full provenance and license copies: \.\/THIRD_PARTY_NOTICES\.md/,
+    'the distributed audio pack points recipients to its bundled notices');
+  assert.ok(runnerVoice?.audio, 'the pronunciation pack is readable');
+  for(const command of Object.values(api.SAM_RUN_COMMANDS)){
+    const key=String(command.say||command.en).toLowerCase();
+    assert.ok(runnerVoice.audio[key], `${key} has a recorded lane pronunciation`);
+  }
+  for(const sentence of api.samRunSentencePool(api.LESSONS.length)){
+    for(const word of sentence.words){
+      const key=word.toLowerCase();
+      assert.ok(runnerVoice.audio[key], `${key} has a recorded sentence-lane pronunciation`);
+    }
+  }
+  for(const clip of Object.values(runnerVoice.audio)){
+    const bytes=Buffer.from(clip,'base64');
+    assert.ok(bytes.length>1000, 'each pronunciation contains real audio data');
+    assert.ok(bytes[0]===0x49||bytes[0]===0xff, 'each pronunciation is an MP3 clip');
+  }
+  let starts=0;
+  const audioContext={
+    state:'running', destination:{},
+    decodeAudioData:async()=>({duration:.7}),
+    createBufferSource:()=>({connect(){},start(){ starts++; },stop(){}}),
+  };
+  context.window.SAM_RUN_VOICE=runnerVoice;
+  api.setSamRunAudio(audioContext);
+  const game={running:true};
+  const wave={options:['night','please','no'],chosenLane:0,resolved:false};
+  api.setSamRun(game);
+  api.samRunSpeakLane(wave,0,true);
+  assert.equal(wave.arrivalPending,true, 'the wave is pending while its first clip decodes');
+  assert.equal(wave.arrivalSpoken,undefined, 'requesting a clip does not prematurely mark it spoken');
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(starts,1, 'an arriving wave really starts a Web Audio source without a lane gesture');
+  assert.equal(wave.arrivalPending,false);
+  assert.equal(wave.arrivalSpoken,true);
+  api.samRunSpeakLane(wave,0,true);
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(starts,1, 'the same arriving wave is not played twice');
+
+  let resumes=0;
+  audioContext.state='interrupted';
+  audioContext.resume=async()=>{ resumes++; audioContext.state='running'; };
+  const resumedWave={options:['please','night','no'],chosenLane:0,resolved:false};
+  api.samRunSpeakLane(resumedWave,0,true);
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(resumes,1, 'an interrupted WebKit audio context is resumed');
+  assert.equal(starts,2, 'the arriving word starts after an audio interruption');
+  assert.equal(resumedWave.arrivalSpoken,true);
+  assert.match(html, /Promise\.race\(\[attempt,new Promise\(resolve=>setTimeout\(resolve,450\)\)\]\)/,
+    'a stuck WebKit resume cannot leave a wave pending forever');
+
+  audioContext.decodeAudioData=(_bytes,success)=>{ setTimeout(()=>success({duration:.7}),0); };
+  const legacyWave={options:['no','night','please'],chosenLane:0,resolved:false};
+  api.samRunSpeakLane(legacyWave,0,true);
+  await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(starts,3, 'the legacy callback-only Safari decoder also starts the word');
+  assert.equal(legacyWave.arrivalSpoken,true);
+});
+
+test("Sam's game chooses the audible iPhone media route only while it runs", async () => {
+  const audioSession={type:'auto'};
+  const modern=runtime(new Map(),{navigator:{audioSession}});
+  modern.api.samRunBeginAudioSession();
+  assert.equal(audioSession.type,'playback', 'modern iOS ignores the silent switch for spoken game words');
+  modern.api.samRunEndAudioSession();
+  assert.equal(audioSession.type,'auto', 'leaving the game restores the lesson audio route');
+
+  let plays=0,pauses=0;
+  const legacy=runtime(new Map(),{navigator:{userAgent:'iPhone',platform:'iPhone',maxTouchPoints:5}});
+  legacy.context.window.Audio=class {
+    constructor(src){ this.src=src; this.currentTime=0; this.loop=false; }
+    play(){ plays++; return Promise.resolve(); }
+    pause(){ pauses++; }
+  };
+  legacy.api.samRunBeginAudioSession();
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(plays,1, 'older iOS opens its audible media channel during the Start gesture');
+  legacy.api.samRunEndAudioSession();
+  assert.equal(pauses,1, 'the compatibility bridge stops with the game');
+  assert.match(html, /function samRunStart\(\)\{[\s\S]*?samRunBeginAudioSession\(\);[\s\S]*?samRunTone\('tick'\);/,
+    'the media route is selected synchronously inside Start');
+  assert.match(html, /function samRunTeardown\(\)\{[\s\S]*?samRunEndAudioSession\(\);/,
+    'teardown always restores the surrounding lesson audio behavior');
 });
 
 test("Sam's run renders themed parallax worlds and game-feel feedback", () => {
@@ -3566,8 +3666,8 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'answer gates get the gentle camera, so the word can be read on arrival');
   assert.match(html, /samRunPaintPickup[\s\S]{0,900}samRunDepth\(pu\.p\)/,
     'while the walls and coins still ride the real perspective');
-  assert.match(html, /samRunSay\(ob\.sentenceWave\?String\(chosen\)/,
-    'every lane choice reinforces its English pronunciation');
+  assert.match(html, /if\(!samRunPlayRecordedWord\(spoken,ob,lane,finish\)\) finish\(samRunSay\(spoken\)\)/,
+    'every lane choice reinforces its English pronunciation through recorded audio or fallback');
   assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,
     'a second three-answer wave never steals control from the active one');
   assert.match(html, /Math\.random\(\)<\.18/, 'rare bonus coins make runs less predictable');
