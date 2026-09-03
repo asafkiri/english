@@ -120,6 +120,7 @@ body{
 .lesson-row.done .num{background:rgba(52,211,153,.16);color:var(--green)}
 .lesson-row.current .num{background:linear-gradient(135deg,var(--green),#6ee7b7);color:#06281c}
 .lesson-row.locked{opacity:.45;cursor:default}
+.lesson-row.locked.day-done{opacity:.66;cursor:pointer}
 .lesson-row .info{flex:1;min-width:0}
 .lesson-row .info b{display:block;font-size:16px}
 .lesson-row .info span{font-size:13px;color:var(--dim)}
@@ -7054,7 +7055,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.43.0';
+const APP_VERSION = '2.44.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8264,6 +8265,19 @@ function revealCurrentHomeLesson(currentUnit){
   const reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   if(viewport && rect.bottom > viewport-24) row.scrollIntoView?.({block:'center',behavior:reduced?'auto':'smooth'});
 }
+/* Tapping tomorrow's lesson does not open it. It explains why one a day is
+   the recommendation and then lets the learner overrule that for a single
+   bonus — which is the whole difference between an app that suggests more work
+   and an app that answers a request for it. */
+async function askBonusLesson(idx){
+  const yes = await askConfirm({
+    title:'השיעור הבא סגור להיום 🌙',
+    text:'ההמלצה היא שיעור אחד ביום — ככה מה שלמדת נשאר בראש, ומחר חוזרים רעננים. אם ממש מתחשק לך ללמוד עוד, אפשר לפתוח שיעור בונוס אחד.',
+    ok:'בכל זאת, שיעור בונוס אחד 🎁',
+    cancel:'אחכה למחר'
+  });
+  if(yes) startLesson(idx, false);
+}
 function renderHome(){
   const doneCount = lessonsDoneToday();
   const doneToday = doneCount > 0;
@@ -8290,7 +8304,7 @@ function renderHome(){
     heroHtml = `
     <div class="home-focus done">
       <span class="focus-icon">✅</span>
-      <span class="focus-copy"><span class="focus-label">היעד היומי הושלם</span><b>כל הכבוד — השיעור נשמר</b><small>רוצה עוד? שיעור הבונוס מסומן במסלול.</small></span>
+      <span class="focus-copy"><span class="focus-label">היעד היומי הושלם</span><b>כל הכבוד — השיעור נשמר</b><small>נתראה מחר לשיעור הבא.</small></span>
     </div>`;
   } else if(doneToday){
     heroHtml = `
@@ -8334,10 +8348,17 @@ function renderHome(){
       const done = li < state.completed;
       const isCur = li === state.completed && !allDone;
       const pausedHere = !!paused && paused.idx === li;
-      const cls = pausedHere ? 'paused-here' : done ? 'done' : isCur ? 'current' : 'locked';
-      const mark = pausedHere ? '⏸️' : done ? '✓' : isCur ? (!canStartNew ? '🌙' : doneToday ? '🎁' : '▶️') : '🔒';
-      const subtitle = pausedHere ? 'עצרת כאן — אפשר להמשיך' : done ? 'הושלם — אפשר לחזור עליו' : isCur ? (!canStartNew ? 'נפתח מחר' : doneToday ? 'זמין כשיעור בונוס 🎁' : 'השיעור של היום') : 'עוד נגיע לשם';
-      const click = pausedHere ? 'onclick="resumeLesson()"' : done ? `onclick="startLesson(${li}, true)"` : (isCur && canStartNew) ? `onclick="startLesson(${li}, false)"` : '';
+      /* Today's lesson is done, so the next one is shut — it just is not shut
+         very hard. Offering it as a bonus the instant the day's work finished
+         turned "one lesson a day" into a suggestion nobody was asked about;
+         wanting more has to come from the learner, so this reads closed and
+         only a tap starts the conversation. */
+      const dayDone = isCur && doneToday && canStartNew;
+      const cls = pausedHere ? 'paused-here' : done ? 'done' : dayDone ? 'locked day-done'
+        : (isCur && !canStartNew) ? 'locked' : isCur ? 'current' : 'locked';
+      const mark = pausedHere ? '⏸️' : done ? '✓' : isCur ? (canStartNew && !doneToday ? '▶️' : '🌙') : '🔒';
+      const subtitle = pausedHere ? 'עצרת כאן — אפשר להמשיך' : done ? 'הושלם — אפשר לחזור עליו' : isCur ? (canStartNew && !doneToday ? 'השיעור של היום' : 'נפתח מחר') : 'עוד נגיע לשם';
+      const click = pausedHere ? 'onclick="resumeLesson()"' : done ? `onclick="startLesson(${li}, true)"` : dayDone ? `onclick="askBonusLesson(${li})"` : (isCur && canStartNew) ? `onclick="startLesson(${li}, false)"` : '';
       const disabled = !click ? 'disabled' : '';
       listHtml += `
       <button class="lesson-row ${cls}" ${click} ${disabled}${pausedHere||isCur?' data-home-current="true"':''}>
@@ -11461,7 +11482,7 @@ function renderDone(){
         <button class="btn secondary" style="margin-top:8px" onclick="renderHome()">אחר כך — חזרה הביתה</button>
       ` : `
         <button class="btn" onclick="renderHome()">${wasReplay ? 'חזרה הביתה'
-          : (lessonsDoneToday() < MAX_LESSONS_PER_DAY && state.completed < LESSONS.length) ? 'חזרה הביתה 🏠 (מחכה לך בונוס 🎁)'
+          : (lessonsDoneToday() < MAX_LESSONS_PER_DAY && state.completed < LESSONS.length) ? 'כל הכבוד! חזרה הביתה 🏠'
           : 'סיימנו להיום — נתראה מחר! 👋'}</button>
       `}
     </div>

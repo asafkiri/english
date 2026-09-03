@@ -65,7 +65,7 @@ function runtime(seed = new Map(), options = {}) {
     ;globalThis.__test = {
       UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
-      defaults, load, save, validSavedSession, normalize, matchDetails, matchScore, softWordsFor,
+      defaults, load, save, validSavedSession, normalize, matchDetails, matchScore, softWordsFor, todayStr,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES, PRACTICE_CAST,
       PRACTICE_STAGE_DIRECTIONS, STAGE_DIRECTION_PRESETS, STAGE_ACTION_DURATIONS_MS,
@@ -3046,6 +3046,39 @@ test('a paused lesson resumes from its map row without a duplicate home card', (
   assert.doesNotMatch(app.innerHTML, /ממשיכים מאיפה שעצרת|המשך בשיעור/);
   assert.match(app.innerHTML, /עצרת כאן — אפשר להמשיך/);
   assert.match(app.innerHTML, /onclick="resumeLesson\(\)"/);
+});
+
+test("finishing the day's lesson congratulates and stops, and a bonus is only ever asked for", () => {
+  const { api, app } = runtime();
+  const base = () => { const st = api.defaults(); st.onboarded = true; st.completed = 3; return st; };
+
+  /* Nothing done today: the lesson is simply the lesson. */
+  let st = base(); st.lastDoneDate = '2020-01-01'; api.setState(st); api.renderHome();
+  assert.match(app.innerHTML, /class="lesson-row current"[^>]*onclick="startLesson\(3, false\)"/,
+    "today's lesson opens on a tap, with nothing in the way");
+
+  /* One done: congratulated, and the next lesson reads shut. Dangling a bonus
+     here turned "one lesson a day" into a suggestion nobody asked about. */
+  st = base(); st.lastDoneDate = api.todayStr(); st.lessonsToday = 1; api.setState(st); api.renderHome();
+  const after = app.innerHTML;
+  assert.match(after, /\u05db\u05dc \u05d4\u05db\u05d1\u05d5\u05d3/, 'the day ends on praise');
+  assert.doesNotMatch(after, /\u05e9\u05d9\u05e2\u05d5\u05e8 \u05d4\u05d1\u05d5\u05e0\u05d5\u05e1 \u05de\u05e1\u05d5\u05de\u05df|\u05d6\u05de\u05d9\u05df \u05db\u05e9\u05d9\u05e2\u05d5\u05e8 \u05d1\u05d5\u05e0\u05d5\u05e1/,
+    'and never on an offer of more work');
+  assert.doesNotMatch(after, />\u{1F381}</u, 'nothing is dressed up as a present waiting to be opened');
+  assert.match(after, /class="lesson-row locked day-done"[^>]*onclick="askBonusLesson\(3\)"/,
+    'the next lesson reads closed, and a tap starts a conversation rather than the lesson');
+
+  /* Two done: the day really is over — no bonus left to ask for. */
+  st = base(); st.lastDoneDate = api.todayStr(); st.lessonsToday = 2; api.setState(st); api.renderHome();
+  const full = app.innerHTML;
+  assert.match(full, /class="lesson-row locked"[^>]*disabled/, 'a spent day leaves the row shut and inert');
+  assert.doesNotMatch(full, /askBonusLesson/, 'with nothing more to ask for');
+
+  /* And the bonus itself explains the rule before overruling it. */
+  assert.match(html, /async function askBonusLesson\(idx\)\{[\s\S]*?askConfirm\(\{[\s\S]*?if\(yes\) startLesson\(idx, false\);/,
+    'the bonus opens only after the learner is told why it was shut and says yes anyway');
+  assert.doesNotMatch(html, /\u05de\u05d7\u05db\u05d4 \u05dc\u05da \u05d1\u05d5\u05e0\u05d5\u05e1/,
+    'and the finish screen no longer advertises one either');
 });
 
 test('home puts the active course path first and collapses completed and future units', () => {
