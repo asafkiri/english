@@ -3763,6 +3763,15 @@ test("Sam's runs start directly without microphone friction", () => {
     'all lane speech prefers the recorded gameplay path and retains speech synthesis as fallback');
   assert.match(html, /function samRunSpeakLane\(ob,lane,arrival=false\)\{[\s\S]*?if\(ob\.correctLane!=null&&lane!==ob\.correctLane\) return;/,
     'a lane that is not the answer is never pronounced');
+  /* The prompt is centred with the translate PROPERTY, and individual
+     transform properties are applied before `transform`. A keyframe that also
+     says translate(-50%) therefore shifts the box a second half-width and the
+     word visibly slides in from the left every time it changes — 125px of it,
+     measured, on an iPhone 13. The pop may only scale. */
+  const popKeyframes = html.match(/@keyframes gamePromptPop\{[^}]*\}[^}]*\}[^}]*\}/);
+  assert.ok(popKeyframes, 'the prompt still has its attention-drawing pop');
+  assert.doesNotMatch(popKeyframes[0], /translate\(/,
+    'and it scales in place — the box is already centred by the translate property, so a translate here drags it sideways');
   assert.match(html, /function samRunChooseLane\(lane\)\{[\s\S]*?samRunSpeakLane\(ob,lane\);/,
     'finding the right lane pronounces its English word');
   assert.doesNotMatch(html, /samRunSpeakLane\(ob,g\.lane,true\)/,

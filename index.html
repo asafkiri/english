@@ -2195,7 +2195,7 @@ body{
 /* And it has to announce that it CHANGED — a new word in the same box, in the
    same place, is invisible to someone watching the road. */
 .game-lane-prompt.is-new{animation:gamePromptPop .42s cubic-bezier(.2,.9,.3,1.2) both}
-@keyframes gamePromptPop{0%{transform:translate(-50%,0) scale(.82);border-color:rgba(253,224,71,.95)}55%{transform:translate(-50%,0) scale(1.07)}to{transform:translate(-50%,0) scale(1)}}
+@keyframes gamePromptPop{0%{transform:scale(.82);border-color:rgba(253,224,71,.95)}55%{transform:scale(1.07)}to{transform:scale(1)}}
 .game-world.lane-game .game-lane-prompt small{font-size:10px;letter-spacing:.02em}
 .game-world.lane-game .game-streak{z-index:13;top:clamp(186px,25dvh,230px)}
 .game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:1.5%;width:clamp(96px,15.6dvh,121px);height:clamp(178px,29dvh,224px);z-index:9;transform:translateX(-50%);transition:left .22s cubic-bezier(.2,.78,.24,1),filter .18s ease}
@@ -7024,7 +7024,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.41.0';
+const APP_VERSION = '2.41.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
