@@ -2193,6 +2193,9 @@ body{
 .game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
 .game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(88px,27vw,132px);height:clamp(68px,10dvh,92px);margin:0;padding:8px 6px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.game-obstacle.lane-wave .lane-gate.from-lesson:before{content:'📚';position:absolute;top:3px;left:5px;font-size:11px;opacity:.95;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.game-obstacle.lane-wave .lane-gate.from-lesson{border-color:rgba(253,230,138,.6)}
+.game-start-lesson{margin-top:6px;padding:6px 10px;border:1px dashed rgba(253,230,138,.5);border-radius:12px;color:#fde68a;font-size:12px;font-weight:800}
 .game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(20px,6vw,30px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
 .game-obstacle.lane-wave.is-caught{animation:gameGateWin .48s ease both}.game-obstacle.lane-wave.is-poof{animation:gameGateMiss .48s ease both}
 @keyframes gameGateWin{55%{filter:brightness(1.55)}to{opacity:0}}@keyframes gameGateMiss{25%{filter:saturate(1.8)}45%{translate:-5px 0}65%{translate:5px 0}to{opacity:0}}
@@ -6915,7 +6918,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.29.0';
+const APP_VERSION = '2.30.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11464,6 +11467,19 @@ function samRunBackAvatarHtml(store){
    why it ran out of surprises so quickly. From the speed challenge onward the
    pool also carries words the player has already met in earlier worlds, so old
    vocabulary keeps coming back as spaced review and every wave can look new. */
+/* The words this particular child has earned in the course. Weighted toward
+   the lessons he has just finished — those are the ones worth practising — but
+   never letting the early ones drop out of rotation entirely. */
+function samRunLessonPool(completed,limit=6){
+  const done=Math.max(0,Math.floor(Number(completed)||0));
+  const learned=SAM_RUN_COURSE_WORDS.filter(w=>w[6]<done);
+  if(!learned.length||limit<=0) return [];
+  const recent=shuffled(learned.filter(w=>w[6]>=done-3)),older=shuffled(learned.filter(w=>w[6]<done-3));
+  const out=recent.slice(0,Math.ceil(limit*.66));
+  for(const w of older){ if(out.length>=limit) break; out.push(w); }
+  for(const w of recent){ if(out.length>=limit) break; if(!out.includes(w)) out.push(w); }
+  return out.map(w=>w[0]);
+}
 function samRunReviewPool(store,stageIndex,phaseIndex){
   if(!phaseIndex) return [];
   const seen=[];
@@ -11537,9 +11553,80 @@ const SAM_RUN_STAGES=[
     ['pull','PULL','משוך','👈',['pull','pool'],'is-catching'],
   ]},
 ];
+/* The game's eight worlds teach forty words the course never mentions, so a
+   child could finish thirty lessons and never meet one of them in a run. These
+   are the other direction: words he has actually met inside a lesson phrase,
+   which join his runs the moment that lesson is done.
+   [id, gate label, Hebrew prompt, emoji, speech aliases, pose, lesson index].
+   The lesson index is 0-based, so a word is his once state.completed passes it.
+   A word only earns a place here if it survives the gate test: it stands alone
+   (never a fragment of a phrase), its Hebrew prompt can answer to nothing else
+   in the game, an emoji can carry it, and it is short enough to read at speed.
+   Question words — what, where, who — deliberately fail that test and are left
+   for a mechanic that can rebuild a whole sentence. */
+const SAM_RUN_COURSE_WORDS=[
+  ['morning','MORNING','בוקר','🌅',['morning'],'is-waving',0],
+  ['good','GOOD','טוב','👍',['good'],'is-waving',0],
+  ['thanks','THANKS','תודה','🙏',['thanks','thank you','thank'],'is-waving',0],
+  ['name','NAME','שם','🏷️',['name'],'is-collecting',1],
+  ['israel','ISRAEL','ישראל','🇮🇱',['israel'],'is-waving',1],
+  ['please','PLEASE','בבקשה','✨',['please'],'is-waving',2],
+  ['sorry','SORRY','סליחה','😔',['sorry','sory'],'is-stopped',2],
+  ['yes','YES','כן','✅',['yes','yeah'],'is-waving',3],
+  ['no','NO','לא','❌',['no','know'],'is-stopped',3],
+  ['maybe','MAYBE','אולי','🤔',['maybe','may be'],'is-collecting',3],
+  ['goodbye','GOODBYE','להתראות','✌️',['goodbye','good bye','bye'],'is-waving',4],
+  ['day','DAY','יום','☀️',['day','dai'],'is-collecting',4],
+  ['night','NIGHT','לילה','🌙',['night','nite'],'is-ducking',4],
+  ['brother','BROTHER','אח','👦',['brother','bother'],'is-waving',5],
+  ['sister','SISTER','אחות','👧',['sister'],'is-waving',5],
+  ['mom','MOM','אמא','👩',['mom','mum','mother'],'is-waving',5],
+  ['dad','DAD','אבא','👨',['dad','father'],'is-waving',5],
+  ['family','FAMILY','משפחה','👪',['family','familly'],'is-collecting',5],
+  ['love','LOVE','אוהב','❤️',['love','loves'],'is-catching',5],
+  ['football','FOOTBALL','כדורגל','⚽',['football','foot ball'],'is-catching',6],
+  ['homework','HOMEWORK','שיעורי בית','📝',['homework','home work'],'is-collecting',6],
+  ['school','SCHOOL','בית ספר','🏫',['school','skool'],'is-collecting',7],
+  ['play','PLAY','לשחק','🎮',['play','plays'],'is-jumping',7],
+  ['music','MUSIC','מוזיקה','🎵',['music','musik'],'is-waving',7],
+  ['friends','FRIENDS','חברים','👫',['friends','friend'],'is-waving',7],
+  ['happy','HAPPY','שמח','😀',['happy','hapy'],'is-jumping',8],
+  ['tired','TIRED','עייף','😴',['tired','tyred'],'is-ducking',8],
+  ['hungry','HUNGRY','רעב','🍽️',['hungry','hungery'],'is-catching',8],
+  ['great','GREAT','מעולה','🤩',['great','grate'],'is-jumping',8],
+  ['bored','BORED','משועמם','😑',['bored','board'],'is-stopped',8],
+  ['help','HELP','עזרה','🆘',['help','helps'],'is-waving',9],
+  ['problem','PROBLEM','בעיה','⚠️',['problem','problam'],'is-stopped',9],
+  ['burger','BURGER','המבורגר','🍔',['burger','hamburger'],'is-catching',10],
+  ['tasty','TASTY','טעים','😋',['tasty','tasy'],'is-catching',10],
+  ['thirsty','THIRSTY','צמא','🥤',['thirsty','thersty'],'is-catching',10],
+  ['menu','MENU','תפריט','📋',['menu','menue'],'is-collecting',11],
+  ['check','CHECK','חשבון','🧾',['check','cheque'],'is-collecting',11],
+  /* The ten numerals deliberately share one neutral icon. A digit emoji would
+     hand the answer over — the child would match 2️⃣ to "שתיים" without ever
+     reading the word — and reading the word is the entire exercise. */
+  ['one','ONE','אחת','🔢',['one','won'],'is-collecting',12],
+  ['two','TWO','שתיים','🔢',['two','too'],'is-collecting',12],
+  ['three','THREE','שלוש','🔢',['three','tree'],'is-collecting',12],
+  ['four','FOUR','ארבע','🔢',['four','for'],'is-collecting',12],
+  ['five','FIVE','חמש','🔢',['five','fife'],'is-collecting',12],
+  ['six','SIX','שש','🔢',['six','sicks'],'is-collecting',12],
+  ['seven','SEVEN','שבע','🔢',['seven','sevn'],'is-collecting',12],
+  ['eight','EIGHT','שמונה','🔢',['eight','ate'],'is-collecting',12],
+  ['nine','NINE','תשע','🔢',['nine','nain'],'is-collecting',12],
+  ['ten','TEN','עשר','🔢',['ten','tan'],'is-collecting',12],
+  ['time','TIME','שעה','⏰',['time','thyme'],'is-stopped',12],
+  ['expensive','EXPENSIVE','יקר','💸',['expensive','expensiv'],'is-stopped',13],
+  ['number','NUMBER','מספר','📱',['number','numbr'],'is-collecting',14],
+  ['call','CALL','להתקשר','📞',['call','calls'],'is-waving',14],
+  ['message','MESSAGE','הודעה','💬',['message','mesage'],'is-collecting',14],
+];
 const SAM_RUN_COMMANDS={...Object.fromEntries(SAM_RUN_STAGES.flatMap((stage,stageIndex)=>stage.words.map((w,wordIndex)=>[
   w[0],{id:w[0],en:w[1],he:w[2],ic:w[3],aliases:w[4],move:w[5],color:w[6]||'',stageIndex,wordIndex,say:w[1].toLowerCase()}
 ]))),
+  ...Object.fromEntries(SAM_RUN_COURSE_WORDS.map(w=>[
+    w[0],{id:w[0],en:w[1],he:w[2],ic:w[3],aliases:w[4],move:w[5],color:'',lesson:w[6],say:w[1].toLowerCase()}
+  ])),
   /* Old v1 commands remain readable while saved games migrate. */
   hello:{id:'hello',en:'HELLO',he:'שלום',ic:'👋',aliases:['hello','hi','hey','hallo','allo'],move:'is-waving',say:'hello'},
   catch:{id:'catch',en:'CATCH',he:'תפוס',ic:'⚽',aliases:['catch','caught','ketch','cash','cache','catches'],move:'is-catching',say:'catch'}
@@ -11657,6 +11744,7 @@ function samRunStartCardHtml(store){
   const stage=SAM_RUN_STAGES[samRun?.stageIndex||0], ids=stage.words.map(w=>w[0]);
   const phase=samRun?.phase||SAM_RUN_PHASES[0];
   const learned=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
+  const lesson=samRun?.lesson||[];
   return `
     <div class="game-intro-runner">${samRunAvatarHtml(store,'game-sam')}</div>
     <div class="game-stage-tag">עולם ${(samRun?.stageIndex||0)+1} מתוך ${SAM_RUN_STAGES.length} · ${phase.icon} ${phase.title}</div>
@@ -11664,6 +11752,7 @@ function samRunStartCardHtml(store){
     <p>${phase.hint}</p>
     <p class="words-said">${ids.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}</p>
     <p>${learned?`כבר שלטת ב־${learned} מתוך ${ids.length} מילים`:'מוכנים להכיר חמש מילים חדשות?'}</p>
+    ${lesson.length?`<p class="game-start-lesson">📚 ${lesson.length} ${lesson.length===1?'מילה שלמדת בשיעורים משתתפת':'מילים שלמדת בשיעורים משתתפות'} בריצה: ${lesson.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</p>`:''}
     <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ›</button><small class="game-start-tip">לוחצים על המסלול הנכון וכל בחירה נשמעת באנגלית 🔊</small>`;
 }
 function samRunMapHtml(store){
@@ -11748,7 +11837,7 @@ function renderSamRun(stageIndex=null){
   samRun={
     epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},lane:1,laneGame:true,shield:0,runCoinBonus:0,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,review:samRunReviewPool(store,stageIndex,phaseIndex),
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,review:samRunReviewPool(store,stageIndex,phaseIndex),lesson:phaseIndex?samRunLessonPool(state.completed,6):[],
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
@@ -12230,12 +12319,15 @@ function samRunTeachAir(kind){
 function samRunPickKind(){
   const g=samRun;
   const pool=[];
-  for(const id of g.active.concat(g.review||[])){
+  for(const id of g.active.concat(g.review||[],g.lesson||[])){
     /* Weak and not-yet-seen words return more often; mastered words still
        appear occasionally as spaced review instead of vanishing forever.
-       Words carried in from earlier worlds weigh less than this world's own. */
+       Words carried in from elsewhere weigh less than this world's own five —
+       and a word from the child's own lessons weighs more than one carried in
+       from an earlier world, because practising the course is the point. */
     const mastery=g.store.mastery[id]||0, seen=g.runSeen[id]||0;
-    const w=Math.max(2,8-mastery-seen)*(g.active.includes(id)?1:.4);
+    const weight=g.active.includes(id)?1:g.lesson?.includes(id)?.55:.4;
+    const w=Math.max(2,8-mastery-seen)*weight;
     if(id===g.lastKind&&g.sameKind>=2) continue;   // never the same thing three times running
     for(let i=0;i<Math.round(w);i++) pool.push(id);
   }
@@ -12263,7 +12355,7 @@ function samRunChooseLane(lane){
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
   const cmd=samRunPickKind(),c=SAM_RUN_COMMANDS[cmd];
-  const choices=g.active.concat(g.review||[]);
+  const choices=g.active.concat(g.review||[],g.lesson||[]);
   const distractors=shuffled(choices.filter(id=>id!==cmd)).slice(0,2),options=shuffled([cmd,...distractors]),correctLane=options.indexOf(cmd);
   /* Each phase of a world is a gear. The final challenge used to run at the
      learn phase's pace — slower than the speed challenge it follows — so it
@@ -12273,7 +12365,7 @@ function samRunSpawnLaneWave(){
   const travelMs=Math.round(samRunTravelMs(g.score)*phasePace),warnMs=g.phase.id==='final'?500:650;
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'');
-  el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
+  el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}${choice.lesson===undefined?'':' from-lesson'}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
   host.appendChild(el);
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
   g.obstacles.push(ob);
