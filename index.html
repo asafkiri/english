@@ -2188,7 +2188,14 @@ body{
 .game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:40%;height:60%;translate:-50% 0;clip-path:polygon(34.6% 0,65.4% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--world-accent) 8%,transparent) 28%,color-mix(in srgb,var(--world-accent) 22%,transparent));filter:drop-shadow(0 0 16px color-mix(in srgb,var(--world-accent) 34%,transparent));transition:left .22s cubic-bezier(.2,.78,.24,1);pointer-events:none}
 .game-world.lane-game.is-dragging .game-lane-focus{transition:none;background:linear-gradient(180deg,transparent,rgba(52,211,153,.09) 28%,rgba(52,211,153,.24))}
 
-.game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(210px,58vw);padding:6px 14px;border-color:rgba(147,197,253,.48);background:rgba(8,15,30,.82);font-size:clamp(17px,4.4vw,23px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(250px,68vw);padding:8px 18px;border-color:rgba(147,197,253,.62);background:rgba(8,15,30,.92);font-size:clamp(27px,7.4vw,38px);line-height:1.12;box-shadow:0 8px 28px rgba(0,0,0,.35),0 0 0 3px rgba(96,165,250,.14)}
+/* The word to translate is the question. It was set smaller than the answers
+   on the road, so it read as a caption and the child never looked up at it. */
+.game-lane-prompt small{font-size:.34em;opacity:.78;margin-bottom:1px}
+/* And it has to announce that it CHANGED — a new word in the same box, in the
+   same place, is invisible to someone watching the road. */
+.game-lane-prompt.is-new{animation:gamePromptPop .42s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes gamePromptPop{0%{transform:translate(-50%,0) scale(.82);border-color:rgba(253,224,71,.95)}55%{transform:translate(-50%,0) scale(1.07)}to{transform:translate(-50%,0) scale(1)}}
 .game-world.lane-game .game-lane-prompt small{font-size:10px;letter-spacing:.02em}
 .game-world.lane-game .game-streak{z-index:13;top:clamp(186px,25dvh,230px)}
 .game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:1.5%;width:clamp(96px,15.6dvh,121px);height:clamp(178px,29dvh,224px);z-index:9;transform:translateX(-50%);transition:left .22s cubic-bezier(.2,.78,.24,1),filter .18s ease}
@@ -7017,7 +7024,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.40.5';
+const APP_VERSION = '2.41.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11716,7 +11723,11 @@ function samRunPaintMission(){
   const g=samRun,box=document.getElementById('samRunBonusMission'); if(!g||!box) return;
   const progress=Math.min(g.mission.target,samRunMissionProgress(g)),done=progress>=g.mission.target;
   box.classList.toggle('done',done);
-  box.innerHTML=`<span>${done?'✅':'⭐'}</span><strong>${esc(g.mission.title)}</strong><span class="bonus-progress">${progress}/${g.mission.target} · +${g.mission.reward} 🪙</span>`;
+  /* This runs with every metre the runner covers — about fourteen times a
+     second — and re-parsing the same markup that often is a rebuild, a style
+     pass and a layout for a line that changes a handful of times a run. */
+  const html=`<span>${done?'✅':'⭐'}</span><strong>${esc(g.mission.title)}</strong><span class="bonus-progress">${progress}/${g.mission.target} · +${g.mission.reward} 🪙</span>`;
+  if(box._html!==html){ box._html=html; box.innerHTML=html; }
 }
 /* Each world is deliberately small. Five words can be repeated enough to
    become automatic; the next five arrive only after all five are known. */
@@ -12962,8 +12973,7 @@ function samRunStartAir(kind){
   g.queuedAir=null; g.air={kind,until:g.time+duration}; g.lastAir={kind,at:g.time,until:g.time+duration};
   const runner=document.getElementById('samRunRunner');
   if(runner){
-    runner.classList.remove('is-ready-jump','is-ready-duck','is-air-jump','is-air-duck'); void runner.offsetWidth;
-    runner.classList.add(kind==='jump'?'is-air-jump':'is-air-duck');
+    samRunReplayFx(runner,['is-ready-jump','is-ready-duck','is-air-jump','is-air-duck'],kind==='jump'?'is-air-jump':'is-air-duck');
   }
   samRunTone(kind==='jump'?'jump':'tick');
   try{ navigator.vibrate?.(8); }catch(_){}
@@ -13140,9 +13150,24 @@ function samRunPlayRecordedWord(text,ob,lane,onResult){
   });
   return true;
 }
+/* Only the right answer is ever said aloud. Reading out whichever lane the
+   runner happened to be crossing meant the child heard wrong words as often as
+   right ones, which is the opposite of what the voice is for — and saying one
+   the moment a wave appeared gave the answer away before the question had been
+   read. Now the word arrives as the reward for finding it. */
+/* A fresh word in the same box, in the same spot, is invisible to a child
+   watching the road. Give it a beat of movement so the eye is pulled up. */
+function samRunPromptPop(prompt){
+  if(!prompt||prefersReducedStageMotion()) return;
+  samRunReplayFx(prompt,'is-new','is-new');
+  clearTimeout(prompt._popOff);
+  prompt._popOff=setTimeout(()=>{ if(prompt.isConnected) prompt.classList.remove('is-new'); },440);
+}
 function samRunSpeakLane(ob,lane,arrival=false){
   if(!ob||!ob.options||!ob.options.length||(arrival&&(ob.arrivalSpoken||ob.arrivalPending))) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0));
+  if(ob.correctLane!=null&&lane!==ob.correctLane) return;
+  ob.spokeCorrect=true;
   const chosen=ob.options[lane];
   const word=SAM_RUN_COMMANDS[chosen];
   const spoken=ob.sentenceWave?String(chosen).toLowerCase():(word?word.say||word.en:chosen);
@@ -13158,7 +13183,7 @@ function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0)); const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
   const runner=document.getElementById('samRunRunner');
-  if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';runner.classList.remove('switch-left','switch-right');void runner.offsetWidth;runner.classList.add(cls);setTimeout(()=>runner.classList.remove(cls),250); }
+  if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';samRunReplayFx(runner,['switch-left','switch-right'],cls);setTimeout(()=>runner.classList.remove(cls),250); }
   try{ navigator.vibrate?.(10); }catch(_){}
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
@@ -13188,8 +13213,7 @@ function samRunSpawnLaneWave(){
   host.appendChild(el);
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
   g.obstacles.push(ob);
-  const prompt=document.getElementById('samRunLanePrompt'); if(prompt){ prompt.classList.remove('is-sentence'); prompt.removeAttribute('aria-live'); prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`; }
-  samRunSpeakLane(ob,g.lane,true);
+  const prompt=document.getElementById('samRunLanePrompt'); if(prompt){ prompt.classList.remove('is-sentence'); prompt.removeAttribute('aria-live'); prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`; samRunPromptPop(prompt); }
   g.nextSpawnAt=g.time+warnMs+travelMs*(.78+Math.random()*.16);
 }
 function samRunStartSentence(){
@@ -13212,6 +13236,9 @@ function samRunSentencePrompt(done){
   }).join('');
   prompt.classList.add('is-sentence'); prompt.setAttribute('aria-live','polite');
   prompt.innerHTML=`<small class="sentence-kicker">💬 ${done?'המשפט הושלם':`בונים משפט · מילה ${at+1} מתוך ${s.words.length}`}</small><strong class="sentence-he">${esc(s.he)}</strong><span class="game-sentence${done?' done':''}">${line}</span>`;
+  /* A sentence advances a word at a time in the same box, so it needs the beat
+     of movement even more than a single word does. */
+  if(!done) samRunPromptPop(prompt);
 }
 function samRunSpawnSentenceWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host||!g.sentence) return;
@@ -13237,7 +13264,6 @@ function samRunSpawnSentenceWave(){
      the learner can place the word rather than merely copy it. */
   g.sentenceHint=null;
   samRunSentencePrompt();
-  samRunSpeakLane(ob,g.lane,true);
   g.nextSpawnAt=g.time+warnMs+travelMs*(.7+Math.random()*.12);
 }
 function samRunAdvanceSentence(ob){
@@ -13351,7 +13377,7 @@ function samRunCommand(cmd,source){
       samRunPose(c.move||'is-collecting',650);
       samRunResolve(target);
     } else {
-      target.el.classList.remove('is-wrong'); void target.el.offsetWidth; target.el.classList.add('is-wrong');
+      samRunReplayFx(target.el,'is-wrong','is-wrong');
       samRunFloat('נסה שוב',target,true);
       const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=`שמעתי <b>${c.en}</b> · כאן צריך מילה אחרת`;
     }
@@ -13388,6 +13414,9 @@ function samRunResolve(ob){
     samRunTone(ob.cmd==='jump'?'jump':'catch');
     samRunScore(1+Math.min(4,Math.floor(g.streak/5)),ob);
     samRunUpdateWords(ob.cmd);
+    /* Never moved because the right lane was already underfoot: the word still
+       has to be heard, so it lands with the answer rather than before it. */
+    if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane);
     if(ob.sentenceWave) samRunAdvanceSentence(ob);
     samRunCheckFinish();
     return;
@@ -13427,28 +13456,74 @@ function samRunScore(points, ob){
   }
   samRunPaintHud(true);
 }
+/* Restarting a CSS animation by removing and re-adding its class only takes
+   effect if a style recalculation happens in between, which is why every
+   effect below used to read offsetWidth. That read forces a synchronous layout
+   of the whole document — on #samRunWorld that is the entire road, every gate,
+   coin, kerb stone and prop — and it was being paid on every answer, every
+   pickup and every jump, whether or not the effect was still running. It cost
+   10ms to 23ms a time and it is where the game stuttered.
+   Almost always the previous run of the effect has already finished and its
+   class is gone, so simply adding the class starts it afresh for nothing. The
+   layout is forced only in the rare case where the effect really is mid-flight
+   and has to be cut short. */
+function samRunReplayFx(el,cls,add){
+  const cl=el&&el.classList; if(!cl) return;
+  const classes=[].concat(cls);
+  const running=typeof cl.contains==='function'&&classes.some(c=>cl.contains(c));
+  cl.remove(...classes);
+  if(running) void el.offsetWidth;
+  if(add) cl.add(add);
+}
 function samRunWorldFx(cls,ms=420){
   const world=document.getElementById('samRunWorld'); if(!world||prefersReducedStageMotion()) return;
-  world.classList.remove(cls); void world.offsetWidth; world.classList.add(cls);
+  samRunReplayFx(world,cls,cls);
   setTimeout(()=>{ if(world.isConnected) world.classList.remove(cls); },ms);
 }
 function samRunCoinFlight(at){
   const world=document.getElementById('samRunWorld'),wallet=document.getElementById('samRunRunWallet');
   if(!world||!wallet||prefersReducedStageMotion()||!world.getBoundingClientRect||!wallet.getBoundingClientRect) return;
-  const wr=world.getBoundingClientRect(),tr=wallet.getBoundingClientRect(),x=at?.x??world.clientWidth*.5,y=at?.y??world.clientHeight*.9;
+  /* Where the wallet sits relative to the road does not change while a run is
+     on, so measure it once. Two bounding rects per coin meant a full layout of
+     the scene every time one was collected. */
+  const g=samRun;
+  if(g&&!g.walletOffset){
+    const wr0=world.getBoundingClientRect(),tr0=wallet.getBoundingClientRect();
+    g.walletOffset={x:tr0.left+tr0.width/2-wr0.left,y:tr0.top+tr0.height/2-wr0.top};
+  }
+  const off=(g&&g.walletOffset)||{x:0,y:0};
+  const {w,h}=samRunWorldSize(world),x=at?.x??w*.5,y=at?.y??h*.9;
   const coin=document.createElement('i'); coin.className='game-coin-flight'; coin.setAttribute?.('aria-hidden','true');
-  const dx=tr.left+tr.width/2-wr.left-x,dy=tr.top+tr.height/2-wr.top-y;
+  const dx=off.x-x,dy=off.y-y;
   coin.style.left=(x-17)+'px'; coin.style.top=(y-17)+'px';
   coin.style.setProperty('--coin-dx',dx+'px'); coin.style.setProperty('--coin-dy',dy+'px');
   coin.style.setProperty('--coin-mid-x',dx*.28+'px'); coin.style.setProperty('--coin-mid-y',dy*.18-28+'px');
   world.appendChild(coin); setTimeout(()=>coin.remove(),620);
 }
+/* The road's size is measured once when the run starts and kept on the game.
+   Reading clientWidth or a bounding rect here instead forces the browser to
+   lay out the whole scene before it can answer, and these fire on every
+   answer, every coin and every hit — which is most of what was left of the
+   stutter once the animation restarts stopped doing the same thing. */
+function samRunWorldSize(world){
+  const g=samRun;
+  return {w:(g&&g.worldW)||world.clientWidth||360,h:(g&&g.worldH)||world.clientHeight||640};
+}
+let samRunBurstSeed=null;
 function samRunBurst(ob){
   const world=document.getElementById('samRunWorld'); if(!world||prefersReducedStageMotion()) return;
-  const burst=document.createElement('div'); burst.className='game-burst';
-  burst.style.left=Math.max(16,Math.min(world.clientWidth-24,ob?.x??world.clientWidth*.5))+'px';
-  burst.style.top=Math.max(20,Math.min(world.clientHeight-30,ob?.y??world.clientHeight*.58))+'px';
-  burst.innerHTML=Array.from({length:10},(_,i)=>`<i style="--a:${i*36}deg"></i>`).join('');
+  const {w,h}=samRunWorldSize(world);
+  /* Ten spokes parsed out of a fresh HTML string on every single answer was
+     the most expensive thing left in a correct answer. The shape never
+     changes, so build it once and clone it. */
+  if(!samRunBurstSeed){
+    samRunBurstSeed=document.createElement('div');
+    samRunBurstSeed.className='game-burst';
+    samRunBurstSeed.innerHTML=Array.from({length:10},(_,i)=>`<i style="--a:${i*36}deg"></i>`).join('');
+  }
+  const burst=samRunBurstSeed.cloneNode(true);
+  burst.style.left=Math.max(16,Math.min(w-24,ob?.x??w*.5))+'px';
+  burst.style.top=Math.max(20,Math.min(h-30,ob?.y??h*.58))+'px';
   world.appendChild(burst); setTimeout(()=>burst.remove(),750);
 }
 function samRunHit(ob){
@@ -13467,13 +13542,13 @@ function samRunHit(ob){
   samRunTone('hit');
   samRunFloat('💥', ob, true);
   if(runner){ runner.classList.remove('is-jumping','is-ducking','is-stopped','is-catching','is-collecting'); samRunPose('is-hit',580); setTimeout(()=>{ if(samRun===g&&runner.isConnected) samRunPose('is-safe',1200); },600); }
-  if(world&&!prefersReducedStageMotion()){ world.classList.remove('is-shake'); void world.offsetWidth; world.classList.add('is-shake'); }
+  if(world&&!prefersReducedStageMotion()) samRunReplayFx(world,'is-shake','is-shake');
   samRunPaintHud();
   if(g.lives<=0) samRunOver(false);
 }
 function samRunPose(cls,ms){
   const runner=document.getElementById('samRunRunner'); if(!runner) return;
-  runner.classList.remove(cls); void runner.offsetWidth; runner.classList.add(cls);
+  samRunReplayFx(runner,cls,cls);
   if(cls==='is-jumping') setTimeout(()=>samRunWorldFx('is-land',300),690);
   if(ms) setTimeout(()=>runner.classList.remove(cls),ms);
 }
@@ -13506,22 +13581,41 @@ function samRunFloat(text, ob, bad=false){
   const world=document.getElementById('samRunWorld'); if(!world) return;
   const f=document.createElement('div');
   f.className='game-float'+(bad?' bad':''); f.textContent=text;
-  const x=(ob?.x??world.clientWidth*.3), y=ob?.y??world.clientHeight*(samRun?.laneGame?.66:.42);
-  f.style.left=Math.max(8,Math.min(world.clientWidth-60,x-14))+'px'; f.style.top=y+'px';
+  const {w,h}=samRunWorldSize(world);
+  const x=(ob?.x??w*.3), y=ob?.y??h*(samRun?.laneGame?.66:.42);
+  f.style.left=Math.max(8,Math.min(w-60,x-14))+'px'; f.style.top=y+'px';
   world.appendChild(f); setTimeout(()=>f.remove(),1000);
+}
+/* A bump class that is never taken off again leaves the element permanently
+   mid-animation, so the next bump always has to force the layout. Take it off
+   once it has played and the next one is free. */
+function samRunClearBump(el){
+  clearTimeout(el._bumpOff);
+  el._bumpOff=setTimeout(()=>{ if(el.isConnected) el.classList.remove('bump'); },420);
 }
 function samRunPaintHud(bump=false){
   const g=samRun; if(!g) return;
+  /* This runs with every metre covered. Writing a value that has not changed
+     still dirties the element, so each field is compared first — only the
+     distance and the progress bar really move between metres. */
+  const seen=g.hudSeen||(g.hudSeen={});
   const score=document.getElementById('samRunScore');
-  if(score){ score.textContent=String(g.score); if(bump){ score.classList.remove('bump'); void score.offsetWidth; score.classList.add('bump'); } }
+  if(score){
+    const v=String(g.score);
+    if(seen.score!==v){ seen.score=v; score.textContent=v; }
+    if(bump){ samRunReplayFx(score,'bump','bump'); samRunClearBump(score); }
+  }
   const coins=document.getElementById('samRunRunCoins'),wallet=document.getElementById('samRunRunWallet');
-  const coinValue=String(g.coinsRun||0),coinChanged=!!coins&&coins.textContent!==coinValue;
-  if(coins) coins.textContent=coinValue;
-  if(wallet&&coinChanged){ wallet.classList.remove('bump'); void wallet.offsetWidth; wallet.classList.add('bump'); }
+  const coinValue=String(g.coinsRun||0),coinChanged=!!coins&&seen.coins!==coinValue;
+  if(coins&&coinChanged){ seen.coins=coinValue; coins.textContent=coinValue; }
+  if(wallet&&coinChanged){ samRunReplayFx(wallet,'bump','bump'); samRunClearBump(wallet); }
   const lives=document.getElementById('samRunLives');
-  if(lives) lives.querySelectorAll('i').forEach((h,i)=>h.classList.toggle('lost',i>=g.lives));
+  if(lives&&seen.lives!==g.lives){ seen.lives=g.lives; lives.querySelectorAll('i').forEach((h,i)=>h.classList.toggle('lost',i>=g.lives)); }
   const mt=document.getElementById('samRunMissionText');
-  if(mt) mt.textContent=g.endless?`${Math.round(g.distance)} מ׳`:`${Math.min(g.resolvedCount,SAM_RUN_GOAL)}/${SAM_RUN_GOAL}`;
+  if(mt){
+    const label=g.endless?`${Math.round(g.distance)} מ׳`:`${Math.min(g.resolvedCount,SAM_RUN_GOAL)}/${SAM_RUN_GOAL}`;
+    if(seen.mission!==label){ seen.mission=label; mt.textContent=label; }
+  }
   const mb=document.getElementById('samRunMissionBar');
   /* The bar chases the record — or, on the very first run when there is no
      record to chase, the first medal, so it is never simply full. */
@@ -13529,7 +13623,11 @@ function samRunPaintHud(bump=false){
     ? g.distance/Math.max(120,g.store.bestDistance||SAM_RUN_MEDALS[0].m)*100
     : g.resolvedCount/SAM_RUN_GOAL*100)+'%';
   const streak=document.getElementById('samRunStreak');
-  if(streak){ streak.textContent=g.streak>=2?`🔥 ×${g.streak}`:''; streak.classList.toggle('on',g.streak>=2); streak.classList.toggle('hot',g.streak>=5); }
+  if(streak&&seen.streak!==g.streak){
+    seen.streak=g.streak;
+    streak.textContent=g.streak>=2?`🔥 ×${g.streak}`:'';
+    streak.classList.toggle('on',g.streak>=2); streak.classList.toggle('hot',g.streak>=5);
+  }
   samRunPaintMission();
 }
 function samRunUpdateWords(focus){
