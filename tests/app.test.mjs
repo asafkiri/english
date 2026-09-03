@@ -4288,7 +4288,12 @@ test("walls give the road a vertical axis that can only be answered by reading",
   const { api, context } = runtime();
   assert.match(html, /const SAM_RUN_AIR_LEAD_MS=340/,
     'queued actions begin close enough to contact for the visible pose to match collision');
-  assert.match(html, /48%\{transform:translateY\(-94px\)\}/,
+  /* The apex has to clear a full-height bar. Pinning the exact declaration
+     meant the arc could not be reshaped without breaking a test that never
+     cared about its shape — only about how high he gets. */
+  const apex = /48%\{transform:translateY\((-?[\d.]+)px\)/.exec(
+    html.slice(html.indexOf('@keyframes gameLaneJump')));
+  assert.ok(apex && Math.abs(parseFloat(apex[1])) >= 90,
     'the jump apex visibly clears the full-height bar');
   assert.match(html, /pu\.kind==='duck'\?'translate\(-50%,-350%\)'/,
     'the overhead beam clears the fully crouched head instead of clipping through it');
