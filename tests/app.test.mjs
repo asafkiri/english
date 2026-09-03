@@ -14,6 +14,12 @@ if (!inline) throw new Error('inline app script not found');
 
 function runtime(seed = new Map(), options = {}) {
   const app = { innerHTML: '' };
+  const documentListeners = new Map();
+  const windowListeners = new Map();
+  const rememberListener = (bucket, type, listener) => {
+    if (!bucket.has(type)) bucket.set(type, []);
+    bucket.get(type).push(listener);
+  };
   const localStorage = {
     getItem: key => seed.has(key) ? seed.get(key) : null,
     setItem: (key, value) => {
@@ -25,7 +31,7 @@ function runtime(seed = new Map(), options = {}) {
   const document = {
     hidden: false,
     getElementById: id => id === 'app' ? app : null,
-    addEventListener() {},
+    addEventListener(type, listener) { rememberListener(documentListeners, type, listener); },
     createElement: () => ({
       className: '', textContent: '', innerHTML: '', style: {},
       setAttribute() {}, appendChild() {}, remove() {},
@@ -39,8 +45,9 @@ function runtime(seed = new Map(), options = {}) {
     webkitSpeechRecognition: null,
     matchMedia: options.matchMedia,
     scrollTo() {},
-    addEventListener() {},
+    addEventListener(type, listener) { rememberListener(windowListeners, type, listener); },
   };
+  if (options.speechSynthesis) window.speechSynthesis = options.speechSynthesis;
   const context = vm.createContext({
     console, document, window, localStorage,
     navigator: options.navigator || {}, location: { reload() {} },
@@ -49,6 +56,10 @@ function runtime(seed = new Map(), options = {}) {
     requestAnimationFrame: fn => setTimeout(fn, 0),
     cancelAnimationFrame: id => clearTimeout(id),
     Date, Math, JSON, Map, Set, String, Number, Array, Object, Promise, atob,
+    ...(options.speechSynthesis ? {
+      speechSynthesis: options.speechSynthesis,
+      SpeechSynthesisUtterance: options.SpeechSynthesisUtterance,
+    } : {}),
   });
   const expose = `
     ;globalThis.__test = {
@@ -82,6 +93,7 @@ function runtime(seed = new Map(), options = {}) {
       completeMission, estimateLessonMinutes, lessonEtaLabel, canSayHtml, streakLabel, daysBetween,
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
+      speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
@@ -95,12 +107,67 @@ function runtime(seed = new Map(), options = {}) {
     };
   `;
   vm.runInContext(inline + expose, context, { filename: 'index-inline.js' });
-  return { api: context.__test, seed, app, context };
+  return {
+    api: context.__test, seed, app, context,
+    dispatchDocument(type) { for (const listener of documentListeners.get(type) || []) listener(); },
+    dispatchWindow(type) { for (const listener of windowListeners.get(type) || []) listener(); },
+  };
 }
 
 function classCount(markup, token) {
   return [...String(markup).matchAll(/\bclass="([^"]*)"/g)]
     .filter(([, classes]) => classes.split(/\s+/).includes(token)).length;
+}
+
+function lockedIphoneSpeech({ pending = false, deferStart = false } = {}) {
+  let inGesture = false;
+  let unlocked = false;
+  let cancels = 0;
+  const calls = [];
+  const deferred = [];
+  class Utterance {
+    constructor(text) { this.text = text; this.volume = 1; }
+  }
+  const speechSynthesis = {
+    speaking: false,
+    pending,
+    getVoices: () => [],
+    resume() {},
+    cancel() { cancels++; this.pending = false; deferred.length = 0; },
+    speak(utterance) {
+      calls.push({ text: utterance.text, volume: utterance.volume, inGesture });
+      if (!unlocked && (!inGesture || utterance.volume <= 0)) return;
+      if (deferStart) {
+        this.pending = true;
+        deferred.push(utterance);
+        return;
+      }
+      unlocked = true;
+      this.pending = false;
+      utterance.onstart?.();
+      utterance.onend?.();
+    },
+  };
+  return {
+    speechSynthesis,
+    SpeechSynthesisUtterance: Utterance,
+    calls,
+    get cancels() { return cancels; },
+    flushStart() {
+      deferStart = false;
+      for (const utterance of deferred.splice(0)) {
+        unlocked = true;
+        speechSynthesis.pending = false;
+        utterance.onstart?.();
+        utterance.onend?.();
+      }
+    },
+    duringGesture(callback) {
+      inGesture = true;
+      try { return callback(); }
+      finally { inGesture = false; }
+    },
+  };
 }
 
 test('course content remains intact', () => {
@@ -197,6 +264,244 @@ test('speech matching respects order and negation', () => {
   // fuzziness must not cross critical words or short unrelated words
   assert.ok(api.matchScore('No', 'know') < 0.99);
   assert.ok(api.matchScore('She is fifteen', 'he is fifteen') < 0.99);
+});
+
+test('a cold iPhone lesson speaks the real first sentence inside the start tap', async () => {
+  const phone = lockedIphoneSpeech({ pending: true });
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  const expected = api.ptext(api.LESSONS[0].phrases[0], 'en');
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.next();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), [expected],
+    'the visible sentence is submitted synchronously, with no muted primer or timer first');
+  assert.equal(phone.calls[0].inGesture, true);
+  assert.equal(phone.calls[0].volume, 1);
+  assert.equal(phone.cancels, 0, 'nothing cancels the gesture-authorised first utterance');
+  assert.equal(api.getLesson().audioPrimed, true, 'the lesson unlocks only after speech really starts');
+
+  await new Promise(resolve => setTimeout(resolve, 350));
+  assert.equal(api.getLesson().steps[1].introAudioComplete, true,
+    'successful automatic speech opens the microphone step without a speaker tap');
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('resuming directly on a new sentence also unlocks audio in that tap', () => {
+  const phone = lockedIphoneSpeech();
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = 1;
+  saved.steps[1].introAudioComplete = false;
+  api.setLesson(null);
+  const expected = api.ptext(api.LESSONS[0].phrases[0], 'en');
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), [expected]);
+  assert.equal(phone.calls[0].inGesture, true,
+    'resume must not push the first real sentence behind scheduleSpeak\'s timer');
+  assert.equal(api.getLesson().audioPrimed, true);
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('resuming a completed auto-advance screen waits for a delayed iPhone voice start', async () => {
+  const phone = lockedIphoneSpeech({ deferStart: true });
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = 1;
+  saved.steps[1].introAudioComplete = true;
+  saved.steps[1].resultKind = 'pass';
+  saved.steps[1].resultMessage = 'Great';
+  api.setLesson(null);
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), ['Ready'],
+    'a saved screen that only advances later still gives iOS a real utterance in the resume tap');
+  assert.equal(phone.calls[0].inGesture, true);
+  assert.equal(api.getLesson().audioPrimed, undefined,
+    'submission alone is not treated as proof that iOS started speaking');
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  assert.equal(api.getLesson().i, 1,
+    'the completed screen cannot cancel a slowly starting unlock after its old 1.1s advance delay');
+  assert.equal(phone.cancels, 0);
+  phone.flushStart();
+  assert.equal(api.getLesson().audioPrimed, true);
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('resuming a sent dialogue reply cannot outrun a slowly starting unlock', async () => {
+  const phone = lockedIphoneSpeech({ deferStart: true });
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = 1;
+  saved.steps[1] = {
+    type: 'speak', p: api.LESSONS[0].phrases[0], isDlg: true,
+    resultKind: 'pass', resultMessage: 'Great', attempts: 1, tries: 1,
+  };
+  api.setLesson(null);
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), ['Ready']);
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  assert.equal(api.getLesson().i, 1,
+    'the old 820ms + 1080ms reply transition waits instead of cancelling the pending unlock');
+  assert.equal(phone.cancels, 0);
+  phone.flushStart();
+  assert.equal(api.getLesson().audioPrimed, true);
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('backgrounding a pending resume unlock leaves a tappable recovery path', () => {
+  const phone = lockedIphoneSpeech({ deferStart: true });
+  const { api, app, context, dispatchDocument } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = 1;
+  saved.steps[1].introAudioComplete = true;
+  saved.steps[1].resultKind = 'pass';
+  saved.steps[1].resultMessage = 'Great';
+  api.setLesson(null);
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+  context.document.hidden = true;
+  dispatchDocument('visibilitychange');
+  assert.equal(phone.cancels, 1, 'backgrounding cancels the pending voice safely');
+
+  context.document.hidden = false;
+  dispatchDocument('visibilitychange');
+  assert.match(app.innerHTML, /id="resumeLessonAudioBtn"/,
+    'the completed screen no longer sits forever without a timer or a Continue button');
+  const nextSentence = api.ptext(api.LESSONS[0].phrases[1], 'en');
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.next();
+  });
+  assert.equal(phone.calls.at(-1).text, nextSentence);
+  assert.equal(phone.calls.at(-1).inGesture, true,
+    'the recovery tap submits the next visible sentence directly');
+  phone.flushStart();
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('resuming on an incoming conversation line does not lose the unlock to its arrival timer', () => {
+  const phone = lockedIphoneSpeech();
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = saved.steps.findIndex(step => step.type === 'listen');
+  delete saved.steps[saved.i].arrived;
+  const expected = api.ptext(saved.steps[saved.i].line, 'en', true);
+  api.setLesson(null);
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), [expected]);
+  assert.equal(phone.calls[0].inGesture, true);
+  assert.equal(api.getLesson().steps[api.getLesson().i].arrived, true,
+    'the real line replaces the cold-start arrival delay');
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('an already-arrived resumed line speaks inside the resume tap', () => {
+  const phone = lockedIphoneSpeech();
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = saved.steps.findIndex(step => step.type === 'listen');
+  saved.steps[saved.i].arrived = true;
+  const expected = api.ptext(saved.steps[saved.i].line, 'en', true);
+  api.setLesson(null);
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), [expected]);
+  assert.equal(phone.calls[0].inGesture, true);
+  api.stopLessonTimers(false);
+  api.setLesson(null);
+});
+
+test('a cold resumed listening quiz bypasses its autoplay timer', () => {
+  const phone = lockedIphoneSpeech();
+  const { api } = runtime(new Map(), {
+    speechSynthesis: phone.speechSynthesis,
+    SpeechSynthesisUtterance: phone.SpeechSynthesisUtterance,
+  });
+  api.startLesson(0, false);
+  api.stopLessonTimers(true);
+  const saved = api.getState().session;
+  saved.i = saved.steps.findIndex(step => step.type === 'listenQuiz');
+  const expected = api.ptext(saved.steps[saved.i].p, 'en');
+  api.setLesson(null);
+
+  phone.duringGesture(() => {
+    api.beginLessonAudioGesture();
+    api.resumeLesson();
+  });
+
+  assert.deepEqual(phone.calls.map(call => call.text), [expected]);
+  assert.equal(phone.calls[0].inGesture, true);
+  api.stopLessonTimers(false);
+  api.setLesson(null);
 });
 
 test('the learner\'s own name never blocks a passing sentence', () => {
@@ -3501,9 +3806,13 @@ test("Sam's runs start directly without microphone friction", () => {
   assert.doesNotMatch(startFn + reviewFn + countdownFn, /cancelSpeech\(\)/,
     'nothing may cancel the iOS speech queue between the start tap and the live road');
   assert.match(html, /if\('speechSynthesis' in window && \(speechSynthesis\.speaking\|\|speechSynthesis\.pending\)\) speechSynthesis\.cancel\(\);/,
-    'and nothing cancels a queue that is already empty — the runner does that on every start');
-  assert.match(html, /const u = new SpeechSynthesisUtterance\('a'\);/,
-    'the iOS unlock speaks a real letter — a whitespace utterance is nothing to say, so it unlocked nothing');
+    'nothing cancels a queue that is already empty — the runner does that on every start');
+  assert.match(html, /function next\(\)\{[\s\S]*?invalidateDialogueFlow\(!protectFirstLessonSpeech\);/,
+    'only the transition that will submit the first real lesson sentence protects stale iOS pending state');
+  assert.doesNotMatch(html, /SpeechSynthesisUtterance\('a'\)|\.volume\s*=\s*0/,
+    'no muted global primer may claim to unlock iOS before a real utterance starts');
+  assert.match(html, /document\.addEventListener\('click', beginLessonAudioGesture, true\);/,
+    'lesson speech keeps the trusted click alive for the real sentence');
 });
 
 test("Sam's lane vocabulary has offline recorded pronunciation", async () => {
