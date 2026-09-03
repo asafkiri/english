@@ -2200,6 +2200,12 @@ body{
 .game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
 .game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(88px,27vw,132px);height:clamp(68px,10dvh,92px);margin:0;padding:8px 6px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.game-obstacle.lane-wave .lane-gate.is-word{justify-content:center;font-size:19px;letter-spacing:.02em;direction:ltr;border-color:rgba(196,181,253,.6);background:linear-gradient(145deg,rgba(79,60,130,.95),rgba(22,18,42,.95))}
+.game-lane-prompt .game-sentence{display:block;direction:ltr;margin-top:1px;font-size:.68em;letter-spacing:.05em;color:#ddd6fe}
+.game-lane-prompt .game-sentence b{color:#fff}
+.game-lane-prompt .game-sentence em{color:#fde68a;font-style:normal}
+.game-lane-prompt .game-sentence i{display:inline-block;width:1.4em;border-bottom:.09em solid rgba(255,255,255,.4);vertical-align:.18em}
+.game-lane-prompt .game-sentence.done b{color:#6ee7b7}
 .game-obstacle.lane-wave .lane-gate.from-lesson:before{content:'📚';position:absolute;top:3px;left:5px;font-size:11px;opacity:.95;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .game-obstacle.lane-wave .lane-gate.from-lesson{border-color:rgba(253,230,138,.6)}
 .game-start-lesson{margin-top:6px;padding:6px 10px;border:1px dashed rgba(253,230,138,.5);border-radius:12px;color:#fde68a;font-size:12px;font-weight:800}
@@ -6926,7 +6932,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.31.0';
+const APP_VERSION = '2.32.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11388,7 +11394,7 @@ const SAM_RUN_PHASES=[
    grows is the distance. Everything a world used to gate behind a phase is
    gated here behind distance instead, so the run introduces itself. */
 const SAM_RUN_ENDLESS_PHASE={id:'endless',icon:'♾️',title:'ריצה חופשית',hint:'רצים כמה שאפשר — המילים שלך, המהירות עולה.'};
-const SAM_RUN_FEATURE_AT={coins:0,walls:320,hurdles:620,pairs:1000};
+const SAM_RUN_FEATURE_AT={coins:0,walls:320,sentences:450,hurdles:620,pairs:1000};
 const SAM_RUN_FEATURE_SAY={
   walls:{icon:'🚧',title:'מכשולים!',hint:'החליקו למעלה או למטה לפי המילה'},
   hurdles:{icon:'⚠️',title:'עבודות בכביש',hint:'עוקפים אותן במסלול אחר'},
@@ -11724,6 +11730,9 @@ function samRunWaveTiming(g){
 function samRunUnlocked(g,feature){
   if(!g) return false;
   if(g.endless) return (g.distance||0)>=(SAM_RUN_FEATURE_AT[feature]||0);
+  /* Rebuilding a sentence belongs to the endless run: a world is five words
+     being taught, and has no phrases of the child's own to rebuild. */
+  if(feature==='sentences') return false;
   if(feature==='pairs') return g.phase.id==='final';
   if(feature==='walls'||feature==='hurdles') return g.phase.id!=='learn';
   return true;
@@ -11738,6 +11747,25 @@ function samRunEndlessWords(store,completed){
   return {active:course.concat(shuffled(own).slice(0,12-course.length)),filler:own};
 }
 function samRunMedalsFor(metres){ return SAM_RUN_MEDALS.filter(x=>metres>=x.m); }
+/* Sentences the child has already learned whole. A word like HOW or ARE or THE
+   can never be a gate card — no picture carries it, and its Hebrew means
+   nothing on its own — but it can be a step in rebuilding a phrase he knows by
+   heart. That is what these are for: taking something memorised as one lump
+   and making its words visible, in order. */
+function samRunSentencePool(completed){
+  const done=Math.max(0,Math.floor(Number(completed)||0));
+  const out=[];
+  for(const lesson of LESSONS.slice(0,done)){
+    for(const phrase of lesson.phrases){
+      /* A phrase with a slot to fill in is not a sentence anyone can rebuild. */
+      if(/[{}]/.test(phrase.en)||/\[\[/.test(phrase.he)) continue;
+      const words=phrase.en.replace(/[.,!?]/g,' ').trim().split(/\s+/).filter(Boolean).map(w=>w.toUpperCase());
+      if(words.length<2||words.length>4||words.some(w=>w.length>9)) continue;
+      out.push({he:phrase.he,say:phrase.en,words});
+    }
+  }
+  return out;
+}
 function samRunWarnMs(score, latency=0){
   const base=Math.round(1000-250*(samRunSpeedFor(score)-1)/1.15);
   // a slow recogniser, measured on this device, earns more notice
@@ -11944,11 +11972,14 @@ function renderSamRun(stageIndex=null,endless=false){
   const phase=endless?SAM_RUN_ENDLESS_PHASE:SAM_RUN_PHASES[phaseIndex], mode='tap';
   const mission=samRunMissionFor(store,mode,stageIndex,phaseIndex);
   const endlessWords=endless?samRunEndlessWords(store,state.completed):null;
+  const sentences=endless?samRunSentencePool(state.completed):[];
   samRun={
     epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,endless,
     active:endless?endlessWords.active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},lane:1,laneGame:true,shield:0,runCoinBonus:0,
     distance:0,lastMetre:-1,announced:{},
+    sentences,sentenceWords:[...new Set(sentences.flatMap(x=>x.words))],
+    sentence:null,sentenceAt:0,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,
     review:endless?endlessWords.filler:samRunReviewPool(store,stageIndex,phaseIndex),
     lesson:endless?[]:(phaseIndex?samRunLessonPool(state.completed,6):[]),
@@ -12107,7 +12138,8 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,taught:{},clearedWalls:0,distance:0,lastMetre:-1,announced:{}});
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,taught:{},clearedWalls:0,distance:0,lastMetre:-1,announced:{},
+    sentence:null,sentenceAt:0,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
   runner.classList.remove('is-air-jump','is-air-duck');
@@ -12518,7 +12550,8 @@ function samRunChooseLane(lane){
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
   ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>el.classList.toggle('is-picked',i===lane));
-  speak(SAM_RUN_COMMANDS[ob.options[lane]].say);
+  const chosen=ob.options[lane];
+  speak(ob.sentenceWave?chosen.toLowerCase():SAM_RUN_COMMANDS[chosen].say);
 }
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
@@ -12539,6 +12572,56 @@ function samRunSpawnLaneWave(){
   const prompt=document.getElementById('samRunLanePrompt'); if(prompt) prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`;
   g.nextSpawnAt=g.time+warnMs+travelMs*(.78+Math.random()*.16);
 }
+function samRunStartSentence(){
+  const g=samRun;
+  g.sentence=pick(g.sentences); g.sentenceAt=0;
+  samRunAnnounce({icon:'💬',title:'משפט שלם!',hint:'אוספים מילה־מילה, לפי הסדר'});
+}
+function samRunSentencePrompt(done){
+  const g=samRun,prompt=document.getElementById('samRunLanePrompt'),s=g&&g.sentence;
+  if(!prompt||!s) return;
+  const line=s.words.map((w,i)=>done||i<g.sentenceAt?`<b>${esc(w)}</b>`:i===g.sentenceAt?'<em>?</em>':'<i></i>').join(' ');
+  prompt.innerHTML=`<small>💬 ${esc(s.he)}</small><span class="game-sentence${done?' done':''}">${line}</span>`;
+}
+function samRunSpawnSentenceWave(){
+  const g=samRun,host=document.getElementById('samRunObstacles'); if(!host||!g.sentence) return;
+  const s=g.sentence,word=s.words[g.sentenceAt];
+  /* The decoys are the sentence's own other words wherever there are enough of
+     them. The child knows every one already, so what the wave actually asks is
+     which word comes NEXT — the order is the lesson. */
+  const own=[...new Set(s.words.filter(w=>w!==word))];
+  const rest=g.sentenceWords.filter(w=>w!==word&&!own.includes(w));
+  const distractors=shuffled(own).concat(shuffled(rest)).slice(0,2);
+  if(distractors.length<2){ samRunSpawnLaneWave(); return; }
+  const options=shuffled([word,...distractors]),correctLane=options.indexOf(word);
+  const {travelMs,warnMs}=samRunWaveTiming(g);
+  const el=document.createElement('div');
+  el.className='game-obstacle lane-wave sentence-wave is-incoming';
+  el.innerHTML=options.map((w,i)=>`<button type="button" class="lane-gate is-word${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}" onclick="samRunChooseLane(${i})">${esc(w)}</button>`).join('');
+  host.appendChild(el);
+  g.obstacles.push({id:++g.obstacleSeq,cmd:word,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],
+    progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,sentenceWave:true,bonus:false,mastery:0});
+  samRunSentencePrompt();
+  g.nextSpawnAt=g.time+warnMs+travelMs*(.7+Math.random()*.12);
+}
+function samRunAdvanceSentence(ob){
+  const g=samRun,s=g.sentence; if(!s) return;
+  g.sentenceAt++;
+  if(g.sentenceAt<s.words.length){ samRunSentencePrompt(); return; }
+  /* The payoff: the sentence he has just rebuilt, read back to him whole. */
+  samRunSentencePrompt(true);
+  g.sentence=null; g.sentenceAt=0;
+  g.sentencesDone=(g.sentencesDone||0)+1;
+  g.runCoinBonus=(g.runCoinBonus||0)+5;
+  g.nextSentenceAt=(g.distance||0)+520+Math.random()*220;
+  samRunFloat('💬 +5 🪙',ob);
+  samRunWorldFx('is-combo',520);
+  speak(s.say);
+  /* Hold the road for a beat. Without this the next question overwrites the
+     finished sentence before the child has seen it whole or heard it read
+     back — and that moment is the entire reward for building it. */
+  g.nextSpawnAt=Math.max(g.nextSpawnAt,g.time+1500);
+}
 function samRunSpawn(){
   const g=samRun, host=document.getElementById('samRunObstacles'); if(!host) return;
   if(g.finishing) return;
@@ -12546,7 +12629,13 @@ function samRunSpawn(){
   // first half of its approach — one answer at a time is the whole game
   const last=g.obstacles[g.obstacles.length-1];
   if(last&&!last.resolved&&(g.laneGame||last.progress<.55)){ g.nextSpawnAt=g.time+120; return; }
-  if(g.laneGame){ samRunSpawnLaneWave(); return; }
+  if(g.laneGame){
+    /* A sentence owns the road until it is done: one word per wave, in order,
+       so the phrase gets rebuilt rather than recognised. */
+    if(!g.sentence&&g.sentences.length&&samRunUnlocked(g,'sentences')&&(g.distance||0)>=g.nextSentenceAt) samRunStartSentence();
+    if(g.sentence) samRunSpawnSentenceWave(); else samRunSpawnLaneWave();
+    return;
+  }
   const cmd=samRunPickKind(), c=SAM_RUN_COMMANDS[cmd];
   const phasePace=g.phase.id==='speed'?.88:1;
   const travelMs=Math.round(samRunTravelMs(g.score)*phasePace), warnMs=samRunWarnMs(g.score,g.latencyEma||g.store.latency||0);
@@ -12614,12 +12703,18 @@ function samRunResolve(ob){
   const ok=ob.armed===ob.cmd;
   if(ob.laneWave) ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>{ if(i===ob.correctLane) el.classList.add('is-correct'); else if(i===ob.chosenLane) el.classList.add('is-wrong'); });
   g.resolvedCount++;
-  g.runSeen[ob.cmd]=(g.runSeen[ob.cmd]||0)+1;
+  /* A sentence word is a step through a phrase, not a vocabulary card, so it
+     keeps no mastery of its own — HOW and ARE do not belong in that record. */
+  if(!ob.sentenceWave){
+    g.runSeen[ob.cmd]=(g.runSeen[ob.cmd]||0)+1;
+    if(ok){
+      g.cleared[ob.cmd]=(g.cleared[ob.cmd]||0)+1;
+      g.store.cleared[ob.cmd]=(g.store.cleared[ob.cmd]||0)+1;
+      g.store.mastery[ob.cmd]=Math.min(SAM_RUN_MASTERY,(g.store.mastery[ob.cmd]||0)+1);
+    }
+  }
   if(ok){
     ob.el.classList.add('is-caught');
-    g.cleared[ob.cmd]=(g.cleared[ob.cmd]||0)+1;
-    g.store.cleared[ob.cmd]=(g.store.cleared[ob.cmd]||0)+1;
-    g.store.mastery[ob.cmd]=Math.min(SAM_RUN_MASTERY,(g.store.mastery[ob.cmd]||0)+1);
     g.correctCount++; g.streak++; g.cleanStreak=(g.cleanStreak||0)+1;
     g.streakPeak=Math.max(g.streakPeak||0,g.streak); g.cleanPeak=Math.max(g.cleanPeak||0,g.cleanStreak);
     g.store.totalCorrect=(g.store.totalCorrect||0)+1;
@@ -12629,10 +12724,25 @@ function samRunResolve(ob){
     samRunTone(ob.cmd==='jump'?'jump':'catch');
     samRunScore(1+Math.min(4,Math.floor(g.streak/5)),ob);
     samRunUpdateWords(ob.cmd);
+    if(ob.sentenceWave) samRunAdvanceSentence(ob);
     samRunCheckFinish();
     return;
   }
   g.streak=0;
+  if(ob.sentenceWave){
+    /* Putting a word in the wrong place costs the combo, never a heart. The
+       sentence round is where the child is being taught the order, so it always
+       shows him the right answer and always carries him to the end of the
+       phrase — losing a run to the word order of "I don't like homework" would
+       teach him only to avoid it. */
+    g.cleanStreak=0;
+    ob.el.classList.add('is-poof');
+    samRunTone('hit'); samRunFloat('הסדר הנכון מסומן 💬',ob,true);
+    samRunPaintHud(); samRunWorldFx('is-bump',360);
+    samRunAdvanceSentence(ob);
+    samRunCheckFinish();
+    return;
+  }
   samRunHit(ob);
   samRunCheckFinish();
 }
