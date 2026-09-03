@@ -3513,6 +3513,10 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /lane-game/);
   assert.match(app.innerHTML, /game-playing/, 'the run owns the full viewport');
   assert.match(app.innerHTML, /game-back-rig/, 'the equipped character is seen running away from the camera');
+  assert.match(app.innerHTML, /viewBox="0 0 140 240"/,
+    'the runner uses taller, human-like proportions');
+  assert.match(app.innerHTML, /<ellipse cx="70" cy="38" rx="24" ry="29"/,
+    'the head no longer dominates the torso like a cartoon mascot');
   assert.match(app.innerHTML, /game-lane-focus/, 'the selected road gets immediate visual feedback');
   assert.match(app.innerHTML, /game-swipe-hint/, 'the first seconds demonstrate the core gesture');
   assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
@@ -3707,6 +3711,10 @@ test("the lane runner shares one perspective camera", () => {
 
 test("the road between questions carries coins, roadworks and depth traffic", () => {
   const { api } = runtime();
+  assert.match(html, /\.game-rush \.rush-coin\{font-size:58px;[\s\S]*?animation:none\}/,
+    'coins stay large and face the player instead of vanishing edge-on');
+  assert.doesNotMatch(html, /@keyframes gameCoinSpin/,
+    'coins do not spin while the player is trying to see their lane');
   assert.match(html, /if\(g\.laneGame\) samRunRunRoad\(dt\)/,
     'the run loop drives the road, not just the questions');
   assert.match(html, /samRunSpawnRush\('stone'\)/, 'lane stones stream out of the horizon');
@@ -3736,8 +3744,10 @@ test("walls give the road a vertical axis that can only be answered by reading",
   const { api, context } = runtime();
   assert.match(html, /el\.style\.width=Math\.round\(g\.worldW\*\.93\)\+'px'/,
     'a wall spans the whole road: stepping around it is not one of the options');
-  assert.match(html, /el\.innerHTML=word\+`<span>\$\{jump\?'⬆':'⬇'\}<\/span>`\+word;/,
-    'and carries the English word at both ends, where a row of gates cannot hide it');
+  assert.match(html, /el\.innerHTML=`<b class="wall-command"><span>\$\{jump\?'⬆':'⬇'\}<\/span>\$\{jump\?'JUMP':'DUCK'\}<\/b>`;/,
+    'and carries one large, explicit action sign above the obstacle');
+  assert.match(html, /\.game-rush \.wall-command\{[\s\S]*?font-size:32px/,
+    'JUMP and DUCK remain readable well before impact');
   assert.match(html, /transform-origin:0 0/,
     'the rush layer anchors from its top-left so a scaled wall stays centred on the road');
 
