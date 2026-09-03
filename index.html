@@ -2208,6 +2208,13 @@ body{
 .game-world.lane-game .game-roadside{bottom:34%;height:20%;opacity:.45;filter:blur(.4px) drop-shadow(0 5px 4px rgba(0,0,0,.25))}
 .game-world.lane-game .game-dust{z-index:3;mask-image:linear-gradient(transparent 42%,#000);opacity:.25}
 .game-world.lane-game .game-lane-grid{display:block;inset:0;z-index:2;overflow:hidden;background:linear-gradient(180deg,transparent 0 40%,rgba(10,18,31,.1) 40% 100%);perspective:none}
+/* The rendered road. It occupies the DOM road's own layer, and the DOM road
+   is only hidden once the context is actually up — so a phone that cannot
+   give us WebGL, or that loses the context mid-run, simply keeps the road it
+   always had. */
+.game-world.lane-game .game-gl{display:block;position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}
+.game-gl{display:none}
+.game-world.lane-game.gl-road .game-lane-grid{display:none}
 /* The tarmac and its two edge lines are the same trapezoid the camera walks:
    half a road width of 15.8% at the horizon, 55.5% where it leaves the bottom
    of the screen. Anything the run loop places on the road lands on it exactly. */
@@ -7083,7 +7090,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.46.0';
+const APP_VERSION = '2.47.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12475,7 +12482,7 @@ function renderSamRun(stageIndex=null,endless=false){
     <div class="game-mission"><span>${endless?'📏':'🎯'} <b id="samRunMissionText">${endless?'0 מ׳':`0/${SAM_RUN_GOAL}`}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
-      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-road-atmosphere"></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-speedlines"></div><div class="game-finish"></div>
+      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><canvas class="game-gl" id="samRunGLCanvas" aria-hidden="true"></canvas><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-road-atmosphere"></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
       <div class="game-runner" id="samRunRunner" hidden>${samRunBackAvatarHtml(store)}</div>
       <div id="samRunObstacles"></div>
@@ -12617,6 +12624,7 @@ function samRunTeardown(){
   try{ samRunRecordedSource?.stop(); }catch(_){}
   samRunRecordedSource=null;
   samRunEndAudioSession();
+  samRunGLStop();
   cancelSpeech();
   samRun=null;
 }
@@ -12681,6 +12689,7 @@ function samRunBeginCountdown(){
   if(!runner||!card||!world) return;
   card.hidden=true; card.innerHTML=''; runner.hidden=false;
   g.worldW=world.clientWidth||360; g.worldH=world.clientHeight||640; g.runnerX=runner.offsetLeft+runner.offsetWidth/2||60;
+  if(g.laneGame) samRunGLStart(world);
   // 3 · 2 · 1 · GO — long enough for the microphone to open
   const count=document.createElement('div'); count.className='game-countdown'; world.appendChild(count);
   const steps=['3','2','1','GO!']; let i=0;
@@ -12718,6 +12727,23 @@ function samRunFrame(ts){
   if(!document.getElementById('samRunWorld')||g.epoch!==uiEpoch){ samRunTeardown(); return; }
   if(ts<(g.freezeUntil||0)){ g.last=ts; g.raf=requestAnimationFrame(samRunFrame); return; }
   const dt=g.last?Math.min(50,ts-g.last):16; g.last=ts;
+  /* The rendered road is a full-screen shader, and a shader is either nearly
+     free or ruinous depending on the GPU underneath — which is not something
+     the code can know in advance, and not something that can be measured
+     anywhere except on the device itself. So the device decides: after a
+     warm-up, sample ninety frames, and if they averaged worse than about 38fps
+     hand the CSS road back mid-run and never look again this run. Being wrong
+     about a phone then costs that phone a nicer road, not a playable game. */
+  if(samRunGL){
+    g.glSeen=(g.glSeen||0)+1;
+    g.glEma=g.glEma?g.glEma*.97+dt*.03:dt;
+    /* A rolling average rather than one verdict taken early: a run is at its
+       quietest in the first seconds, so a single sample there would clear a
+       device that later falls over once the road fills up. This watches the
+       whole run and can bail at any point — but only ever once, so it cannot
+       flap between the two roads. Roughly 42fps sustained is the line. */
+    if(g.glSeen>60&&g.glEma>24) samRunGLStop();
+  }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
     if(g.endless){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
@@ -12794,8 +12820,136 @@ function samRunSwapScene(index){
 /* Everything on the road that is not a question: kerb stones, roadside
    scenery, coins and roadworks. They all ride the shared camera and are what
    turns the stretch between two questions into a run. */
+/* ---- the road, rendered ----
+   The DOM road is a clip-path trapezoid with a repeating gradient scrolled by a
+   CSS animation. That gets the SHAPE right — the game's camera is a real 1/z
+   projection and a straight-edged trapezoid is its correct image — but the
+   surface itself can only ever be a flat fill with evenly spaced stripes, and
+   evenly spaced stripes are exactly what a receding road does not have.
+   This draws the same trapezoid on a GL surface using the game's own camera, so
+   everything the DOM still owns — gates, walls, coins, the runner — stays
+   registered against it to the pixel. Markings are laid out in road space, so
+   they foreshorten toward the horizon on their own, and the far end dissolves
+   into the world's haze instead of stopping at a hard edge.
+   If anything here fails, or the context is lost, the DOM road is still
+   underneath and simply becomes visible again. */
+const SAM_RUN_GL_VS=`#version 300 es
+in vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+const SAM_RUN_GL_FS=`#version 300 es
+precision highp float;
+out vec4 o;
+uniform vec2 uRes;uniform float uHorizon,uScroll;
+uniform vec3 uRoadTop,uRoadLow,uAccent,uHaze;
+float band(float d,float w,float aa){return 1.-smoothstep(w-aa,w+aa,abs(d));}
+void main(){
+  float x=gl_FragCoord.x/uRes.x;
+  float y=1.-gl_FragCoord.y/uRes.y;
+  /* Bleed a little above the horizon. The road used to stop dead on a straight
+     line across the screen; letting its haze rise into the scenery for a few
+     pixels is what turns that edge into distance. */
+  if(y<uHorizon-.035) discard;
+  float rise=smoothstep(uHorizon-.035,uHorizon,y);
+  /* the game's own camera, inverted: screen y -> scale -> depth */
+  float s=max(.30,(y-uHorizon)*100./60.606+.44);
+  float z=min(1.35,.44/s);
+  float halfW=.42045*s;
+  float u=(x-.5)/halfW;
+  float au=abs(u);
+  if(au>1.34) discard;
+  float aa=fwidth(u)*1.2;
+  /* distance along the road: linear in road space, so every marking drawn
+     against it foreshortens by itself */
+  float v=z*30.-uScroll;
+  vec3 col=mix(uRoadTop,uRoadLow,smoothstep(0.,.75,1.-z));
+  col*=1.+.06*(1.-au*au);
+  float gr=fract(sin(dot(vec2(floor(u*90.),floor(v*26.)),vec2(12.9898,78.233)))*43758.5453);
+  col*=.965+.07*gr;
+  /* No lane dashes here: the moving kerb seams are still real elements riding
+     the same camera, and drawing a second set underneath them gave the road two
+     sets of markings at two different spacings. The surface, the verge, the
+     edges and the fog are what the DOM could not do; the seams it already
+     could. */
+  col=mix(col,vec3(1.),band(au-1.,.024,aa)*.78);
+  /* a faint sheen down the crown, so the asphalt is not a flat fill */
+  col+=vec3(.055,.065,.085)*pow(max(0.,1.-au*1.35),3.)*(1.-z*.5);
+  float verge=smoothstep(1.,1.06,au);
+  col=mix(col,mix(uRoadLow*.55,uHaze*.5,.35),verge*.9);
+  col+=uAccent*.16*pow(max(0.,1.-au),2.)*smoothstep(.55,1.,z);
+  float fog=smoothstep(.72,.995,z);
+  col=mix(col,uHaze,fog*.92);
+  o=vec4(col,(1.-smoothstep(1.28,1.34,au))*(1.-fog*.12)*rise);
+}`;
+let samRunGL=null;
+function samRunGLColor(probe,name){
+  probe.style.color='';
+  probe.style.color='var('+name+')';
+  const m=/(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+(-?[\d.]+)/.exec(getComputedStyle(probe).color||'');
+  return m?[+m[1]/255,+m[2]/255,+m[3]/255]:[.5,.5,.5];
+}
+function samRunGLStart(world){
+  if(samRunGL||!world) return false;
+  const canvas=world.querySelector('#samRunGLCanvas'); if(!canvas||!canvas.getContext) return false;
+  let gl=null;
+  try{ gl=canvas.getContext('webgl2',{alpha:true,antialias:false,premultipliedAlpha:false,powerPreference:'high-performance'}); }catch(_){}
+  if(!gl) return false;
+  const build=(type,src)=>{ const sh=gl.createShader(type); gl.shaderSource(sh,src); gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)) return null; return sh; };
+  const vs=build(gl.VERTEX_SHADER,SAM_RUN_GL_VS), fs=build(gl.FRAGMENT_SHADER,SAM_RUN_GL_FS);
+  if(!vs||!fs) return false;
+  const prog=gl.createProgram();
+  gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return false;
+  gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'p');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  const probe=document.createElement('span');
+  probe.setAttribute('aria-hidden','true');
+  probe.style.cssText='position:absolute;width:0;height:0;opacity:0;pointer-events:none';
+  world.appendChild(probe);
+  samRunGL={gl,canvas,prog,probe,world,theme:'',w:0,h:0,
+    u:{res:gl.getUniformLocation(prog,'uRes'),horizon:gl.getUniformLocation(prog,'uHorizon'),
+       scroll:gl.getUniformLocation(prog,'uScroll'),roadTop:gl.getUniformLocation(prog,'uRoadTop'),
+       roadLow:gl.getUniformLocation(prog,'uRoadLow'),accent:gl.getUniformLocation(prog,'uAccent'),
+       haze:gl.getUniformLocation(prog,'uHaze')}};
+  canvas.addEventListener('webglcontextlost',e=>{ e.preventDefault(); samRunGLStop(); },{once:true});
+  world.classList.add('gl-road');
+  return true;
+}
+function samRunGLStop(){
+  if(!samRunGL) return;
+  samRunGL.world?.classList.remove('gl-road');
+  samRunGL.probe?.remove();
+  samRunGL=null;
+}
+function samRunGLDraw(g){
+  const r=samRunGL; if(!r||!g) return;
+  const {gl,canvas}=r;
+  const cssW=r.world.clientWidth||g.worldW||360, cssH=r.world.clientHeight||g.worldH||640;
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const w=Math.max(1,Math.round(cssW*dpr)), h=Math.max(1,Math.round(cssH*dpr));
+  if(w!==r.w||h!==r.h){ canvas.width=w; canvas.height=h; r.w=w; r.h=h; gl.viewport(0,0,w,h); gl.uniform2f(r.u.res,w,h); }
+  /* Each world repaints the road in its own colours, so re-read them only when
+     the theme actually changes rather than every frame. */
+  const theme=r.world.className;
+  if(theme!==r.theme){
+    r.theme=theme;
+    gl.uniform3fv(r.u.roadTop,samRunGLColor(r.probe,'--road-top'));
+    gl.uniform3fv(r.u.roadLow,samRunGLColor(r.probe,'--road-low'));
+    gl.uniform3fv(r.u.accent,samRunGLColor(r.probe,'--world-accent'));
+    gl.uniform3fv(r.u.haze,samRunGLColor(r.probe,'--haze'));
+    const hz=parseFloat(getComputedStyle(r.world).getPropertyValue('--horizon'))||40;
+    gl.uniform1f(r.u.horizon,hz/100);
+  }
+  gl.uniform1f(r.u.scroll,(g.distance||0)*.5);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+}
 function samRunRunRoad(dt){
   const g=samRun, speed=samRunPace(g), still=prefersReducedStageMotion();
+  samRunGLDraw(g);
   if(!still){
     if(g.time>=g.nextStoneAt){ samRunSpawnRush('stone'); g.nextStoneAt=g.time+230/speed; }
     if(g.time>=g.nextPropAt){ samRunSpawnRush('prop'); g.nextPropAt=g.time+(420+Math.random()*360)/speed; }
