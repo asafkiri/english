@@ -7568,6 +7568,27 @@ let voices = [];
 let autoSpeakTimer = null;
 let uiEpoch = 0;
 let speechToken = 0;
+/* iOS only authorises the first real utterance while a user gesture is still
+   on the stack. A muted primer is not an utterance there, so remember the
+   click itself and let the lesson's actual sentence consume it. */
+let speechUnlocked = false;
+let lessonAudioGestureActive = false;
+let lessonAudioGestureToken = 0;
+let lessonGestureSpeechSubmitted = false;
+function beginLessonAudioGesture(){
+  const token=++lessonAudioGestureToken;
+  lessonAudioGestureActive = true;
+  lessonGestureSpeechSubmitted = false;
+  /* Do not borrow the game's `playback` Audio Session here: lessons also use
+     SpeechRecognition, and an output-only session can reject audio capture. */
+  /* Clear on the next task, not in a microtask: browsers may run a microtask
+     checkpoint between captured and inline click listeners. */
+  setTimeout(()=>{
+    if(token!==lessonAudioGestureToken) return;
+    lessonAudioGestureActive=false;
+    lessonGestureSpeechSubmitted=false;
+  },0);
+}
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
 if('speechSynthesis' in window){
   loadVoices();
@@ -7611,33 +7632,48 @@ function speak(text, cb){
     if(micHint) micHint.textContent='ההשמעה עצרה את ההאזנה — לחץ שוב על המיקרופון כשתהיה מוכן';
   }
   const token=++speechToken;
+  const lessonSession=typeof L !== 'undefined' ? L : null;
+  const directLessonGesture=!!(lessonSession&&lessonAudioGestureActive&&!lessonSession.audioPrimed);
+  if(directLessonGesture){
+    lessonGestureSpeechSubmitted=true;
+  }
   /* Cancel only when there is something to cancel, and let the cancel settle
      before the next utterance. iOS wedges its synthesis queue when the two land
      in the same tick, and everything after it goes silent. */
   const busy=speechSynthesis.speaking||speechSynthesis.pending;
-  if(busy) speechSynthesis.cancel();
+  if(busy&&!directLessonGesture) speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/___/g,''));
   u.lang = 'en-US';
   const v = pickVoice(); if(v) u.voice = v;
   u.rate = state.slowSpeech ? 0.8 : 1.0;
   u.pitch = 1;
-  let finished=false;
+  u.volume = 1;
+  let finished=false,watchdog=null;
   const finish=()=>{
     if(finished) return;
     finished=true;
+    if(watchdog) clearTimeout(watchdog);
     if(token===speechToken) stopVoiceAnimation();
     if(cb && token===speechToken) cb();
   };
   u.onend = finish; u.onerror = finish;
-  u.onstart = ()=>{ if(token===speechToken){ startMouthSync(u.text, u.rate); startWordSync(u.text, u.rate); } };
+  u.onstart = ()=>{
+    if(token!==speechToken) return;
+    speechUnlocked=true;
+    if(lessonSession&&L===lessonSession) lessonSession.audioPrimed=true;
+    setVoicing(true);
+    startMouthSync(u.text, u.rate); startWordSync(u.text, u.rate);
+  };
   // word boundaries let the mouth and the lit-up word re-sync to where the voice actually is
   u.onboundary = e=>{ if(token===speechToken){ syncMouthToChar(e.charIndex); syncWordToChar(e.charIndex); } };
-  setVoicing(true);
   // some engines never report the end of an utterance; the face must not be
   // left talking to itself, so stop the animation on a generous deadline too
-  setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) finish(); },
+  watchdog=setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) finish(); },
     Math.max(6000, u.text.length*220));
-  if(busy) setTimeout(()=>{ if(token===speechToken) speechSynthesis.speak(u); },0);
+  try{ speechSynthesis.resume(); }catch(_){}
+  /* The first lesson sentence must be handed to iOS synchronously inside the
+     tap. Never cancel or re-queue that gesture-authorised utterance. */
+  if(busy&&!directLessonGesture) setTimeout(()=>{ if(token===speechToken) speechSynthesis.speak(u); },0);
   else speechSynthesis.speak(u);
 }
 
@@ -7847,13 +7883,18 @@ function scheduleSpeak(text, delay=350, cb=null, startCb=null){
   const epoch = uiEpoch;
   const session = typeof L !== 'undefined' ? L : null;
   const stepIndex = session ? session.i : -1;
-  autoSpeakTimer = setTimeout(()=>{
+  const play=()=>{
     autoSpeakTimer = null;
     if(epoch !== uiEpoch) return;
     if(session && (!L || L !== session || L.i !== stepIndex)) return;
     if(startCb) startCb();
     speak(text,cb);
-  }, delay);
+  };
+  if(session&&lessonAudioGestureActive&&!session.audioPrimed){
+    play();
+    return;
+  }
+  autoSpeakTimer = setTimeout(play, delay);
 }
 
 /* ---------------- speech: recognition ---------------- */
@@ -8803,6 +8844,34 @@ function resumeLesson(){
   };
   renderStep();
   startLessonClock();
+  /* Some saved screens finish themselves on a timer (for example a phrase
+     that was already passed). They do not have a visible sentence to submit
+     during the resume tap, so give iOS one brief real utterance now; otherwise
+     the next screen's automatic sentence would be blocked again. */
+  if(lessonAudioGestureActive&&!L.audioPrimed&&!lessonGestureSpeechSubmitted){
+    const session=L,currentStep=L.curStep;
+    const resumePhraseAdvance=!!L.phraseAdvanceTimer;
+    const resumeDialogueAdvance=dialogueTimer?dialogueFlowNext:null;
+    if(resumePhraseAdvance){ clearTimeout(L.phraseAdvanceTimer);L.phraseAdvanceTimer=null; }
+    if(resumeDialogueAdvance) invalidateDialogueFlow(false);
+    session.resumeAudioUnlockPending=true;
+    session.resumeHeldPhraseAdvance=resumePhraseAdvance;
+    session.resumeHeldDialogueAdvance=resumeDialogueAdvance;
+    speak('Ready',()=>{
+      if(!L||L!==session||L.curStep!==currentStep) return;
+      session.resumeAudioUnlockPending=false;
+      session.resumeHeldPhraseAdvance=false;
+      session.resumeHeldDialogueAdvance=null;
+      if(resumePhraseAdvance) scheduleLearningAdvance(currentStep);
+      if(resumeDialogueAdvance) scheduleDialogueFlow(resumeDialogueAdvance,350);
+    });
+  }
+}
+function interruptLessonAudioUnlock(){
+  if(!L?.resumeAudioUnlockPending) return false;
+  L.resumeAudioUnlockPending=false;
+  L.resumeAudioInterrupted=true;
+  return true;
 }
 function restartSavedLesson(){
   if(!state.session) return;
@@ -8865,11 +8934,16 @@ function stopLessonTimers(keepCheckpoint=true){
 function next(){
   if(!L||L.stepTransitioning) return;
   const session=L;
+  L.resumeAudioUnlockPending=false;
+  L.resumeAudioInterrupted=false;
+  L.resumeHeldPhraseAdvance=false;
+  L.resumeHeldDialogueAdvance=null;
   if(L.phraseAdvanceTimer){ clearTimeout(L.phraseAdvanceTimer); L.phraseAdvanceTimer=null; }
   if(L.orderReturnTimer){ clearTimeout(L.orderReturnTimer); L.orderReturnTimer=null; }
   if(L.orderAdvanceTimer){ clearTimeout(L.orderAdvanceTimer); L.orderAdvanceTimer=null; }
   L.stepTransitioning=true;
-  invalidateDialogueFlow(true);
+  const protectFirstLessonSpeech=lessonAudioGestureActive&&!L.audioPrimed&&!document.hidden;
+  invalidateDialogueFlow(!protectFirstLessonSpeech);
   const current = L.steps[L.i];
   if(!current?.chatAdded&&current?.type === 'listen' && current.line){
     L.chat.push({who:'app',line:current.line,event:current.event||null,showHe:false,showTl:false}); current.chatAdded=true;
@@ -10537,7 +10611,7 @@ function renderDialogueSpeak(step){
     dialogueShell(chatMessagesHtml(current,terminal?'sent-preview':''),composer);
   }
   if(terminal||step.retryMessage) afterRender(scrollComposerToEnd);
-  if(terminal){
+  if(terminal&&!L.resumeAudioInterrupted){
     // The same 1.9s as before, but read as a person rather than as a wait:
     // heard you -> a beat where they take it in -> they answer.
     if(guidedStage){
@@ -10595,6 +10669,7 @@ function renderSpeak(step){
       ${terminalResult?`
         <div class="heard">${heardHtml}</div>
         <div id="resultArea" role="status" aria-live="polite">${speakResultHtml(step.resultKind,step.resultMessage,step)}</div>
+        ${learningSuccess&&L.resumeAudioInterrupted?`<button class="btn" id="resumeLessonAudioBtn" style="margin-top:12px" onclick="next()">המשך למשפט הבא 🔊</button>`:''}
       `:mic?`
         <button class="mic-btn" id="micBtn" onclick="micTap('${jsEsc(en)}')" aria-label="התחלת הקלטה">🎤</button>
         <div class="mic-hint" id="micHint">${micReadyHint('לחץ על המיקרופון ותגיד את המשפט באנגלית')}</div>
@@ -10615,7 +10690,7 @@ function renderSpeak(step){
       ()=>{ setLearningAudioActive(session,stepIndex,false); finishNewPhraseIntroduction(session,stepIndex); },
       ()=>setLearningAudioActive(session,stepIndex,true));
   }
-  if(learningSuccess) scheduleLearningAdvance(step);
+  if(learningSuccess&&!L.resumeAudioInterrupted) scheduleLearningAdvance(step);
 }
 function scheduleLearningAdvance(step){
   const session=L,stepIndex=L?.i;
@@ -11120,7 +11195,8 @@ function renderDlgIntro(){
   `);
 }
 function renderListen(step){
-  invalidateDialogueFlow(true);
+  const protectFirstLessonSpeech=lessonAudioGestureActive&&!L.audioPrimed&&!document.hidden;
+  invalidateDialogueFlow(!protectFirstLessonSpeech);
   const line=step.line,meta=conversationMeta(L.idx),spokenEn=ptext(line,'en',true);
   // Two lines from the same character in a row are one turn, not two
   // messages: no 'about to speak' announcement in between, and only a
@@ -11131,6 +11207,13 @@ function renderListen(step){
   // producing the pair the breath exists for
   const runsOn=L.steps[L.i+1]?.type==='listen'&&!!L.steps[L.i+1].line;
   if(continuing) step.arrived=true;
+  /* A resumed lesson or a fresh conversation can land directly on an
+     incoming line. Consume that tap with the real line instead of putting it
+     behind the 600ms arrival timer that iOS is allowed to silence. */
+  if(!step.arrived&&lessonAudioGestureActive&&!L.audioPrimed){
+    step.arrived=true;
+    saveLessonCheckpoint();
+  }
   const stageActionStarted=L.isPractice&&step.arrived?enterPracticeStageAction(step,L):false;
   const stageActionStartedAt=stageActionStarted?Date.now():0;
   const stageActionVisualMs=stageActionStarted?practiceStageActionVisualDelay(L.pendingStageAction):0;
@@ -11348,21 +11431,9 @@ function renderDone(){
 }
 
 /* ================= boot ================= */
-// iOS Safari blocks speech synthesis until it runs inside a user gesture —
-// unlock it on the first tap so auto-play of phrases works afterwards.
-let speechUnlocked = false;
-document.addEventListener('pointerdown', ()=>{
-  if(speechUnlocked || !('speechSynthesis' in window)) return;
-  speechUnlocked = true;
-  /* A whitespace-only utterance is nothing to say, and iOS treats it as such:
-     it neither speaks nor counts as the gesture-blessed first utterance, so
-     the unlock never actually happened. A real letter, silent and at top
-     speed, is inaudible and does unlock. */
-  const u = new SpeechSynthesisUtterance('a');
-  u.volume = 0; u.rate = 10;
-  try{ speechSynthesis.resume(); }catch(_){}
-  speechSynthesis.speak(u);
-}, true);
+/* Capture clicks before their inline handlers. scheduleSpeak() can then send
+   the first real lesson sentence while the same trusted gesture is active. */
+document.addEventListener('click', beginLessonAudioGesture, true);
 function setStageMotionPaused(paused){
   document.documentElement?.classList?.toggle('motion-paused',!!paused);
 }
@@ -11375,8 +11446,11 @@ document.addEventListener('visibilitychange',()=>{
     // Both incoming messages and a successfully sent learner message can be
     // waiting on an automatic transition. Preserve that transition instead
     // of letting its timer expire silently while the tab is in the background.
+    interruptLessonAudioUnlock();
+    const step=L.steps?.[L.i];
+    const resumeAutoSpeech=!!autoSpeakTimer||!!(step?.newPhrase&&!step.introAudioComplete)||!!L.resumeAudioInterrupted;
     L.resumeFlowOnVisible=!!dialogueTimer;
-    L.rerenderOnVisible=L.resumeFlowOnVisible||!!L.rec;
+    L.rerenderOnVisible=L.resumeFlowOnVisible||!!L.rec||resumeAutoSpeech;
     L.stepTransitioning=false;
     cancelAutoSpeak();
     stopRecognition();
@@ -11397,8 +11471,11 @@ window.addEventListener('pagehide',()=>{
   setStageMotionPaused(true);
   if(L){
     pausePracticeStageActionSettle(L);
+    interruptLessonAudioUnlock();
+    const step=L.steps?.[L.i];
+    const resumeAutoSpeech=!!autoSpeakTimer||!!(step?.newPhrase&&!step.introAudioComplete)||!!L.resumeAudioInterrupted;
     L.resumeFlowOnPageShow=!!dialogueTimer||!!L.resumeFlowOnVisible;
-    L.rerenderOnPageShow=L.resumeFlowOnPageShow||!!L.rec;
+    L.rerenderOnPageShow=L.resumeFlowOnPageShow||!!L.rec||resumeAutoSpeech||!!L.rerenderOnVisible;
     L.stepTransitioning=false;
     pauseLessonClock(); saveLessonCheckpoint();
   }
@@ -12995,6 +13072,7 @@ function samRunSay(text){
     const v=pickVoice();
     if(v){ try{ if(speechSynthesis.getVoices().indexOf(v)>-1) u.voice=v; }catch(_){} }
     u.rate=rate; u.pitch=1; u.volume=1;
+    u.onstart=()=>{ speechUnlocked=true; };
     speechSynthesis.resume();
     speechSynthesis.speak(u);
     samRunVoiceUntil=Math.max(now,samRunVoiceUntil)+Math.max(300,word.length*72)/rate;
