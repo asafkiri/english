@@ -3482,6 +3482,10 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'global gesture listeners are removed when the run closes');
   assert.match(html, /world\.setPointerCapture\(pointerId\)/,
     'all pointer gestures keep control when they cross a gate');
+  assert.match(html, /const stage=\(\)=>document\.getElementById\('samRunWorld'\)\|\|worldAtBind\|\|null/,
+    'the road is looked up per gesture, never held from before the view transition');
+  assert.doesNotMatch(html, /runner\.style\.transform='translateX\(-50%\)'/,
+    'no inline transform overrides the lane runner lean');
   assert.match(html, /document\.addEventListener\('click',onClickCapture,\{capture:true\}\)/,
     'a completed swipe suppresses the accidental lane-button click beneath the finger');
   assert.match(html, /navigator\.vibrate\?\.\(10\)/,
@@ -3572,6 +3576,50 @@ test("Sam's lane runner handles iPhone Pointer Events without turning the swipe 
   });
   assert.equal(clickPrevented, true, 'the synthetic click following a swipe is cancelled');
   assert.equal(clickStopped, true, 'the synthetic click cannot select the gate beneath the finger');
+});
+
+test("Sam's lane runner still swipes when the road arrives after the view transition", () => {
+  const { api, context } = runtime();
+  context.window.PointerEvent = function PointerEvent() {};
+  const documentHandlers = {};
+  context.document.addEventListener = (type, fn) => { documentHandlers[type] = fn; };
+  context.document.removeEventListener = () => {};
+  const classList = { add() {}, remove() {} };
+  const style = () => ({ left: '', setProperty(name, value) { this[name] = value; } });
+  const runner = { style: style(), classList, offsetWidth: 80 };
+  const focus = { style: style() };
+  const world = {
+    classList, tabIndex: -1,
+    contains: () => true,
+    getBoundingClientRect: () => ({ left: 0, width: 300 }),
+    setPointerCapture() {}, releasePointerCapture() {},
+  };
+  /* hx() swaps the play screen in inside a view transition, so #samRunWorld is
+     still missing from the document while the run binds its gestures. */
+  context.document.getElementById = id => id === 'samRunRunner' ? runner : id === 'samRunLaneFocus' ? focus : null;
+  const game = { running: true, laneGame: true, lane: 1, obstacles: [] };
+  api.setSamRun(game);
+  api.samRunBindLaneInput(null, game);
+  assert.ok(documentHandlers.pointerdown && documentHandlers.pointerup,
+    'the swipe binds even though the road is not in the document yet');
+
+  context.document.getElementById = id => id === 'samRunWorld' ? world
+    : id === 'samRunRunner' ? runner : id === 'samRunLaneFocus' ? focus : null;
+  const common = { pointerId: 3, pointerType: 'touch', target: world, composedPath: () => [world], cancelable: true, preventDefault() {} };
+  documentHandlers.pointerdown({ ...common, clientX: 150, clientY: 300 });
+  documentHandlers.pointermove({ ...common, clientX: 195, clientY: 301 });
+  documentHandlers.pointerup({ ...common, clientX: 195, clientY: 301 });
+  assert.equal(game.lane, 2, 'the swipe finds the road once the transition has applied it');
+  assert.equal(runner.style.left, '80%', 'the runner slides to the swiped lane');
+
+  documentHandlers.keydown({ key: 'ArrowLeft', preventDefault() {} });
+  assert.equal(game.lane, 1, 'arrow keys steer without the road having to hold focus');
+
+  // a gesture whose pointerup never arrives must not lock the road for the run
+  documentHandlers.pointerdown({ ...common, pointerId: 4, clientX: 150, clientY: 300 });
+  documentHandlers.pointerdown({ ...common, pointerId: 5, clientX: 150, clientY: 300 });
+  documentHandlers.pointermove({ ...common, pointerId: 5, clientX: 105, clientY: 301 });
+  assert.equal(game.lane, 0, 'a fresh touch recovers from a swipe that was never released');
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {
