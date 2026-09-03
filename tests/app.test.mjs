@@ -84,7 +84,7 @@ function runtime(seed = new Map(), options = {}) {
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
-      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE,
+      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3442,7 +3442,7 @@ test("Sam's runs start directly without microphone friction", () => {
   assert.equal(migrated.phaseByStage[2], 2, 'an unfinished old challenge remains in the final activity slot');
   assert.doesNotMatch(html, /function samRunPrepareMicrophone/,
     'starting the runner never requests microphone permission');
-  assert.match(html, /speak\(SAM_RUN_COMMANDS\[ob\.options\[lane\]\]\.say\)/,
+  assert.match(html, /speak\(ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say\)/,
     'every lane selection still pronounces the English word');
 });
 
@@ -3504,7 +3504,7 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'the rear-view runner travels between three screen lanes');
   assert.match(html, /const \{y,scale,spread\}=samRunDepth\(ob\.progress\)/,
     'answer gates ride the same perspective camera as the rest of the road');
-  assert.match(html, /speak\(SAM_RUN_COMMANDS\[ob\.options\[lane\]\]\.say\)/,
+  assert.match(html, /speak\(ob\.sentenceWave\?chosen\.toLowerCase\(\):SAM_RUN_COMMANDS\[chosen\]\.say\)/,
     'every lane choice reinforces its English pronunciation');
   assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,
     'a second three-answer wave never steals control from the active one');
@@ -3822,6 +3822,53 @@ test("the endless run is measured in metres and hands out its mechanics by dista
   assert.match(html, /g\.distance\+=dt\/1000\*8\.5\*samRunPace\(g\)/, 'distance is what the run accumulates');
   assert.match(html, /const scene=Math\.floor\(metre\/700\)%SAM_RUN_STAGES\.length/,
     'and the roadside rolls into the next world as it goes');
+});
+
+test("sentence rounds rebuild a phrase the child already learned whole", () => {
+  const { api } = runtime();
+  assert.equal(api.samRunSentencePool(0).length, 0, 'nothing to rebuild before the first lesson');
+  assert.ok(api.samRunSentencePool(15).length > api.samRunSentencePool(5).length, 'the more lessons, the more phrases');
+
+  for (const sentence of api.samRunSentencePool(api.LESSONS.length)) {
+    assert.ok(sentence.words.length >= 2 && sentence.words.length <= 4,
+      `"${sentence.say}" is not a length a child can hold in his head while running`);
+    assert.ok(sentence.words.every(w => w.length <= 9 && w === w.toUpperCase()),
+      `"${sentence.say}" has a word that will not fit on a gate`);
+    assert.doesNotMatch(sentence.say, /[{}]/, 'a phrase with a slot to fill is not a sentence anyone can rebuild');
+    assert.doesNotMatch(sentence.he, /\[\[/);
+    // the phrase must genuinely come from a lesson, word for word and in order
+    const source = api.LESSONS.flatMap(l => l.phrases).find(ph => ph.en === sentence.say && ph.he === sentence.he);
+    assert.ok(source, `"${sentence.say}" is not a phrase any lesson teaches`);
+    assert.equal(sentence.words.join(' '),
+      source.en.replace(/[.,!?]/g, ' ').trim().split(/\s+/).join(' ').toUpperCase(),
+      'the words must be the phrase itself, in its own order');
+  }
+  // the function words that could never be gate cards are exactly what this is for
+  const words = new Set(api.samRunSentencePool(15).flatMap(s => s.words));
+  for (const fn of ['HOW', 'ARE', 'YOU', 'IS', 'TO', 'A', 'THE'])
+    assert.ok(words.has(fn), `${fn} has no picture and no standalone Hebrew — the sentence round is its only home`);
+  const cards = new Set(api.SAM_RUN_COURSE_WORDS.map(w => w[1]));
+  assert.ok(['HOW', 'ARE', 'IS', 'THE'].every(w => !cards.has(w)),
+    'and none of them was smuggled into the gate-card pool');
+
+  assert.equal(api.samRunUnlocked({ phase: { id: 'final' } }, 'sentences'), false,
+    'a world teaches five words and has no phrases of the child\'s own to rebuild');
+  assert.equal(api.samRunUnlocked({ endless: true, distance: api.SAM_RUN_FEATURE_AT.sentences }, 'sentences'), true);
+
+  assert.match(html, /const own=\[\.\.\.new Set\(s\.words\.filter\(w=>w!==word\)\)\];/,
+    "the decoys are the sentence's own other words, so the wave asks which comes NEXT");
+  assert.match(html, /if\(!ob\.sentenceWave\)\{\s*\n\s*g\.runSeen\[ob\.cmd\]/,
+    'a sentence word keeps no mastery of its own — HOW and ARE do not belong in that record');
+  // the wrong-word branch, read on its own: combo yes, heart no
+  const wrongBranch = html.slice(html.indexOf('if(ob.sentenceWave){'));
+  const branchBody = wrongBranch.slice(0, wrongBranch.indexOf('return;'));
+  assert.match(branchBody, /g\.cleanStreak=0;/, 'a word in the wrong place costs the combo');
+  assert.ok(!branchBody.includes('samRunHit('), 'and never a heart');
+  assert.match(branchBody, /samRunAdvanceSentence\(ob\)/, 'and the sentence still carries him to its end');
+  assert.match(html, /g\.nextSpawnAt=Math\.max\(g\.nextSpawnAt,g\.time\+1500\);/,
+    'the road is held for a beat so the finished sentence can be seen and heard');
+  assert.match(html, /if\(g\.sentence\) samRunSpawnSentenceWave\(\); else samRunSpawnLaneWave\(\);/,
+    'a sentence owns the road until it is finished');
 });
 
 test("the endless run is built from this child's own words, and remembers his record", () => {
