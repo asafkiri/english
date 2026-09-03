@@ -6932,7 +6932,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.32.0';
+const APP_VERSION = '2.33.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11652,6 +11652,67 @@ const SAM_RUN_COURSE_WORDS=[
   ['number','NUMBER','מספר','📱',['number','numbr'],'is-collecting',14],
   ['call','CALL','להתקשר','📞',['call','calls'],'is-waving',14],
   ['message','MESSAGE','הודעה','💬',['message','mesage'],'is-collecting',14],
+  ['fun','FUN','כיף','🎉',['fun','fan'],'is-jumping',15],
+  ['ok','OK','בסדר','👌',['ok','okay','okey'],'is-waving',17],
+  ['awesome','AWESOME','מדהים','🤯',['awesome','awsome'],'is-jumping',18],
+  ['english','ENGLISH','אנגלית','🇬🇧',['english','inglish'],'is-waving',19],
+  ['learn','LEARN','ללמוד','📖',['learn','lern'],'is-collecting',19],
+  ['try','TRY','לנסות','💪',['try','tri'],'is-jumping',19],
+  ['perfect','PERFECT','מושלם','💯',['perfect','perfekt'],'is-waving',19],
+  /* Eleven to twenty and the tens join the first ten on the same neutral icon,
+     for the same reason: a digit would let the word go unread. */
+  ['eleven','ELEVEN','אחת־עשרה','🔢',['eleven','elevn'],'is-collecting',20],
+  ['twelve','TWELVE','שתים־עשרה','🔢',['twelve','twelv'],'is-collecting',20],
+  ['thirteen','THIRTEEN','שלוש־עשרה','🔢',['thirteen'],'is-collecting',20],
+  ['fourteen','FOURTEEN','ארבע־עשרה','🔢',['fourteen'],'is-collecting',20],
+  ['fifteen','FIFTEEN','חמש־עשרה','🔢',['fifteen'],'is-collecting',20],
+  ['sixteen','SIXTEEN','שש־עשרה','🔢',['sixteen'],'is-collecting',20],
+  ['seventeen','SEVENTEEN','שבע־עשרה','🔢',['seventeen'],'is-collecting',20],
+  ['eighteen','EIGHTEEN','שמונה־עשרה','🔢',['eighteen'],'is-collecting',20],
+  ['nineteen','NINETEEN','תשע־עשרה','🔢',['nineteen'],'is-collecting',20],
+  ['twenty','TWENTY','עשרים','🔢',['twenty','twenny'],'is-collecting',20],
+  ['thirty','THIRTY','שלושים','🔢',['thirty'],'is-collecting',21],
+  ['forty','FORTY','ארבעים','🔢',['forty','fourty'],'is-collecting',21],
+  ['fifty','FIFTY','חמישים','🔢',['fifty'],'is-collecting',21],
+  ['sixty','SIXTY','שישים','🔢',['sixty'],'is-collecting',21],
+  ['seventy','SEVENTY','שבעים','🔢',['seventy'],'is-collecting',21],
+  ['eighty','EIGHTY','שמונים','🔢',['eighty'],'is-collecting',21],
+  ['ninety','NINETY','תשעים','🔢',['ninety'],'is-collecting',21],
+  ['hundred','HUNDRED','מאה','🔢',['hundred','hundered'],'is-collecting',21],
+  ['shekels','SHEKELS','שקלים','🪙',['shekels','shekel'],'is-collecting',21],
+  ['white','WHITE','לבן','⚪',['white','wite'],'is-collecting',22],
+  ['color','COLOR','צבע','🎨',['color','colour'],'is-collecting',22],
+  ['favorite','FAVORITE','הכי אהוב','⭐',['favorite','favourite'],'is-waving',22],
+  ['shirt','SHIRT','חולצה','👕',['shirt','shert'],'is-collecting',22],
+  /* The seven days share one icon too: a picture per weekday would be
+     arbitrary, and sharing keeps the English the thing being read. */
+  ['sunday','SUNDAY','יום ראשון','📅',['sunday'],'is-waving',23],
+  ['monday','MONDAY','יום שני','📅',['monday'],'is-waving',23],
+  ['tuesday','TUESDAY','יום שלישי','📅',['tuesday'],'is-waving',23],
+  ['wednesday','WEDNESDAY','יום רביעי','📅',['wednesday'],'is-waving',23],
+  ['thursday','THURSDAY','יום חמישי','📅',['thursday'],'is-waving',23],
+  ['friday','FRIDAY','יום שישי','📅',['friday'],'is-waving',23],
+  ['saturday','SATURDAY','שבת','📅',['saturday'],'is-waving',23],
+  ['big','BIG','גדול','🐘',['big','beg'],'is-jumping',25],
+  ['small','SMALL','קטן','🐜',['small','smal'],'is-ducking',25],
+  ['shoes','SHOES','נעליים','👞',['shoes','shoe'],'is-collecting',26],
+  ['pants','PANTS','מכנסיים','👖',['pants','pance'],'is-collecting',26],
+  ['hat','HAT','כובע','🧢',['hat','hats'],'is-collecting',26],
+  ['cool','COOL','מגניב','😎',['cool','kool'],'is-waving',26],
+  ['head','HEAD','ראש','🧠',['head','hed'],'is-ducking',27],
+  ['hands','HANDS','ידיים','🙌',['hands','hand'],'is-waving',27],
+  ['legs','LEGS','רגליים','🦵',['legs','leg'],'is-jumping',27],
+  ['eyes','EYES','עיניים','👀',['eyes','eye'],'is-waving',27],
+  ['ears','EARS','אוזניים','👂',['ears','ear'],'is-waving',27],
+  ['mouth','MOUTH','פה','👄',['mouth','mouf'],'is-waving',27],
+  ['hurts','HURTS','כואב','🤕',['hurts','hurt'],'is-stopped',27],
+  ['hot','HOT','חם','🔥',['hot','hott'],'is-stopped',28],
+  ['cold','COLD','קר','🥶',['cold','cald'],'is-ducking',28],
+  ['raining','RAINING','גשם','🌧️',['raining','rain'],'is-ducking',28],
+  ['sun','SUN','שמש','🌞',['sun','son'],'is-waving',28],
+  ['beach','BEACH','ים','🏖️',['beach','beech'],'is-collecting',28],
+  ['beautiful','BEAUTIFUL','יפה','🌸',['beautiful','butiful'],'is-waving',29],
+  ['new','NEW','חדש','🆕',['new','knew'],'is-collecting',29],
 ];
 const SAM_RUN_COMMANDS={...Object.fromEntries(SAM_RUN_STAGES.flatMap((stage,stageIndex)=>stage.words.map((w,wordIndex)=>[
   w[0],{id:w[0],en:w[1],he:w[2],ic:w[3],aliases:w[4],move:w[5],color:w[6]||'',stageIndex,wordIndex,say:w[1].toLowerCase()}
@@ -11759,6 +11820,12 @@ function samRunSentencePool(completed){
     for(const phrase of lesson.phrases){
       /* A phrase with a slot to fill in is not a sentence anyone can rebuild. */
       if(/[{}]/.test(phrase.en)||/\[\[/.test(phrase.he)) continue;
+      /* Nor is a list. "Red, blue, green" and "Sunday, Monday, Tuesday" have no
+         order a child could reason out, so rebuilding one would mark a
+         perfectly good answer wrong. Two-part phrases like "Water, please" are
+         sentences and stay. */
+      const parts=phrase.en.split(',').map(x=>x.trim()).filter(Boolean);
+      if(parts.length>=3&&parts.every(x=>!/\s/.test(x.replace(/[.!?]/g,'')))) continue;
       const words=phrase.en.replace(/[.,!?]/g,' ').trim().split(/\s+/).filter(Boolean).map(w=>w.toUpperCase());
       if(words.length<2||words.length>4||words.some(w=>w.length>9)) continue;
       out.push({he:phrase.he,say:phrase.en,words});

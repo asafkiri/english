@@ -3851,6 +3851,17 @@ test("sentence rounds rebuild a phrase the child already learned whole", () => {
   assert.ok(['HOW', 'ARE', 'IS', 'THE'].every(w => !cards.has(w)),
     'and none of them was smuggled into the gate-card pool');
 
+  // a list has no order a child could reason out, so it is not a sentence
+  for (const sentence of api.samRunSentencePool(api.LESSONS.length)) {
+    const parts = sentence.say.split(',').map(x => x.trim()).filter(Boolean);
+    assert.ok(!(parts.length >= 3 && parts.every(x => !/\s/.test(x.replace(/[.!?]/g, '')))),
+      `"${sentence.say}" is an enumeration — rebuilding it would mark a good answer wrong`);
+  }
+  assert.ok(api.samRunSentencePool(api.LESSONS.length).some(s => s.words.join(' ') === 'WATER PLEASE'),
+    'but a two-part phrase like "Water, please" is a sentence and stays');
+  assert.ok(api.samRunSentencePool(30).length > api.samRunSentencePool(15).length * 1.5,
+    'the later units carry the sentence pool as far as the early ones did');
+
   assert.equal(api.samRunUnlocked({ phase: { id: 'final' } }, 'sentences'), false,
     'a world teaches five words and has no phrases of the child\'s own to rebuild');
   assert.equal(api.samRunUnlocked({ endless: true, distance: api.SAM_RUN_FEATURE_AT.sentences }, 'sentences'), true);
@@ -3941,10 +3952,27 @@ test("every game word drawn from the course is really taught by the course", () 
   }
 
   // a digit emoji would hand the answer over without the word ever being read
-  const numerals = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  const numerals = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+    'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
+    'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred'];
   const numeralIcons = new Set(numerals.map(n => api.SAM_RUN_COMMANDS[n].ic));
-  assert.equal(numeralIcons.size, 1, 'the numerals share one neutral icon so the English has to be read');
+  assert.equal(numeralIcons.size, 1, 'every numeral shares one neutral icon so the English has to be read');
   assert.ok(!numeralIcons.has(api.SAM_RUN_COMMANDS.number.ic), 'and NUMBER does not borrow it');
+  // same reasoning for the weekdays: a picture per day would be arbitrary
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  assert.equal(new Set(days.map(d => api.SAM_RUN_COMMANDS[d].ic)).size, 1,
+    'the seven days share one icon, so the day is read rather than recognised');
+
+  // outside those two deliberate groups, no two words may look alike
+  const grouped = new Set([...numerals, ...days]);
+  const icons = pool.filter(w => !grouped.has(w[0])).map(w => w[3]);
+  assert.equal(new Set(icons).size, icons.length, 'no two other course words share an emoji');
+
+  // the pool has to keep pace with the whole course, not just its opening
+  assert.ok(pool.some(w => w[6] >= 25), 'the last unit of the course is represented too');
+  const reach = n => pool.filter(w => w[6] < n).length;
+  assert.ok(reach(30) > reach(20) && reach(20) > reach(10) && reach(10) > reach(5),
+    'every unit the child finishes widens the pool');
 });
 
 test("a run carries the words this child has earned in the course", () => {
