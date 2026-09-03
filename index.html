@@ -6947,7 +6947,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.39.2';
+const APP_VERSION = '2.39.3';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12240,7 +12240,7 @@ function samRunTeardown(){
 function samRunStart(){
   const g=samRun; if(!g) return;
   samRunTone('tick');
-  clearTimeout(g.timer); clearTimeout(g.reviewTimer); cancelSpeech();
+  clearTimeout(g.timer); clearTimeout(g.reviewTimer);
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
   const obstacles=document.getElementById('samRunObstacles'), rush=document.getElementById('samRunRush');
   if(!runner||!card||!world||!obstacles) return;
@@ -12271,17 +12271,20 @@ function samRunStart(){
    pronunciation model before the timer begins. */
 function samRunReviewStep(index){
   const g=samRun,card=document.getElementById('samRunCard'); if(!g||!card) return;
-  clearTimeout(g.reviewTimer); cancelSpeech();
+  clearTimeout(g.reviewTimer);
   if(index>=g.active.length){ samRunBeginCountdown(); return; }
   const c=SAM_RUN_COMMANDS[g.active[index]];
   card.hidden=false;
   card.innerHTML=`<div class="game-review" aria-live="polite"><div class="game-review-kicker">סקירה מהירה · ${index+1}/${g.active.length}</div><div class="game-review-icon">${c.ic}</div><div class="game-review-en">${c.en}</div><div class="game-review-he">${esc(c.he)}</div><div class="game-review-dots">${g.active.map((_,i)=>`<i class="${i<index?'done':i===index?'on':''}"></i>`).join('')}</div><button class="game-review-skip" onclick="samRunBeginCountdown()">דלג למשחק ›</button></div>`;
-  speak(c.say);
+  /* Keep the entire game on its non-cancelling voice path. On iOS, cancelling
+     one review word to start the next can wedge speech synthesis before the
+     runner reaches the road, leaving every later lane change silent. */
+  samRunSay(c.say);
   g.reviewTimer=setTimeout(()=>{ if(samRun===g) samRunReviewStep(index+1); },1100);
 }
 function samRunBeginCountdown(){
   const g=samRun; if(!g) return;
-  clearTimeout(g.reviewTimer); cancelSpeech();
+  clearTimeout(g.reviewTimer);
   const runner=document.getElementById('samRunRunner'),card=document.getElementById('samRunCard'),world=document.getElementById('samRunWorld');
   if(!runner||!card||!world) return;
   card.hidden=true; card.innerHTML=''; runner.hidden=false;

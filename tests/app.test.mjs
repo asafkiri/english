@@ -3473,6 +3473,13 @@ test("Sam's runs start directly without microphone friction", () => {
      cancel is enough to silence the rest of the run. */
   assert.match(html, /samRunWorldFx\('is-combo',520\);\n  samRunSay\(s\.say\);/,
     'a finished sentence is spoken by the game, not by the lesson screen');
+  assert.match(html, /function samRunReviewStep\(index\)\{[\s\S]*?samRunSay\(c\.say\);/,
+    'the pre-run review uses the same non-cancelling game voice');
+  const startFn = html.slice(html.indexOf('function samRunStart(){'), html.indexOf('\nfunction samRunReviewStep'));
+  const reviewFn = html.slice(html.indexOf('function samRunReviewStep(index){'), html.indexOf('\nfunction samRunBeginCountdown'));
+  const countdownFn = html.slice(html.indexOf('function samRunBeginCountdown(){'), html.indexOf('\nfunction samRunGo'));
+  assert.doesNotMatch(startFn + reviewFn + countdownFn, /cancelSpeech\(\)/,
+    'nothing may cancel the iOS speech queue between the start tap and the live road');
   assert.match(html, /if\('speechSynthesis' in window && \(speechSynthesis\.speaking\|\|speechSynthesis\.pending\)\) speechSynthesis\.cancel\(\);/,
     'and nothing cancels a queue that is already empty — the runner does that on every start');
   assert.match(html, /const u = new SpeechSynthesisUtterance\('a'\);/,
