@@ -3451,16 +3451,30 @@ test("Sam's runs start directly without microphone friction", () => {
     'and never through a timer, which is what iOS drops');
   assert.match(html, /function samRunSay\(text\)\{[\s\S]*?speechSynthesis\.resume\(\)/,
     'the game resumes the synthesis queue itself — iOS leaves it paused');
-  /* A word arriving while the voice is still busy interrupts it — dropping it
-     meant that sliding between lanes faster than a word takes to say let the
-     child hear only the first one. The cancel that makes room must never share
-     a tick with the speak that follows it, which is what wedges the iOS queue
-     for the rest of the run, so the speak waits for its own timer and a token
-     makes sure only the newest word survives that wait. */
-  assert.match(html, /speechSynthesis\.cancel\(\);\s*clearTimeout\(samRunSayTimer\);\s*samRunSayTimer=setTimeout\(\(\)=>\{\s*if\(token!==samRunSayToken\) return;/,
-    'a busy voice is interrupted, and the new word waits a tick for the cancel to settle');
-  assert.match(html, /\},50\);\n    \} else speechSynthesis\.speak\(u\);/,
-    'while a free voice still speaks straight inside the swipe, so iOS gets its first utterance from a gesture');
+  /* Nothing the game says may go through a cancel. Asking iOS whether it is
+     speaking and skipping if so let the child hear only the first word of a
+     fast run; cancelling to make room silenced the phone outright, because a
+     cancel can wedge the iOS engine for the rest of the page. The game keeps
+     its own reckoning of when the voice comes free, queues every word inside
+     the swipe that chose it, and drops one only when the queue has run more
+     than a word behind. */
+  const sayBody = html.slice(html.indexOf('function samRunSay(text){'));
+  const sayFn = sayBody.slice(0, sayBody.indexOf('\nfunction '));
+  assert.doesNotMatch(sayFn, /speechSynthesis\.cancel\(\)/,
+    'the game never cancels — that is the call that wedges iOS for the rest of the page');
+  assert.doesNotMatch(sayFn, /speechSynthesis\.speaking|speechSynthesis\.pending/,
+    'and never asks iOS whether it is speaking, because that answer cannot be trusted');
+  assert.match(sayFn, /if\(samRunVoiceUntil-now>820\) return;/,
+    'it keeps its own reckoning instead, and drops a word only once the voice is a word behind');
+  assert.match(sayFn, /speechSynthesis\.speak\(u\);/,
+    'every word is handed over synchronously, inside the swipe that chose it');
+  /* Everything the game says while a run is going has to use that path — a
+     completed sentence going through the lesson speak() would cancel, and one
+     cancel is enough to silence the rest of the run. */
+  assert.match(html, /samRunWorldFx\('is-combo',520\);\n  samRunSay\(s\.say\);/,
+    'a finished sentence is spoken by the game, not by the lesson screen');
+  assert.match(html, /if\('speechSynthesis' in window && \(speechSynthesis\.speaking\|\|speechSynthesis\.pending\)\) speechSynthesis\.cancel\(\);/,
+    'and nothing cancels a queue that is already empty — the runner does that on every start');
   assert.match(html, /const u = new SpeechSynthesisUtterance\('a'\);/,
     'the iOS unlock speaks a real letter — a whitespace utterance is nothing to say, so it unlocked nothing');
 });

@@ -6947,7 +6947,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.39.1';
+const APP_VERSION = '2.39.2';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7505,7 +7505,11 @@ function pickVoice(){
 function cancelSpeech(){
   speechToken++;
   stopVoiceAnimation();
-  if('speechSynthesis' in window) speechSynthesis.cancel();
+  /* Only cancel something that is actually being said. A cancel on an empty
+     queue changes nothing except on iOS, where it is a way to wedge the engine
+     for the rest of the page — and the runner calls this every time a run
+     starts. */
+  if('speechSynthesis' in window && (speechSynthesis.speaking||speechSynthesis.pending)) speechSynthesis.cancel();
 }
 /* The face animates while a voice is actually playing, never merely because
    the scene state is 'speaking' — the flag lives here so a re-render during
@@ -12228,7 +12232,7 @@ function samRunTeardown(){
   g.running=false;
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer); clearTimeout(samRunSayTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer);
   cancelSpeech();
   samRun=null;
 }
@@ -12825,35 +12829,35 @@ function samRunSetLaneVisual(lane){
    It never cancels, either — a cancel and a speak in the same tick is what
    wedges the iOS queue for the rest of the run. If a word is still playing
    this one is skipped, which costs a single word and never the whole game. */
-let samRunSayToken=0, samRunSayTimer=null;
+/* How long the voice will still be busy, by our own reckoning rather than by
+   asking. speechSynthesis.speaking and .pending are not dependable on iOS, and
+   the last two attempts to lean on them each failed a different way: trusting
+   them to skip meant only the first word of a fast run was ever heard, and
+   cancelling to make room silenced the phone completely — a cancel is the one
+   call that can wedge the iOS queue for the rest of the session, whether or
+   not the speak that follows it waits its turn.
+   So: never cancel, never ask. Every word is handed straight to the engine
+   inside the swipe that chose it and simply queues behind the last one, and a
+   short backlog cap keeps the queue from running on after the gate is gone. */
+let samRunVoiceUntil=0;
 function samRunSay(text){
   if(!text||!('speechSynthesis' in window)) return;
-  const token=++samRunSayToken;
   try{
-    speechSynthesis.resume();
-    const u=new SpeechSynthesisUtterance(String(text));
+    const word=String(text), now=Date.now();
+    /* A word and a bit is as far behind as the voice may fall: any more and it
+       is still naming lanes the child has already left. */
+    if(samRunVoiceUntil-now>820) return;
+    const rate=state.slowSpeech?.85:1.15;
+    const u=new SpeechSynthesisUtterance(word);
     u.lang='en-US';
-    const v=pickVoice(); if(v) u.voice=v;
-    /* Single words, said a touch quicker than a lesson reads them, so one
-       finishes before the child has picked the next lane. */
-    u.rate=state.slowSpeech?.85:1.1; u.pitch=1; u.volume=1;
-    /* Sliding between lanes faster than a word takes to say used to mean only
-       the first one was ever heard: anything arriving while the voice was busy
-       was dropped. The new word interrupts the old one instead — that is what
-       the child is asking for by moving on. What must NOT happen is a cancel
-       and a speak in the same tick, which is what wedges the iOS queue for the
-       rest of the run; the cancel gets its own tick to settle, and the token
-       makes sure only the newest word survives that wait.
-       The first word of a run always takes the branch below, spoken straight
-       inside the swipe, so iOS still gets its utterance from a user gesture. */
-    if(speechSynthesis.speaking||speechSynthesis.pending){
-      speechSynthesis.cancel();
-      clearTimeout(samRunSayTimer);
-      samRunSayTimer=setTimeout(()=>{
-        if(token!==samRunSayToken) return;
-        try{ speechSynthesis.resume(); speechSynthesis.speak(u); }catch(_){}
-      },50);
-    } else speechSynthesis.speak(u);
+    /* Only a voice the engine still lists: a handle left over from before the
+       voice list reloaded is accepted and then silently never spoken. */
+    const v=pickVoice();
+    if(v){ try{ if(speechSynthesis.getVoices().indexOf(v)>-1) u.voice=v; }catch(_){} }
+    u.rate=rate; u.pitch=1; u.volume=1;
+    speechSynthesis.resume();
+    speechSynthesis.speak(u);
+    samRunVoiceUntil=Math.max(now,samRunVoiceUntil)+Math.max(300,word.length*72)/rate;
   }catch(_){}
 }
 function samRunChooseLane(lane){
@@ -12940,7 +12944,7 @@ function samRunAdvanceSentence(ob){
   g.nextSentenceAt=(g.distance||0)+520+Math.random()*220;
   samRunFloat('💬 +5 🪙',ob);
   samRunWorldFx('is-combo',520);
-  speak(s.say);
+  samRunSay(s.say);
   /* Hold the road for a beat. Without this the next question overwrites the
      finished sentence before the child has seen it whole or heard it read
      back — and that moment is the entire reward for building it. */
@@ -13012,7 +13016,7 @@ function samRunCommand(cmd,source){
   const g=samRun; if(!g||!g.running||g.paused) return;
   if(!g.active.includes(cmd)) return;
   const c=SAM_RUN_COMMANDS[cmd];
-  if(source==='tap') speak(c.say);
+  if(source==='tap') samRunSay(c.say);
   g.said[cmd]=(g.said[cmd]||0)+1;
   samRunLight(cmd);
   // the word has landed: how long did it take from the first sound?
