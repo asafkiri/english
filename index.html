@@ -172,16 +172,19 @@ body{
 .home-unit .lesson-row.current .info b,.home-unit .lesson-row.paused-here .info b{font-size:18px}
 .home-unit .lesson-row.locked{min-height:49px;padding:7px 12px}
 .home-unit .lesson-row.locked .num{width:32px;height:32px;border-radius:10px}
-.home-path-special{
-  width:calc(100% - 18px);margin:10px 9px 12px;display:flex;align-items:center;gap:11px;padding:12px 13px;
-  color:#fff;font:inherit;text-align:right;background:linear-gradient(135deg,#6556d8,#5443c0);
-  border:1px solid rgba(167,139,250,.45);border-radius:16px;cursor:pointer;box-shadow:0 9px 24px rgba(72,55,180,.18);
-}
-.home-path-special:active{transform:scale(.985)}
-.home-path-special .special-icon{width:39px;height:39px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:20px}
-.home-path-special .special-copy{flex:1}
-.home-path-special b{display:block;font-size:15.5px}.home-path-special small{display:block;font-size:12px;opacity:.82;margin-top:2px}
-.home-path-special .special-arrow{font-size:20px;opacity:.8}
+/* The two things to DO, side by side above the path: extra practice, and the
+   game. Neither is a step on the course, so neither belongs inside the list of
+   steps — and the game in particular was at the bottom of a long scroll, past
+   thirty locked lessons, which is nowhere. */
+.home-extras{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0 6px}
+.home-extras.one{grid-template-columns:1fr}
+.home-extra{display:grid;justify-items:center;align-content:start;gap:2px;padding:13px 10px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(160deg,var(--card2),var(--card));color:var(--text);font:inherit;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
+.home-extra:active{transform:scale(.975)}
+.home-extra.practice{border-color:rgba(167,139,250,.5);background:linear-gradient(160deg,rgba(101,86,216,.42),rgba(60,44,140,.24))}
+.home-extra.game{border-color:rgba(52,211,153,.46);background:linear-gradient(160deg,rgba(16,185,129,.3),rgba(6,78,59,.2))}
+.home-extra .extra-icon{font-size:26px;line-height:1.05}
+.home-extra .extra-title{font-size:14.5px;font-weight:950;text-align:center;line-height:1.15}
+.home-extra .extra-sub{color:var(--dim);font-size:11px;text-align:center;line-height:1.2}
 .home-path-milestone{
   display:grid;grid-template-columns:44px 1fr;gap:4px 11px;align-items:center;margin:13px 0;
   padding:13px;background:linear-gradient(145deg,#33290f,#20190c);border:1px solid rgba(251,191,36,.4);border-radius:17px;
@@ -1861,8 +1864,6 @@ body{
    microphone is not an option). The English is not decoration here: no word,
    no move. Nothing in this block touches the lessons — the game has its own
    screen, its own storage key and its own recogniser. */
-.home-side-game{display:block;margin:14px auto 0;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(52,211,153,.08));border:1px solid rgba(96,165,250,.25);border-radius:999px;padding:8px 14px;color:var(--dim);font:inherit;font-size:13px;font-weight:750;cursor:pointer;opacity:.92}
-.home-side-game:hover,.home-side-game:focus-visible{color:var(--text);border-color:rgba(52,211,153,.55);opacity:1;outline:none}
 .game-screen{display:flex;flex-direction:column;min-height:100dvh;padding:10px 12px 14px;gap:10px;animation:fadeUp .35s ease both}
 .game-top{display:flex;align-items:center;gap:8px}
 .game-top .xbtn{width:40px;height:40px;font-size:16px}
@@ -7053,7 +7054,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.42.1';
+const APP_VERSION = '2.43.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8346,11 +8347,20 @@ function renderHome(){
       </button>`;
     }
     listHtml += '</div></div></div></section>';
-    if(ui === currentUnit && state.completed > 0) listHtml += `
-      <button class="home-path-special" style="--i:${ui+1}" onclick="startPractice()">
-        <span class="special-icon">🗣️</span><span class="special-copy"><b>תרגול שיחה חופשי</b><small>תרגול נוסף עם מה שכבר למדת</small></span><span class="special-arrow" aria-hidden="true">‹</span>
-      </button>`;
   });
+  /* Free practice used to be wedged between two units, and the game was a pill
+     below the stats at the very bottom of a long scroll. Both are things to do
+     rather than steps on the path, and a child will not scroll past thirty
+     locked lessons to find the fun one, so they sit above the path now. */
+  const extrasHtml = `
+    <div class="home-extras${state.completed > 0 ? '' : ' one'}">
+      ${state.completed > 0 ? `<button type="button" class="home-extra practice" onclick="startPractice()">
+        <span class="extra-icon">🗣️</span><span class="extra-title">תרגול שיחה חופשי</span><span class="extra-sub">עם מה שכבר למדת</span>
+      </button>` : ''}
+      <button type="button" class="home-extra game" onclick="renderSamRun()">
+        <span class="extra-icon">🏃</span><span class="extra-title">המשחק של סם</span><span class="extra-sub">ריצה, חנות ופרסים</span>
+      </button>
+    </div>`;
 
   hx(`
   <div class="screen">
@@ -8370,6 +8380,7 @@ function renderHome(){
       )}</p>
     </div>
     ${heroHtml}
+    ${extrasHtml}
     <div class="home-map-title"><span>🗺️ המסלול שלך</span><small>לוחצים על השיעור וממשיכים</small></div>
     <div class="course-path">${listHtml}</div>
     ${unitCallToActionHtml()}
@@ -8382,7 +8393,6 @@ function renderHome(){
       ${missionsDone()?`<div class="home-mission-stat">🎯 ${missionsDone()===1?'משימה אמיתית אחת הושלמה':missionsDone()+' משימות אמיתיות הושלמו'}</div>`:''}
       ${state.completed > 0 ? `<button class="btn secondary home-review-btn" onclick="renderReview()">📚 המשפטים שכבר למדתי</button>` : ''}
     </div>
-    <button type="button" class="home-side-game" onclick="renderSamRun()">🏃 מסע המילים של סם · משחק ופרסים</button>
     <div style="text-align:center;color:var(--dim);font-size:12px;margin-top:6px">גרסה ${APP_VERSION}</div>
   </div>`);
   afterRender(()=>revealCurrentHomeLesson(currentUnit));

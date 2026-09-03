@@ -3063,7 +3063,15 @@ test('home puts the active course path first and collapses completed and future 
   assert.match(html, /id="homeUnitBody1" class="home-unit-body" aria-hidden="false"/);
   assert.match(html, /id="homeUnitBody2" class="home-unit-body collapsed" aria-hidden="true" inert/);
   assert.match(html, /class="lesson-row current"[^>]*data-home-current="true"/);
-  assert.match(html, /class="home-path-special"[^>]*onclick="startPractice\(\)"/);
+  /* Free practice and the game are things to do, not steps on the path, and
+     both now sit above it — the game had been below the stats at the bottom of
+     a long scroll, past thirty locked lessons. */
+  assert.match(html, /class="home-extra practice"[^>]*onclick="startPractice\(\)"/);
+  assert.match(html, /class="home-extra game"[^>]*onclick="renderSamRun\(\)"/);
+  assert.ok(html.indexOf('home-extras') < html.indexOf('המסלול שלך'),
+    'both sit above the lesson list rather than inside or below it');
+  assert.doesNotMatch(html, /home-path-special|home-side-game/,
+    'and neither is left wedged between two units or stranded at the foot of the page');
   assert.doesNotMatch(html, /class="btn practice-cta"/);
   assert.doesNotMatch(html, />⭐</);
 });
@@ -3653,14 +3661,21 @@ test("Sam's Run: the street speeds up with the score, then stops speeding up", (
   assert.deepEqual([...thresholds].sort((a, b) => a - b).join(','), thresholds.join(','), 'words unlock in order');
 });
 
-test("Sam's Run: lives beside the lessons, remembers its best, and stays out of the way", () => {
+test("Sam's Run: offered above the course path, remembers its best, and never outranks the day's lesson", () => {
   const seed = new Map();
   const { api, app } = runtime(seed);
   const state = api.defaults(); state.onboarded = true; api.setState(state);
   api.renderHome();
-  assert.match(app.innerHTML, /class="home-side-game"[^>]*onclick="renderSamRun\(\)"/, 'the game is reachable from home');
+  assert.match(app.innerHTML, /class="home-extra game"[^>]*onclick="renderSamRun\(\)"/, 'the game is reachable from home');
+  /* Before the first lesson there is nothing to practise yet, so the game gets
+     the whole row to itself rather than sitting beside an empty half. */
+  assert.match(app.innerHTML, /class="home-extras one"/, 'and it stands alone until there is something to practise');
   assert.doesNotMatch(app.innerHTML, /class="btn[^"]*"[^>]*onclick="renderSamRun\(\)"/, 'but not as a primary button');
-  assert.ok(app.innerHTML.indexOf('home-side-game') > app.innerHTML.lastIndexOf('class="btn'), 'it sits below every real button');
+  /* It is offered plainly now instead of hidden at the foot of the page, but
+     the day's lesson is still the one thing styled as the main action. */
+  assert.ok(app.innerHTML.indexOf('home-extras') > app.innerHTML.indexOf('home-map-title')
+    || app.innerHTML.indexOf('home-extras') < app.innerHTML.indexOf('המסלול שלך'),
+    'the game is offered above the path');
 
   const before = JSON.stringify(api.getState());
   api.renderSamRun();
