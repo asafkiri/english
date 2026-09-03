@@ -6915,7 +6915,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.28.0';
+const APP_VERSION = '2.29.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12084,42 +12084,76 @@ function samRunPaintRush(pr){
 function samRunRoadClear(g,arriveMs){
   return !g.obstacles.some(ob=>!ob.resolved&&ob.laneWave&&Math.abs((1-ob.progress)*ob.travelMs-arriveMs)<520);
 }
-function samRunSpawnPickup(){
+/* Everything on the road is placed by when it should REACH the player rather
+   than by how fast it travels, so one arrival time can be shared between a
+   wall, the coins beside it and the question already on its way. */
+function samRunLifeFor(arriveMs,speed){ return Math.max(820,Math.min(2600,arriveMs*speed/.94)); }
+function samRunSpawnWall(kind,arriveMs,speed){
+  const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return null;
+  const jump=kind==='jump', el=document.createElement('i');
+  el.className=jump?'rush-bar':'rush-beam';
+  el.innerHTML=`<b>${jump?'JUMP':'DUCK'}</b><span>${jump?'⬆':'⬇'}</span>`;
+  el.style.width=Math.round(g.worldW*.93)+'px';
+  host.appendChild(el);
+  const pu={el,kind,lane:1,wide:true,p:0,life:samRunLifeFor(arriveMs,speed),done:false};
+  g.pickups.push(pu); samRunTeachAir(kind);
+  return pu;
+}
+function samRunSpawnCoins(lane,arriveMs,speed){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
-  /* The first, gentlest pass through a world stays a pure reading run. */
-  const runnerToys=g.phase.id!=='learn', roll=Math.random();
-  if(runnerToys&&roll<.32){
-    /* A wall is aimed at the gap: it is given exactly the travel time that
-       lands it a beat after the question on the road has been answered, so the
-       two never share the last stretch and the run gets a natural one-two
-       rhythm — read the word, then clear the wall. */
-    const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
-    const speed=samRunSpeedFor(g.score);
-    const gateIn=live?Math.max(0,(1-live.progress)*live.travelMs):0;
-    const life=Math.max(900,Math.min(2300,(gateIn+780)*speed/.94));
-    if(!samRunRoadClear(g,.94*life/speed)){ g.nextPickupAt=g.time+400; return; }
-    const jump=Math.random()<.55, kind=jump?'jump':'duck';
+  const life=samRunLifeFor(arriveMs,speed);
+  for(let i=0;i<3;i++){
     const el=document.createElement('i');
-    el.className=jump?'rush-bar':'rush-beam';
-    el.innerHTML=`<b>${jump?'JUMP':'DUCK'}</b><span>${jump?'⬆':'⬇'}</span>`;
-    el.style.width=Math.round(g.worldW*.93)+'px';
+    el.className='rush-coin'; el.textContent='🪙';
     host.appendChild(el);
-    g.pickups.push({el,kind,lane:1,wide:true,p:0,life,done:false});
-    samRunTeachAir(kind);
-    g.nextPickupAt=g.time+life+700+Math.random()*500;
+    g.pickups.push({el,kind:'coin',lane,p:-i*.13,life,done:false});
+  }
+}
+function samRunSpawnHurdle(lane,arriveMs,speed){
+  const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
+  const el=document.createElement('i');
+  el.className='rush-hurdle'; el.textContent='🚧';
+  host.appendChild(el);
+  g.pickups.push({el,kind:'hurdle',lane,p:0,life:samRunLifeFor(arriveMs,speed),done:false});
+}
+function samRunSpawnPickup(){
+  const g=samRun; if(!g||!document.getElementById('samRunRush')) return;
+  /* The first, gentlest pass through a world stays a pure reading run. */
+  const runnerToys=g.phase.id!=='learn', final=g.phase.id==='final';
+  const speed=samRunSpeedFor(g.score), roll=Math.random();
+  const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
+  const gateIn=live?Math.max(0,(1-live.progress)*live.travelMs):0;
+  const lane=()=>Math.floor(Math.random()*3);
+  if(runnerToys&&roll<.32){
+    /* A wall is aimed at the gap: it arrives a beat after the question already
+       on the road has been answered, so the two never share the last stretch
+       and the run gets a one-two rhythm — read the word, then clear the wall. */
+    const first=gateIn+780;
+    if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
+    const kind=Math.random()<.55?'jump':'duck';
+    samRunSpawnWall(kind,first,speed);
+    let last=first;
+    /* The final challenge sends them in pairs, close enough behind that Sam is
+       still landing from the first. The second is always the opposite wall, so
+       it has to be read — a pair can never be cleared by repeating a gesture. */
+    if(final&&Math.random()<.55&&samRunRoadClear(g,first+1020)){
+      samRunSpawnWall(kind==='jump'?'duck':'jump',first+1020,speed);
+      last=first+1020;
+    }
+    /* A wall and a line of coins may now share one gap. Reading the wall early
+       leaves time to pick a lane, so the coins are the reward for reading it
+       early rather than a second thing competing for the same moment. */
+    if(runnerToys&&Math.random()<.55) samRunSpawnCoins(lane(),first,speed);
+    g.nextPickupAt=g.time+last+660+Math.random()*460;
     return;
   }
-  const hurdle=runnerToys&&roll<.5;
-  const lane=Math.floor(Math.random()*3);
-  const count=hurdle?1:3;
-  for(let i=0;i<count;i++){
-    const el=document.createElement('i');
-    el.className=hurdle?'rush-hurdle':'rush-coin';
-    el.textContent=hurdle?'🚧':'🪙';
-    host.appendChild(el);
-    g.pickups.push({el,kind:hurdle?'hurdle':'coin',lane,p:-i*.13,life:1250,done:false});
+  if(runnerToys&&roll<.5){
+    samRunSpawnHurdle(lane(),1150,speed);
+    g.nextPickupAt=g.time+1450+Math.random()*650;
+    return;
   }
-  g.nextPickupAt=g.time+(hurdle?1500:1900)+Math.random()*700;
+  samRunSpawnCoins(lane(),1150,speed);
+  g.nextPickupAt=g.time+(final?1520:1900)+Math.random()*700;
 }
 function samRunPaintPickup(pu){
   const g=samRun,{y,scale,spread}=samRunDepth(pu.p);
@@ -12184,7 +12218,7 @@ function samRunLand(){
 /* The first wall of each kind in a run says out loud what the gesture is. */
 function samRunTeachAir(kind){
   const g=samRun,hint=document.getElementById('samRunSwipeHint');
-  if(!g||!hint||g.taught?.[kind]) return;
+  if(!g||!hint||g.taught?.[kind]||hint.classList.contains('show')) return;
   g.taught=g.taught||{}; g.taught[kind]=true;
   hint.innerHTML=kind==='jump'
     ? '<span>👆</span><b>החליקו למעלה — JUMP</b><small>קופצים מעל המחסום</small>'
@@ -12231,7 +12265,12 @@ function samRunSpawnLaneWave(){
   const cmd=samRunPickKind(),c=SAM_RUN_COMMANDS[cmd];
   const choices=g.active.concat(g.review||[]);
   const distractors=shuffled(choices.filter(id=>id!==cmd)).slice(0,2),options=shuffled([cmd,...distractors]),correctLane=options.indexOf(cmd);
-  const phasePace=g.phase.id==='speed'?.82:1,travelMs=Math.round(samRunTravelMs(g.score)*phasePace),warnMs=650;
+  /* Each phase of a world is a gear. The final challenge used to run at the
+     learn phase's pace — slower than the speed challenge it follows — so it
+     had nothing of its own; it is now the fastest, and gives the shortest look
+     at a wave before it starts moving. */
+  const phasePace=g.phase.id==='final'?.74:g.phase.id==='speed'?.82:1;
+  const travelMs=Math.round(samRunTravelMs(g.score)*phasePace),warnMs=g.phase.id==='final'?500:650;
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'');
   el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
