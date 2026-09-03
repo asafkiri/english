@@ -84,7 +84,7 @@ function runtime(seed = new Map(), options = {}) {
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
-      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool,
+      renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup, SAM_RUN_FEATURE_SAY,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3822,6 +3822,81 @@ test("the endless run is measured in metres and hands out its mechanics by dista
   assert.match(html, /g\.distance\+=dt\/1000\*8\.5\*samRunPace\(g\)/, 'distance is what the run accumulates');
   assert.match(html, /const scene=Math\.floor\(metre\/700\)%SAM_RUN_STAGES\.length/,
     'and the roadside rolls into the next world as it goes');
+});
+
+test("the late road adds a gap that moves and a tunnel to stay down through", () => {
+  const { api, context } = runtime();
+  const at = api.SAM_RUN_FEATURE_AT;
+  const endless = d => ({ endless: true, distance: d });
+
+  assert.ok(at.slider > at.pairs && at.tunnel > at.slider,
+    'the two hardest things on the road arrive last, after everything that teaches them');
+  for (const feature of ['slider', 'tunnel']) {
+    assert.equal(api.samRunUnlocked(endless(at[feature] - 1), feature), false, `${feature} waits for its metre`);
+    assert.equal(api.samRunUnlocked(endless(at[feature]), feature), true);
+    assert.equal(api.samRunUnlocked({ phase: { id: 'final' }, score: 0 }, feature), false,
+      `a world never travels far enough to earn ${feature}`);
+    assert.ok(api.SAM_RUN_FEATURE_SAY[feature], `${feature} has to announce itself when it first appears`);
+  }
+
+  // three cells, exactly one of them open, and the open one moves on the way in
+  const cells = () => Array.from({ length: 3 }, () => {
+    const list = [];
+    return { classList: { toggle(c, on) { const i = list.indexOf(c); if (on && i < 0) list.push(c); if (!on && i >= 0) list.splice(i, 1); },
+      contains: c => list.includes(c), add(c) { list.push(c); } } };
+  });
+  let made = [];
+  context.document.createElement = () => {
+    const c = cells();
+    made.push(c);
+    return { className: '', innerHTML: '', style: {}, classList: { add() {}, contains: () => false },
+      querySelectorAll: () => c, appendChild() {}, remove() {} };
+  };
+  const host = { appendChild() {} };
+  context.document.getElementById = id => id === 'samRunRush' ? host : null;
+  const game = { endless: true, distance: 1600, score: 0, worldW: 300, worldH: 600, lane: 1, streak: 6,
+    cleanStreak: 6, lives: 3, runCoinBonus: 0, time: 0, obstacles: [], pickups: [], props: [], phase: { id: 'endless' } };
+  api.setSamRun(game);
+
+  const gap = api.samRunSpawnGap(1200, 1);
+  const openLane = () => made[0].findIndex(c => c.classList.contains('open'));
+  assert.equal(made[0].filter(c => c.classList.contains('open')).length, 1, 'exactly one lane is ever open');
+  assert.equal(openLane(), gap.free);
+  assert.notEqual(gap.free2, gap.free, 'and it does not slide back to where it already was');
+  gap.p = gap.slideAt - .01; api.samRunPaintPickup(gap);
+  assert.equal(openLane(), gap.free, 'the gap holds still on the way out of the horizon');
+  const was = gap.free;
+  gap.p = gap.slideAt + .01; api.samRunPaintPickup(gap);
+  assert.equal(gap.free, gap.free2, 'then slides once');
+  assert.notEqual(gap.free, was);
+  assert.equal(openLane(), gap.free, 'and the blocks follow it');
+  assert.equal(made[0].filter(c => c.classList.contains('open')).length, 1);
+
+  // being in the open lane is the only way through, and missing it costs no heart
+  const through = inGap => {
+    Object.assign(game, { streak: 6, cleanStreak: 6, lives: 3, runCoinBonus: 0 });
+    game.lane = inGap ? gap.free : (gap.free + 1) % 3;
+    api.samRunTakePickup({ ...gap, done: false });
+    return { streak: game.streak, lives: game.lives, coins: game.runCoinBonus };
+  };
+  assert.deepEqual(through(true), { streak: 6, lives: 3, coins: 1 }, 'through the gap keeps the combo and pays a coin');
+  assert.deepEqual(through(false), { streak: 0, lives: 3, coins: 0 }, 'and hitting it costs the combo, never a heart');
+
+  // the tunnel is three low beams at an even rhythm
+  game.pickups.length = 0; made = [];
+  const end = api.samRunSpawnTunnel(1100, 1);
+  const beams = game.pickups.filter(x => x.wide);
+  assert.equal(beams.length, 3);
+  assert.ok(beams.every(x => x.kind === 'duck'), 'a tunnel is stayed down through, not jumped');
+  const arrivals = beams.map(x => x.life * .94);
+  assert.ok(Math.abs((arrivals[1] - arrivals[0]) - (arrivals[2] - arrivals[1])) < 30, 'evenly spaced');
+  assert.ok(arrivals[2] - arrivals[1] > 700, 'and far enough apart to duck again between them');
+  assert.ok(end >= arrivals[2], 'the gap after it is measured from the last beam, not the first');
+
+  assert.match(html, /if\(g\.air&&g\.air\.until>g\.time\+220\) return;/,
+    'the mid-air lock is short enough that three ducks are a rhythm rather than a race');
+  assert.match(html, /menu\.push\(\['coins',44\]\)/,
+    'coins stay on the menu at a fixed share however much the road unlocks');
 });
 
 test("sentence rounds rebuild a phrase the child already learned whole", () => {
