@@ -6846,7 +6846,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.25.0';
+const APP_VERSION = '2.26.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11696,36 +11696,45 @@ function renderSamRun(stageIndex=null){
   g.epoch=uiEpoch;
   samRunBindLaneInput(document.getElementById('samRunWorld'),g);
 }
-function samRunBindLaneInput(world,g){
-  if(!world) return;
+/* The play screen is swapped in inside a view transition, so #samRunWorld is
+   normally still missing from the document when this runs — the node handed in
+   is null on every browser that supports view transitions. Every gesture
+   therefore looks the road up again instead of holding on to whatever existed
+   at bind time; holding it meant no swipe ever reached the game. */
+function samRunBindLaneInput(worldAtBind,g){
+  const stage=()=>document.getElementById('samRunWorld')||worldAtBind||null;
   let startX=0,startY=0,startLane=1,dragging=false,handled=false,pointerId=null,suppressClickUntil=0;
   const runner=()=>document.getElementById('samRunRunner'),focus=()=>document.getElementById('samRunLaneFocus');
-  const canPlay=()=>samRun===g&&g.running&&g.laneGame;
-  const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;world.classList.add('is-dragging');return true; };
+  const canPlay=()=>samRun===g&&g.running&&g.laneGame&&!!stage();
+  const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;stage().classList?.add('is-dragging');return true; };
   const chooseFromSwipe=lane=>{ handled=true;suppressClickUntil=Date.now()+700;samRunChooseLane(lane); };
   const preview=(x,y)=>{
     if(!dragging||!canPlay()) return;
-    const rect=world.getBoundingClientRect(),dx=x-startX,dy=y-startY;
+    const rect=stage().getBoundingClientRect(),dx=x-startX,dy=y-startY;
     if(Math.abs(dx)<5||Math.abs(dx)<Math.abs(dy)*.7) return;
     const base=[20,50,80][startLane],left=Math.max(12,Math.min(88,base+dx/rect.width*100));
     const r=runner(),f=focus(); if(r){r.style.left=left+'%';r.style.setProperty('--swipe-lean',Math.max(-12,Math.min(12,dx/8))+'deg');} if(f)f.style.left=left+'%';
     if(!handled&&Math.abs(dx)>=18) chooseFromSwipe(startLane+(dx>0?1:-1));
   };
   const end=(x,y,target)=>{
-    if(!dragging) return; dragging=false; world.classList.remove('is-dragging');
+    if(!dragging) return; dragging=false; stage()?.classList?.remove('is-dragging');
     if(!canPlay()) return;
     const dx=x-startX,dy=y-startY;
     if(!handled&&Math.abs(dx)>=18&&Math.abs(dx)>Math.abs(dy)*.7) chooseFromSwipe(startLane+(dx>0?1:-1));
     else if(!handled&&Math.abs(dx)<18&&Math.abs(dy)<18&&!target?.closest?.('.lane-gate')){
-      const rect=world.getBoundingClientRect(); samRunChooseLane(Math.floor((x-rect.left)/rect.width*3));
+      const rect=stage().getBoundingClientRect(); samRunChooseLane(Math.floor((x-rect.left)/rect.width*3));
     } else samRunSetLaneVisual(g.lane);
   };
-  const startsInWorld=e=>e.composedPath?.().includes(world)||world.contains?.(e.target)||e.target===world;
-  const cancel=()=>{dragging=false;pointerId=null;world.classList.remove('is-dragging');samRunSetLaneVisual(g.lane);};
+  const startsInWorld=e=>{ const el=stage(); return !!el&&(!!e.composedPath?.().includes(el)||!!el.contains?.(e.target)||e.target===el); };
+  const cancel=()=>{dragging=false;pointerId=null;stage()?.classList?.remove('is-dragging');samRunSetLaneVisual(g.lane);};
   /* Current iPhones expose touch primarily as Pointer Events. Listen in the
      capture phase so moving across a lane button cannot steal the gesture. */
   const onPointerDown=e=>{
-    if(!startsInWorld(e)||pointerId!==null||!begin(e.clientX,e.clientY)) return;
+    /* A pointerup that never arrived (a cancelled gesture, a lost capture)
+       must not lock the road for the rest of the run. */
+    if(pointerId!==null) cancel();
+    if(!startsInWorld(e)||!begin(e.clientX,e.clientY)) return;
+    const world=stage();
     pointerId=e.pointerId;
     if(e.cancelable) e.preventDefault();
     try{world.setPointerCapture(pointerId);}catch(_){}
@@ -11739,7 +11748,7 @@ function samRunBindLaneInput(world,g){
     if(e.pointerId!==pointerId) return;
     if(e.cancelable) e.preventDefault();
     const id=pointerId; pointerId=null; end(e.clientX,e.clientY,e.target);
-    try{world.releasePointerCapture(id);}catch(_){}
+    try{stage()?.releasePointerCapture(id);}catch(_){}
   };
   const onPointerCancel=e=>{ if(e.pointerId===pointerId) cancel(); };
   const onClickCapture=e=>{
@@ -11764,6 +11773,10 @@ function samRunBindLaneInput(world,g){
     document.addEventListener('touchcancel',onTouchEnd,{passive:true,capture:true});
   }
   document.addEventListener('click',onClickCapture,{capture:true});
+  /* Arrow keys live on the document too: the road element is created after
+     this binding and is never guaranteed to hold focus. */
+  const onKeyDown=e=>{if(!canPlay()||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));};
+  document.addEventListener('keydown',onKeyDown);
   g.gestureCleanup=()=>{
     document.removeEventListener?.('pointerdown',onPointerDown,{capture:true});
     document.removeEventListener?.('pointermove',onPointerMove,{capture:true});
@@ -11774,9 +11787,9 @@ function samRunBindLaneInput(world,g){
     document.removeEventListener?.('touchend',onTouchEnd,{capture:true});
     document.removeEventListener?.('touchcancel',onTouchEnd,{capture:true});
     document.removeEventListener?.('click',onClickCapture,{capture:true});
+    document.removeEventListener?.('keydown',onKeyDown);
   };
-  world.tabIndex=0;
-  world.addEventListener('keydown',e=>{if(!canPlay()||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));});
+  const bound=stage(); if(bound) bound.tabIndex=0;
 }
 function samRunExit(){ samRunTeardown(); renderHome(); }
 function samRunTeardown(){
@@ -11801,7 +11814,11 @@ function samRunStart(){
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
-  runner.style.top=''; runner.style.left='50%'; runner.style.transform='translateX(-50%)';
+  /* Leave transform to the stylesheet: the lane runner's rule already centres
+     the character and folds in --swipe-lean, so an inline transform here would
+     freeze him upright through every swipe. */
+  runner.style.top=''; runner.style.left='50%'; runner.style.transform='';
+  runner.style.setProperty('--swipe-lean','0deg');
   world.className=samRunWorldClass(g); world.style.setProperty('--speed','1');
   samRunPaintHud();
   const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
