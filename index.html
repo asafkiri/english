@@ -159,7 +159,6 @@ body{
 .home-unit-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .32s cubic-bezier(.2,.75,.25,1),opacity .25s ease;opacity:1}
 .home-unit-body.collapsed{grid-template-rows:0fr;opacity:0}
 .home-unit-body-inner{min-height:0;overflow:hidden}
-.home-unit .unit-promise{margin:9px 9px 7px;padding:8px 10px;border-radius:11px;background:rgba(96,165,250,.08);color:#b9c6e2}
 .home-unit-lessons{position:relative;padding-top:2px}
 .home-unit-lessons::before{content:"";position:absolute;right:32px;top:0;bottom:7px;width:2px;background:linear-gradient(var(--line),rgba(52,211,153,.28),var(--line));border-radius:2px}
 .home-unit .lesson-row{position:relative;z-index:1;margin-bottom:7px}
@@ -228,7 +227,6 @@ body{
 .can-say-line .en{flex:1;direction:ltr;text-align:right;font-weight:800;font-size:16.5px}
 .can-say-line .he{font-size:13.5px;color:var(--dim)}
 .can-say-line .spk{font-size:16px;color:var(--blue)}
-.unit-promise{font-size:13.5px;color:#a7b6d6;margin:-4px 4px 10px;line-height:1.45}
 .step{padding-top:8px}
 .step-label{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--blue);background:rgba(96,165,250,.12);padding:4px 12px;border-radius:999px;margin-bottom:14px}
 .step h2{font-size:23px;font-weight:800;margin-bottom:8px}
@@ -7055,7 +7053,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.44.0';
+const APP_VERSION = '2.44.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8341,7 +8339,6 @@ function renderHome(){
       </button>
       <div id="homeUnitBody${ui}" class="home-unit-body${expanded?'':' collapsed'}" aria-hidden="${!expanded}"${expanded?'':' inert'}><div class="home-unit-body-inner">`;
     // the promise is concrete and checkable, and shown only for the unit he is in
-    if(ui === currentUnit && !allDone) listHtml += `<div class="unit-promise">בסוף היחידה תדע ${esc(unitPromise(ui))}.</div>`;
     listHtml += '<div class="home-unit-lessons">';
     for(let li = first; li < last; li++){
       const l = LESSONS[li];

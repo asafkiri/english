@@ -3516,6 +3516,11 @@ test('promises are concrete and no fixed fifteen minutes remain', () => {
   api.UNIT_PROMISES.forEach(promise => assert.ok(promise.length > 10));
   // a fresh install boots into onboarding, which promises what unit one delivers
   assert.ok(app.innerHTML.includes(api.unitPromise(0)));
+  /* But the course path itself carries no such note. Repeating the unit's aim
+     above its lessons every time the unit was open was a paragraph in the way
+     of the thing it described. */
+  assert.doesNotMatch(html, /class="unit-promise"/,
+    'the promise is made once, at the start, and never again mid-path');
   assert.ok(!app.innerHTML.includes('15 דקות ביום'));
 });
 
