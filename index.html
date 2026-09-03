@@ -7093,7 +7093,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.48.0';
+const APP_VERSION = '2.49.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12693,6 +12693,14 @@ function samRunBeginCountdown(){
   card.hidden=true; card.innerHTML=''; runner.hidden=false;
   g.worldW=world.clientWidth||360; g.worldH=world.clientHeight||640; g.runnerX=runner.offsetLeft+runner.offsetWidth/2||60;
   if(g.laneGame) samRunGLStart(world);
+  /* The countdown used to play over a still photograph: is-halted pauses the
+     scenery AND the runner, so three of the most important seconds in the game
+     were a frozen road with a number over it. The loop starts here instead and
+     the road, the scenery and Sam's legs are all already moving — only the
+     scoring, the questions and the obstacles wait for GO. */
+  g.warmup=true; g.running=true; g.last=0; g.time=0; g.nextSpawnAt=Infinity;
+  world.classList.remove('is-halted'); world.classList.add('is-running');
+  g.raf=requestAnimationFrame(samRunFrame);
   // 3 · 2 · 1 · GO — long enough for the microphone to open
   const count=document.createElement('div'); count.className='game-countdown'; world.appendChild(count);
   const steps=['3','2','1','GO!']; let i=0;
@@ -12706,10 +12714,15 @@ function samRunBeginCountdown(){
 }
 function samRunGo(){
   const g=samRun; if(!g) return;
-  g.running=true; g.last=0; g.time=0; g.nextSpawnAt=500;
+  /* The loop has been turning through the countdown, so this only lets the
+     game part in. Restarting it here would leave two of them running. */
+  const warmed=g.running&&g.warmup;
+  g.warmup=false; g.running=true;
+  if(!warmed){ g.last=0; g.time=0; }
+  g.nextSpawnAt=g.time+500;
   const world=document.getElementById('samRunWorld'); if(world){ world.classList.remove('is-halted'); world.classList.add('is-running'); }
   const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
-  g.raf=requestAnimationFrame(samRunFrame);
+  if(!warmed) g.raf=requestAnimationFrame(samRunFrame);
 }
 /* Hit-stop. Holding the whole world still for a few frames on impact is the
    cheapest trick in games and the one that makes a hit feel like it landed
@@ -12749,7 +12762,7 @@ function samRunFrame(ts){
   }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
-    if(g.endless){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
+    if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
     // window — unless a thing is already holding for it, which runs on its
@@ -12883,6 +12896,99 @@ void main(){
   o=vec4(col,(1.-smoothstep(1.28,1.34,au))*(1.-fog*.12)*rise);
 }`;
 let samRunGL=null;
+/* ---- particles ----
+   Dust off his feet, a burst where he lands, and motes streaming out of the
+   haze. All of it rides in the road's own GL context as a second draw call, so
+   there is no third canvas and no DOM churn: a few hundred points updated on
+   the CPU and uploaded once a frame, which is cheaper than a single element
+   that has to be laid out. The road's own device-veto covers these too — if the
+   context goes, they go with it. */
+const SAM_RUN_PT_VS=`#version 300 es
+in vec4 a;            // x, y (clip space), size, life 0..1
+in vec4 c;            // rgb + alpha scale
+out vec4 vc;
+void main(){
+  gl_Position=vec4(a.xy,0.,1.);
+  gl_PointSize=a.z*(1.-a.w*.45);
+  vc=vec4(c.rgb,c.a*(1.-a.w)*(1.-a.w));
+}`;
+const SAM_RUN_PT_FS=`#version 300 es
+precision mediump float;
+in vec4 vc; out vec4 o;
+void main(){
+  vec2 d=gl_PointCoord-.5;
+  float m=1.-smoothstep(.22,.5,length(d));
+  o=vec4(vc.rgb,vc.a*m);
+}`;
+const SAM_RUN_PT_MAX=320;
+function samRunPtInit(gl){
+  const build=(t,src)=>{ const sh=gl.createShader(t); gl.shaderSource(sh,src); gl.compileShader(sh);
+    return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null; };
+  const vs=build(gl.VERTEX_SHADER,SAM_RUN_PT_VS), fs=build(gl.FRAGMENT_SHADER,SAM_RUN_PT_FS);
+  if(!vs||!fs) return null;
+  const prog=gl.createProgram();
+  gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return null;
+  return {prog,buf:gl.createBuffer(),cbuf:gl.createBuffer(),
+    a:gl.getAttribLocation(prog,'a'),c:gl.getAttribLocation(prog,'c'),
+    pos:new Float32Array(SAM_RUN_PT_MAX*4),col:new Float32Array(SAM_RUN_PT_MAX*4),live:[]};
+}
+/* Positions come in as a fraction of the world box, which is the same frame the
+   runner and the road are placed in, so an emitter can be aimed at his feet
+   without knowing anything about the canvas. */
+function samRunEmit(kind,fx,fy,n){
+  const r=samRunGL; if(!r||!r.pt||prefersReducedStageMotion()) return;
+  const live=r.pt.live;
+  for(let i=0;i<n&&live.length<SAM_RUN_PT_MAX;i++){
+    const a=Math.random()*Math.PI*2, sp=Math.random();
+    if(kind==='dust') live.push({x:fx+(Math.random()-.5)*.03,y:fy,vx:(Math.random()-.5)*.11,vy:-.04-sp*.10,
+      life:0,ttl:420+Math.random()*260,size:5+sp*7,r:.82,g:.79,b:.72,a:.34});
+    else if(kind==='land') live.push({x:fx+(Math.random()-.5)*.05,y:fy,vx:Math.cos(a)*(.10+sp*.22),vy:-Math.abs(Math.sin(a))*(.05+sp*.16),
+      life:0,ttl:520+Math.random()*300,size:7+sp*10,r:.88,g:.86,b:.8,a:.42});
+    else live.push({x:Math.random(),y:.42+Math.random()*.06,vx:(Math.random()-.5)*.02,vy:.16+sp*.2,
+      life:0,ttl:1400+Math.random()*700,size:2+sp*3.5,r:.78,g:.86,b:1,a:.3});
+  }
+}
+function samRunPtStep(g,dt){
+  const r=samRunGL; if(!r||!r.pt) return;
+  const live=r.pt.live, s=dt/1000;
+  for(let i=live.length-1;i>=0;i--){
+    const p=live[i];
+    p.life+=dt;
+    if(p.life>=p.ttl){ live.splice(i,1); continue; }
+    p.x+=p.vx*s; p.y+=p.vy*s; p.vy+=.32*s; p.vx*=.985;
+  }
+  /* Motes streaming out of the haze, thicker the faster he is going. They are
+     what makes the countdown feel like a place rather than a picture. */
+  const pace=samRunPace(g);
+  r.moteAt=(r.moteAt||0)-dt*pace;
+  if(r.moteAt<=0){ r.moteAt=110; samRunEmit('mote',0,0,1); }
+  /* Dust off whichever foot is planted: the run cycle is one stride per .74s,
+     so two footfalls, and the puffs land on them. */
+  if(!g.air){
+    r.stepAt=(r.stepAt||0)-dt*pace;
+    if(r.stepAt<=0){ r.stepAt=370; samRunEmit('dust',(g.runnerX||60)/(g.worldW||360),.965,3); }
+  }
+}
+function samRunPtDraw(){
+  const r=samRunGL; if(!r||!r.pt) return;
+  const {gl}=r, pt=r.pt, n=pt.live.length;
+  if(!n) return;
+  for(let i=0;i<n;i++){
+    const p=pt.live[i], k=i*4;
+    pt.pos[k]=p.x*2-1; pt.pos[k+1]=1-p.y*2; pt.pos[k+2]=p.size*(r.dpr||1); pt.pos[k+3]=p.life/p.ttl;
+    pt.col[k]=p.r; pt.col[k+1]=p.g; pt.col[k+2]=p.b; pt.col[k+3]=p.a;
+  }
+  gl.useProgram(pt.prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER,pt.buf);
+  gl.bufferData(gl.ARRAY_BUFFER,pt.pos.subarray(0,n*4),gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(pt.a); gl.vertexAttribPointer(pt.a,4,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,pt.cbuf);
+  gl.bufferData(gl.ARRAY_BUFFER,pt.col.subarray(0,n*4),gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(pt.c); gl.vertexAttribPointer(pt.c,4,gl.FLOAT,false,0,0);
+  gl.drawArrays(gl.POINTS,0,n);
+}
+
 function samRunGLColor(probe,name){
   probe.style.color='';
   probe.style.color='var('+name+')';
@@ -12908,12 +13014,13 @@ function samRunGLStart(world){
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(prog,'p');
   gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const quad=buf, quadLoc=loc;
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   const probe=document.createElement('span');
   probe.setAttribute('aria-hidden','true');
   probe.style.cssText='position:absolute;width:0;height:0;opacity:0;pointer-events:none';
   world.appendChild(probe);
-  samRunGL={gl,canvas,prog,probe,world,theme:'',w:0,h:0,
+  samRunGL={gl,canvas,prog,quad,quadLoc,probe,world,theme:'',w:0,h:0,dpr:1,pt:samRunPtInit(gl),
     u:{res:gl.getUniformLocation(prog,'uRes'),horizon:gl.getUniformLocation(prog,'uHorizon'),
        scroll:gl.getUniformLocation(prog,'uScroll'),roadTop:gl.getUniformLocation(prog,'uRoadTop'),
        roadLow:gl.getUniformLocation(prog,'uRoadLow'),accent:gl.getUniformLocation(prog,'uAccent'),
@@ -12934,7 +13041,8 @@ function samRunGLDraw(g){
   const cssW=r.world.clientWidth||g.worldW||360, cssH=r.world.clientHeight||g.worldH||640;
   const dpr=Math.min(2,window.devicePixelRatio||1);
   const w=Math.max(1,Math.round(cssW*dpr)), h=Math.max(1,Math.round(cssH*dpr));
-  if(w!==r.w||h!==r.h){ canvas.width=w; canvas.height=h; r.w=w; r.h=h; gl.viewport(0,0,w,h); gl.uniform2f(r.u.res,w,h); }
+  r.dpr=dpr;
+  if(w!==r.w||h!==r.h){ canvas.width=w; canvas.height=h; r.w=w; r.h=h; gl.viewport(0,0,w,h); gl.useProgram(r.prog); gl.uniform2f(r.u.res,w,h); }
   /* Each world repaints the road in its own colours, so re-read them only when
      the theme actually changes rather than every frame. */
   const theme=r.world.className;
@@ -12947,11 +13055,20 @@ function samRunGLDraw(g){
     const hz=parseFloat(getComputedStyle(r.world).getPropertyValue('--horizon'))||40;
     gl.uniform1f(r.u.horizon,hz/100);
   }
-  gl.uniform1f(r.u.scroll,(g.distance||0)*.5);
+  gl.uniform1f(r.u.scroll,(g.roadScroll||0)*.5);
+  /* Two programs share one context, so the road has to re-claim its own buffer
+     and attribute each frame — the particles left theirs bound. */
+  gl.useProgram(r.prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER,r.quad);
+  gl.enableVertexAttribArray(r.quadLoc);
+  gl.vertexAttribPointer(r.quadLoc,2,gl.FLOAT,false,0,0);
   gl.drawArrays(gl.TRIANGLES,0,3);
+  samRunPtDraw();
 }
 function samRunRunRoad(dt){
   const g=samRun, speed=samRunPace(g), still=prefersReducedStageMotion();
+  g.roadScroll=(g.roadScroll||0)+dt/1000*8.5*speed;
+  samRunPtStep(g,dt);
   samRunGLDraw(g);
   if(!still){
     if(g.time>=g.nextStoneAt){ samRunSpawnRush('stone'); g.nextStoneAt=g.time+230/speed; }
@@ -12965,7 +13082,7 @@ function samRunRunRoad(dt){
   /* Coins and roadworks stay out of the way of a question that is already
      closing in, so steering for a coin can never cost an answer. */
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
-  if(!g.finishing&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
+  if(!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
   samRunLand();
   samRunMaybeStartQueuedAir();
   for(const pu of g.pickups.slice()){
@@ -13359,7 +13476,7 @@ function samRunLand(){
   g.air=null;
   const runner=document.getElementById('samRunRunner');
   if(runner) runner.classList.remove('is-air-jump','is-air-duck');
-  if(jumped) samRunWorldFx('is-land',300);
+  if(jumped){ samRunWorldFx('is-land',300); samRunEmit('land',(g.runnerX||60)/(g.worldW||360),.965,12); }
 }
 function samRunPickKind(){
   const g=samRun;
