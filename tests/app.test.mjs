@@ -4895,6 +4895,38 @@ test("later runs mix in words the player already met in earlier worlds", () => {
   assert.ok(own.filter(id => drawn.has(id)).length >= 4, 'without crowding out the world being learned');
 });
 
+test("the road is rendered, and the device gets to veto it", () => {
+  /* The DOM road is a clip-path trapezoid with an evenly spaced repeating
+     gradient, and evenly spaced stripes are exactly what a receding road does
+     not have. This draws the same trapezoid on a GL surface using the game's
+     OWN camera, so everything the DOM still owns stays registered against it. */
+  assert.match(html, /float s=max\(\.30,\(y-uHorizon\)\*100\.\/60\.606\+\.44\);/,
+    "the shader inverts the game's own camera rather than inventing a second one");
+  assert.match(html, /float z=min\(1\.35,\.44\/s\);/, 'and reads depth back out of it');
+  assert.match(html, /float halfW=\.42045\*s;/,
+    'the road widens with the same scale the gates and coins are drawn at');
+  assert.match(html, /float v=z\*30\.-uScroll;/,
+    'markings are laid out in road space, so they foreshorten on their own');
+
+  /* Nothing may hide the CSS road until the context is genuinely up. */
+  assert.match(html, /if\(!gl\) return false;/, 'no context, no takeover');
+  assert.match(html, /world\.classList\.add\('gl-road'\);\n  return true;/,
+    'the class that hides the CSS road goes on last, once everything linked');
+  assert.match(html, /\.game-world\.lane-game\.gl-road \.game-lane-grid\{display:none\}/,
+    'and that class is the only thing that hides it');
+  assert.match(html, /addEventListener\('webglcontextlost',e=>\{ e\.preventDefault\(\); samRunGLStop\(\); \}/,
+    'a lost context hands the road straight back');
+
+  /* A shader is either nearly free or ruinous depending on the GPU, and that
+     cannot be known from here — so the device measures itself. */
+  assert.match(html, /g\.glEma=g\.glEma\?g\.glEma\*\.97\+dt\*\.03:dt;/,
+    'it watches a rolling average, not one early sample from the quiet part of a run');
+  assert.match(html, /if\(g\.glSeen>60&&g\.glEma>24\) samRunGLStop\(\);/,
+    'and drops the rendered road if the device cannot sustain it');
+  assert.doesNotMatch(html, /samRunGLStart\([^)]*\)[^;]*;[\s\S]{0,80}glEma/,
+    'nothing ever turns it back on mid-run, so the two roads cannot flap');
+});
+
 test("a hit stops the world for a moment, and a lane change lands with weight", () => {
   /* Hit-stop: the whole world holds still for a few frames on impact. The
      early return has to keep g.last in step with the clock, or every frame it
