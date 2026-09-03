@@ -83,6 +83,7 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
+      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3468,7 +3469,7 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /game-lane-focus/, 'the selected road gets immediate visual feedback');
   assert.match(app.innerHTML, /game-swipe-hint/, 'the first seconds demonstrate the core gesture');
   assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
-  assert.match(html, /const distractors=shuffled\(g\.active\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
+  assert.match(html, /const distractors=shuffled\(choices\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
     'each wave mixes the answer with two live distractors');
   assert.match(html, /onclick="samRunChooseLane\(\$\{i\}\)"/,
     'the approaching gates themselves are playable');
@@ -3492,8 +3493,8 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'supported phones confirm a lane change with light haptics');
   assert.match(html, /\['20%','50%','80%'\]\[lane\]/,
     'the rear-view runner travels between three screen lanes');
-  assert.match(html, /spread=6\+p\*31,y=17\+p\*61,scale=\.3\+p\*\.8/,
-    'answer gates grow from the horizon toward the player');
+  assert.match(html, /const \{y,scale,spread\}=samRunDepth\(ob\.progress\)/,
+    'answer gates ride the same perspective camera as the rest of the road');
   assert.match(html, /speak\(SAM_RUN_COMMANDS\[ob\.options\[lane\]\]\.say\)/,
     'every lane choice reinforces its English pronunciation');
   assert.match(html, /last&&!last\.resolved&&\(g\.laneGame\|\|last\.progress<\.55\)/,
@@ -3620,6 +3621,75 @@ test("Sam's lane runner still swipes when the road arrives after the view transi
   documentHandlers.pointerdown({ ...common, pointerId: 5, clientX: 150, clientY: 300 });
   documentHandlers.pointermove({ ...common, pointerId: 5, clientX: 105, clientY: 301 });
   assert.equal(game.lane, 0, 'a fresh touch recovers from a swipe that was never released');
+});
+
+test("the lane runner shares one perspective camera", () => {
+  const { api } = runtime();
+  const at = p => api.samRunDepth(p);
+  const horizon = at(0), mid = at(.5), near = at(1);
+  assert.equal(Math.round(horizon.y), 40, 'the road starts on the painted horizon');
+  assert.equal(Math.round(near.y), 80, 'and reaches the player just above his head');
+  assert.ok(horizon.scale < mid.scale && mid.scale < near.scale, 'things only ever grow on the way in');
+  // 1/z, not a straight line: most of the travel belongs to the final moments
+  assert.ok(mid.y - horizon.y < (near.y - horizon.y) * .4,
+    'a gate hangs near the horizon and then rushes past, instead of drifting down at a constant rate');
+  assert.ok(near.spread / near.scale - mid.spread / mid.scale < 1e-9,
+    'lane spacing scales with the gates themselves, so lanes and gate widths always agree');
+  assert.ok(at(1.18).y > 100, 'anything that passes the player leaves the screen instead of piling up');
+  assert.deepEqual(at(-3), at(0), 'a gate still waiting at the edge is pinned to the horizon');
+});
+
+test("the road between questions carries coins, roadworks and depth traffic", () => {
+  const { api } = runtime();
+  assert.match(html, /if\(g\.laneGame\) samRunRunRoad\(dt\)/,
+    'the run loop drives the road, not just the questions');
+  assert.match(html, /samRunSpawnRush\('stone'\)/, 'lane stones stream out of the horizon');
+  assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
+  assert.match(html, /if\(!g\.finishing&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
+    'a coin never appears while a question is already closing in');
+  assert.match(html, /const hurdle=g\.phase\.id!=='learn'&&Math\.random\(\)<\.34/,
+    'the first, gentlest phase of a world has no roadworks at all');
+  assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
+
+  const style = () => ({ setProperty(n, v) { this[n] = v; } });
+  const el = () => ({ style: style(), classList: { list: [], add(c) { this.list.push(c); } }, remove() {} });
+  const coin = { el: el(), kind: 'coin', lane: 1, p: .95, done: false };
+  const hurdle = { el: el(), kind: 'hurdle', lane: 1, p: .95, done: false };
+  const game = { running: true, laneGame: true, lane: 1, worldW: 300, worldH: 600, streak: 4, cleanStreak: 4,
+    lives: 3, score: 0, runCoinBonus: 0, obstacles: [], pickups: [coin, hurdle], props: [], mission: null };
+  api.setSamRun(game);
+  api.samRunTakePickup(coin);
+  assert.equal(game.runCoinBonus, 1, 'a collected coin is worth a coin at the end of the run');
+  assert.equal(game.streak, 4, 'and never disturbs the answer combo');
+  api.samRunTakePickup(hurdle);
+  assert.equal(game.streak, 0, 'running into roadworks breaks the combo');
+  assert.equal(game.lives, 3, 'but never costs a heart — this stays a reading game');
+});
+
+test("later runs mix in words the player already met in earlier worlds", () => {
+  const seed = new Map();
+  const { api } = runtime(seed);
+  const store = api.samRunStore();
+  for (const id of ['jump', 'duck', 'run', 'red', 'blue', 'dog']) store.mastery[id] = 2;
+  api.samRunSave(store);
+  assert.equal(api.samRunReviewPool(store, 3, 0).length, 0,
+    'the first pass through a world stays on that world\'s own five words');
+  const speed = api.samRunReviewPool(store, 3, 1);
+  assert.equal(speed.length, 3, 'the speed challenge widens the pool');
+  assert.equal(api.samRunReviewPool(store, 3, 2).length, 5, 'and the final challenge widens it further');
+  const own = api.SAM_RUN_STAGES[3].words.map(w => w[0]);
+  assert.ok(speed.every(id => !own.includes(id) && (store.mastery[id] || 0) > 0),
+    'review words come from earlier worlds the player has actually met');
+  assert.equal(api.samRunReviewPool(api.samRunStore(), 0, 2).length, 0,
+    'the very first world has nothing to review yet');
+
+  // the wider pool has to actually reach the waves
+  const game = { active: own, review: speed, store, runSeen: {}, lastKind: '', sameKind: 0 };
+  api.setSamRun(game);
+  const drawn = new Set();
+  for (let i = 0; i < 400; i++) { drawn.add(api.samRunPickKind()); game.sameKind = 0; }
+  assert.ok(speed.some(id => drawn.has(id)), 'review words really do come up as questions');
+  assert.ok(own.filter(id => drawn.has(id)).length >= 4, 'without crowding out the world being learned');
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {

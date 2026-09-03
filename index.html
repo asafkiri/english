@@ -2141,20 +2141,27 @@ body{
 .game-start-tip{display:block;max-width:310px;color:#bfdbfe;font-size:12px;line-height:1.45}.game-start-run{margin-top:8px!important}
 .game-build{display:inline-block;margin-inline-start:5px;padding:1px 5px;border:1px solid rgba(147,197,253,.24);border-radius:999px;color:#93a4bf;font-size:8px;font-weight:750;direction:ltr;vertical-align:middle}
 
-.game-world.lane-game{--horizon:19%;--ground:9%;background:linear-gradient(180deg,#234879 0%,#6fa4c9 35%,#9eb7c4 48%,#303b48 48%,#111827 100%)!important}
-.game-world.lane-game .game-far{height:49%;opacity:.72;filter:saturate(.75);background-size:auto 82%;background-position:center bottom}
-.game-world.lane-game .game-skyfx{height:49%;opacity:.72}
+/* --horizon is the one number the whole lane scene agrees on: the painted
+   road, its edge lines, the lane highlight and the JS camera in samRunDepth()
+   all start here. It sits on the sky/ground seam of the background gradient,
+   so the road no longer climbs over the skyline the way it used to. */
+.game-world.lane-game{--horizon:40%;--ground:9%;background:linear-gradient(180deg,#234879 0%,#6fa4c9 28%,#9eb7c4 40%,#2c3542 40%,#0d1420 100%)!important}
+.game-world.lane-game .game-far{height:41%;opacity:.95;filter:saturate(.92) contrast(1.06);background-size:auto 84%;background-position:center bottom}
+.game-world.lane-game .game-skyfx{height:41%;opacity:.72}
 .game-world.lane-game .game-mid{bottom:50%;height:20%;opacity:.5}
 .game-world.lane-game .game-roadside{bottom:34%;height:20%;opacity:.45;filter:blur(.4px) drop-shadow(0 5px 4px rgba(0,0,0,.25))}
 .game-world.lane-game .game-dust{z-index:3;mask-image:linear-gradient(transparent 42%,#000);opacity:.25}
-.game-world.lane-game .game-lane-grid{display:block;inset:0;z-index:2;overflow:hidden;background:linear-gradient(180deg,transparent 0 47%,rgba(10,18,31,.1) 47% 100%);perspective:none}
-.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:50%;top:var(--horizon);width:116%;height:90%;translate:-50% 0;clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);background:linear-gradient(180deg,#3c4653,#172130 75%);box-shadow:inset 0 0 70px rgba(0,0,0,.35)}
-.game-world.lane-game .game-lane-grid i{position:absolute;z-index:1;left:50%;top:var(--horizon);width:3px;height:94%;transform-origin:50% 0;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.8));box-shadow:0 0 7px rgba(255,255,255,.28)}
-.game-world.lane-game .game-lane-grid i:nth-child(1){rotate:18deg}.game-world.lane-game .game-lane-grid i:nth-child(2){rotate:-18deg}
-.game-world.lane-game .game-lane-grid i:nth-child(3){left:0;top:47%;width:100%;height:53%;transform:none;background:repeating-linear-gradient(180deg,transparent 0 15%,rgba(255,255,255,.13) 15.3% 15.8%,transparent 16.1% 31%);opacity:.55;animation:gameRoadRush calc(.75s / var(--speed)) linear infinite}
-@keyframes gameRoadRush{to{background-position:0 120px}}
+.game-world.lane-game .game-lane-grid{display:block;inset:0;z-index:2;overflow:hidden;background:linear-gradient(180deg,transparent 0 40%,rgba(10,18,31,.1) 40% 100%);perspective:none}
+/* The tarmac and its two edge lines are the same trapezoid the camera walks:
+   half a road width of 15.8% at the horizon, 55.5% where it leaves the bottom
+   of the screen. Anything the run loop places on the road lands on it exactly. */
+.game-world.lane-game .game-lane-grid:before{content:'';position:absolute;left:0;top:var(--horizon);width:100%;height:60%;clip-path:polygon(34.2% 0,65.8% 0,111.8% 100%,-11.8% 100%);background:linear-gradient(180deg,#404b58,#141d2a 82%);box-shadow:inset 0 0 70px rgba(0,0,0,.35)}
+.game-world.lane-game .game-lane-grid i{position:absolute;z-index:1;left:0;top:var(--horizon);width:100%;height:60%;rotate:none;transform:none;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.92));box-shadow:none}
+.game-world.lane-game .game-lane-grid i:nth-child(1){clip-path:polygon(33.5% 0,34.8% 0,-9.3% 100%,-14.3% 100%)}
+.game-world.lane-game .game-lane-grid i:nth-child(2){clip-path:polygon(65.2% 0,66.5% 0,114.3% 100%,109.3% 100%)}
+.game-world.lane-game .game-lane-grid i:nth-child(3){top:var(--horizon);background:radial-gradient(ellipse at 50% 0,rgba(147,197,253,.22),transparent 62%);clip-path:polygon(34.2% 0,65.8% 0,111.8% 100%,-11.8% 100%);opacity:.75}
 .game-world.lane-game .game-speedlines{z-index:3;background:repeating-linear-gradient(105deg,transparent 0 72px,rgba(255,255,255,.13) 74px 76px,transparent 78px 150px);opacity:.22}
-.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;bottom:-2%;width:34%;height:58%;translate:-50% 0;clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,rgba(59,130,246,.07) 28%,rgba(96,165,250,.2));filter:drop-shadow(0 0 16px rgba(96,165,250,.3));transition:left .16s cubic-bezier(.18,.82,.28,1);pointer-events:none}
+.game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:42%;height:60%;translate:-50% 0;clip-path:polygon(37.3% 0,62.7% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,rgba(59,130,246,.07) 28%,rgba(96,165,250,.2));filter:drop-shadow(0 0 16px rgba(96,165,250,.3));transition:left .16s cubic-bezier(.18,.82,.28,1);pointer-events:none}
 .game-world.lane-game.is-dragging .game-lane-focus{transition:none;background:linear-gradient(180deg,transparent,rgba(52,211,153,.09) 28%,rgba(52,211,153,.24))}
 
 .game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(270px,76vw);padding:8px 16px;border-color:rgba(147,197,253,.48);background:rgba(8,15,30,.82);font-size:clamp(22px,6vw,31px);box-shadow:0 8px 28px rgba(0,0,0,.35)}
@@ -2165,10 +2172,19 @@ body{
 
 .game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:2.5%;width:clamp(78px,22vw,112px);height:clamp(138px,24dvh,210px);z-index:9;transform:translateX(-50%) rotate(var(--swipe-lean));transition:left .16s cubic-bezier(.18,.82,.28,1),filter .16s ease,transform .09s linear}
 .game-world.lane-game.is-dragging .game-runner{transition:none}
-.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.2s / var(--speed)) ease-in-out infinite}
+.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.17s / var(--speed)) ease-in-out infinite}
 .game-back-rig .back-body,.game-back-rig .back-leg>path,.game-back-rig .back-arm>path{stroke:#172033;stroke-width:2;stroke-linejoin:round}.game-back-rig .back-body{filter:drop-shadow(0 4px 3px rgba(0,0,0,.22))}
-.game-back-rig .back-leg,.game-back-rig .back-arm{transform-box:fill-box;transform-origin:50% 12%}.game-back-rig .back-leg-l{animation:gameBackLegL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-leg-r{animation:gameBackLegR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.42s / var(--speed)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameRunShadow calc(.21s / var(--speed)) ease-in-out infinite}
-@keyframes gameBackBob{0%,100%{transform:translateY(1px) scaleY(.99)}50%{transform:translateY(-6px) rotate(-1deg) scaleY(1.015)}}@keyframes gameBackLegL{0%,100%{transform:translate(1px,-1px) rotate(25deg)}50%{transform:translate(-2px,2px) rotate(-27deg)}}@keyframes gameBackLegR{0%,100%{transform:translate(2px,2px) rotate(-27deg)}50%{transform:translate(-1px,-1px) rotate(25deg)}}@keyframes gameBackArmL{0%,100%{transform:rotate(-32deg)}50%{transform:rotate(30deg)}}@keyframes gameBackArmR{0%,100%{transform:rotate(30deg)}50%{transform:rotate(-32deg)}}
+.game-back-rig .back-leg,.game-back-rig .back-arm{transform-box:fill-box;transform-origin:50% 12%}.game-back-rig .back-leg-l{animation:gameBackLegL calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-leg-r{animation:gameBackLegR calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-body{transform-box:fill-box;transform-origin:50% 100%;animation:gameBackTwist calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameRunShadow calc(.17s / var(--speed)) ease-in-out infinite}
+/* A real sprint: the stride swings roughly twice as far as it used to, the
+   body lifts off the ground between steps and the shoulders counter-rotate
+   against the legs. Cadence follows --speed, so the run visibly winds up as
+   the score climbs instead of holding one polite jog all the way through. */
+@keyframes gameBackBob{0%,100%{transform:translateY(3px) rotate(.6deg) scaleY(.975)}50%{transform:translateY(-13px) rotate(-1.6deg) scaleY(1.03)}}
+@keyframes gameBackLegL{0%,100%{transform:translate(2px,-3px) rotate(46deg)}50%{transform:translate(-4px,4px) rotate(-44deg)}}
+@keyframes gameBackLegR{0%,100%{transform:translate(4px,4px) rotate(-44deg)}50%{transform:translate(-2px,-3px) rotate(46deg)}}
+@keyframes gameBackArmL{0%,100%{transform:translateX(2px) rotate(-52deg)}50%{transform:translateX(-2px) rotate(46deg)}}
+@keyframes gameBackArmR{0%,100%{transform:translateX(-2px) rotate(46deg)}50%{transform:translateX(2px) rotate(-52deg)}}
+@keyframes gameBackTwist{0%,100%{transform:rotate(2.4deg)}50%{transform:rotate(-2.4deg)}}
 .game-runner.switch-left .game-back-rig{animation:gameLaneLeanLeft .26s ease both}.game-runner.switch-right .game-back-rig{animation:gameLaneLeanRight .26s ease both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(147,197,253,.5),transparent 68%);animation:gameLaneDust .3s ease-out both}
 @keyframes gameLaneLeanLeft{35%{transform:translate(-8px,-4px) rotate(-12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneLeanRight{35%{transform:translate(8px,-4px) rotate(12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneDust{to{opacity:0;transform:scale(2.2)}}
 .game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .game-back-rig{transform:translateY(-28px) scale(.82);transform-origin:50% 100%}
@@ -2180,6 +2196,36 @@ body{
 .game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(20px,6vw,30px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
 .game-obstacle.lane-wave.is-caught{animation:gameGateWin .48s ease both}.game-obstacle.lane-wave.is-poof{animation:gameGateMiss .48s ease both}
 @keyframes gameGateWin{55%{filter:brightness(1.55)}to{opacity:0}}@keyframes gameGateMiss{25%{filter:saturate(1.8)}45%{translate:-5px 0}65%{translate:5px 0}to{opacity:0}}
+
+/* ---- depth traffic ----
+   Everything in here is placed by the run loop with a single transform on the
+   shared camera, so the layer costs one composited paint per frame no matter
+   how busy the road gets. The road used to be an empty grey triangle between
+   questions; these are what give it speed, distance and something to steer for. */
+.game-rush{display:none}
+.game-world.lane-game .game-rush{display:block;position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.game-rush i{position:absolute;left:0;top:0;display:block;line-height:1;will-change:transform,opacity}
+.game-rush .rush-stone{width:13px;height:52px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.96));box-shadow:0 0 14px rgba(191,219,254,.45)}
+.game-rush .rush-prop{font-size:64px;filter:drop-shadow(0 10px 7px rgba(0,0,0,.4))}
+.game-rush .rush-coin{font-size:42px;filter:drop-shadow(0 0 12px rgba(251,191,36,.75));animation:gameCoinSpin .9s linear infinite}
+.game-rush .rush-hurdle{font-size:52px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+.game-rush .rush-coin.is-taken{animation:gameCoinTake .34s ease-out both}
+.game-rush .rush-hurdle.is-struck{animation:gameHurdleHit .34s ease-out both}
+@keyframes gameCoinSpin{0%,100%{scale:1 1}50%{scale:.28 1}}
+@keyframes gameCoinTake{to{opacity:0;translate:0 -46px;filter:brightness(2.2)}}
+@keyframes gameHurdleHit{to{opacity:0;rotate:38deg;translate:0 26px}}
+.game-world.lane-game.is-bump{animation:gameBump .34s ease}
+@keyframes gameBump{30%{transform:translateY(7px) rotate(-.5deg)}62%{transform:translateY(-3px) rotate(.4deg)}}
+.game-runner.is-stumble .game-back-rig{animation:gameStumble .42s ease both}
+@keyframes gameStumble{30%{transform:translateY(6px) rotate(-9deg) scaleY(.9)}62%{transform:translateY(-2px) rotate(6deg)}to{transform:none}}
+/* The sideways-scrolling kerb belongs to the old side-on camera: behind Sam's
+   back it slid across the picture instead of coming toward him. The rush layer
+   owns that job now. */
+.game-world.lane-game .game-roadside{display:none}
+.game-world.lane-game .game-mid{bottom:58%;height:16%;opacity:.34;filter:saturate(.7) blur(1.1px)}
+.game-world.lane-game .game-dust{opacity:.5}
+.game-world.lane-game .game-speedlines{opacity:.3}
+.game-world.lane-game.is-fast .game-speedlines{opacity:.72}
 
 @media (min-width:760px){.game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{max-width:680px}.game-world.lane-game .game-lane-prompt{top:150px}.game-world.lane-game .game-runner{width:116px;height:194px}.game-obstacle.lane-wave .lane-gate{width:128px}}
 .game-streak{position:absolute;top:10px;left:10px;z-index:6;padding:4px 8px;border-radius:999px;background:rgba(15,23,42,.74);font-size:12px;font-weight:850;direction:ltr;opacity:0;transform:translateY(-5px);transition:.2s ease}.game-streak.on{opacity:1;transform:none}.game-streak.hot{color:#fbbf24;box-shadow:0 0 16px rgba(251,191,36,.24)}
@@ -6846,7 +6892,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.26.0';
+const APP_VERSION = '2.27.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11391,6 +11437,16 @@ function samRunBackAvatarHtml(store){
     <path fill="${accent}" d="M49 79c3-12 11-18 21-18s18 6 21 18l-8 9c-8-7-18-7-26 0z"/><path fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" d="M55 79c9 7 21 7 30 0"/>
   </svg></div>`;
 }
+/* A run used to draw on five words and show three of them per wave, which is
+   why it ran out of surprises so quickly. From the speed challenge onward the
+   pool also carries words the player has already met in earlier worlds, so old
+   vocabulary keeps coming back as spaced review and every wave can look new. */
+function samRunReviewPool(store,stageIndex,phaseIndex){
+  if(!phaseIndex) return [];
+  const seen=[];
+  for(let s=0;s<stageIndex;s++) for(const w of SAM_RUN_STAGES[s].words) if((store.mastery[w[0]]||0)>0) seen.push(w[0]);
+  return shuffled(seen).slice(0,phaseIndex>=2?5:3);
+}
 function samRunMissionFor(store,mode,stageIndex,phaseIndex){
   const pool=SAM_RUN_MISSIONS.filter(m=>!m.modes||m.modes.includes(mode));
   return pool[((store.plays||0)+stageIndex*3+phaseIndex)%pool.length];
@@ -11669,6 +11725,7 @@ function renderSamRun(stageIndex=null){
   samRun={
     epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},lane:1,laneGame:true,shield:0,runCoinBonus:0,
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,review:samRunReviewPool(store,stageIndex,phaseIndex),
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
@@ -11682,7 +11739,7 @@ function renderSamRun(stageIndex=null){
     <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
-      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-swipe-hint" id="samRunSwipeHint"><span>👆</span><b>החליקו ימינה ושמאלה</b><small>או לחצו ישירות על המסלול</small></div><div class="game-speedlines"></div><div class="game-finish"></div>
+      <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-swipe-hint" id="samRunSwipeHint"><span>👆</span><b>החליקו ימינה ושמאלה</b><small>או לחצו ישירות על המסלול</small></div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
       <div class="game-runner" id="samRunRunner" hidden>${samRunBackAvatarHtml(store)}</div>
       <div id="samRunObstacles"></div>
@@ -11807,11 +11864,13 @@ function samRunStart(){
   samRunTone('tick');
   clearTimeout(g.timer); clearTimeout(g.reviewTimer); cancelSpeech();
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
-  const obstacles=document.getElementById('samRunObstacles');
+  const obstacles=document.getElementById('samRunObstacles'), rush=document.getElementById('samRunRush');
   if(!runner||!card||!world||!obstacles) return;
   obstacles.innerHTML='';
+  if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
-    streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false});
+    streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
   /* Leave transform to the stylesheet: the lane runner's rule already centres
@@ -11843,7 +11902,7 @@ function samRunBeginCountdown(){
   const runner=document.getElementById('samRunRunner'),card=document.getElementById('samRunCard'),world=document.getElementById('samRunWorld');
   if(!runner||!card||!world) return;
   card.hidden=true; card.innerHTML=''; runner.hidden=false;
-  g.worldW=world.clientWidth||360; g.runnerX=runner.offsetLeft+runner.offsetWidth/2||60;
+  g.worldW=world.clientWidth||360; g.worldH=world.clientHeight||640; g.runnerX=runner.offsetLeft+runner.offsetWidth/2||60;
   // 3 · 2 · 1 · GO — long enough for the microphone to open
   const count=document.createElement('div'); count.className='game-countdown'; world.appendChild(count);
   const steps=['3','2','1','GO!']; let i=0;
@@ -11895,7 +11954,7 @@ function samRunFrame(ts){
       const incoming=ob.progress<0;
       if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
       if(ob.laneWave){
-        const p=Math.max(0,Math.min(1.18,ob.progress)),spread=6+p*31,y=17+p*61,scale=.3+p*.8;
+        const {y,scale,spread}=samRunDepth(ob.progress);
         ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100);
         ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
         ob.el.querySelectorAll('.lane-gate').forEach((gate,i)=>{
@@ -11909,19 +11968,122 @@ function samRunFrame(ts){
         if(!ob.el.classList.contains('is-poof')&&!ob.el.classList.contains('is-caught')) ob.el.style.transform=`translateX(${x}px)${incoming?' scale(.6)':''}`;
       }
     }
+    if(g.laneGame) samRunRunRoad(dt);
   }
   g.raf=requestAnimationFrame(samRunFrame);
+}
+/* Everything on the road that is not a question: kerb stones, roadside
+   scenery, coins and roadworks. They all ride the shared camera and are what
+   turns the stretch between two questions into a run. */
+function samRunRunRoad(dt){
+  const g=samRun, speed=samRunSpeedFor(g.score), still=prefersReducedStageMotion();
+  if(!still){
+    if(g.time>=g.nextStoneAt){ samRunSpawnRush('stone'); g.nextStoneAt=g.time+230/speed; }
+    if(g.time>=g.nextPropAt){ samRunSpawnRush('prop'); g.nextPropAt=g.time+(420+Math.random()*360)/speed; }
+  }
+  for(const pr of g.props.slice()){
+    pr.p+=dt/pr.life*speed;
+    if(pr.p>=1.16){ pr.el.remove(); g.props.splice(g.props.indexOf(pr),1); continue; }
+    samRunPaintRush(pr);
+  }
+  /* Coins and roadworks stay out of the way of a question that is already
+     closing in, so steering for a coin can never cost an answer. */
+  const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
+  if(!g.finishing&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
+  for(const pu of g.pickups.slice()){
+    pu.p+=dt/pu.life*speed;
+    if(!pu.done&&pu.p>=.94&&pu.lane===g.lane) samRunTakePickup(pu);
+    if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
+    if(pu.p>0) samRunPaintPickup(pu);
+  }
+}
+/* One camera for everything on the road. Screen size follows 1/z, so a thing
+   hangs small near the horizon and then rushes past the player over the last
+   moments — the difference between a road with depth and a texture sliding
+   down the screen. y and the lane spread are both tied to that same scale, so
+   gates, coins, kerb stones and scenery always agree about where the road is. */
+function samRunDepth(progress){
+  const p=Math.max(0,Math.min(1.18,progress));
+  const scale=.34/(1-.66*p);
+  return {scale,y:40+(scale-.34)/.66*40,spread:31*scale};
+}
+/* Depth traffic. Between questions the road used to be empty, so the player
+   had no reason to move and nothing to measure the speed against. Lane stones
+   and roadside scenery now stream out of the horizon on the same camera. */
+function samRunSpawnRush(kind){
+  const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
+  const el=document.createElement('i');
+  const side=Math.random()<.5?-1:1;
+  if(kind==='stone'){
+    el.className='rush-stone';
+    g.props.push({el,kind,side,p:0,life:1150});
+  }else{
+    const set=SAM_RUN_SCENERY[g.stageIndex]||SAM_RUN_SCENERY[0];
+    el.className='rush-prop';
+    el.textContent=pick(Math.random()<.45?set.far:set.near);
+    g.props.push({el,kind:'prop',side,p:0,life:1450});
+  }
+  host.appendChild(el);
+}
+function samRunPaintRush(pr){
+  const g=samRun,{y,scale,spread}=samRunDepth(pr.p);
+  /* Lane stones ride the two seams between lanes; scenery stands off the kerb,
+     which is another half-lane out again. */
+  const off=pr.kind==='stone'?spread/2:spread*1.5+5+7*scale;
+  pr.el.style.transform=`translate(${(g.worldW*(.5+pr.side*off/100)).toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) translate(-50%,-100%) scale(${scale.toFixed(3)})`;
+  pr.el.style.opacity=Math.min(1,pr.p*5).toFixed(2);
+}
+/* Coins give the player a reason to steer while a question is still far away;
+   roadworks give them a reason to steer away from something. Both ride the
+   same lanes as the gates, so every run is a continuous line of movement
+   instead of three isolated decisions. */
+function samRunSpawnPickup(){
+  const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
+  const hurdle=g.phase.id!=='learn'&&Math.random()<.34;
+  const lane=Math.floor(Math.random()*3);
+  const count=hurdle?1:3;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('i');
+    el.className=hurdle?'rush-hurdle':'rush-coin';
+    el.textContent=hurdle?'🚧':'🪙';
+    host.appendChild(el);
+    g.pickups.push({el,kind:hurdle?'hurdle':'coin',lane,p:-i*.13,life:1250,done:false});
+  }
+  g.nextPickupAt=g.time+(hurdle?1500:1900)+Math.random()*700;
+}
+function samRunPaintPickup(pu){
+  const g=samRun,{y,scale,spread}=samRunDepth(pu.p);
+  pu.el.style.transform=`translate(${(g.worldW*(.5+(pu.lane-1)*spread/100)).toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) translate(-50%,-50%) scale(${scale.toFixed(3)})`;
+  pu.el.style.opacity=Math.min(1,pu.p*5).toFixed(2);
+}
+function samRunTakePickup(pu){
+  const g=samRun; pu.done=true;
+  const at={x:g.worldW*(.5+(pu.lane-1)*.31)};
+  if(pu.kind==='coin'){
+    g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
+    pu.el.classList.add('is-taken'); samRunTone('tick'); samRunFloat('🪙 +1',at);
+    return;
+  }
+  /* Roadworks never cost a heart — this is a reading game first. They cost the
+     combo, which is exactly what a player who is only steering will feel. */
+  pu.el.classList.add('is-struck');
+  if(g.streak>=2) samRunFloat('הרצף נקטע!',at,true); else samRunFloat('💨',at,true);
+  g.streak=0; g.cleanStreak=0;
+  samRunTone('hit'); samRunPaintHud();
+  samRunWorldFx('is-bump',360);
+  samRunPose('is-stumble',420);
 }
 function samRunPickKind(){
   const g=samRun;
   const pool=[];
-  for(const id of g.active){
+  for(const id of g.active.concat(g.review||[])){
     /* Weak and not-yet-seen words return more often; mastered words still
-       appear occasionally as spaced review instead of vanishing forever. */
+       appear occasionally as spaced review instead of vanishing forever.
+       Words carried in from earlier worlds weigh less than this world's own. */
     const mastery=g.store.mastery[id]||0, seen=g.runSeen[id]||0;
-    const w=Math.max(2,8-mastery-seen);
+    const w=Math.max(2,8-mastery-seen)*(g.active.includes(id)?1:.4);
     if(id===g.lastKind&&g.sameKind>=2) continue;   // never the same thing three times running
-    for(let i=0;i<w;i++) pool.push(id);
+    for(let i=0;i<Math.round(w);i++) pool.push(id);
   }
   const id=pick(pool.length?pool:g.active);
   g.sameKind=id===g.lastKind?g.sameKind+1:1; g.lastKind=id;
@@ -11947,7 +12109,8 @@ function samRunChooseLane(lane){
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
   const cmd=samRunPickKind(),c=SAM_RUN_COMMANDS[cmd];
-  const distractors=shuffled(g.active.filter(id=>id!==cmd)).slice(0,2),options=shuffled([cmd,...distractors]),correctLane=options.indexOf(cmd);
+  const choices=g.active.concat(g.review||[]);
+  const distractors=shuffled(choices.filter(id=>id!==cmd)).slice(0,2),options=shuffled([cmd,...distractors]),correctLane=options.indexOf(cmd);
   const phasePace=g.phase.id==='speed'?.82:1,travelMs=Math.round(samRunTravelMs(g.score)*phasePace),warnMs=650;
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'');
@@ -12140,7 +12303,7 @@ function samRunFloat(text, ob, bad=false){
   const world=document.getElementById('samRunWorld'); if(!world) return;
   const f=document.createElement('div');
   f.className='game-float'+(bad?' bad':''); f.textContent=text;
-  const x=(ob?.x??world.clientWidth*.3), y=world.clientHeight*.42;
+  const x=(ob?.x??world.clientWidth*.3), y=world.clientHeight*(samRun?.laneGame?.66:.42);
   f.style.left=Math.max(8,Math.min(world.clientWidth-60,x-14))+'px'; f.style.top=y+'px';
   world.appendChild(f); setTimeout(()=>f.remove(),1000);
 }
