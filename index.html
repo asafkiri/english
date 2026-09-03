@@ -2058,7 +2058,13 @@ body{
 .game-float.bad{color:#fb7185}
 @keyframes gameFloat{0%{opacity:0;transform:translateY(8px) scale(.7)}25%{opacity:1;transform:translateY(-6px) scale(1.15)}100%{opacity:0;transform:translateY(-52px) scale(1)}}
 .game-world.is-shake{animation:gameShake .35s ease both}
-@keyframes gameShake{0%,100%{transform:none}25%{transform:translate(-5px,2px)}55%{transform:translate(4px,-2px)}80%{transform:translate(-2px,1px)}}
+/* Hit-stop. The single cheapest thing in games: on impact the whole world
+   holds still for a few frames — the runner mid-stumble, the road, the
+   scenery — and then everything starts again at once. The camera kick above
+   is held at its first frame through the freeze, so the punch lands and
+   waits before it settles. */
+.game-world.is-frozen,.game-world.is-frozen *{animation-play-state:paused!important}
+@keyframes gameShake{0%{transform:scale(1.025)}25%{transform:translate(-5px,2px) scale(1.019)}55%{transform:translate(4px,-2px) scale(1.009)}80%{transform:translate(-2px,1px) scale(1.002)}100%{transform:none}}
 .game-countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:6;font-size:64px;font-weight:900;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.5);pointer-events:none;direction:ltr}
 .game-countdown span{animation:gameCount .8s ease both}
 @keyframes gameCount{0%{opacity:0;transform:scale(.4)}30%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1)}}
@@ -2215,6 +2221,8 @@ body{
 .game-road-atmosphere{display:none}.game-world.lane-game .game-road-atmosphere{display:block;position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--haze) 26%,transparent),transparent 22%),linear-gradient(90deg,rgba(4,8,18,.32),transparent 20% 80%,rgba(4,8,18,.32));box-shadow:inset 0 -90px 95px rgba(2,6,18,.25)}
 .game-world.lane-game .game-speedlines{z-index:3;background:linear-gradient(102deg,transparent 0 16%,rgba(255,255,255,.1) 16.2% 16.5%,transparent 16.8% 83%,rgba(255,255,255,.1) 83.3% 83.6%,transparent 84%);opacity:.16}
 .game-lane-focus{display:none}.game-world.lane-game .game-lane-focus{display:block;position:absolute;z-index:3;left:50%;top:var(--horizon);width:40%;height:60%;translate:-50% 0;clip-path:polygon(34.6% 0,65.4% 0,100% 100%,0 100%);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--world-accent) 8%,transparent) 28%,color-mix(in srgb,var(--world-accent) 22%,transparent));filter:drop-shadow(0 0 16px color-mix(in srgb,var(--world-accent) 34%,transparent));transition:left .22s cubic-bezier(.2,.78,.24,1);pointer-events:none}
+/* The lane glow rides the same spring, or it arrives without him. */
+.game-world.lane-game .game-lane-focus{transition:left .3s linear(0,.28 10%,.62 20%,.86 30%,1.02 40%,1.07 50%,1.06 60%,1.02 70%,.99 80%,.985 90%,1)}
 .game-world.lane-game.is-dragging .game-lane-focus{transition:none;background:linear-gradient(180deg,transparent,rgba(52,211,153,.09) 28%,rgba(52,211,153,.24))}
 
 .game-world.lane-game .game-lane-prompt{display:block;top:clamp(145px,18dvh,176px);z-index:12;min-width:min(250px,68vw);padding:8px 18px;border-color:rgba(147,197,253,.62);background:rgba(8,15,30,.92);font-size:clamp(27px,7.4vw,38px);line-height:1.12;box-shadow:0 8px 28px rgba(0,0,0,.35),0 0 0 3px rgba(96,165,250,.14)}
@@ -2228,6 +2236,13 @@ body{
 .game-world.lane-game .game-lane-prompt small{font-size:10px;letter-spacing:.02em}
 .game-world.lane-game .game-streak{z-index:13;top:clamp(186px,25dvh,230px)}
 .game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:1.5%;width:clamp(96px,15.6dvh,121px);height:clamp(178px,29dvh,224px);z-index:9;transform:translateX(-50%);transition:left .22s cubic-bezier(.2,.78,.24,1),filter .18s ease}
+/* A lane change used to ease to a stop, which is how a slider moves, not a
+   child. A real spring overshoots the lane by a hair and settles back, and
+   that overshoot is all the weight the movement needed. It is only where the
+   runner is DRAWN — the lane he is actually in changed the instant he swiped —
+   so nothing about the answer depends on it. The cubic-bezier above stays as
+   the fallback for anything that cannot parse linear(). */
+.game-world.lane-game .game-runner{transition:left .3s linear(0,.28 10%,.62 20%,.86 30%,1.02 40%,1.07 50%,1.06 60%,1.02 70%,.99 80%,.985 90%,1),filter .18s ease}
 .game-world.lane-game.is-dragging .game-runner{transition:none}
 .game-back-avatar,.back-lane-root,.back-air-root,.back-ride-offset,.back-run-bob,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}
 .back-ground-shadow{position:absolute;z-index:0;left:50%;bottom:0;width:58%;height:6.5%;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.52),rgba(0,0,0,.18) 55%,transparent 72%);filter:blur(1px);transform-origin:center;animation:gameBackShadow calc(.37s / var(--run-cadence,1)) ease-in-out infinite}
@@ -7068,7 +7083,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.45.0';
+const APP_VERSION = '2.46.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12594,7 +12609,7 @@ function samRunTeardown(){
   g.running=false;
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.freezeTimer);
   /* A decode may still be finishing, or a short lane clip may still be
      playing. Invalidate both when the game closes so no word leaks onto the
      home screen or into the next run. */
@@ -12684,9 +12699,24 @@ function samRunGo(){
   const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML=samRunHeardHtml(g);
   g.raf=requestAnimationFrame(samRunFrame);
 }
+/* Hit-stop. Holding the whole world still for a few frames on impact is the
+   cheapest trick in games and the one that makes a hit feel like it landed
+   rather than like a number going down. Keeping g.last in step with the clock
+   means the frames skipped here never arrive afterwards as one large dt that
+   teleports the road forward. */
+function samRunFreeze(ms){
+  const g=samRun,world=document.getElementById('samRunWorld');
+  if(!g||prefersReducedStageMotion()) return;
+  g.freezeUntil=performance.now()+ms;
+  if(!world) return;
+  world.classList.add('is-frozen');
+  clearTimeout(g.freezeTimer);
+  g.freezeTimer=setTimeout(()=>{ if(world.isConnected) world.classList.remove('is-frozen'); },ms);
+}
 function samRunFrame(ts){
   const g=samRun; if(!g||!g.running) return;
   if(!document.getElementById('samRunWorld')||g.epoch!==uiEpoch){ samRunTeardown(); return; }
+  if(ts<(g.freezeUntil||0)){ g.last=ts; g.raf=requestAnimationFrame(samRunFrame); return; }
   const dt=g.last?Math.min(50,ts-g.last):16; g.last=ts;
   if(!g.paused&&!document.hidden){
     g.time+=dt;
@@ -13712,6 +13742,7 @@ function samRunHit(ob){
   samRunTone('hit');
   samRunFloat('💥', ob, true);
   if(runner){ runner.classList.remove('is-jumping','is-ducking','is-stopped','is-catching','is-collecting'); samRunPose('is-hit',580); setTimeout(()=>{ if(samRun===g&&runner.isConnected) samRunPose('is-safe',1200); },600); }
+  samRunFreeze(90);
   if(world&&!prefersReducedStageMotion()) samRunReplayFx(world,'is-shake','is-shake');
   samRunPaintHud();
   if(g.lives<=0) samRunOver(false);

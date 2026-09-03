@@ -4895,6 +4895,36 @@ test("later runs mix in words the player already met in earlier worlds", () => {
   assert.ok(own.filter(id => drawn.has(id)).length >= 4, 'without crowding out the world being learned');
 });
 
+test("a hit stops the world for a moment, and a lane change lands with weight", () => {
+  /* Hit-stop: the whole world holds still for a few frames on impact. The
+     early return has to keep g.last in step with the clock, or every frame it
+     skips arrives afterwards as one large dt that teleports the road. */
+  assert.match(html, /if\(ts<\(g\.freezeUntil\|\|0\)\)\{ g\.last=ts; g\.raf=requestAnimationFrame\(samRunFrame\); return; \}/,
+    'a frozen frame advances nothing and banks no time to pay back later');
+  assert.match(html, /function samRunFreeze\(ms\)\{[\s\S]*?if\(!g\|\|prefersReducedStageMotion\(\)\) return;/,
+    'and a phone asking for less motion never gets frozen at all');
+  assert.match(html, /function samRunHit\(ob\)\{[\s\S]*?samRunFreeze\(90\);/,
+    'a real hit is what triggers it');
+  assert.match(html, /clearTimeout\(g\.freezeTimer\)/, 'and its timer dies with the run');
+  assert.match(html, /\.game-world\.is-frozen,\.game-world\.is-frozen \*\{animation-play-state:paused!important\}/,
+    'the character and scenery hold still too, not just the simulation');
+
+  /* The camera kicks in on impact and settles back, rather than only sliding
+     sideways. Held at its first frame through the freeze, the punch lands and
+     waits. */
+  const shake = html.match(/@keyframes gameShake\{[^}]*\}[^@]*/)[0];
+  assert.match(shake, /0%\{transform:scale\(1\.0\d+\)\}/, 'the kick is there at the first frame');
+  assert.match(shake, /100%\{transform:none\}/, 'and it settles all the way back');
+
+  /* A lane change used to ease to a stop, which is how a slider moves. */
+  assert.match(html, /\.game-world\.lane-game \.game-runner\{transition:left \.3s linear\(0,[^)]*1\.07[^)]*\)/,
+    'the runner rides a spring that overshoots the lane before settling');
+  assert.match(html, /\.game-world\.lane-game \.game-lane-focus\{transition:left \.3s linear\(/,
+    'and the lane glow rides the same one, or it arrives without him');
+  assert.match(html, /transition:left \.22s cubic-bezier\(\.2,\.78,\.24,1\),filter \.18s ease\}/,
+    'with the old curve left in front of it as the fallback');
+});
+
 test("the runner's whole body shares one gait, and the hair arrives late", () => {
   /* The legs already ran on six phases while the arms and elbows carried two
      keyframes each, so the top half of the runner swung like a metronome over
