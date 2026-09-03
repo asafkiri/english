@@ -83,7 +83,7 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
-      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup,
+      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3477,6 +3477,10 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'the whole road is the input surface');
   assert.match(html, /dx=x-startX/,
     'horizontal swipes move naturally between perspective lanes');
+  assert.match(html, /const isVertical=\(dx,dy\)=>Math\.abs\(dy\)>=22&&Math\.abs\(dy\)>Math\.abs\(dx\)\*1\.2/,
+    'a gesture goes to whichever axis dominates it, so lane swipes and jumps never collide');
+  assert.match(html, /if\(e\.key==='ArrowUp'\|\|e\.key==='ArrowDown'\) samRunAirborne\(e\.key==='ArrowUp'\?'jump':'duck'\)/,
+    'the keyboard reaches the vertical axis too');
   assert.match(html, /document\.addEventListener\('touchmove',onTouchMove,\{passive:false,capture:true\}\)/,
     'older iOS versions retain a classic touch-event fallback');
   assert.match(html, /g\.gestureCleanup=/,
@@ -3531,6 +3535,13 @@ test("Sam's lane runner completes a real iPhone touch swipe", () => {
   assert.equal(runner.style.left, '80%', 'the character visibly follows the selected lane');
   assert.equal(focus.style.left, '80%', 'the road highlight moves with the character');
   documentHandlers.touchend({ target: world, changedTouches: [{ clientX: 205, clientY: 302 }] });
+
+  // the same finger, dragged up instead of sideways, is a jump and leaves the lane alone
+  documentHandlers.touchstart({ target: world, composedPath: () => [world], touches: [{ clientX: 150, clientY: 300 }] });
+  documentHandlers.touchmove({ touches: [{ clientX: 154, clientY: 244 }], preventDefault() {} });
+  assert.equal(game.air?.kind, 'jump', 'an upward drag leaves the ground');
+  assert.equal(game.lane, 2, 'and never drags Sam out of the lane he chose');
+  documentHandlers.touchend({ target: world, changedTouches: [{ clientX: 154, clientY: 244 }] });
 });
 
 test("Sam's lane runner handles iPhone Pointer Events without turning the swipe into a tap", () => {
@@ -3647,8 +3658,8 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
   assert.match(html, /if\(!g\.finishing&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in');
-  assert.match(html, /const hurdle=g\.phase\.id!=='learn'&&Math\.random\(\)<\.34/,
-    'the first, gentlest phase of a world has no roadworks at all');
+  assert.match(html, /const runnerToys=g\.phase\.id!=='learn', roll=Math\.random\(\)/,
+    'the first, gentlest phase of a world stays a pure reading run');
   assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
 
   const style = () => ({ setProperty(n, v) { this[n] = v; } });
@@ -3664,6 +3675,53 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   api.samRunTakePickup(hurdle);
   assert.equal(game.streak, 0, 'running into roadworks breaks the combo');
   assert.equal(game.lives, 3, 'but never costs a heart — this stays a reading game');
+});
+
+test("walls give the road a vertical axis that can only be answered by reading", () => {
+  const { api, context } = runtime();
+  assert.match(html, /el\.style\.width=Math\.round\(g\.worldW\*\.93\)\+'px'/,
+    'a wall spans the whole road: stepping around it is not one of the options');
+  assert.match(html, /el\.innerHTML=`<b>\$\{jump\?'JUMP':'DUCK'\}<\/b>/,
+    'and it carries the English word for the gesture it wants');
+  assert.match(html, /transform-origin:0 0/,
+    'the rush layer anchors from its top-left so a scaled wall stays centred on the road');
+
+  const classList = () => { const list = []; return { list, add(c) { list.push(c); }, remove(c) { const i = list.indexOf(c); if (i >= 0) list.splice(i, 1); }, contains: c => list.includes(c) }; };
+  const runner = { classList: classList(), offsetWidth: 80, style: { setProperty() {} } };
+  context.document.getElementById = id => id === 'samRunRunner' ? runner : null;
+  const wall = kind => ({ el: { classList: classList(), style: {}, remove() {} }, kind, lane: 1, wide: true, p: .95, done: false });
+  const game = { running: true, laneGame: true, lane: 1, worldW: 300, worldH: 600, streak: 5, cleanStreak: 5,
+    lives: 3, score: 0, runCoinBonus: 0, time: 1000, air: null, obstacles: [], pickups: [], props: [], mission: null };
+  api.setSamRun(game);
+
+  api.samRunAirborne('jump');
+  assert.equal(game.air.kind, 'jump', 'a swipe up leaves the ground');
+  assert.ok(runner.classList.contains('is-air-jump'));
+  const airborneUntil = game.air.until;
+  api.samRunAirborne('duck');
+  assert.equal(game.air.until, airborneUntil, 'and cannot be turned into a second jump in mid-air');
+
+  const jumped = wall('jump');
+  api.samRunTakePickup(jumped);
+  assert.equal(game.streak, 5, 'clearing a wall keeps the answer combo whole');
+  assert.equal(game.runCoinBonus, 1, 'and pays a coin');
+  assert.equal(game.clearedWalls, 1);
+
+  // the wrong gesture is a miss, and so is no gesture at all
+  for (const [kind, air] of [['duck', 'jump'], ['jump', null]]) {
+    Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3 });
+    game.air = air ? { kind: air, until: game.time + 500 } : null;
+    api.samRunTakePickup(wall(kind));
+    assert.equal(game.streak, 0, `${air || 'nothing'} against a ${kind} wall breaks the combo`);
+    assert.equal(game.lives, 3, 'and still never costs a heart');
+  }
+
+  // a wall is aimed at the gap, never at the same depth as a live gate
+  game.obstacles = [{ resolved: false, laneWave: true, progress: .5, travelMs: 2000 }];
+  assert.equal(api.samRunRoadClear(game, 1000), false, 'a wall may not land on top of the gate it shares the road with');
+  assert.equal(api.samRunRoadClear(game, 1800), true, 'but a beat later the road is its own');
+  game.obstacles = [];
+  assert.equal(api.samRunRoadClear(game, 1000), true, 'an empty road is always clear');
 });
 
 test("later runs mix in words the player already met in earlier worlds", () => {

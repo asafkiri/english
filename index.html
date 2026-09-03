@@ -2204,7 +2204,11 @@ body{
    questions; these are what give it speed, distance and something to steer for. */
 .game-rush{display:none}
 .game-world.lane-game .game-rush{display:block;position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
-.game-rush i{position:absolute;left:0;top:0;display:block;line-height:1;will-change:transform,opacity}
+/* transform-origin:0 0 so the scale in samRunPaintPickup()/samRunPaintRush()
+   composes with the anchoring translate that follows it. On the default centre
+   origin the anchor is measured from the element's own middle, which pins a
+   full-width wall by its right edge instead of centring it on the road. */
+.game-rush i{position:absolute;left:0;top:0;display:block;line-height:1;transform-origin:0 0;will-change:transform,opacity}
 .game-rush .rush-stone{width:13px;height:52px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.96));box-shadow:0 0 14px rgba(191,219,254,.45)}
 .game-rush .rush-prop{font-size:64px;filter:drop-shadow(0 10px 7px rgba(0,0,0,.4))}
 .game-rush .rush-coin{font-size:42px;filter:drop-shadow(0 0 12px rgba(251,191,36,.75));animation:gameCoinSpin .9s linear infinite}
@@ -2214,6 +2218,25 @@ body{
 @keyframes gameCoinSpin{0%,100%{scale:1 1}50%{scale:.28 1}}
 @keyframes gameCoinTake{to{opacity:0;translate:0 -46px;filter:brightness(2.2)}}
 @keyframes gameHurdleHit{to{opacity:0;rotate:38deg;translate:0 26px}}
+/* Walls run the full width of the road, so the element is spawned at the road's
+   own width in pixels and then simply rides the camera's scale. */
+.game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:center;gap:10px;height:38px;border-radius:10px;border:2px solid rgba(255,255,255,.66);color:#fff;font-size:21px;font-weight:950;letter-spacing:.07em;direction:ltr;text-shadow:0 2px 7px rgba(0,0,0,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.game-rush .rush-bar{background:repeating-linear-gradient(45deg,#f59e0b 0 15px,#27313f 15px 30px)}
+.game-rush .rush-beam{background:repeating-linear-gradient(45deg,#60a5fa 0 15px,#233043 15px 30px)}
+.game-rush .rush-beam:after{content:'';position:absolute;left:6%;right:6%;top:100%;height:190%;background:linear-gradient(180deg,rgba(96,165,250,.3),transparent);pointer-events:none}
+.game-rush .rush-bar.is-cleared{animation:gameWallPass .3s ease-out both}
+.game-rush .rush-beam.is-cleared{animation:gameWallPass .3s ease-out both}
+@keyframes gameWallPass{to{opacity:0;filter:brightness(1.9)}}
+/* The wall hint sits above the horizon: it is teaching the wall, so it must
+   never be the thing covering it. */
+.game-world.lane-game .game-swipe-hint.is-air{top:calc(var(--horizon) - 8%);bottom:auto;min-width:210px;padding:8px 15px}
+.game-world.lane-game .game-swipe-hint.is-air span{font-size:23px}
+.game-world.lane-game .game-swipe-hint.is-air b{font-size:14px}
+.game-world.lane-game .game-runner.is-air-jump .game-back-avatar{animation:gameLaneJump .64s cubic-bezier(.26,.62,.4,1) both}
+.game-world.lane-game .game-runner.is-air-duck .game-back-avatar{animation:gameLaneDuck .56s ease both}
+.game-runner.is-air-jump .back-shadow{animation:gameJumpShadow .64s ease both}
+@keyframes gameLaneJump{0%{transform:translateY(5px) scaleY(.88) scaleX(1.08)}20%{transform:translateY(-58px) scaleY(1.07) scaleX(.95)}52%{transform:translateY(-82px) scaleY(1.02)}80%{transform:translateY(-14px)}92%{transform:translateY(6px) scaleY(.92) scaleX(1.06)}100%{transform:none}}
+@keyframes gameLaneDuck{0%,100%{transform:none}18%,82%{transform:translateY(30px) scaleY(.55) scaleX(1.14)}}
 .game-world.lane-game.is-bump{animation:gameBump .34s ease}
 @keyframes gameBump{30%{transform:translateY(7px) rotate(-.5deg)}62%{transform:translateY(-3px) rotate(.4deg)}}
 .game-runner.is-stumble .game-back-rig{animation:gameStumble .42s ease both}
@@ -6892,7 +6915,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.27.0';
+const APP_VERSION = '2.28.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11725,7 +11748,7 @@ function renderSamRun(stageIndex=null){
   samRun={
     epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},lane:1,laneGame:true,shield:0,runCoinBonus:0,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,review:samRunReviewPool(store,stageIndex,phaseIndex),
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,review:samRunReviewPool(store,stageIndex,phaseIndex),
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
@@ -11765,9 +11788,14 @@ function samRunBindLaneInput(worldAtBind,g){
   const canPlay=()=>samRun===g&&g.running&&g.laneGame&&!!stage();
   const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;stage().classList?.add('is-dragging');return true; };
   const chooseFromSwipe=lane=>{ handled=true;suppressClickUntil=Date.now()+700;samRunChooseLane(lane); };
+  /* A gesture belongs to whichever axis clearly dominates it, so a lane swipe
+     never turns into a jump and a jump never drags Sam out of his lane. */
+  const isVertical=(dx,dy)=>Math.abs(dy)>=22&&Math.abs(dy)>Math.abs(dx)*1.2;
+  const airFromSwipe=dy=>{ handled=true;suppressClickUntil=Date.now()+700;samRunSetLaneVisual(g.lane);samRunAirborne(dy<0?'jump':'duck'); };
   const preview=(x,y)=>{
     if(!dragging||!canPlay()) return;
     const rect=stage().getBoundingClientRect(),dx=x-startX,dy=y-startY;
+    if(!handled&&isVertical(dx,dy)){ airFromSwipe(dy); return; }
     if(Math.abs(dx)<5||Math.abs(dx)<Math.abs(dy)*.7) return;
     const base=[20,50,80][startLane],left=Math.max(12,Math.min(88,base+dx/rect.width*100));
     const r=runner(),f=focus(); if(r){r.style.left=left+'%';r.style.setProperty('--swipe-lean',Math.max(-12,Math.min(12,dx/8))+'deg');} if(f)f.style.left=left+'%';
@@ -11777,7 +11805,8 @@ function samRunBindLaneInput(worldAtBind,g){
     if(!dragging) return; dragging=false; stage()?.classList?.remove('is-dragging');
     if(!canPlay()) return;
     const dx=x-startX,dy=y-startY;
-    if(!handled&&Math.abs(dx)>=18&&Math.abs(dx)>Math.abs(dy)*.7) chooseFromSwipe(startLane+(dx>0?1:-1));
+    if(!handled&&isVertical(dx,dy)) airFromSwipe(dy);
+    else if(!handled&&Math.abs(dx)>=18&&Math.abs(dx)>Math.abs(dy)*.7) chooseFromSwipe(startLane+(dx>0?1:-1));
     else if(!handled&&Math.abs(dx)<18&&Math.abs(dy)<18&&!target?.closest?.('.lane-gate')){
       const rect=stage().getBoundingClientRect(); samRunChooseLane(Math.floor((x-rect.left)/rect.width*3));
     } else samRunSetLaneVisual(g.lane);
@@ -11832,7 +11861,12 @@ function samRunBindLaneInput(worldAtBind,g){
   document.addEventListener('click',onClickCapture,{capture:true});
   /* Arrow keys live on the document too: the road element is created after
      this binding and is never guaranteed to hold focus. */
-  const onKeyDown=e=>{if(!canPlay()||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));};
+  const onKeyDown=e=>{
+    if(!canPlay()||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    if(e.key==='ArrowUp'||e.key==='ArrowDown') samRunAirborne(e.key==='ArrowUp'?'jump':'duck');
+    else samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));
+  };
   document.addEventListener('keydown',onKeyDown);
   g.gestureCleanup=()=>{
     document.removeEventListener?.('pointerdown',onPointerDown,{capture:true});
@@ -11854,7 +11888,7 @@ function samRunTeardown(){
   g.running=false;
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.swipeHintTimer); clearTimeout(g.airHintTimer);
   cancelSpeech();
   samRun=null;
 }
@@ -11870,9 +11904,10 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0});
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,taught:{},clearedWalls:0});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
+  runner.classList.remove('is-air-jump','is-air-duck');
   /* Leave transform to the stylesheet: the lane runner's rule already centres
      the character and folds in --swipe-lean, so an inline transform here would
      freeze him upright through every swipe. */
@@ -11990,9 +12025,10 @@ function samRunRunRoad(dt){
      closing in, so steering for a coin can never cost an answer. */
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
   if(!g.finishing&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
+  samRunLand();
   for(const pu of g.pickups.slice()){
     pu.p+=dt/pu.life*speed;
-    if(!pu.done&&pu.p>=.94&&pu.lane===g.lane) samRunTakePickup(pu);
+    if(!pu.done&&pu.p>=.94&&(pu.wide||pu.lane===g.lane)) samRunTakePickup(pu);
     if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
     if(pu.p>0) samRunPaintPickup(pu);
   }
@@ -12030,16 +12066,50 @@ function samRunPaintRush(pr){
   /* Lane stones ride the two seams between lanes; scenery stands off the kerb,
      which is another half-lane out again. */
   const off=pr.kind==='stone'?spread/2:spread*1.5+5+7*scale;
-  pr.el.style.transform=`translate(${(g.worldW*(.5+pr.side*off/100)).toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) translate(-50%,-100%) scale(${scale.toFixed(3)})`;
+  pr.el.style.transform=`translate(${(g.worldW*(.5+pr.side*off/100)).toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) scale(${scale.toFixed(3)}) translate(-50%,-100%)`;
   pr.el.style.opacity=Math.min(1,pr.p*5).toFixed(2);
 }
 /* Coins give the player a reason to steer while a question is still far away;
    roadworks give them a reason to steer away from something. Both ride the
    same lanes as the gates, so every run is a continuous line of movement
    instead of three isolated decisions. */
+/* Walls are the only thing on the road that spans all three lanes. That is
+   deliberate: anything sitting in one lane is answered by stepping around it,
+   which leaves the vertical axis optional, and an optional axis is one nobody
+   uses. A wall can only be answered over or under — and it is answered by
+   reading it, because the wall carries the English word for what to do. */
+/* A wall spans the road and carries a word, so it must never reach the player
+   at the same moment as an answer gate — at the same depth they simply hide
+   each other. Walls wait for a clear stretch; coins are small enough to share. */
+function samRunRoadClear(g,arriveMs){
+  return !g.obstacles.some(ob=>!ob.resolved&&ob.laneWave&&Math.abs((1-ob.progress)*ob.travelMs-arriveMs)<520);
+}
 function samRunSpawnPickup(){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
-  const hurdle=g.phase.id!=='learn'&&Math.random()<.34;
+  /* The first, gentlest pass through a world stays a pure reading run. */
+  const runnerToys=g.phase.id!=='learn', roll=Math.random();
+  if(runnerToys&&roll<.32){
+    /* A wall is aimed at the gap: it is given exactly the travel time that
+       lands it a beat after the question on the road has been answered, so the
+       two never share the last stretch and the run gets a natural one-two
+       rhythm — read the word, then clear the wall. */
+    const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
+    const speed=samRunSpeedFor(g.score);
+    const gateIn=live?Math.max(0,(1-live.progress)*live.travelMs):0;
+    const life=Math.max(900,Math.min(2300,(gateIn+780)*speed/.94));
+    if(!samRunRoadClear(g,.94*life/speed)){ g.nextPickupAt=g.time+400; return; }
+    const jump=Math.random()<.55, kind=jump?'jump':'duck';
+    const el=document.createElement('i');
+    el.className=jump?'rush-bar':'rush-beam';
+    el.innerHTML=`<b>${jump?'JUMP':'DUCK'}</b><span>${jump?'⬆':'⬇'}</span>`;
+    el.style.width=Math.round(g.worldW*.93)+'px';
+    host.appendChild(el);
+    g.pickups.push({el,kind,lane:1,wide:true,p:0,life,done:false});
+    samRunTeachAir(kind);
+    g.nextPickupAt=g.time+life+700+Math.random()*500;
+    return;
+  }
+  const hurdle=runnerToys&&roll<.5;
   const lane=Math.floor(Math.random()*3);
   const count=hurdle?1:3;
   for(let i=0;i<count;i++){
@@ -12053,25 +12123,75 @@ function samRunSpawnPickup(){
 }
 function samRunPaintPickup(pu){
   const g=samRun,{y,scale,spread}=samRunDepth(pu.p);
-  pu.el.style.transform=`translate(${(g.worldW*(.5+(pu.lane-1)*spread/100)).toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) translate(-50%,-50%) scale(${scale.toFixed(3)})`;
+  const x=pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*spread/100);
+  /* scale() sits to the left of the anchoring translate so the anchor shrinks
+     with the thing itself — otherwise a distant object is lifted by its full
+     unscaled height and floats above the road. */
+  const anchor=pu.kind==='duck'?'translate(-50%,-235%)':pu.wide?'translate(-50%,-100%)':'translate(-50%,-85%)';
+  pu.el.style.transform=`translate(${x.toFixed(1)}px,${(g.worldH*y/100).toFixed(1)}px) scale(${scale.toFixed(3)}) ${anchor}`;
   pu.el.style.opacity=Math.min(1,pu.p*5).toFixed(2);
 }
 function samRunTakePickup(pu){
   const g=samRun; pu.done=true;
-  const at={x:g.worldW*(.5+(pu.lane-1)*.31)};
+  const at={x:pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*.31)};
   if(pu.kind==='coin'){
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
     pu.el.classList.add('is-taken'); samRunTone('tick'); samRunFloat('🪙 +1',at);
     return;
   }
-  /* Roadworks never cost a heart — this is a reading game first. They cost the
-     combo, which is exactly what a player who is only steering will feel. */
-  pu.el.classList.add('is-struck');
+  if(pu.wide&&g.air?.kind===pu.kind){
+    g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
+    g.clearedWalls=(g.clearedWalls||0)+1;
+    pu.el.classList.add('is-cleared');
+    samRunTone('catch'); samRunFloat(pu.kind==='jump'?'JUMP! 🪙':'DUCK! 🪙',at);
+    samRunWorldFx('is-success',360);
+    return;
+  }
+  /* Nothing on the road costs a heart — hearts belong to the words. What a
+     miss costs is the combo, which is exactly what a player who is only
+     steering will feel. */
+  pu.el.classList.add(pu.wide?'is-cleared':'is-struck');
   if(g.streak>=2) samRunFloat('הרצף נקטע!',at,true); else samRunFloat('💨',at,true);
   g.streak=0; g.cleanStreak=0;
   samRunTone('hit'); samRunPaintHud();
   samRunWorldFx('is-bump',360);
   samRunPose('is-stumble',420);
+}
+/* Up and down. Lanes answer the question, the vertical axis answers the road,
+   and the two never compete: a jump can never cost an answer and a lane change
+   can never cost a jump. */
+function samRunAirborne(kind){
+  const g=samRun; if(!g||!g.running||!g.laneGame) return;
+  if(g.air&&g.air.until>g.time+80) return;       // no second jump in mid-air
+  g.air={kind,until:g.time+(kind==='jump'?640:560)};
+  const runner=document.getElementById('samRunRunner');
+  if(runner){
+    runner.classList.remove('is-air-jump','is-air-duck'); void runner.offsetWidth;
+    runner.classList.add(kind==='jump'?'is-air-jump':'is-air-duck');
+  }
+  samRunTone(kind==='jump'?'jump':'tick');
+  try{ navigator.vibrate?.(8); }catch(_){}
+  const hint=document.getElementById('samRunSwipeHint'); if(hint) hint.classList.remove('show');
+}
+function samRunLand(){
+  const g=samRun; if(!g||!g.air||g.time<g.air.until) return;
+  const jumped=g.air.kind==='jump';
+  g.air=null;
+  const runner=document.getElementById('samRunRunner');
+  if(runner) runner.classList.remove('is-air-jump','is-air-duck');
+  if(jumped) samRunWorldFx('is-land',300);
+}
+/* The first wall of each kind in a run says out loud what the gesture is. */
+function samRunTeachAir(kind){
+  const g=samRun,hint=document.getElementById('samRunSwipeHint');
+  if(!g||!hint||g.taught?.[kind]) return;
+  g.taught=g.taught||{}; g.taught[kind]=true;
+  hint.innerHTML=kind==='jump'
+    ? '<span>👆</span><b>החליקו למעלה — JUMP</b><small>קופצים מעל המחסום</small>'
+    : '<span>👇</span><b>החליקו למטה — DUCK</b><small>מתכופפים מתחת למוט</small>';
+  hint.classList.add('is-air','show');
+  clearTimeout(g.airHintTimer);
+  g.airHintTimer=setTimeout(()=>{ if(samRun===g) hint.classList.remove('show','is-air'); },2400);
 }
 function samRunPickKind(){
   const g=samRun;
