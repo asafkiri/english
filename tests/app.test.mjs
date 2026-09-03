@@ -4255,8 +4255,8 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /el\.className='rush-hurdle'; el\.innerHTML='<span><\/span><span><\/span><span><\/span>'/,
     'single-lane roadworks use a consistent cone graphic rather than an emoji barrier');
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
-  assert.match(html, /if\(!g\.finishing&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
-    'a coin never appears while a question is already closing in');
+  assert.match(html, /if\(!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
+    'a coin never appears while a question is already closing in, nor during the countdown');
   assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
     'the first, gentlest phase of a world stays a pure reading run');
   assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
@@ -4898,6 +4898,40 @@ test("later runs mix in words the player already met in earlier worlds", () => {
   for (let i = 0; i < 400; i++) { drawn.add(api.samRunPickKind()); game.sameKind = 0; }
   assert.ok(speed.some(id => drawn.has(id)), 'review words really do come up as questions');
   assert.ok(own.filter(id => drawn.has(id)).length >= 4, 'without crowding out the world being learned');
+});
+
+test("the world is already running behind the countdown, and the road throws dust", () => {
+  /* is-halted pauses the scenery AND the runner, so the countdown played over a
+     still photograph: three of the most important seconds in the game were a
+     frozen road with a number over it. */
+  assert.match(html, /function samRunBeginCountdown\(\)\{[\s\S]*?g\.warmup=true; g\.running=true;[\s\S]*?g\.nextSpawnAt=Infinity;/,
+    'the loop turns through the countdown, with nothing scheduled to spawn');
+  assert.match(html, /function samRunBeginCountdown\(\)\{[\s\S]*?world\.classList\.remove\('is-halted'\); world\.classList\.add\('is-running'\);/,
+    'and the scenery and the runner are unpaused for it');
+  assert.match(html, /const warmed=g\.running&&g\.warmup;[\s\S]*?if\(!warmed\) g\.raf=requestAnimationFrame\(samRunFrame\);/,
+    'GO picks the loop up rather than starting a second one');
+  assert.match(html, /if\(g\.endless&&!g\.warmup\)\{ g\.distance/,
+    'no metre is scored before GO');
+  assert.match(html, /!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt/,
+    'and no coin or roadworks appears either');
+
+  /* The rendered road scrolled off g.distance, which is the SCORE — so it stood
+     still through the countdown, and stood still for a whole world run, where
+     no metres are counted at all. */
+  assert.match(html, /g\.roadScroll=\(g\.roadScroll\|\|0\)\+dt\/1000\*8\.5\*speed;/,
+    'the road scrolls on its own clock, not on the scoreboard');
+  assert.match(html, /gl\.uniform1f\(r\.u\.scroll,\(g\.roadScroll\|\|0\)\*\.5\);/,
+    'and that is what the shader reads');
+
+  /* Particles ride in the road's own context, so the device veto covers them. */
+  assert.match(html, /gl\.drawArrays\(gl\.POINTS,0,n\);/, 'they are points, not elements');
+  assert.match(html, /samRunEmit\('land'/, 'a landing throws dust');
+  assert.match(html, /if\(!g\.air\)\{[\s\S]*?samRunEmit\('dust'/, 'his feet throw it while he runs, but not mid-air');
+  assert.match(html, /function samRunEmit\([\s\S]*?if\(!r\|\|!r\.pt\|\|prefersReducedStageMotion\(\)\) return;/,
+    'and a phone asking for less motion gets none of it');
+  /* Two programs share one context, so each must re-claim its own state. */
+  assert.match(html, /gl\.useProgram\(r\.prog\);\n  gl\.bindBuffer\(gl\.ARRAY_BUFFER,r\.quad\);/,
+    'the road rebinds its own buffer before drawing, since the particles left theirs bound');
 });
 
 test("the road is rendered, and the device gets to veto it", () => {
