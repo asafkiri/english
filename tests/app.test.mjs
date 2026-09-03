@@ -83,7 +83,7 @@ function runtime(seed = new Map(), options = {}) {
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunBindLaneInput,
-      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup,
+      samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunRoadClear, samRunSpawnPickup, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       setSamRun:v=>{samRun=v},
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3764,6 +3764,87 @@ test("the final challenge is the fastest gear and the only one that pairs walls"
   assert.ok(final.some(b => b.coins > 0) && speed.some(b => b.coins > 0),
     'a wall and a line of coins can share one gap');
   assert.equal(batchesFor('learn').length, 0, 'the learn phase still has no walls at all');
+});
+
+test("every game word drawn from the course is really taught by the course", () => {
+  const { api } = runtime();
+  const pool = api.SAM_RUN_COURSE_WORDS;
+  assert.ok(pool.length >= 40, 'the course pool is worth wiring up at all');
+
+  const ids = new Set(), hebrew = new Map();
+  const gameIds = new Set(api.SAM_RUN_STAGES.flatMap(s => s.words.map(w => w[0])));
+  for (const id of gameIds) hebrew.set(api.SAM_RUN_COMMANDS[id].he, id);
+
+  for (const [id, en, he, icon, aliases, move, lesson] of pool) {
+    assert.ok(!ids.has(id), `${id} appears twice`);
+    ids.add(id);
+    assert.ok(!gameIds.has(id), `${id} duplicates one of the game's own words`);
+    assert.ok(!hebrew.has(he), `the prompt "${he}" already answers to ${hebrew.get(he)}`);
+    hebrew.set(he, id);
+    assert.ok(en.length <= 10, `${en} is too long to read on a moving gate`);
+    assert.equal(en, en.toUpperCase(), `${en} must be gate-cased`);
+    assert.ok(Number.isInteger(lesson) && lesson >= 0 && lesson < api.LESSONS.length, `${id} cites lesson ${lesson}`);
+    assert.ok(Array.isArray(aliases) && aliases.includes(id), `${id} must recognise itself`);
+    assert.ok(['is-jumping', 'is-ducking', 'is-stopped', 'is-collecting', 'is-waving', 'is-catching'].includes(move),
+      `${id} has an unknown pose`);
+    const graphemes = [...new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(icon)];
+    assert.equal(graphemes.length, 1, `${id} needs exactly one emoji, not "${icon}"`);
+
+    // the whole promise of this pool: the word is one the child has actually met
+    const phrases = api.LESSONS[lesson].phrases.map(p => p.en.toLowerCase());
+    const spelled = new RegExp(`(^|[^a-z])${id}([^a-z]|$)`);
+    assert.ok(phrases.some(ph => spelled.test(ph)),
+      `${id} is not in any phrase of lesson ${lesson}: ${JSON.stringify(phrases)}`);
+    const earlier = api.LESSONS.slice(0, lesson)
+      .findIndex(l => l.phrases.some(ph => spelled.test(ph.en.toLowerCase())));
+    assert.equal(earlier, -1, `${id} is taught earlier, in lesson ${earlier}, not ${lesson}`);
+
+    const cmd = api.SAM_RUN_COMMANDS[id];
+    assert.ok(cmd && cmd.lesson === lesson && cmd.en === en && cmd.he === he,
+      `${id} did not reach SAM_RUN_COMMANDS, so no gate could ever show it`);
+    assert.equal(cmd.say, en.toLowerCase(), `${id} must be pronounceable`);
+  }
+
+  // a digit emoji would hand the answer over without the word ever being read
+  const numerals = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  const numeralIcons = new Set(numerals.map(n => api.SAM_RUN_COMMANDS[n].ic));
+  assert.equal(numeralIcons.size, 1, 'the numerals share one neutral icon so the English has to be read');
+  assert.ok(!numeralIcons.has(api.SAM_RUN_COMMANDS.number.ic), 'and NUMBER does not borrow it');
+});
+
+test("a run carries the words this child has earned in the course", () => {
+  const { api } = runtime();
+  const lessonOf = id => api.SAM_RUN_COMMANDS[id].lesson;
+  assert.equal(api.samRunLessonPool(0, 6).length, 0, 'a child who has finished nothing brings nothing');
+  assert.equal(api.samRunLessonPool(6, 0).length, 0, 'and a limit of zero is honoured');
+
+  const early = api.samRunLessonPool(1, 6);
+  assert.ok(early.length > 0 && early.every(id => lessonOf(id) < 1),
+    'one finished lesson already puts its words on the road, and nothing beyond it');
+
+  for (const done of [3, 8, 13, 15]) {
+    const pool = api.samRunLessonPool(done, 6);
+    assert.ok(pool.length <= 6, 'the pool never floods a wave');
+    assert.equal(new Set(pool).size, pool.length, 'and never repeats a word');
+    assert.ok(pool.every(id => lessonOf(id) < done), `nothing from an unfinished lesson leaks in at ${done}`);
+  }
+  assert.ok(api.samRunLessonPool(15, 6).length === 6, 'a child deep in the course always gets a full pool');
+
+  // weighted to recent lessons, but the early ones must stay reachable
+  const seen = new Set();
+  for (let i = 0; i < 300; i++) for (const id of api.samRunLessonPool(13, 6)) seen.add(id);
+  const reachable = [...seen].map(lessonOf);
+  assert.ok(Math.min(...reachable) === 0, 'lesson 1 vocabulary never falls out of rotation');
+  assert.ok(new Set(reachable).size >= 10, 'and the whole course so far stays in play');
+  const recentShare = api.samRunLessonPool(13, 6).filter(id => lessonOf(id) >= 10).length;
+  assert.ok(recentShare >= 2, 'while what was just taught gets the bigger share');
+
+  assert.match(html, /lesson:phaseIndex\?samRunLessonPool\(state\.completed,6\):\[\]/,
+    'the pool is read from the course itself, and stays out of a world�s first teaching pass');
+  assert.match(html, /g\.active\.concat\(g\.review\|\|\[\],g\.lesson\|\|\[\]\)/,
+    'course words can be the answer as well as a distractor');
+  assert.match(html, /choice\.lesson===undefined\?'':' from-lesson'/,
+    'and a gate carrying one says where it came from');
 });
 
 test("later runs mix in words the player already met in earlier worlds", () => {
