@@ -2179,19 +2179,20 @@ body{
 
 .game-world.lane-game .game-runner{--swipe-lean:0deg;left:50%;top:auto;bottom:2.5%;width:clamp(78px,22vw,112px);height:clamp(138px,24dvh,210px);z-index:9;transform:translateX(-50%) rotate(var(--swipe-lean));transition:left .16s cubic-bezier(.18,.82,.28,1),filter .16s ease,transform .09s linear}
 .game-world.lane-game.is-dragging .game-runner{transition:none}
-.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.17s / var(--speed)) ease-in-out infinite}
-.game-back-rig .back-body,.game-back-rig .back-leg>path,.game-back-rig .back-arm>path{stroke:#172033;stroke-width:2;stroke-linejoin:round}.game-back-rig .back-body{filter:drop-shadow(0 4px 3px rgba(0,0,0,.22))}
-.game-back-rig .back-leg,.game-back-rig .back-arm{transform-box:fill-box;transform-origin:50% 12%}.game-back-rig .back-leg-l{animation:gameBackLegL calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-leg-r{animation:gameBackLegR calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-body{transform-box:fill-box;transform-origin:50% 100%;animation:gameBackTwist calc(.34s / var(--speed)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameRunShadow calc(.17s / var(--speed)) ease-in-out infinite}
-/* A real sprint: the stride swings roughly twice as far as it used to, the
-   body lifts off the ground between steps and the shoulders counter-rotate
-   against the legs. Cadence follows --speed, so the run visibly winds up as
-   the score climbs instead of holding one polite jog all the way through. */
-@keyframes gameBackBob{0%,100%{transform:translateY(3px) rotate(.6deg) scaleY(.975)}50%{transform:translateY(-13px) rotate(-1.6deg) scaleY(1.03)}}
-@keyframes gameBackLegL{0%,100%{transform:translate(2px,-3px) rotate(46deg)}50%{transform:translate(-4px,4px) rotate(-44deg)}}
-@keyframes gameBackLegR{0%,100%{transform:translate(4px,4px) rotate(-44deg)}50%{transform:translate(-2px,-3px) rotate(46deg)}}
-@keyframes gameBackArmL{0%,100%{transform:translateX(2px) rotate(-52deg)}50%{transform:translateX(-2px) rotate(46deg)}}
-@keyframes gameBackArmR{0%,100%{transform:translateX(-2px) rotate(46deg)}50%{transform:translateX(2px) rotate(-52deg)}}
-@keyframes gameBackTwist{0%,100%{transform:rotate(2.4deg)}50%{transform:rotate(-2.4deg)}}
+.game-back-avatar,.game-back-rig{position:relative;width:100%;height:100%;overflow:visible}.game-back-rig{z-index:2;filter:drop-shadow(0 9px 6px rgba(0,0,0,.38));animation:gameBackBob calc(.29s / var(--run-cadence,1)) linear infinite}
+.game-back-rig .back-body,.game-back-rig .back-thigh,.game-back-rig .back-shin,.game-back-rig .back-shoe,.game-back-rig .back-arm>path{stroke:#172033;stroke-width:2;stroke-linejoin:round}.game-back-rig .back-body{filter:drop-shadow(0 4px 3px rgba(0,0,0,.22))}
+.game-back-rig .back-leg,.game-back-rig .back-knee,.game-back-rig .back-arm{transform-box:view-box}.game-back-rig .back-leg-l{transform-origin:56px 140px;animation:gameBackLegL calc(.58s / var(--run-cadence,1)) cubic-bezier(.45,0,.55,1) infinite}.game-back-rig .back-leg-r{transform-origin:84px 140px;animation:gameBackLegR calc(.58s / var(--run-cadence,1)) cubic-bezier(.45,0,.55,1) infinite}.game-back-rig .back-knee-l{transform-origin:56px 171px;animation:gameBackKneeL calc(.58s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-knee-r{transform-origin:84px 171px;animation:gameBackKneeR calc(.58s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-arm{transform-origin:70px 84px}.game-back-rig .back-arm-l{animation:gameBackArmL calc(.58s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-arm-r{animation:gameBackArmR calc(.58s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-body{transform-box:view-box;transform-origin:70px 143px;animation:gameBackTwist calc(.58s / var(--run-cadence,1)) ease-in-out infinite}.game-back-rig .back-shadow{transform-box:fill-box;transform-origin:center;animation:gameBackShadow calc(.29s / var(--run-cadence,1)) ease-in-out infinite}
+/* Rear-view run cycle: depth is suggested through foreshortening and knee
+   compression, rather than swinging two rigid legs sideways like scissors. */
+@keyframes gameBackBob{0%,100%{transform:translateY(2px) scaleY(.99)}50%{transform:translateY(-5px) scaleY(1.008)}}
+@keyframes gameBackLegL{0%,100%{transform:translate(-1px,1px) rotate(7deg) scaleY(.91)}25%{transform:translate(0,-1px) rotate(1deg) scaleY(.97)}50%{transform:translate(1px,0) rotate(-6deg) scaleY(1.035)}75%{transform:translate(0,2px) rotate(0) scaleY(.96)}}
+@keyframes gameBackLegR{0%,100%{transform:translate(1px,0) rotate(-6deg) scaleY(1.035)}25%{transform:translate(0,2px) rotate(0) scaleY(.96)}50%{transform:translate(-1px,1px) rotate(7deg) scaleY(.91)}75%{transform:translate(0,-1px) rotate(1deg) scaleY(.97)}}
+@keyframes gameBackKneeL{0%,100%{transform:rotate(-10deg) translateY(-1px) scaleY(.82)}25%{transform:rotate(2deg) scaleY(.94)}50%{transform:rotate(5deg) scaleY(1)}75%{transform:rotate(-3deg) scaleY(.9)}}
+@keyframes gameBackKneeR{0%,100%{transform:rotate(5deg) scaleY(1)}25%{transform:rotate(-3deg) scaleY(.9)}50%{transform:rotate(-10deg) translateY(-1px) scaleY(.82)}75%{transform:rotate(2deg) scaleY(.94)}}
+@keyframes gameBackArmL{0%,100%{transform:translateX(1px) rotate(-10deg)}50%{transform:translateX(-1px) rotate(9deg)}}
+@keyframes gameBackArmR{0%,100%{transform:translateX(-1px) rotate(9deg)}50%{transform:translateX(1px) rotate(-10deg)}}
+@keyframes gameBackTwist{0%,100%{transform:rotate(1.2deg) translateX(.5px)}50%{transform:rotate(-1.2deg) translateX(-.5px)}}
+@keyframes gameBackShadow{0%,100%{transform:scaleX(.92);opacity:.34}50%{transform:scaleX(.78);opacity:.25}}
 .game-runner.switch-left .game-back-rig{animation:gameLaneLeanLeft .26s ease both}.game-runner.switch-right .game-back-rig{animation:gameLaneLeanRight .26s ease both}.game-runner.switch-left:before,.game-runner.switch-right:before{content:'';position:absolute;z-index:-1;left:50%;bottom:4px;width:58px;height:20px;translate:-50% 0;border-radius:50%;background:radial-gradient(ellipse,rgba(147,197,253,.5),transparent 68%);animation:gameLaneDust .3s ease-out both}
 @keyframes gameLaneLeanLeft{35%{transform:translate(-8px,-4px) rotate(-12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneLeanRight{35%{transform:translate(8px,-4px) rotate(12deg) scaleY(.98)}100%{transform:none}}@keyframes gameLaneDust{to{opacity:0;transform:scale(2.2)}}
 .game-back-ride{position:absolute;z-index:1;left:50%;bottom:0;translate:-50% 0;font-size:clamp(66px,20vw,98px);filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}.game-back-avatar.has-ride .game-back-rig{transform:translateY(-28px) scale(.82);transform-origin:50% 100%}
@@ -6943,7 +6944,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.36.0';
+const APP_VERSION = '2.37.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11496,8 +11497,8 @@ function samRunBackAvatarHtml(store){
   const curls=curly?`<g fill="${hair}"><circle cx="43" cy="27" r="10"/><circle cx="56" cy="18" r="11"/><circle cx="72" cy="17" r="12"/><circle cx="89" cy="22" r="11"/><circle cx="98" cy="35" r="9"/></g>`:'';
   return `<div class="game-back-avatar${ride?' has-ride':''}">${ride?`<span class="game-back-ride" aria-hidden="true">${ride}</span>`:''}<svg class="game-back-rig" viewBox="0 0 140 220" aria-hidden="true">
     <ellipse class="back-shadow" cx="70" cy="211" rx="39" ry="8" fill="rgba(0,0,0,.35)"/>
-    <g class="back-leg back-leg-l"><path fill="${pants}" d="M43 139h25l-5 57H42z"/><path fill="${shoes}" d="M41 188h23l5 18c-9 7-24 7-34 1z"/></g>
-    <g class="back-leg back-leg-r"><path fill="${pants}" d="M72 139h25l1 57H77z"/><path fill="${shoes}" d="M77 188h23l5 19c-11 6-26 6-34-1z"/></g>
+    <g class="back-leg back-leg-l"><path class="back-thigh" fill="${pants}" d="M43 137h27l-3 37-24 1z"/><g class="back-knee back-knee-l"><path class="back-shin" fill="${pants}" d="M43 169h24l-3 28H42z"/><path class="back-shoe" fill="${shoes}" d="M41 190h23l5 16c-8 7-24 8-35 2z"/></g></g>
+    <g class="back-leg back-leg-r"><path class="back-thigh" fill="${pants}" d="M70 137h27v38l-24-1z"/><g class="back-knee back-knee-r"><path class="back-shin" fill="${pants}" d="M73 169h24l1 28H76z"/><path class="back-shoe" fill="${shoes}" d="M76 190h23l6 17c-10 7-26 7-35 0z"/></g></g>
     <g class="back-arm back-arm-l"><path fill="${clothes}" d="M43 79C29 81 20 94 19 112l16 5c3-11 8-19 17-24z"/><path fill="${skinShadow}" d="M19 108l17 5c-2 12 1 22 9 31l-12 10c-13-12-18-28-14-46z"/><circle cx="37" cy="151" r="8" fill="${skin}"/></g>
     <g class="back-arm back-arm-r"><path fill="${clothes}" d="M97 79c14 2 23 15 24 33l-16 5c-3-11-8-19-17-24z"/><path fill="${skinShadow}" d="M104 113l17-5c4 18-1 34-14 46l-12-10c8-9 11-19 9-31z"/><circle cx="103" cy="151" r="8" fill="${skin}"/></g>
     <path class="back-body" fill="${clothes}" d="M42 78c8-8 18-12 28-12s20 4 28 12l6 68c-20 9-48 9-68 0z"/>
@@ -12237,7 +12238,7 @@ function samRunStart(){
      freeze him upright through every swipe. */
   runner.style.top=''; runner.style.left='50%'; runner.style.transform='';
   runner.style.setProperty('--swipe-lean','0deg');
-  world.className=samRunWorldClass(g); world.style.setProperty('--speed','1');
+  world.className=samRunWorldClass(g); world.style.setProperty('--speed','1'); world.style.setProperty('--run-cadence','1');
   samRunPaintHud();
   const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
   /* A world opens by teaching its five words aloud. An endless run has dozens
@@ -12929,6 +12930,9 @@ function samRunScore(points, ob){
   const speed=samRunPace(g);
   if(world){
     world.style.setProperty('--speed',speed.toFixed(3));
+    /* The scenery may accelerate strongly, but a human cadence only rises a
+       little. Tying both to the same multiplier made Sam's legs buzz. */
+    world.style.setProperty('--run-cadence',Math.min(1.22,1+(speed-1)*.28).toFixed(3));
     world.classList.toggle('is-fast',speed>1.7);
     world.classList.toggle('zone-2',g.resolvedCount>=6);
     world.classList.toggle('zone-3',g.resolvedCount>=12);
