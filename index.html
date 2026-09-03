@@ -2066,6 +2066,11 @@ body{
 .game-mode button{background:var(--card);border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .game-mode button.on{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.6);color:#6ee7b7}
 .game-words{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.game-hub-best{margin:10px 0 4px;line-height:1}.game-hub-best b{display:block;font-size:46px;font-weight:950;color:#fff;letter-spacing:-.02em}.game-hub-best small{display:block;margin-top:2px;color:#bfdbfe;font-size:12px;font-weight:750}
+.game-hub-medals{display:flex;justify-content:center;gap:8px;margin:9px 0 4px;font-size:25px}
+.game-hub-medals span{opacity:.22;filter:grayscale(1);transition:.25s ease}.game-hub-medals span.won{opacity:1;filter:none;transform:scale(1.1)}
+.game-hub-go{width:100%;max-width:290px;margin:8px auto 4px;font-size:18px}
+.game-hub-words{margin-top:6px;color:#bfdbfe;font-size:12px;font-weight:750}
 .game-lane-help{grid-column:1/-1;padding:10px;border:1px dashed rgba(96,165,250,.38);border-radius:13px;color:#bfdbfe;text-align:center;font-size:12px;font-weight:750}.game-words.lane-choices{grid-template-columns:repeat(3,1fr)}.game-words.lane-choices .game-word{min-height:68px}.game-words.lane-choices .game-word:before{content:attr(data-lane-icon);font-size:11px;color:#93c5fd}.game-words.lane-choices .game-word.is-lane-picked{border-color:#60a5fa;background:rgba(59,130,246,.2);transform:translateY(-3px)}
 .game-word{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px 8px;border-radius:14px;
   background:var(--card);border:1.5px solid var(--line);color:var(--text);font:inherit;cursor:pointer;direction:ltr;
@@ -2087,7 +2092,9 @@ body{
 .game-heard b{color:#6ee7b7;direction:ltr;unicode-bidi:isolate;font-weight:800}
 
 /* start, new-word and game-over cards sit on top of the world */
-.game-card{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;gap:6px;padding:12px 16px;text-align:center;overflow-y:auto;
+/* Above the runner (z-index 9): the start and reward cards are full-screen
+   overlays, and Sam standing on top of their buttons is not a look. */
+.game-card{position:absolute;inset:0;z-index:12;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;gap:6px;padding:12px 16px;text-align:center;overflow-y:auto;
   background:rgba(14,21,36,.82);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:fadeUp .3s ease both}
 /* `safe center`: a card taller than the world anchors to its top and scrolls,
    instead of centring and losing its heading off the top edge */
@@ -2223,8 +2230,9 @@ body{
 @keyframes gameHurdleHit{to{opacity:0;rotate:38deg;translate:0 26px}}
 /* Walls run the full width of the road, so the element is spawned at the road's
    own width in pixels and then simply rides the camera's scale. */
-.game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:center;gap:10px;height:38px;border-radius:10px;border:2px solid rgba(255,255,255,.66);color:#fff;font-size:21px;font-weight:950;letter-spacing:.07em;direction:ltr;text-shadow:0 2px 7px rgba(0,0,0,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:space-between;overflow:hidden;padding:0 11px;gap:8px;height:38px;border-radius:10px;border:2px solid rgba(255,255,255,.66);color:#fff;font-size:18px;font-weight:950;letter-spacing:.07em;direction:ltr;text-shadow:0 2px 7px rgba(0,0,0,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
 .game-rush .rush-bar{background:repeating-linear-gradient(45deg,#f59e0b 0 15px,#27313f 15px 30px)}
+.game-rush .rush-bar b,.game-rush .rush-beam b{white-space:nowrap}
 .game-rush .rush-beam{background:repeating-linear-gradient(45deg,#60a5fa 0 15px,#233043 15px 30px)}
 .game-rush .rush-beam:after{content:'';position:absolute;left:6%;right:6%;top:100%;height:190%;background:linear-gradient(180deg,rgba(96,165,250,.3),transparent);pointer-events:none}
 .game-rush .rush-bar.is-cleared{animation:gameWallPass .3s ease-out both}
@@ -6918,7 +6926,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.30.0';
+const APP_VERSION = '2.31.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11375,6 +11383,24 @@ const SAM_RUN_PHASES=[
   {id:'speed',icon:'⚡',title:'אתגר מהירות',hint:'אותן מילים חוזרות בקצב מהיר יותר.'},
   {id:'final',icon:'🏁',title:'אתגר סיום',hint:'ריצה אחרונה שפותחת את העולם הבא.'},
 ];
+/* The endless run is the game's main line. It has no goal to reach and no
+   world to unlock: it ends when the last heart is gone, and the thing that
+   grows is the distance. Everything a world used to gate behind a phase is
+   gated here behind distance instead, so the run introduces itself. */
+const SAM_RUN_ENDLESS_PHASE={id:'endless',icon:'♾️',title:'ריצה חופשית',hint:'רצים כמה שאפשר — המילים שלך, המהירות עולה.'};
+const SAM_RUN_FEATURE_AT={coins:0,walls:320,hurdles:620,pairs:1000};
+const SAM_RUN_FEATURE_SAY={
+  walls:{icon:'🚧',title:'מכשולים!',hint:'החליקו למעלה או למטה לפי המילה'},
+  hurdles:{icon:'⚠️',title:'עבודות בכביש',hint:'עוקפים אותן במסלול אחר'},
+  pairs:{icon:'⚡',title:'מכשולים בזוגות',hint:'שניים ברצף — קוראים את שניהם'},
+};
+const SAM_RUN_MEDALS=[
+  {m:250,icon:'🥉',title:'רץ מתחיל'},
+  {m:600,icon:'🥈',title:'רץ מנוסה'},
+  {m:1100,icon:'🥇',title:'רץ מהיר'},
+  {m:1800,icon:'🏅',title:'אלוף המסלול'},
+  {m:2800,icon:'🏆',title:'אגדה'},
+];
 const SAM_RUN_SCENERY=[
   {far:['🏢','🌳','🏠','🏬','🌲','🏫'],near:['🚏','🛴','🪴','🚲']},
   {far:['🏙️','🎨','🏢','🌈','🏬','🗼'],near:['🎈','🖌️','🚕','🚦']},
@@ -11642,7 +11668,7 @@ const SAM_RUN_THINGS={
 let samRun=null;
 
 function samRunStore(){
-  const base={version:5,best:0,plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0,owned:[],equipped:{}};
+  const base={version:5,best:0,bestDistance:0,medals:[],plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0,owned:[],equipped:{}};
   try{
     const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}');
     const store={...base,...(raw&&typeof raw==='object'?raw:{})};
@@ -11651,6 +11677,8 @@ function samRunStore(){
     store.phaseByStage=store.phaseByStage&&typeof store.phaseByStage==='object'?store.phaseByStage:{};
     store.owned=Array.isArray(store.owned)?[...new Set(store.owned.filter(id=>samRunItem(id)&&samRunItem(id).price>0))]:[];
     store.equipped=store.equipped&&typeof store.equipped==='object'?store.equipped:{};
+    store.bestDistance=Math.max(0,Math.floor(Number(store.bestDistance)||0));
+    store.medals=Array.isArray(store.medals)?[...new Set(store.medals.map(Number).filter(m=>SAM_RUN_MEDALS.some(x=>x.m===m)))]:[];
     for(const type of ['outfit','shoes','hair','character','ride']) if(samRunItem(store.equipped[type])?.type!==type) delete store.equipped[type];
     /* v3 stored the old modes as phase positions. Keep unfinished progress
        in its equivalent activity while completed worlds restart cleanly. */
@@ -11675,6 +11703,41 @@ function samRunSpeedFor(score){ return 1+Math.min(Math.max(0,score),70)/70*1.15;
    announces itself at the edge first (samRunWarnMs) so the word can be said
    while there is still time for it to be recognised. */
 function samRunTravelMs(score){ return Math.max(1500, Math.round(2400/samRunSpeedFor(score))); }
+/* Inside a world the run winds up with the score; out on the endless road it
+   winds up with the distance already covered, which is the only thing there. */
+function samRunPace(g){
+  if(!g) return 1;
+  return g.endless?1+Math.min(g.distance||0,2600)/2600*1.35:samRunSpeedFor(g.score);
+}
+function samRunWaveTiming(g){
+  if(g.endless){
+    /* No phases out here: the wave tightens as the run gets longer, and the
+       look the player gets before it starts moving shortens with it. */
+    return {travelMs:Math.max(1100,Math.round(2400/samRunPace(g))),warnMs:Math.max(400,Math.round(700-(g.distance||0)/5))};
+  }
+  const phasePace=g.phase.id==='final'?.74:g.phase.id==='speed'?.82:1;
+  const warnMs=g.phase.id==='final'?500:650;
+  return {travelMs:Math.round(samRunTravelMs(g.score)*phasePace),warnMs};
+}
+/* One question for the whole run: is this mechanic in play yet? A world asks
+   its phase; the endless road asks how far the player has come. */
+function samRunUnlocked(g,feature){
+  if(!g) return false;
+  if(g.endless) return (g.distance||0)>=(SAM_RUN_FEATURE_AT[feature]||0);
+  if(feature==='pairs') return g.phase.id==='final';
+  if(feature==='walls'||feature==='hurdles') return g.phase.id!=='learn';
+  return true;
+}
+/* An endless run is built out of the child's own course words. The runner's
+   own starter vocabulary fills in behind them — and carries the whole game for
+   a child who has only just begun the course. */
+function samRunEndlessWords(store,completed){
+  const course=SAM_RUN_COURSE_WORDS.filter(w=>w[6]<Math.max(0,Math.floor(Number(completed)||0))).map(w=>w[0]);
+  const own=SAM_RUN_STAGES.flatMap(s=>s.words.map(w=>w[0]));
+  if(course.length>=8) return {active:course,filler:own};
+  return {active:course.concat(shuffled(own).slice(0,12-course.length)),filler:own};
+}
+function samRunMedalsFor(metres){ return SAM_RUN_MEDALS.filter(x=>metres>=x.m); }
 function samRunWarnMs(score, latency=0){
   const base=Math.round(1000-250*(samRunSpeedFor(score)-1)/1.15);
   // a slow recogniser, measured on this device, earns more notice
@@ -11737,10 +11800,23 @@ function samRunWordsHtml(g){
     </button>`;
   }).join('');
 }
+function samRunEndlessCardHtml(store){
+  const words=samRun?.active||[], best=store.bestDistance||0;
+  const course=words.filter(id=>SAM_RUN_COMMANDS[id]?.lesson!==undefined);
+  return `
+    <div class="game-intro-runner">${samRunAvatarHtml(store,'game-sam')}</div>
+    <div class="game-stage-tag">♾️ ריצה חופשית${best?` · שיא ${best} מ׳`:''}</div>
+    <h2>עד כמה רחוק תגיע?</h2>
+    <p>אין קו סיום — רצים עד שנגמרים הלבבות, והמסלול נעשה מהיר יותר כל הזמן.</p>
+    <p class="words-said">🪙 ${SAM_RUN_FEATURE_AT.walls} מ׳ · 🚧 מכשולים · ${SAM_RUN_FEATURE_AT.pairs} מ׳ · ⚡ בזוגות</p>
+    ${course.length?`<p class="game-start-lesson">📚 ${course.length} ${course.length===1?'מילה שלמדת בשיעורים':'מילים שלמדת בשיעורים'} מחכות לך על המסלול</p>`:''}
+    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ›</button><small class="game-start-tip">↔️ מחליפים מסלול · ↕️ קופצים ומתכופפים</small>`;
+}
 function samRunHeardHtml(g){
   return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 כל תשובה שתבחר תושמע באנגלית.';
 }
 function samRunStartCardHtml(store){
+  if(samRun?.endless) return samRunEndlessCardHtml(store);
   const stage=SAM_RUN_STAGES[samRun?.stageIndex||0], ids=stage.words.map(w=>w[0]);
   const phase=samRun?.phase||SAM_RUN_PHASES[0];
   const learned=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
@@ -11755,14 +11831,38 @@ function samRunStartCardHtml(store){
     ${lesson.length?`<p class="game-start-lesson">📚 ${lesson.length} ${lesson.length===1?'מילה שלמדת בשיעורים משתתפת':'מילים שלמדת בשיעורים משתתפות'} בריצה: ${lesson.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</p>`:''}
     <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ›</button><small class="game-start-tip">לוחצים על המסלול הנכון וכל בחירה נשמעת באנגלית 🔊</small>`;
 }
+/* The front door of the game. What it shows is a personal best and a shelf of
+   medals, not a ladder of worlds: the course is the only curriculum now, and
+   the run is where it gets practised. The worlds are still here, one button
+   down, as focused practice on the runner's own starter words. */
+function samRunHubHtml(store){
+  const words=samRunEndlessWords(store,state.completed);
+  const course=SAM_RUN_COURSE_WORDS.filter(w=>w[6]<Math.max(0,Math.floor(Number(state.completed)||0))).length;
+  const medals=store.medals||[], best=store.bestDistance||0;
+  const next=SAM_RUN_MEDALS.find(x=>!medals.includes(x.m));
+  return `<div class="game-map">
+    <div class="game-map-hero">
+      <div class="game-intro-runner">${samRunAvatarHtml(store,'game-map-sam')}</div>
+      <h2>הריצה של סם</h2>
+      <div class="game-hub-best"><b>${best}</b><small>השיא שלך במטרים</small></div>
+      <div class="game-map-progress"><i style="width:${next?Math.min(100,best/next.m*100):100}%"></i></div>
+      <p>${next?`עוד ${Math.max(0,next.m-best)} מ׳ למדליה ${next.icon} ${esc(next.title)}`:'אספת את כל המדליות 🏆'}</p>
+      <div class="game-hub-medals">${SAM_RUN_MEDALS.map(x=>`<span class="${medals.includes(x.m)?'won':''}" title="${esc(x.title)} · ${x.m} מ׳">${x.icon}</span>`).join('')}</div>
+      <button class="btn game-hub-go" onclick="renderSamRunEndless()">▶️ יוצאים לריצה</button>
+      <p class="game-hub-words">${course
+        ?`📚 ${course} ${course===1?'מילה שלמדת רצה':'מילים שלמדת רצות'} איתך`
+        :`📚 כל שיעור שתסיים מוסיף מילים לריצה · בינתיים ${words.active.length} מילים של סם`} · 🪙 ${store.coins||0}</p>
+      <div class="game-map-actions"><button onclick="renderSamRunShop()">🛍️ חנות ועיצוב</button><button onclick="renderSamRunMap()">🎯 אימון ממוקד</button></div>
+    </div></div>`;
+}
 function samRunMapHtml(store){
   const curriculum=SAM_RUN_STAGES.flatMap(stage=>stage.words.map(w=>w[0]));
   const learned=curriculum.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
   const total=curriculum.length;
   return `<div class="game-map">
-    <div class="game-map-hero"><div class="game-intro-runner">${samRunAvatarHtml(store,'game-map-sam')}</div><h2>מסע המילים של סם</h2><p>רצים, מדברים ופותחים עולמות חדשים בלי להרגיש שלומדים.</p><div class="game-map-progress"><i style="width:${learned/total*100}%"></i></div><p style="margin-top:6px"><b>${learned}</b> מתוך ${total} מילים · 🪙 ${store.coins||0}</p><div class="game-map-actions"><button onclick="renderSamRunShop()">🛍️ חנות ועיצוב</button></div></div>
+    <div class="game-map-hero"><div class="game-intro-runner">${samRunAvatarHtml(store,'game-map-sam')}</div><h2>אימון ממוקד</h2><p>חמש מילים בכל פעם, בקצב רגוע — כל עולם פתוח מתי שבא לך.</p><div class="game-map-progress"><i style="width:${learned/total*100}%"></i></div><p style="margin-top:6px"><b>${learned}</b> מתוך ${total} מילים · 🪙 ${store.coins||0}</p><div class="game-map-actions"><button onclick="renderSamRunShop()">🛍️ חנות ועיצוב</button></div></div>
     <div class="game-stage-list">${SAM_RUN_STAGES.map((stage,i)=>{
-      const open=i<=store.stage, stars=store.stageStars[i]||0, ids=stage.words.map(w=>w[0]);
+      const open=true, stars=store.stageStars[i]||0, ids=stage.words.map(w=>w[0]);
       const phaseIndex=Math.max(0,Math.min(SAM_RUN_PHASES.length-1,Number(store.phaseByStage[i])||0)), phase=SAM_RUN_PHASES[phaseIndex];
       const mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY).length;
       return `<button class="game-stage${i===store.stage?' current':''}${stars?' done':''}${open?'':' is-locked'}" ${open?`onclick="renderSamRun(${i})"`:'disabled'}><span class="stage-num">עולם ${i+1}</span><span class="stage-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</span><span class="stage-icon">${stage.icon}</span><strong>${esc(stage.title)}</strong><small>${ids.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</small>${open?`<span class="stage-mode">${phase.icon} הבא: ${phase.title}</span><span class="stage-lock">${mastered}/${ids.length} ✓</span>`:'<span class="stage-lock">🔒</span>'}</button>`;
@@ -11822,33 +11922,47 @@ function samRunShopChoose(id){
   if(item.price===0) delete store.equipped[item.type]; else store.equipped[item.type]=id;
   samRunSave(store); samRunTone('tick'); renderSamRunShop(item.type,id);
 }
-function renderSamRun(stageIndex=null){
+function renderSamRunEndless(){ renderSamRun(null,true); }
+function renderSamRunMap(){
+  const store=samRunStore();
+  samRunTeardown();
+  hx(`<div class="screen game-screen"><div class="game-top"><button class="xbtn" onclick="renderSamRun()" aria-label="חזרה למשחק">←</button><div class="game-title">🎯 אימון ממוקד</div><div class="game-scorebox"><div class="game-score">${store.totalCorrect||0}</div><div class="game-best">מילים נכונות</div></div></div>${samRunMapHtml(store)}</div>`);
+}
+function renderSamRun(stageIndex=null,endless=false){
   samRunTeardown();
   const store=samRunStore();
-  if(stageIndex===null||stageIndex===undefined){
-    hx(`<div class="screen game-screen"><div class="game-top"><button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button><div class="game-title">🏃 המשחק של סם</div><div class="game-scorebox"><div class="game-score">${store.totalCorrect||0}</div><div class="game-best">מילים נכונות</div></div></div>${samRunMapHtml(store)}</div>`);
+  if(!endless&&(stageIndex===null||stageIndex===undefined)){
+    hx(`<div class="screen game-screen"><div class="game-top"><button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button><div class="game-title">🏃 המשחק של סם</div><div class="game-scorebox"><div class="game-score">${store.bestDistance||0}</div><div class="game-best">שיא במטרים</div></div></div>${samRunHubHtml(store)}</div>`);
     return;
   }
-  stageIndex=Math.max(0,Math.min(store.stage,Number(stageIndex)||0));
+  /* An endless run borrows a world only for its scenery, and rolls through the
+     rest of them as the distance grows. */
+  stageIndex=endless?Math.max(0,Math.min(SAM_RUN_STAGES.length-1,Number(store.stage)||0))
+                    :Math.max(0,Math.min(SAM_RUN_STAGES.length-1,Number(stageIndex)||0));
   const stage=SAM_RUN_STAGES[stageIndex];
-  const phaseIndex=Math.max(0,Math.min(SAM_RUN_PHASES.length-1,Number(store.phaseByStage[stageIndex])||0));
-  const phase=SAM_RUN_PHASES[phaseIndex], mode='tap';
+  const phaseIndex=endless?0:Math.max(0,Math.min(SAM_RUN_PHASES.length-1,Number(store.phaseByStage[stageIndex])||0));
+  const phase=endless?SAM_RUN_ENDLESS_PHASE:SAM_RUN_PHASES[phaseIndex], mode='tap';
   const mission=samRunMissionFor(store,mode,stageIndex,phaseIndex);
+  const endlessWords=endless?samRunEndlessWords(store,state.completed):null;
   samRun={
-    epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
+    epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,endless,
+    active:endless?endlessWords.active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},lane:1,laneGame:true,shield:0,runCoinBonus:0,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,review:samRunReviewPool(store,stageIndex,phaseIndex),lesson:phaseIndex?samRunLessonPool(state.completed,6):[],
+    distance:0,lastMetre:-1,announced:{},
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,taught:{},clearedWalls:0,
+    review:endless?endlessWords.filler:samRunReviewPool(store,stageIndex,phaseIndex),
+    lesson:endless?[]:(phaseIndex?samRunLessonPool(state.completed,6):[]),
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
   hx(`<div class="screen game-screen game-playing">
     <div class="game-top">
       <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
-      <div class="game-title">${phase.icon} ${esc(stage.title)} <small class="game-build">v${APP_VERSION}</small></div>
+      <div class="game-title">${phase.icon} ${esc(endless?phase.title:stage.title)} <small class="game-build">v${APP_VERSION}</small></div>
       <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
-      <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">שיא ${store.best}</div></div>
+      <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">${endless?`שיא ${store.bestDistance||0} מ׳`:`שיא ${store.best}`}</div></div>
     </div>
-    <div class="game-mission"><span>🎯 <b id="samRunMissionText">0/${SAM_RUN_GOAL}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
+    <div class="game-mission"><span>${endless?'📏':'🎯'} <b id="samRunMissionText">${endless?'0 מ׳':`0/${SAM_RUN_GOAL}`}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
       <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-swipe-hint" id="samRunSwipeHint"><span>👆</span><b>החליקו ימינה ושמאלה</b><small>או לחצו ישירות על המסלול</small></div><div class="game-speedlines"></div><div class="game-finish"></div>
@@ -11993,7 +12107,7 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,taught:{},clearedWalls:0});
+    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,taught:{},clearedWalls:0,distance:0,lastMetre:-1,announced:{}});
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
   runner.classList.remove('is-air-jump','is-air-duck');
@@ -12005,7 +12119,10 @@ function samRunStart(){
   world.className=samRunWorldClass(g); world.style.setProperty('--speed','1');
   samRunPaintHud();
   const words=document.getElementById('samRunWords'); if(words) words.innerHTML=samRunWordsHtml(g);
-  samRunReviewStep(0);
+  /* A world opens by teaching its five words aloud. An endless run has dozens
+     of them and the child has already met every one in a lesson, so it skips
+     the lecture and goes straight to the countdown. */
+  if(g.endless) samRunBeginCountdown(); else samRunReviewStep(0);
 }
 /* Every run opens with one brisk, spoken pass over the five words. It is
    short enough to feel like a game intro, but gives the learner a clean
@@ -12051,6 +12168,7 @@ function samRunFrame(ts){
   const dt=g.last?Math.min(50,ts-g.last):16; g.last=ts;
   if(!g.paused&&!document.hidden){
     g.time+=dt;
+    if(g.endless){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
     // window — unless a thing is already holding for it, which runs on its
@@ -12096,11 +12214,45 @@ function samRunFrame(ts){
   }
   g.raf=requestAnimationFrame(samRunFrame);
 }
+/* The endless run's own clock. Distance is the score, so everything that used
+   to be handed out by a world's phase is handed out here by the metre. */
+function samRunEndlessTick(){
+  const g=samRun, metre=Math.floor(g.distance);
+  if(metre===g.lastMetre) return;
+  g.lastMetre=metre;
+  for(const feature of Object.keys(SAM_RUN_FEATURE_SAY)){
+    if(metre>=SAM_RUN_FEATURE_AT[feature]&&!g.announced[feature]){
+      g.announced[feature]=true; samRunAnnounce(SAM_RUN_FEATURE_SAY[feature]);
+    }
+  }
+  /* A long run should travel somewhere, so the roadside rolls over into the
+     next world every 700m instead of running the same street forever. */
+  const scene=Math.floor(metre/700)%SAM_RUN_STAGES.length;
+  if(scene!==g.stageIndex) samRunSwapScene(scene);
+  samRunPaintHud();
+}
+function samRunAnnounce(say){
+  const g=samRun,hint=document.getElementById('samRunSwipeHint');
+  if(!g||!hint||!say) return;
+  hint.innerHTML=`<span>${say.icon}</span><b>${esc(say.title)}</b><small>${esc(say.hint)}</small>`;
+  hint.classList.add('is-air','show');
+  clearTimeout(g.airHintTimer);
+  g.airHintTimer=setTimeout(()=>{ if(samRun===g) hint.classList.remove('show','is-air'); },2400);
+}
+function samRunSwapScene(index){
+  const g=samRun,world=document.getElementById('samRunWorld'); if(!g||!world) return;
+  g.stageIndex=index; g.stage=SAM_RUN_STAGES[index];
+  /* samRunWorldClass rebuilds the class list from scratch, so the classes the
+     run has earned since it started have to be carried across by hand. */
+  const earned=['is-fast','zone-2','zone-3','has-shield'].filter(c=>world.classList.contains(c));
+  world.className=samRunWorldClass(g)+(earned.length?' '+earned.join(' '):'');
+  samRunAnnounce({icon:g.stage.icon,title:g.stage.title,hint:'עולם חדש על המסלול'});
+}
 /* Everything on the road that is not a question: kerb stones, roadside
    scenery, coins and roadworks. They all ride the shared camera and are what
    turns the stretch between two questions into a run. */
 function samRunRunRoad(dt){
-  const g=samRun, speed=samRunSpeedFor(g.score), still=prefersReducedStageMotion();
+  const g=samRun, speed=samRunPace(g), still=prefersReducedStageMotion();
   if(!still){
     if(g.time>=g.nextStoneAt){ samRunSpawnRush('stone'); g.nextStoneAt=g.time+230/speed; }
     if(g.time>=g.nextPropAt){ samRunSpawnRush('prop'); g.nextPropAt=g.time+(420+Math.random()*360)/speed; }
@@ -12171,7 +12323,18 @@ function samRunPaintRush(pr){
    at the same moment as an answer gate — at the same depth they simply hide
    each other. Walls wait for a clear stretch; coins are small enough to share. */
 function samRunRoadClear(g,arriveMs){
-  return !g.obstacles.some(ob=>!ob.resolved&&ob.laneWave&&Math.abs((1-ob.progress)*ob.travelMs-arriveMs)<520);
+  if(g.obstacles.some(ob=>!ob.resolved&&ob.laneWave&&Math.abs((1-ob.progress)*ob.travelMs-arriveMs)<520)) return false;
+  /* The waves that have not spawned yet count too. Checking only what is
+     already on the road let a wall be scheduled into a slot a question was
+     about to take — and the second wall of a pair reaches far enough ahead to
+     land in the wave after next, so project a few of them. */
+  const {travelMs,warnMs}=samRunWaveTiming(g);
+  const period=warnMs+travelMs*.86;
+  let spawnIn=Number.isFinite(g.nextSpawnAt)?g.nextSpawnAt-g.time:Infinity;
+  for(let i=0;i<3&&Number.isFinite(spawnIn);i++,spawnIn+=period){
+    if(Math.abs(spawnIn+warnMs+travelMs-arriveMs)<520) return false;
+  }
+  return true;
 }
 /* Everything on the road is placed by when it should REACH the player rather
    than by how fast it travels, so one arrival time can be shared between a
@@ -12181,7 +12344,12 @@ function samRunSpawnWall(kind,arriveMs,speed){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return null;
   const jump=kind==='jump', el=document.createElement('i');
   el.className=jump?'rush-bar':'rush-beam';
-  el.innerHTML=`<b>${jump?'JUMP':'DUCK'}</b><span>${jump?'⬆':'⬇'}</span>`;
+  /* The word sits at BOTH ends of the bar, out where the outer lanes are.
+     Scheduling keeps a wall and a row of gates apart most of the time but
+     cannot guarantee it, and a wall whose word is hidden behind the middle
+     gate is a wall the child cannot answer. */
+  const word=`<b>${jump?'JUMP':'DUCK'}</b>`;
+  el.innerHTML=word+`<span>${jump?'⬆':'⬇'}</span>`+word;
   el.style.width=Math.round(g.worldW*.93)+'px';
   host.appendChild(el);
   const pu={el,kind,lane:1,wide:true,p:0,life:samRunLifeFor(arriveMs,speed),done:false};
@@ -12208,12 +12376,12 @@ function samRunSpawnHurdle(lane,arriveMs,speed){
 function samRunSpawnPickup(){
   const g=samRun; if(!g||!document.getElementById('samRunRush')) return;
   /* The first, gentlest pass through a world stays a pure reading run. */
-  const runnerToys=g.phase.id!=='learn', final=g.phase.id==='final';
-  const speed=samRunSpeedFor(g.score), roll=Math.random();
+  const walls=samRunUnlocked(g,'walls'), pairs=samRunUnlocked(g,'pairs'), roadworks=samRunUnlocked(g,'hurdles');
+  const speed=samRunPace(g), roll=Math.random();
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
   const gateIn=live?Math.max(0,(1-live.progress)*live.travelMs):0;
   const lane=()=>Math.floor(Math.random()*3);
-  if(runnerToys&&roll<.32){
+  if(walls&&roll<.32){
     /* A wall is aimed at the gap: it arrives a beat after the question already
        on the road has been answered, so the two never share the last stretch
        and the run gets a one-two rhythm — read the word, then clear the wall. */
@@ -12225,24 +12393,24 @@ function samRunSpawnPickup(){
     /* The final challenge sends them in pairs, close enough behind that Sam is
        still landing from the first. The second is always the opposite wall, so
        it has to be read — a pair can never be cleared by repeating a gesture. */
-    if(final&&Math.random()<.55&&samRunRoadClear(g,first+1020)){
+    if(pairs&&Math.random()<.55&&samRunRoadClear(g,first+1020)){
       samRunSpawnWall(kind==='jump'?'duck':'jump',first+1020,speed);
       last=first+1020;
     }
     /* A wall and a line of coins may now share one gap. Reading the wall early
        leaves time to pick a lane, so the coins are the reward for reading it
        early rather than a second thing competing for the same moment. */
-    if(runnerToys&&Math.random()<.55) samRunSpawnCoins(lane(),first,speed);
+    if(samRunUnlocked(g,'coins')&&Math.random()<.55) samRunSpawnCoins(lane(),first,speed);
     g.nextPickupAt=g.time+last+660+Math.random()*460;
     return;
   }
-  if(runnerToys&&roll<.5){
+  if(roadworks&&roll<.5){
     samRunSpawnHurdle(lane(),1150,speed);
     g.nextPickupAt=g.time+1450+Math.random()*650;
     return;
   }
   samRunSpawnCoins(lane(),1150,speed);
-  g.nextPickupAt=g.time+(final?1520:1900)+Math.random()*700;
+  g.nextPickupAt=g.time+(pairs?1520:1900)+Math.random()*700;
 }
 function samRunPaintPickup(pu){
   const g=samRun,{y,scale,spread}=samRunDepth(pu.p);
@@ -12361,8 +12529,7 @@ function samRunSpawnLaneWave(){
      learn phase's pace — slower than the speed challenge it follows — so it
      had nothing of its own; it is now the fastest, and gives the shortest look
      at a wave before it starts moving. */
-  const phasePace=g.phase.id==='final'?.74:g.phase.id==='speed'?.82:1;
-  const travelMs=Math.round(samRunTravelMs(g.score)*phasePace),warnMs=g.phase.id==='final'?500:650;
+  const {travelMs,warnMs}=samRunWaveTiming(g);
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'');
   el.innerHTML=options.map((id,i)=>{ const choice=SAM_RUN_COMMANDS[id]; return `<button type="button" class="lane-gate${i===correctLane?' is-answer':''}${i===g.lane?' is-picked':''}${choice.lesson===undefined?'':' from-lesson'}" onclick="samRunChooseLane(${i})"><span>${choice.ic}</span>${choice.en}</button>`; }).join('');
@@ -12476,7 +12643,7 @@ function samRunScore(points, ob){
   samRunBurst(ob);
   samRunPaintHud(true);
   const world=document.getElementById('samRunWorld');
-  const speed=samRunSpeedFor(g.score);
+  const speed=samRunPace(g);
   if(world){
     world.style.setProperty('--speed',speed.toFixed(3));
     world.classList.toggle('is-fast',speed>1.7);
@@ -12564,8 +12731,14 @@ function samRunPaintHud(bump=false){
   if(score){ score.textContent=String(g.score); if(bump){ score.classList.remove('bump'); void score.offsetWidth; score.classList.add('bump'); } }
   const lives=document.getElementById('samRunLives');
   if(lives) lives.querySelectorAll('i').forEach((h,i)=>h.classList.toggle('lost',i>=g.lives));
-  const mt=document.getElementById('samRunMissionText'); if(mt) mt.textContent=`${Math.min(g.resolvedCount,SAM_RUN_GOAL)}/${SAM_RUN_GOAL}`;
-  const mb=document.getElementById('samRunMissionBar'); if(mb) mb.style.width=Math.min(100,g.resolvedCount/SAM_RUN_GOAL*100)+'%';
+  const mt=document.getElementById('samRunMissionText');
+  if(mt) mt.textContent=g.endless?`${Math.round(g.distance)} מ׳`:`${Math.min(g.resolvedCount,SAM_RUN_GOAL)}/${SAM_RUN_GOAL}`;
+  const mb=document.getElementById('samRunMissionBar');
+  /* The bar chases the record — or, on the very first run when there is no
+     record to chase, the first medal, so it is never simply full. */
+  if(mb) mb.style.width=Math.min(100,g.endless
+    ? g.distance/Math.max(120,g.store.bestDistance||SAM_RUN_MEDALS[0].m)*100
+    : g.resolvedCount/SAM_RUN_GOAL*100)+'%';
   const streak=document.getElementById('samRunStreak');
   if(streak){ streak.textContent=g.streak>=2?`🔥 ×${g.streak}`:''; streak.classList.toggle('on',g.streak>=2); streak.classList.toggle('hot',g.streak>=5); }
   samRunPaintMission();
@@ -12578,7 +12751,7 @@ function samRunUpdateWords(focus){
   samRunSave(g.store);
 }
 function samRunCheckFinish(){
-  const g=samRun; if(!g||g.finishing||g.lives<=0) return;
+  const g=samRun; if(!g||g.finishing||g.lives<=0||g.endless) return;
   if(g.resolvedCount<SAM_RUN_GOAL) return;
   g.finishing=true;
   g.nextSpawnAt=Infinity;
@@ -12604,6 +12777,32 @@ function samRunOver(finished=false){
   if(g.latencyEma) store.latency=Math.round(g.latencyEma);
   const ids=g.active, mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY);
   const accuracy=g.resolvedCount?g.correctCount/g.resolvedCount:0;
+  if(g.endless){
+    /* Nothing to unlock and no stars to award: an endless run is measured in
+       metres, and the only thing it can leave behind is a longer record. */
+    const metres=Math.round(g.distance), record=metres>(store.bestDistance||0);
+    store.bestDistance=Math.max(store.bestDistance||0,metres);
+    const won=samRunMedalsFor(metres), fresh=won.filter(x=>!(store.medals||[]).includes(x.m));
+    store.medals=[...new Set([...(store.medals||[]),...won.map(x=>x.m)])];
+    const earned=Math.max(1,g.correctCount)+(g.runCoinBonus||0)+fresh.length*15;
+    store.coins=(store.coins||0)+earned;
+    samRunSave(store);
+    samRunTone(record||fresh.length?'best':'over');
+    if(record||fresh.length) confetti();
+    const practised=[...new Set(Object.keys(g.cleared))].filter(id=>SAM_RUN_COMMANDS[id]?.lesson!==undefined);
+    card.hidden=false;
+    card.innerHTML=`<div class="reward">${fresh.length?fresh[fresh.length-1].icon:record?'🎉':'🏃'}</div>
+      <h2>${record?'שיא חדש!':`${metres} מטרים`}</h2>
+      <div class="game-stat"><div><b>${metres}</b>מטרים</div><div><b>${g.correctCount}</b>מילים נכונות</div><div><b>+${earned}</b>מטבעות</div></div>
+      ${fresh.length?`<div class="game-bonus-mission done"><span>${fresh[fresh.length-1].icon}</span><strong>מדליה חדשה: ${esc(fresh[fresh.length-1].title)}</strong><span class="bonus-progress">+${fresh.length*15} 🪙</span></div>`:''}
+      <div class="game-hub-medals">${SAM_RUN_MEDALS.map(x=>`<span class="${store.medals.includes(x.m)?'won':''}">${x.icon}</span>`).join('')}</div>
+      ${practised.length?`<div class="mastered-list">${practised.map(id=>`<span>📚 ${SAM_RUN_COMMANDS[id].en} ✓</span>`).join('')}</div>`:''}
+      <p>${record?'רחוק מאי פעם. עוד ריצה ותשבור גם את זה.':`השיא שלך הוא ${store.bestDistance} מ׳ — עוד ${Math.max(1,store.bestDistance-metres+1)} מ׳ והוא שלך.`}</p>
+      <div class="btn-row"><button class="btn" onclick="renderSamRunEndless()">עוד ריצה 🔁</button><button class="btn secondary" onclick="renderSamRun()">חזרה</button></div>`;
+    const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.bestDistance+' מ׳';
+    const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='כל בחירה נכונה חיברה בין הכתב לצליל 🔊';
+    return;
+  }
   const stars=g.lives===3&&accuracy>=.9?3:g.lives>=2&&accuracy>=.72?2:1;
   const passed=!!finished&&g.lives>0;
   const stageComplete=passed&&g.phaseIndex===SAM_RUN_PHASES.length-1;
