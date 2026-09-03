@@ -2241,6 +2241,14 @@ body{
 .game-rush .rush-bar b,.game-rush .rush-beam b{white-space:nowrap}
 .game-rush .rush-beam{background:repeating-linear-gradient(45deg,#60a5fa 0 15px,#233043 15px 30px)}
 .game-rush .rush-beam:after{content:'';position:absolute;left:6%;right:6%;top:100%;height:190%;background:linear-gradient(180deg,rgba(96,165,250,.3),transparent);pointer-events:none}
+.game-rush .rush-gap{display:flex;gap:5px;height:46px;padding:0}
+.game-rush .rush-gap b{flex:1;border:2px solid rgba(255,255,255,.62);border-radius:9px;background:repeating-linear-gradient(45deg,#f87171 0 14px,#2a2130 14px 28px);box-shadow:inset 0 1px rgba(255,255,255,.14);transition:opacity .16s ease,transform .16s ease}
+.game-rush .rush-gap b.open{opacity:0;transform:scaleY(.2)}
+.game-rush .rush-gap.is-cleared{animation:gameWallPass .3s ease-out both}
+/* A tunnel beam hangs lower and arches, so three of them read as one stretch
+   to stay down through rather than three separate bars. */
+.game-rush .rush-beam.is-tunnel{border-radius:22px 22px 8px 8px;border-top-width:5px;background:repeating-linear-gradient(45deg,#2dd4bf 0 15px,#123038 15px 30px)}
+.game-rush .rush-beam.is-tunnel:after{background:linear-gradient(180deg,rgba(45,212,191,.32),transparent)}
 .game-rush .rush-bar.is-cleared{animation:gameWallPass .3s ease-out both}
 .game-rush .rush-beam.is-cleared{animation:gameWallPass .3s ease-out both}
 @keyframes gameWallPass{to{opacity:0;filter:brightness(1.9)}}
@@ -6932,7 +6940,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.33.0';
+const APP_VERSION = '2.34.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11394,11 +11402,13 @@ const SAM_RUN_PHASES=[
    grows is the distance. Everything a world used to gate behind a phase is
    gated here behind distance instead, so the run introduces itself. */
 const SAM_RUN_ENDLESS_PHASE={id:'endless',icon:'♾️',title:'ריצה חופשית',hint:'רצים כמה שאפשר — המילים שלך, המהירות עולה.'};
-const SAM_RUN_FEATURE_AT={coins:0,walls:320,sentences:450,hurdles:620,pairs:1000};
+const SAM_RUN_FEATURE_AT={coins:0,walls:320,sentences:450,hurdles:620,pairs:1000,slider:1150,tunnel:1550};
 const SAM_RUN_FEATURE_SAY={
   walls:{icon:'🚧',title:'מכשולים!',hint:'החליקו למעלה או למטה לפי המילה'},
   hurdles:{icon:'⚠️',title:'עבודות בכביש',hint:'עוקפים אותן במסלול אחר'},
   pairs:{icon:'⚡',title:'מכשולים בזוגות',hint:'שניים ברצף — קוראים את שניהם'},
+  slider:{icon:'🚧',title:'מחסום עם פתח',hint:'עוברים דרך הפתח — והוא זז'},
+  tunnel:{icon:'🕳️',title:'מנהרה!',hint:'שלוש התכופפויות ברצף'},
 };
 const SAM_RUN_MEDALS=[
   {m:250,icon:'🥉',title:'רץ מתחיל'},
@@ -11791,12 +11801,13 @@ function samRunWaveTiming(g){
 function samRunUnlocked(g,feature){
   if(!g) return false;
   if(g.endless) return (g.distance||0)>=(SAM_RUN_FEATURE_AT[feature]||0);
-  /* Rebuilding a sentence belongs to the endless run: a world is five words
-     being taught, and has no phrases of the child's own to rebuild. */
-  if(feature==='sentences') return false;
-  if(feature==='pairs') return g.phase.id==='final';
+  if(feature==='coins') return true;
   if(feature==='walls'||feature==='hurdles') return g.phase.id!=='learn';
-  return true;
+  if(feature==='pairs') return g.phase.id==='final';
+  /* Everything else belongs to the endless road. A world is five words being
+     taught: it has no phrases of the child's own to rebuild, and no room to
+     earn a mechanic over a distance it never travels. */
+  return false;
 }
 /* An endless run is built out of the child's own course words. The runner's
    own starter vocabulary fills in behind them — and carries the whole game for
@@ -12438,7 +12449,10 @@ function samRunRoadClear(g,arriveMs){
 /* Everything on the road is placed by when it should REACH the player rather
    than by how fast it travels, so one arrival time can be shared between a
    wall, the coins beside it and the question already on its way. */
-function samRunLifeFor(arriveMs,speed){ return Math.max(820,Math.min(2600,arriveMs*speed/.94)); }
+/* The ceiling has to clear the furthest thing anything schedules — a tunnel's
+   third beam is aimed nearly three seconds out, and clamping it pulled that
+   beam forward into the second one's landing. */
+function samRunLifeFor(arriveMs,speed){ return Math.max(820,Math.min(3400,arriveMs*speed/.94)); }
 function samRunSpawnWall(kind,arriveMs,speed){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return null;
   const jump=kind==='jump', el=document.createElement('i');
@@ -12454,6 +12468,32 @@ function samRunSpawnWall(kind,arriveMs,speed){
   const pu={el,kind,lane:1,wide:true,p:0,life:samRunLifeFor(arriveMs,speed),done:false};
   g.pickups.push(pu); samRunTeachAir(kind);
   return pu;
+}
+function samRunSpawnGap(arriveMs,speed){
+  const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return null;
+  const el=document.createElement('i');
+  el.className='rush-gap';
+  el.innerHTML='<b></b><b></b><b></b>';
+  el.style.width=Math.round(g.worldW*.93)+'px';
+  host.appendChild(el);
+  const free=Math.floor(Math.random()*3);
+  /* The gap moves once on the way in, so being in the right lane early is not
+     the same as being in the right lane when it arrives. */
+  const pu={el,kind:'slide',lane:1,wide:true,free,free2:free===1?(Math.random()<.5?0:2):1,
+    slideAt:.45+Math.random()*.15,slid:false,p:0,life:samRunLifeFor(arriveMs,speed),done:false};
+  g.pickups.push(pu); samRunPaintGap(pu);
+  return pu;
+}
+function samRunPaintGap(pu){
+  pu.el.querySelectorAll('b').forEach((cell,i)=>cell.classList.toggle('open',i===pu.free));
+}
+function samRunSpawnTunnel(arriveMs,speed){
+  const g=samRun;
+  for(let i=0;i<3;i++){
+    const pu=samRunSpawnWall('duck',arriveMs+i*780,speed);
+    if(pu) pu.el.classList.add('is-tunnel');
+  }
+  return arriveMs+2*780;
 }
 function samRunSpawnCoins(lane,arriveMs,speed){
   const g=samRun,host=document.getElementById('samRunRush'); if(!host||!g) return;
@@ -12475,12 +12515,32 @@ function samRunSpawnHurdle(lane,arriveMs,speed){
 function samRunSpawnPickup(){
   const g=samRun; if(!g||!document.getElementById('samRunRush')) return;
   /* The first, gentlest pass through a world stays a pure reading run. */
-  const walls=samRunUnlocked(g,'walls'), pairs=samRunUnlocked(g,'pairs'), roadworks=samRunUnlocked(g,'hurdles');
-  const speed=samRunPace(g), roll=Math.random();
+  const pairs=samRunUnlocked(g,'pairs');
+  const speed=samRunPace(g);
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
   const gateIn=live?Math.max(0,(1-live.progress)*live.travelMs):0;
   const lane=()=>Math.floor(Math.random()*3);
-  if(walls&&roll<.32){
+  /* What this gap can hold, weighted. Reading it as a menu keeps the shares
+     stable as the road unlocks more of them: coins never get squeezed out by
+     a later mechanic, and a locked one simply is not on the list. */
+  const menu=[];
+  if(samRunUnlocked(g,'tunnel')) menu.push(['tunnel',10]);
+  if(samRunUnlocked(g,'slider')) menu.push(['slider',16]);
+  if(samRunUnlocked(g,'walls')) menu.push(['wall',26]);
+  if(samRunUnlocked(g,'hurdles')) menu.push(['hurdle',16]);
+  menu.push(['coins',44]);
+  let roll=Math.random()*menu.reduce((n,x)=>n+x[1],0), choice='coins';
+  for(const [what,weight] of menu){ roll-=weight; if(roll<0){ choice=what; break; } }
+
+  if(choice==='tunnel'||choice==='slider'){
+    /* Both are aimed at the gap, like a wall, and for the same reason. */
+    const first=gateIn+780;
+    if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
+    const last=choice==='tunnel'?samRunSpawnTunnel(first,speed):(samRunSpawnGap(first,speed),first);
+    g.nextPickupAt=g.time+last+700+Math.random()*400;
+    return;
+  }
+  if(choice==='wall'){
     /* A wall is aimed at the gap: it arrives a beat after the question already
        on the road has been answered, so the two never share the last stretch
        and the run gets a one-two rhythm — read the word, then clear the wall. */
@@ -12503,7 +12563,7 @@ function samRunSpawnPickup(){
     g.nextPickupAt=g.time+last+660+Math.random()*460;
     return;
   }
-  if(roadworks&&roll<.5){
+  if(choice==='hurdle'){
     samRunSpawnHurdle(lane(),1150,speed);
     g.nextPickupAt=g.time+1450+Math.random()*650;
     return;
@@ -12513,6 +12573,7 @@ function samRunSpawnPickup(){
 }
 function samRunPaintPickup(pu){
   const g=samRun,{y,scale,spread}=samRunDepth(pu.p);
+  if(pu.kind==='slide'&&!pu.slid&&pu.p>=pu.slideAt){ pu.slid=true; pu.free=pu.free2; samRunPaintGap(pu); }
   const x=pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*spread/100);
   /* scale() sits to the left of the anchoring translate so the anchor shrinks
      with the thing itself — otherwise a distant object is lifted by its full
@@ -12527,6 +12588,20 @@ function samRunTakePickup(pu){
   if(pu.kind==='coin'){
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
     pu.el.classList.add('is-taken'); samRunTone('tick'); samRunFloat('🪙 +1',at);
+    return;
+  }
+  if(pu.kind==='slide'){
+    if(g.lane===pu.free){
+      g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
+      g.clearedWalls=(g.clearedWalls||0)+1;
+      pu.el.classList.add('is-cleared');
+      samRunTone('catch'); samRunFloat('דרך הפתח! 🪙',at); samRunWorldFx('is-success',360);
+      return;
+    }
+    pu.el.classList.add('is-cleared');
+    if(g.streak>=2) samRunFloat('הרצף נקטע!',at,true); else samRunFloat('💨',at,true);
+    g.streak=0; g.cleanStreak=0;
+    samRunTone('hit'); samRunPaintHud(); samRunWorldFx('is-bump',360); samRunPose('is-stumble',420);
     return;
   }
   if(pu.wide&&g.air?.kind===pu.kind){
@@ -12552,7 +12627,9 @@ function samRunTakePickup(pu){
    can never cost a jump. */
 function samRunAirborne(kind){
   const g=samRun; if(!g||!g.running||!g.laneGame) return;
-  if(g.air&&g.air.until>g.time+80) return;       // no second jump in mid-air
+  /* Long enough that a jump cannot be restarted at its apex, short enough that
+     three ducks through a tunnel are a rhythm rather than a race. */
+  if(g.air&&g.air.until>g.time+220) return;
   g.air={kind,until:g.time+(kind==='jump'?640:560)};
   const runner=document.getElementById('samRunRunner');
   if(runner){
