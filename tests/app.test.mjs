@@ -3482,8 +3482,10 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
     'the whole road is the input surface');
   assert.match(html, /dx=x-startX/,
     'horizontal swipes move naturally between perspective lanes');
-  assert.match(html, /const isVertical=\(dx,dy\)=>Math\.abs\(dy\)>=22&&Math\.abs\(dy\)>Math\.abs\(dx\)\*1\.2/,
-    'a gesture goes to whichever axis dominates it, so lane swipes and jumps never collide');
+  assert.match(html, /const axisOf=\(dx,dy\)=>Math\.max\(Math\.abs\(dx\),Math\.abs\(dy\)\)<14\?'':\(Math\.abs\(dy\)>Math\.abs\(dx\)\*\.85\?'y':'x'\)/,
+    'a gesture belongs to one axis, decided once by whichever delta is bigger');
+  assert.match(html, /if\(!axis\) axis=axisOf\(dx,dy\);/,
+    'and it is decided once per gesture rather than re-judged on every sample');
   assert.match(html, /if\(e\.key==='ArrowUp'\|\|e\.key==='ArrowDown'\) samRunAirborne\(e\.key==='ArrowUp'\?'jump':'duck'\)/,
     'the keyboard reaches the vertical axis too');
   assert.match(html, /document\.addEventListener\('touchmove',onTouchMove,\{passive:false,capture:true\}\)/,
@@ -3717,10 +3719,30 @@ test("walls give the road a vertical axis that can only be answered by reading",
   for (const [kind, air] of [['duck', 'jump'], ['jump', null]]) {
     Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3 });
     game.air = air ? { kind: air, until: game.time + 500 } : null;
+    game.lastAir = air ? { kind: air, at: game.time } : null;
     api.samRunTakePickup(wall(kind));
     assert.equal(game.streak, 0, `${air || 'nothing'} against a ${kind} wall breaks the combo`);
     assert.equal(game.lives, 3, 'and still never costs a heart');
   }
+
+  // jumping a little early still clears it — being cautious must not be punished
+  // harder than being late
+  const early = ms => {
+    Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, runCoinBonus: 0, air: null });
+    game.lastAir = { kind: 'jump', at: game.time - ms };
+    api.samRunTakePickup(wall('jump'));
+    return game.streak;
+  };
+  assert.equal(early(400), 5, 'a jump made a moment too soon still carries him over');
+  assert.equal(early(1200), 5, 'and so does one made as soon as the wall became readable');
+  assert.equal(early(1600), 0, 'but one made long before does not');
+  // one gesture clears one wall — a tunnel still needs a duck per beam
+  Object.assign(game, { streak: 5, cleanStreak: 5, lives: 3, air: null });
+  game.lastAir = { kind: 'duck', at: game.time - 200 };
+  api.samRunTakePickup(wall('duck'));
+  assert.equal(game.streak, 5, 'the first beam is cleared');
+  api.samRunTakePickup(wall('duck'));
+  assert.equal(game.streak, 0, 'the second needs its own duck');
 
   // a wall is aimed at the gap, never at the same depth as a live gate
   game.obstacles = [{ resolved: false, laneWave: true, progress: .5, travelMs: 2000 }];

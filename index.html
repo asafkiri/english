@@ -2199,8 +2199,8 @@ body{
 @keyframes gameBackHit{0%,100%{transform:translateX(-50%)}25%{transform:translateX(-65%) rotate(-8deg)}55%{transform:translateX(-37%) rotate(5deg)}}
 .game-world.lane-game.has-shield .game-runner{filter:drop-shadow(0 0 11px rgba(96,165,250,.7))}.game-world.lane-game.has-shield .game-runner:after{inset:18% -9px auto auto;width:34px;height:34px;border:1px solid rgba(147,197,253,.8);border-radius:11px;display:grid;place-items:center;background:rgba(15,35,65,.88);font-size:18px;box-shadow:0 0 14px rgba(96,165,250,.55)}
 
-.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(88px,27vw,132px);height:clamp(68px,10dvh,92px);margin:0;padding:8px 6px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.game-obstacle.lane-wave .lane-gate.is-word{justify-content:center;font-size:19px;letter-spacing:.02em;direction:ltr;border-color:rgba(196,181,253,.6);background:linear-gradient(145deg,rgba(79,60,130,.95),rgba(22,18,42,.95))}
+.game-world.lane-game #samRunObstacles{position:absolute;inset:0;z-index:7;pointer-events:none}.game-obstacle.lane-wave{inset:0;top:0;bottom:0;width:100%;height:100%;z-index:7;display:block;pointer-events:none;transform:none!important}.game-obstacle.lane-wave:after{display:none}.game-obstacle.lane-wave .lane-gate{position:absolute;width:clamp(88px,27vw,132px);height:clamp(68px,10dvh,92px);margin:0;padding:7px 3px;border:2px solid rgba(191,219,254,.48);border-top-width:4px;border-radius:22px 22px 15px 15px;pointer-events:auto;will-change:left,top,transform;transform-origin:center;transition:border-color .13s ease,background .13s ease,box-shadow .13s ease;font-size:16px;letter-spacing:0;box-shadow:inset 0 1px rgba(255,255,255,.12),0 12px 28px rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.game-obstacle.lane-wave .lane-gate.is-word{justify-content:center;font-size:21px;letter-spacing:.02em;direction:ltr;border-color:rgba(196,181,253,.6);background:linear-gradient(145deg,rgba(79,60,130,.95),rgba(22,18,42,.95))}
 .game-lane-prompt .game-sentence{display:block;direction:ltr;margin-top:1px;font-size:.68em;letter-spacing:.05em;color:#ddd6fe}
 .game-lane-prompt .game-sentence b{color:#fff}
 .game-lane-prompt .game-sentence em{color:#fde68a;font-style:normal}
@@ -2209,7 +2209,7 @@ body{
 .game-obstacle.lane-wave .lane-gate.from-lesson:before{content:'📚';position:absolute;top:3px;left:5px;font-size:11px;opacity:.95;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .game-obstacle.lane-wave .lane-gate.from-lesson{border-color:rgba(253,230,138,.6)}
 .game-start-lesson{margin-top:6px;padding:6px 10px;border:1px dashed rgba(253,230,138,.5);border-radius:12px;color:#fde68a;font-size:12px;font-weight:800}
-.game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(20px,6vw,30px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
+.game-obstacle.lane-wave .lane-gate:nth-child(n){top:17%;left:50%}.game-obstacle.lane-wave .lane-gate span{font-size:clamp(17px,5vw,25px)}.game-obstacle.lane-wave .lane-gate.is-picked{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.25),0 12px 28px rgba(0,0,0,.42)}
 .game-obstacle.lane-wave.is-caught{animation:gameGateWin .48s ease both}.game-obstacle.lane-wave.is-poof{animation:gameGateMiss .48s ease both}
 @keyframes gameGateWin{55%{filter:brightness(1.55)}to{opacity:0}}@keyframes gameGateMiss{25%{filter:saturate(1.8)}45%{translate:-5px 0}65%{translate:5px 0}to{opacity:0}}
 
@@ -2236,7 +2236,7 @@ body{
 @keyframes gameHurdleHit{to{opacity:0;rotate:38deg;translate:0 26px}}
 /* Walls run the full width of the road, so the element is spawned at the road's
    own width in pixels and then simply rides the camera's scale. */
-.game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:space-between;overflow:hidden;padding:0 11px;gap:8px;height:38px;border-radius:10px;border:2px solid rgba(255,255,255,.66);color:#fff;font-size:18px;font-weight:950;letter-spacing:.07em;direction:ltr;text-shadow:0 2px 7px rgba(0,0,0,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.game-rush .rush-bar,.game-rush .rush-beam{display:flex;align-items:center;justify-content:space-between;overflow:hidden;padding:0 11px;gap:8px;height:40px;border-radius:10px;border:2px solid rgba(255,255,255,.66);color:#fff;font-size:21px;font-weight:950;letter-spacing:.07em;direction:ltr;text-shadow:0 2px 7px rgba(0,0,0,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
 .game-rush .rush-bar{background:repeating-linear-gradient(45deg,#f59e0b 0 15px,#27313f 15px 30px)}
 .game-rush .rush-bar b,.game-rush .rush-beam b{white-space:nowrap}
 .game-rush .rush-beam{background:repeating-linear-gradient(45deg,#60a5fa 0 15px,#233043 15px 30px)}
@@ -6940,7 +6940,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.34.0';
+const APP_VERSION = '2.35.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12095,20 +12095,27 @@ function renderSamRun(stageIndex=null,endless=false){
    at bind time; holding it meant no swipe ever reached the game. */
 function samRunBindLaneInput(worldAtBind,g){
   const stage=()=>document.getElementById('samRunWorld')||worldAtBind||null;
-  let startX=0,startY=0,startLane=1,dragging=false,handled=false,pointerId=null,suppressClickUntil=0;
+  let startX=0,startY=0,startLane=1,dragging=false,handled=false,axis='',pointerId=null,suppressClickUntil=0;
   const runner=()=>document.getElementById('samRunRunner'),focus=()=>document.getElementById('samRunLaneFocus');
   const canPlay=()=>samRun===g&&g.running&&g.laneGame&&!!stage();
-  const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;stage().classList?.add('is-dragging');return true; };
+  const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;axis='';stage().classList?.add('is-dragging');return true; };
   const chooseFromSwipe=lane=>{ handled=true;suppressClickUntil=Date.now()+700;samRunChooseLane(lane); };
   /* A gesture belongs to whichever axis clearly dominates it, so a lane swipe
      never turns into a jump and a jump never drags Sam out of his lane. */
-  const isVertical=(dx,dy)=>Math.abs(dy)>=22&&Math.abs(dy)>Math.abs(dx)*1.2;
+  /* A gesture belongs to one axis, decided once, by whichever delta is bigger
+     the moment it becomes a swipe. Judging every sample on its own meant a
+     thumb swiping up — which always arcs sideways on a phone — crossed the
+     horizontal threshold first, was spent as a lane change, and locked the jump
+     out for the rest of the gesture. Vertical is given a slight edge because it
+     is the only way to reach that axis at all, while a lane can also be tapped. */
+  const axisOf=(dx,dy)=>Math.max(Math.abs(dx),Math.abs(dy))<14?'':(Math.abs(dy)>Math.abs(dx)*.85?'y':'x');
   const airFromSwipe=dy=>{ handled=true;suppressClickUntil=Date.now()+700;samRunSetLaneVisual(g.lane);samRunAirborne(dy<0?'jump':'duck'); };
   const preview=(x,y)=>{
     if(!dragging||!canPlay()) return;
     const rect=stage().getBoundingClientRect(),dx=x-startX,dy=y-startY;
-    if(!handled&&isVertical(dx,dy)){ airFromSwipe(dy); return; }
-    if(Math.abs(dx)<5||Math.abs(dx)<Math.abs(dy)*.7) return;
+    if(!axis) axis=axisOf(dx,dy);
+    if(axis==='y'){ if(!handled&&Math.abs(dy)>=20) airFromSwipe(dy); return; }
+    if(axis!=='x') return;
     const base=[20,50,80][startLane],left=Math.max(12,Math.min(88,base+dx/rect.width*100));
     const r=runner(),f=focus(); if(r){r.style.left=left+'%';r.style.setProperty('--swipe-lean',Math.max(-12,Math.min(12,dx/8))+'deg');} if(f)f.style.left=left+'%';
     if(!handled&&Math.abs(dx)>=18) chooseFromSwipe(startLane+(dx>0?1:-1));
@@ -12117,14 +12124,15 @@ function samRunBindLaneInput(worldAtBind,g){
     if(!dragging) return; dragging=false; stage()?.classList?.remove('is-dragging');
     if(!canPlay()) return;
     const dx=x-startX,dy=y-startY;
-    if(!handled&&isVertical(dx,dy)) airFromSwipe(dy);
-    else if(!handled&&Math.abs(dx)>=18&&Math.abs(dx)>Math.abs(dy)*.7) chooseFromSwipe(startLane+(dx>0?1:-1));
-    else if(!handled&&Math.abs(dx)<18&&Math.abs(dy)<18&&!target?.closest?.('.lane-gate')){
+    if(!axis) axis=axisOf(dx,dy);
+    if(!handled&&axis==='y'&&Math.abs(dy)>=20) airFromSwipe(dy);
+    else if(!handled&&axis==='x'&&Math.abs(dx)>=18) chooseFromSwipe(startLane+(dx>0?1:-1));
+    else if(!handled&&!axis&&!target?.closest?.('.lane-gate')){
       const rect=stage().getBoundingClientRect(); samRunChooseLane(Math.floor((x-rect.left)/rect.width*3));
     } else samRunSetLaneVisual(g.lane);
   };
   const startsInWorld=e=>{ const el=stage(); return !!el&&(!!e.composedPath?.().includes(el)||!!el.contains?.(e.target)||e.target===el); };
-  const cancel=()=>{dragging=false;pointerId=null;stage()?.classList?.remove('is-dragging');samRunSetLaneVisual(g.lane);};
+  const cancel=()=>{dragging=false;handled=false;axis='';pointerId=null;stage()?.classList?.remove('is-dragging');samRunSetLaneVisual(g.lane);};
   /* Current iPhones expose touch primarily as Pointer Events. Listen in the
      capture phase so moving across a lane button cannot steal the gesture. */
   const onPointerDown=e=>{
@@ -12534,7 +12542,7 @@ function samRunSpawnPickup(){
 
   if(choice==='tunnel'||choice==='slider'){
     /* Both are aimed at the gap, like a wall, and for the same reason. */
-    const first=gateIn+780;
+    const first=Math.max(1800,gateIn+780);
     if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
     const last=choice==='tunnel'?samRunSpawnTunnel(first,speed):(samRunSpawnGap(first,speed),first);
     g.nextPickupAt=g.time+last+700+Math.random()*400;
@@ -12544,7 +12552,11 @@ function samRunSpawnPickup(){
     /* A wall is aimed at the gap: it arrives a beat after the question already
        on the road has been answered, so the two never share the last stretch
        and the run gets a one-two rhythm — read the word, then clear the wall. */
-    const first=gateIn+780;
+    /* Long enough to be seen, read and answered. Aiming purely at the gap
+       after the live question gave a wall 780ms whenever there was no question
+       on the road — the shortest approach exactly when it should be the
+       easiest. Staying clear of the gates is samRunRoadClear's job. */
+    const first=Math.max(1800,gateIn+780);
     if(!samRunRoadClear(g,first)){ g.nextPickupAt=g.time+400; return; }
     const kind=Math.random()<.55?'jump':'duck';
     samRunSpawnWall(kind,first,speed);
@@ -12604,7 +12616,12 @@ function samRunTakePickup(pu){
     samRunTone('hit'); samRunPaintHud(); samRunWorldFx('is-bump',360); samRunPose('is-stumble',420);
     return;
   }
-  if(pu.wide&&g.air?.kind===pu.kind){
+  /* Any matching gesture made once the wall was readable counts, and the whole
+     approach counts as readable. A wall asks whether he saw JUMP or DUCK, not
+     whether he can hit one frame, so only the wrong gesture fails. The gesture
+     is then spent, so one duck cannot carry him through a whole tunnel. */
+  if(pu.wide&&(g.air?.kind===pu.kind||(g.lastAir?.kind===pu.kind&&g.time-g.lastAir.at<=1400))){
+    g.lastAir=null;
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
     g.clearedWalls=(g.clearedWalls||0)+1;
     pu.el.classList.add('is-cleared');
@@ -12631,6 +12648,10 @@ function samRunAirborne(kind){
      three ducks through a tunnel are a rhythm rather than a race. */
   if(g.air&&g.air.until>g.time+220) return;
   g.air={kind,until:g.time+(kind==='jump'?640:560)};
+  /* Remembered past the landing so a player who jumps a little early still
+     clears the wall. Without it, being cautious was punished harder than
+     being late. */
+  g.lastAir={kind,at:g.time};
   const runner=document.getElementById('samRunRunner');
   if(runner){
     runner.classList.remove('is-air-jump','is-air-duck'); void runner.offsetWidth;
