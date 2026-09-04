@@ -13103,7 +13103,7 @@ void main(){
   asph*=.93+.14*hash(floor(vec2(x*7.,z*7.)));
   asph*=1.+.05*(1.-ax/uHalfW);
   float lane=abs(mod(x+uLaneW*.5,uLaneW)-uLaneW*.5);
-  asph*=1.-.08*smoothstep(uLaneW*.36,uLaneW*.22,lane);
+  asph*=1.-.08*(1.-smoothstep(uLaneW*.22,uLaneW*.36,lane));
   /* lane seams: short dashes on the two inner lines; solid edge lines */
   float seam=abs(ax-uLaneW*.5);
   float dash=step(.55,fract(z/3.2));
@@ -13156,8 +13156,8 @@ void main(){
     else if(uSkyline<2.5){h=.03+.025*sin(az*2.7+.4)+.014*sin(az*6.1+2.)+.006*sin(az*13.);h2=.012+.014*sin(az*4.3+1.)+.008*sin(az*9.7);}
     else{h=.05+.04*abs(sin(az*3.3))+.025*abs(sin(az*8.1+1.))+.012*sin(az*17.);h2=.02+.02*abs(sin(az*5.+2.));}
     vec3 farC=mix(uHaze,uSkyTop*.5,.42);vec3 nearC=mix(uHaze,uSkyTop*.35,.62);
-    col=mix(col,farC,smoothstep(h+.004,h-.004,t)*.85);
-    col=mix(col,nearC,smoothstep(h2+.003,h2-.003,t)*.9);
+    col=mix(col,farC,(1.-smoothstep(h-.004,h+.004,t))*.85);
+    col=mix(col,nearC,(1.-smoothstep(h2-.003,h2+.003,t))*.9);
     if(uSkyline<1.5&&uNight>.3){float w=step(.86,hash(floor(vec2(az*160.,t*260.))))*step(t,h-.006)*step(0.,t);col+=vec3(1.,.85,.5)*w*uNight;}
   }
   float s=dot(dir,uSun);
@@ -13176,7 +13176,7 @@ void main(){
 const S3D_PT_VS=`#version 300 es
 layout(location=0) in vec4 a;layout(location=1) in vec4 c;
 uniform mat4 uVP;uniform float uPx;out vec4 vc;
-void main(){gl_Position=uVP*vec4(a.xyz,1.);gl_PointSize=a.w*uPx/max(.3,gl_Position.w);vc=vec4(c.rgb,(1.-c.a)*(1.-c.a));}`;
+void main(){gl_Position=uVP*vec4(a.xyz,1.);gl_PointSize=min(60.,a.w*uPx/max(.3,gl_Position.w));vc=vec4(c.rgb,(1.-c.a)*(1.-c.a));}`;
 const S3D_PT_FS=`#version 300 es
 precision mediump float;in vec4 vc;out vec4 o;
 void main(){vec2 d=gl_PointCoord-.5;float m=1.-smoothstep(.2,.5,length(d));o=vec4(vc.rgb,vc.a*m*.75);}`;
@@ -13757,6 +13757,7 @@ function s3dTemplate(name,seed){
 const S3D_TPL_CACHE=new Map();
 function s3dTemplateFor(name,seed){
   const key=name+':'+seed;
+  if(S3D_TPL_CACHE.size>400) S3D_TPL_CACHE.clear();
   if(!S3D_TPL_CACHE.has(key)) S3D_TPL_CACHE.set(key,s3dTemplate(name,seed));
   return S3D_TPL_CACHE.get(key);
 }
@@ -14091,7 +14092,7 @@ function samRunGLDraw(g,idle){
   }
   for(const ob of g.obstacles){
     if(!ob.laneWave) continue;
-    const {travelMs}=ob, dist=Math.min(travelMs/1000*roadSpeed+2,(1-ob.progress)*travelMs/1000*roadSpeed);
+    const rv=roadSpeed||8.5, {travelMs}=ob, dist=Math.min(travelMs/1000*rv+2,(1-ob.progress)*travelMs/1000*rv);
     const z=-Math.max(-4,dist);
     let st=R.gateState.get(ob); if(!st){ st={}; R.gateState.set(ob,st); }
     if(ob.resolved&&!st.resolvedAt){ st.resolvedAt=R.time; if(ob.armed===ob.cmd){ samRunEmit('ring',S3D_LANE_X[ob.correctLane],z,24,accent); R.cam.fovKick=.06; } }

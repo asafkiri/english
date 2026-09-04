@@ -4932,8 +4932,8 @@ test("the world is already running behind the countdown, and the road throws dus
   assert.match(html, /function samRunEmit\([\s\S]*?if\(!R\|\|!R\.r\|\|prefersReducedStageMotion\(\)\|\|R\.tier<1\) return;/,
     'and a phone asking for less motion gets none of it — nor one that is already struggling');
   /* The particles live in the world now, not on the screen. */
-  assert.match(html, /gl_Position=uVP\*vec4\(a\.xyz,1\.\);gl_PointSize=a\.w\*uPx\/max\(\.3,gl_Position\.w\);/,
-    'they are placed in the world and shrink with distance like everything else');
+  assert.match(html, /gl_Position=uVP\*vec4\(a\.xyz,1\.\);gl_PointSize=min\(60\.,a\.w\*uPx\/max\(\.3,gl_Position\.w\)\);/,
+    'they are placed in the world and shrink with distance like everything else, never past the point size a phone allows');
 });
 
 test("the world is rendered in three dimensions, and the device gets to veto it", () => {
