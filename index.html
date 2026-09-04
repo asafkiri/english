@@ -2492,6 +2492,34 @@ body{
   .game-obstacle.is-caught{animation:gameCaught .5s ease both!important}
   .game-float{animation:gameFloat 1s ease-out both!important}
 }
+/* ================= Sam's Run, in three dimensions =================
+   When the WebGL world is up the DOM road, its runner, its props and its
+   scenery are simply hidden; take the class away and they are back. */
+.game-world.lane-game.gl-scene .game-runner{visibility:hidden}
+.game-world.lane-game.gl-scene .game-rush,.game-world.lane-game.gl-scene .game-far,.game-world.lane-game.gl-scene .game-skyfx,.game-world.lane-game.gl-scene .game-mid,.game-world.lane-game.gl-scene .game-dust,.game-world.lane-game.gl-scene .game-lane-focus{display:none}
+.game-world.lane-game.gl-scene .game-road-atmosphere{background:linear-gradient(90deg,rgba(4,8,18,.22),transparent 18% 82%,rgba(4,8,18,.22));box-shadow:inset 0 -70px 80px rgba(2,6,18,.22)}
+.game-world.lane-game.gl-scene .game-obstacle.lane-wave .lane-gate{box-shadow:inset 0 1px rgba(255,255,255,.14),0 14px 30px rgba(0,0,0,.5);border-width:2px;border-top-width:3px}
+.game-world.lane-game.gl-scene.is-halted .game-lane-prompt{display:none}
+/* the start, review, pause and game-over cards become a sheet along the
+   bottom, so Sam stays on screen above them */
+.game-world.lane-game.gl-scene .game-card{top:auto;bottom:0;max-height:54%;justify-content:flex-start;padding:14px 16px max(18px,env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:rgba(8,15,29,.9);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 -10px 40px rgba(0,0,0,.4)}
+.game-world.lane-game.gl-scene .game-card .game-intro-runner{display:none}
+.game-world.lane-game.gl-scene .game-card h2{font-size:22px}
+/* right and wrong carry a shape as well as a colour */
+.game-obstacle.lane-wave .lane-gate.is-correct:after{content:'✓';position:absolute;top:-9px;left:-9px;width:24px;height:24px;line-height:24px;border-radius:50%;background:#34d399;color:#062c22;font-size:16px;font-weight:1000;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.game-obstacle.lane-wave .lane-gate.is-wrong:after{content:'✗';position:absolute;top:-9px;left:-9px;width:24px;height:24px;line-height:24px;border-radius:50%;background:#fb7185;color:#4a0a16;font-size:16px;font-weight:1000;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.game-obstacle.lane-wave.is-caught .lane-gate:not(.is-correct){opacity:.35;filter:saturate(.5)}
+/* Sam in the hub and the shop: the same world, the same figure, standing still */
+.game-world.lane-game.game-3d-preview{position:relative;display:block;width:100%;height:240px;margin:0 0 6px;border-radius:18px;overflow:hidden;border:1px solid var(--line);aspect-ratio:auto;max-height:none;isolation:isolate}
+.game-3d-preview .game-intro-runner,.game-shop-preview.game-3d-preview .game-avatar{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:3}
+.game-3d-preview.has-3d .game-intro-runner,.game-shop-preview.game-3d-preview.has-3d .game-avatar{display:none}
+.game-world.lane-game.game-shop-preview.game-3d-preview{height:230px}
+.game-pause{width:34px;height:34px;font-size:14px;flex-shrink:0}
+.game-playing>.game-top{gap:6px}.game-playing>.game-top .game-title{font-size:15px}
+.game-coach{position:absolute;left:50%;top:clamp(214px,28dvh,254px);translate:-50% 0;z-index:12;padding:7px 14px;border-radius:999px;background:rgba(253,230,138,.95);color:#3b2a06;font-size:14px;font-weight:900;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.35);animation:gameCoachIn .35s ease both;pointer-events:none}
+.game-coach i{display:inline-block;font-style:normal;animation:gameCoachUp .8s ease-in-out infinite}.game-coach.is-duck i{animation-name:gameCoachDown}
+@keyframes gameCoachIn{from{opacity:0;transform:translateY(8px)}}@keyframes gameCoachUp{50%{transform:translateY(-5px)}}@keyframes gameCoachDown{50%{transform:translateY(5px)}}
+@media (prefers-reduced-motion:reduce){.game-coach i{animation:none}}
 </style>
 </head>
 <body>
@@ -7093,7 +7121,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.49.0';
+const APP_VERSION = '2.50.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12188,7 +12216,7 @@ function samRunEndAudioSession(){
     }
   }catch(_){}
 }
-function samRunTone(kind){
+function samRunTone(kind,mult=1){
   const spec={
     jump:  {f:[440,660],      d:.09, t:'sine',     g:.16},
     duck:  {f:[330,220],      d:.1,  t:'triangle', g:.16},
@@ -12200,6 +12228,10 @@ function samRunTone(kind){
     over:  {f:[392,330,262],  d:.18, t:'triangle', g:.14},
     best:  {f:[523,659,784,1047,1319], d:.1, t:'sine', g:.15},
     tick:  {f:[880],          d:.06, t:'sine',     g:.1},
+    land:  {f:[95,70],        d:.08, t:'sine',     g:.18},
+    coin:  {f:[1319,1760],    d:.06, t:'sine',     g:.13},
+    clear: {f:[660,990],      d:.09, t:'triangle', g:.14},
+    whoosh:{f:[520,300,180],  d:.06, t:'sine',     g:.08},
   }[kind];
   if(!spec) return;
   try{
@@ -12211,7 +12243,7 @@ function samRunTone(kind){
     const ac=samRunAudio, t0=ac.currentTime;
     spec.f.forEach((f,i)=>{
       const o=ac.createOscillator(), g=ac.createGain(), at=t0+i*spec.d;
-      o.type=spec.t; o.frequency.setValueAtTime(f,at);
+      o.type=spec.t; o.frequency.setValueAtTime(f*mult,at);
       g.gain.setValueAtTime(0.0001,at); g.gain.exponentialRampToValueAtTime(spec.g,at+.012); g.gain.exponentialRampToValueAtTime(.0001,at+spec.d);
       o.connect(g).connect(ac.destination); o.start(at); o.stop(at+spec.d+.03);
     });
@@ -12314,7 +12346,7 @@ function samRunHubHtml(store){
   const next=SAM_RUN_MEDALS.find(x=>!medals.includes(x.m));
   return `<div class="game-map">
     <div class="game-map-hero">
-      <div class="game-intro-runner">${samRunAvatarHtml(store,'game-map-sam')}</div>
+      <div class="game-3d-preview game-world lane-game theme-${Number(store.stage)||0}" id="samRunHubPreview"><canvas class="game-gl" id="samRunGLCanvas" aria-hidden="true"></canvas><div class="game-intro-runner">${samRunAvatarHtml(store,'game-map-sam')}</div></div>
       <h2>הריצה של סם</h2>
       <div class="game-hub-best"><b>${best}</b><small>השיא שלך במטרים</small></div>
       <div class="game-map-progress"><i style="width:${next?Math.min(100,best/next.m*100):100}%"></i></div>
@@ -12405,7 +12437,8 @@ function renderSamRunShop(category='',previewId=''){
       const current=samRunItem(store.equipped[cat.id])||items.find(x=>x.price===0);
       return `<button class="game-shop-category" onclick="renderSamRunShop('${cat.id}')"><span class="cat-count">${owned}/${items.length}</span><span class="cat-icon">${cat.icon}</span><strong>${cat.title}</strong><small>${cat.hint}</small><span class="cat-current" title="בשימוש עכשיו">${current?.icon||''}</span></button>`;
     }).join('');
-    hx(`<div class="screen game-screen"><div class="game-shop"><div class="game-shop-head"><button class="xbtn" onclick="renderSamRun()" aria-label="חזרה למפת המשחק">←</button><h2>החנות של סם</h2><div class="game-wallet">🪙 ${store.coins||0}</div></div><div class="game-shop-preview">${samRunAvatarHtml(store,'game-shop-sam')}</div><div class="game-shop-note">בחר קטגוריה, אסוף פריטים ובנה את הדמות שלך.</div><div class="game-shop-categories">${categories}</div></div></div>`);
+    hx(`<div class="screen game-screen"><div class="game-shop"><div class="game-shop-head"><button class="xbtn" onclick="renderSamRun()" aria-label="חזרה למפת המשחק">←</button><h2>החנות של סם</h2><div class="game-wallet">🪙 ${store.coins||0}</div></div>${samRunShopPreviewHtml(store,store)}<div class="game-shop-note">בחר קטגוריה, אסוף פריטים ובנה את הדמות שלך.</div><div class="game-shop-categories">${categories}</div></div></div>`);
+    samRunGLMount('#samRunShopPreview',store,{});
     return;
   }
   const items=SAM_RUN_SHOP_ITEMS.filter(x=>x.type===category);
@@ -12418,7 +12451,8 @@ function renderSamRunShop(category='',previewId=''){
     return `<button class="game-shop-item${has?' owned':''}${on?' equipped':''}${selected.id===item.id?' selected':''}" onclick="renderSamRunShop('${category}','${item.id}')"><span class="shop-icon">${item.icon}</span><strong>${esc(item.name)}</strong><small>${on?'בשימוש ✓':has?'כבר אצלך':'תצוגה מקדימה'}</small><span class="shop-price">${has?(on?'נבחר':'יש לך'):item.price+' 🪙'}</span></button>`;
   }).join('');
   const actionLabel=equipped?'בשימוש ✓':owned?'לבש עכשיו':`קנה · ${selected.price} 🪙`;
-  hx(`<div class="screen game-screen"><div class="game-shop"><div class="game-shop-head"><button class="xbtn" onclick="renderSamRunShop()" aria-label="חזרה לקטגוריות">←</button><h2>${meta.icon} ${meta.title}</h2><div class="game-wallet">🪙 ${store.coins||0}</div></div><div class="game-shop-breadcrumb">החנות של סם ← ${meta.title}</div><div class="game-shop-preview">${samRunAvatarHtml(previewStore,'game-shop-sam')}</div><div class="game-shop-detail"><span class="shop-icon">${selected.icon}</span><div><strong>${esc(selected.name)}</strong><small>${owned?'הפריט כבר באוסף שלך':'תצוגה מקדימה · עדיין לא חויבת'}</small></div><button class="${equipped?'equipped':''}" ${equipped?'disabled':`onclick="samRunShopChoose('${selected.id}')"`}>${actionLabel}</button></div><div class="game-shop-note" id="gameShopNote">${items.filter(x=>x.price===0||store.owned.includes(x.id)).length} מתוך ${items.length} פריטים נאספו</div><div class="game-shop-grid">${cards}</div></div></div>`);
+  hx(`<div class="screen game-screen"><div class="game-shop"><div class="game-shop-head"><button class="xbtn" onclick="renderSamRunShop()" aria-label="חזרה לקטגוריות">←</button><h2>${meta.icon} ${meta.title}</h2><div class="game-wallet">🪙 ${store.coins||0}</div></div><div class="game-shop-breadcrumb">החנות של סם ← ${meta.title}</div>${samRunShopPreviewHtml(store,previewStore)}<div class="game-shop-detail"><span class="shop-icon">${selected.icon}</span><div><strong>${esc(selected.name)}</strong><small>${owned?'הפריט כבר באוסף שלך':'תצוגה מקדימה · עדיין לא חויבת'}</small></div><button class="${equipped?'equipped':''}" ${equipped?'disabled':`onclick="samRunShopChoose('${selected.id}')"`}>${actionLabel}</button></div><div class="game-shop-note" id="gameShopNote">${items.filter(x=>x.price===0||store.owned.includes(x.id)).length} מתוך ${items.length} פריטים נאספו</div><div class="game-shop-grid">${cards}</div></div></div>`);
+  samRunGLMount('#samRunShopPreview',previewStore,{focus:category});
 }
 function samRunShopChoose(id){
   const item=samRunItem(id),store=samRunStore(); if(!item) return;
@@ -12449,6 +12483,7 @@ function renderSamRun(stageIndex=null,endless=false){
   const store=samRunStore();
   if(!endless&&(stageIndex===null||stageIndex===undefined)){
     hx(`<div class="screen game-screen"><div class="game-top"><button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button><div class="game-title">🏃 המשחק של סם</div><div class="game-scorebox"><div class="game-score">${store.bestDistance||0}</div><div class="game-best">שיא במטרים</div></div></div>${samRunHubHtml(store)}</div>`);
+    samRunGLMount('#samRunHubPreview',store,{});
     return;
   }
   /* An endless run borrows a world only for its scenery, and rolls through the
@@ -12481,6 +12516,7 @@ function renderSamRun(stageIndex=null,endless=false){
       <div class="game-run-wallet" id="samRunRunWallet" aria-label="מטבעות זהב שנאספו"><i aria-hidden="true"></i><b id="samRunRunCoins" aria-live="polite">0</b></div>
       <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
       <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">${endless?`שיא ${store.bestDistance||0} מ׳`:`שיא ${store.best}`}</div></div>
+      <button type="button" class="xbtn game-pause" onclick="samRunPause()" aria-label="הפסקה">⏸</button>
     </div>
     <div class="game-mission"><span>${endless?'📏':'🎯'} <b id="samRunMissionText">${endless?'0 מ׳':`0/${SAM_RUN_GOAL}`}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span>${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
@@ -12498,6 +12534,7 @@ function renderSamRun(stageIndex=null,endless=false){
   </div>`);
   g.epoch=uiEpoch;
   samRunBindLaneInput(document.getElementById('samRunWorld'),g);
+  samRunGLIdleMount(g);
 }
 /* The play screen is swapped in inside a view transition, so #samRunWorld is
    normally still missing from the document when this runs — the node handed in
@@ -12508,7 +12545,7 @@ function samRunBindLaneInput(worldAtBind,g){
   const stage=()=>document.getElementById('samRunWorld')||worldAtBind||null;
   let startX=0,startY=0,startLane=1,dragging=false,handled=false,axis='',pointerId=null,suppressClickUntil=0;
   const runner=()=>document.getElementById('samRunRunner'),focus=()=>document.getElementById('samRunLaneFocus');
-  const canPlay=()=>samRun===g&&g.running&&g.laneGame&&!!stage();
+  const canPlay=()=>samRun===g&&g.running&&!g.paused&&g.laneGame&&!!stage();
   const begin=(x,y)=>{ if(!canPlay()) return false; startX=x;startY=y;startLane=g.lane;dragging=true;handled=false;axis='';stage().classList?.add('is-dragging');return true; };
   const chooseFromSwipe=lane=>{ handled=true;suppressClickUntil=Date.now()+700;samRunChooseLane(lane); };
   /* A gesture belongs to whichever axis clearly dominates it, so a lane swipe
@@ -12599,7 +12636,10 @@ function samRunBindLaneInput(worldAtBind,g){
     else samRunChooseLane(g.lane+(e.key==='ArrowRight'?1:-1));
   };
   document.addEventListener('keydown',onKeyDown);
+  const onVisibility=()=>{ if(document.hidden&&samRun===g&&g.running&&!g.warmup&&!g.paused&&!g.finishing) samRunPause(); };
+  document.addEventListener('visibilitychange',onVisibility);
   g.gestureCleanup=()=>{
+    document.removeEventListener?.('visibilitychange',onVisibility);
     document.removeEventListener?.('pointerdown',onPointerDown,{capture:true});
     document.removeEventListener?.('pointermove',onPointerMove,{capture:true});
     document.removeEventListener?.('pointerup',onPointerEnd,{capture:true});
@@ -12615,8 +12655,10 @@ function samRunBindLaneInput(worldAtBind,g){
 }
 function samRunExit(){ samRunTeardown(); renderHome(); }
 function samRunTeardown(){
+  samRunGLPreviewStop();
   const g=samRun; if(!g) return;
   g.running=false;
+  clearTimeout(g.coachTimer);
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
   clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.freezeTimer);
@@ -12770,6 +12812,7 @@ function samRunFrame(ts){
     const anyHolding=g.obstacles.some(o=>o.holding);
     if(g.speechAt&&!anyHolding&&performance.now()-g.speechAt>SAM_RUN_SPEECH_MAX_MS){ g.speechAt=0; samRunHearing(false); }
     const target=g.obstacles.find(o=>!o.resolved);
+    const scene=!!samRunGL;
     for(const ob of g.obstacles.slice()){
       /* Hold at the door. The player is mid-word: speech was detected but
          the recogniser has not answered yet. The thing waits just short of
@@ -12790,6 +12833,8 @@ function samRunFrame(ts){
       const incoming=ob.progress<0;
       if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
       if(ob.laneWave){
+        /* the rendered world places the gates itself, in samRunGLDraw */
+        if(scene) continue;
         const {y,scale,spread}=samRunGateDepth(ob.progress);
         ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100); ob.y=g.worldH*y/100;
         ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
@@ -12825,7 +12870,7 @@ function samRunSwapScene(index){
   g.stageIndex=index; g.stage=SAM_RUN_STAGES[index];
   /* samRunWorldClass rebuilds the class list from scratch, so the classes the
      run has earned since it started have to be carried across by hand. */
-  const earned=['is-running','is-fast','zone-2','zone-3','has-shield'].filter(c=>world.classList.contains(c));
+  const earned=['is-running','is-fast','zone-2','zone-3','has-shield','gl-road','gl-scene'].filter(c=>world.classList.contains(c));
   world.className=samRunWorldClass(g)+(earned.length?' '+earned.join(' '):'');
   const mid=world.querySelector?.('.game-mid'),scene=SAM_RUN_SCENERY[index]||SAM_RUN_SCENERY[0];
   if(mid){
@@ -12836,241 +12881,1436 @@ function samRunSwapScene(index){
 /* Everything on the road that is not a question: kerb stones, roadside
    scenery, coins and roadworks. They all ride the shared camera and are what
    turns the stretch between two questions into a run. */
-/* ---- the road, rendered ----
-   The DOM road is a clip-path trapezoid with a repeating gradient scrolled by a
-   CSS animation. That gets the SHAPE right — the game's camera is a real 1/z
-   projection and a straight-edged trapezoid is its correct image — but the
-   surface itself can only ever be a flat fill with evenly spaced stripes, and
-   evenly spaced stripes are exactly what a receding road does not have.
-   This draws the same trapezoid on a GL surface using the game's own camera, so
-   everything the DOM still owns — gates, walls, coins, the runner — stays
-   registered against it to the pixel. Markings are laid out in road space, so
-   they foreshorten toward the horizon on their own, and the far end dissolves
-   into the world's haze instead of stopping at a hard edge.
-   If anything here fails, or the context is lost, the DOM road is still
-   underneath and simply becomes visible again. */
-const SAM_RUN_GL_VS=`#version 300 es
-in vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
-const SAM_RUN_GL_FS=`#version 300 es
-precision highp float;
-out vec4 o;
-uniform vec2 uRes;uniform float uHorizon,uScroll;
-uniform vec3 uRoadTop,uRoadLow,uAccent,uHaze;
-float band(float d,float w,float aa){return 1.-smoothstep(w-aa,w+aa,abs(d));}
-void main(){
-  float x=gl_FragCoord.x/uRes.x;
-  float y=1.-gl_FragCoord.y/uRes.y;
-  /* Bleed a little above the horizon. The road used to stop dead on a straight
-     line across the screen; letting its haze rise into the scenery for a few
-     pixels is what turns that edge into distance. */
-  if(y<uHorizon-.035) discard;
-  float rise=smoothstep(uHorizon-.035,uHorizon,y);
-  /* the game's own camera, inverted: screen y -> scale -> depth */
-  float s=max(.30,(y-uHorizon)*100./60.606+.44);
-  float z=min(1.35,.44/s);
-  float halfW=.42045*s;
-  float u=(x-.5)/halfW;
-  float au=abs(u);
-  if(au>1.34) discard;
-  float aa=fwidth(u)*1.2;
-  /* distance along the road: linear in road space, so every marking drawn
-     against it foreshortens by itself */
-  float v=z*30.-uScroll;
-  vec3 col=mix(uRoadTop,uRoadLow,smoothstep(0.,.75,1.-z));
-  col*=1.+.06*(1.-au*au);
-  float gr=fract(sin(dot(vec2(floor(u*90.),floor(v*26.)),vec2(12.9898,78.233)))*43758.5453);
-  col*=.965+.07*gr;
-  /* No lane dashes here: the moving kerb seams are still real elements riding
-     the same camera, and drawing a second set underneath them gave the road two
-     sets of markings at two different spacings. The surface, the verge, the
-     edges and the fog are what the DOM could not do; the seams it already
-     could. */
-  col=mix(col,vec3(1.),band(au-1.,.024,aa)*.78);
-  /* a faint sheen down the crown, so the asphalt is not a flat fill */
-  col+=vec3(.055,.065,.085)*pow(max(0.,1.-au*1.35),3.)*(1.-z*.5);
-  float verge=smoothstep(1.,1.06,au);
-  col=mix(col,mix(uRoadLow*.55,uHaze*.5,.35),verge*.9);
-  col+=uAccent*.16*pow(max(0.,1.-au),2.)*smoothstep(.55,1.,z);
-  float fog=smoothstep(.72,.995,z);
-  col=mix(col,uHaze,fog*.92);
-  o=vec4(col,(1.-smoothstep(1.28,1.34,au))*(1.-fog*.12)*rise);
-}`;
 let samRunGL=null;
-/* ---- particles ----
-   Dust off his feet, a burst where he lands, and motes streaming out of the
-   haze. All of it rides in the road's own GL context as a second draw call, so
-   there is no third canvas and no DOM churn: a few hundred points updated on
-   the CPU and uploaded once a frame, which is cheaper than a single element
-   that has to be laid out. The road's own device-veto covers these too — if the
-   context goes, they go with it. */
-const SAM_RUN_PT_VS=`#version 300 es
-in vec4 a;            // x, y (clip space), size, life 0..1
-in vec4 c;            // rgb + alpha scale
-out vec4 vc;
-void main(){
-  gl_Position=vec4(a.xy,0.,1.);
-  gl_PointSize=a.z*(1.-a.w*.45);
-  vc=vec4(c.rgb,c.a*(1.-a.w)*(1.-a.w));
-}`;
-const SAM_RUN_PT_FS=`#version 300 es
-precision mediump float;
-in vec4 vc; out vec4 o;
-void main(){
-  vec2 d=gl_PointCoord-.5;
-  float m=1.-smoothstep(.22,.5,length(d));
-  o=vec4(vc.rgb,vc.a*m);
-}`;
-const SAM_RUN_PT_MAX=320;
-function samRunPtInit(gl){
-  const build=(t,src)=>{ const sh=gl.createShader(t); gl.shaderSource(sh,src); gl.compileShader(sh);
-    return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null; };
-  const vs=build(gl.VERTEX_SHADER,SAM_RUN_PT_VS), fs=build(gl.FRAGMENT_SHADER,SAM_RUN_PT_FS);
-  if(!vs||!fs) return null;
-  const prog=gl.createProgram();
-  gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
-  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return null;
-  return {prog,buf:gl.createBuffer(),cbuf:gl.createBuffer(),
-    a:gl.getAttribLocation(prog,'a'),c:gl.getAttribLocation(prog,'c'),
-    pos:new Float32Array(SAM_RUN_PT_MAX*4),col:new Float32Array(SAM_RUN_PT_MAX*4),live:[]};
+/* ---- the world, in three dimensions ----
+   Everything the run shows is drawn here: a sky, a road, the roadside, the
+   things on the road and Sam himself, all as real geometry seen through one
+   perspective camera. It is written by hand on WebGL2 because the app is one
+   file that works offline — there is no library to lean on, and the road was
+   already being drawn this way. Nothing about the game changed: the same
+   pickups, waves and timings are read every frame and simply placed in a
+   world instead of on a screen. If any of this cannot start, or the device
+   cannot sustain it, the DOM renderer underneath is still there. */
+
+/* --- a little linear algebra: column-major 4x4, the way GL wants it --- */
+function m4Id(o){ o=o||new Float32Array(16); o.fill(0); o[0]=o[5]=o[10]=o[15]=1; return o; }
+function m4Mul(o,a,b){
+  const a00=a[0],a01=a[1],a02=a[2],a03=a[3],a10=a[4],a11=a[5],a12=a[6],a13=a[7],a20=a[8],a21=a[9],a22=a[10],a23=a[11],a30=a[12],a31=a[13],a32=a[14],a33=a[15];
+  let b0=b[0],b1=b[1],b2=b[2],b3=b[3];
+  o[0]=b0*a00+b1*a10+b2*a20+b3*a30; o[1]=b0*a01+b1*a11+b2*a21+b3*a31; o[2]=b0*a02+b1*a12+b2*a22+b3*a32; o[3]=b0*a03+b1*a13+b2*a23+b3*a33;
+  b0=b[4];b1=b[5];b2=b[6];b3=b[7];
+  o[4]=b0*a00+b1*a10+b2*a20+b3*a30; o[5]=b0*a01+b1*a11+b2*a21+b3*a31; o[6]=b0*a02+b1*a12+b2*a22+b3*a32; o[7]=b0*a03+b1*a13+b2*a23+b3*a33;
+  b0=b[8];b1=b[9];b2=b[10];b3=b[11];
+  o[8]=b0*a00+b1*a10+b2*a20+b3*a30; o[9]=b0*a01+b1*a11+b2*a21+b3*a31; o[10]=b0*a02+b1*a12+b2*a22+b3*a32; o[11]=b0*a03+b1*a13+b2*a23+b3*a33;
+  b0=b[12];b1=b[13];b2=b[14];b3=b[15];
+  o[12]=b0*a00+b1*a10+b2*a20+b3*a30; o[13]=b0*a01+b1*a11+b2*a21+b3*a31; o[14]=b0*a02+b1*a12+b2*a22+b3*a32; o[15]=b0*a03+b1*a13+b2*a23+b3*a33;
+  return o;
 }
-/* Positions come in as a fraction of the world box, which is the same frame the
-   runner and the road are placed in, so an emitter can be aimed at his feet
-   without knowing anything about the canvas. */
-function samRunEmit(kind,fx,fy,n){
-  const r=samRunGL; if(!r||!r.pt||prefersReducedStageMotion()) return;
-  const live=r.pt.live;
-  for(let i=0;i<n&&live.length<SAM_RUN_PT_MAX;i++){
-    const a=Math.random()*Math.PI*2, sp=Math.random();
-    if(kind==='dust') live.push({x:fx+(Math.random()-.5)*.03,y:fy,vx:(Math.random()-.5)*.11,vy:-.04-sp*.10,
-      life:0,ttl:420+Math.random()*260,size:5+sp*7,r:.82,g:.79,b:.72,a:.34});
-    else if(kind==='land') live.push({x:fx+(Math.random()-.5)*.05,y:fy,vx:Math.cos(a)*(.10+sp*.22),vy:-Math.abs(Math.sin(a))*(.05+sp*.16),
-      life:0,ttl:520+Math.random()*300,size:7+sp*10,r:.88,g:.86,b:.8,a:.42});
-    else live.push({x:Math.random(),y:.42+Math.random()*.06,vx:(Math.random()-.5)*.02,vy:.16+sp*.2,
-      life:0,ttl:1400+Math.random()*700,size:2+sp*3.5,r:.78,g:.86,b:1,a:.3});
-  }
+/* translate · rotate(Y then X then Z) · scale, composed directly */
+function m4TRS(o,x,y,z,rx,ry,rz,sx,sy,sz){
+  const cx=Math.cos(rx),sX=Math.sin(rx),cy=Math.cos(ry),sY=Math.sin(ry),cz=Math.cos(rz),sZ=Math.sin(rz);
+  o[0]=(cz*cy-sZ*sX*sY)*sx; o[1]=(sZ*cy+cz*sX*sY)*sx; o[2]=(-cx*sY)*sx; o[3]=0;
+  o[4]=(-sZ*cx)*sy; o[5]=(cz*cx)*sy; o[6]=sX*sy; o[7]=0;
+  o[8]=(cz*sY+sZ*sX*cy)*sz; o[9]=(sZ*sY-cz*sX*cy)*sz; o[10]=(cx*cy)*sz; o[11]=0;
+  o[12]=x; o[13]=y; o[14]=z; o[15]=1;
+  return o;
 }
-function samRunPtStep(g,dt){
-  const r=samRunGL; if(!r||!r.pt) return;
-  const live=r.pt.live, s=dt/1000;
-  for(let i=live.length-1;i>=0;i--){
-    const p=live[i];
-    p.life+=dt;
-    if(p.life>=p.ttl){ live.splice(i,1); continue; }
-    p.x+=p.vx*s; p.y+=p.vy*s; p.vy+=.32*s; p.vx*=.985;
-  }
-  /* Motes streaming out of the haze, thicker the faster he is going. They are
-     what makes the countdown feel like a place rather than a picture. */
-  const pace=samRunPace(g);
-  r.moteAt=(r.moteAt||0)-dt*pace;
-  if(r.moteAt<=0){ r.moteAt=110; samRunEmit('mote',0,0,1); }
-  /* Dust off whichever foot is planted: the run cycle is one stride per .74s,
-     so two footfalls, and the puffs land on them. */
-  if(!g.air){
-    r.stepAt=(r.stepAt||0)-dt*pace;
-    if(r.stepAt<=0){ r.stepAt=370; samRunEmit('dust',(g.runnerX||60)/(g.worldW||360),.965,3); }
-  }
+function m4Perspective(o,fovy,aspect,near,far){
+  const f=1/Math.tan(fovy/2), nf=1/(near-far);
+  o.fill(0); o[0]=f/aspect; o[5]=f; o[10]=(far+near)*nf; o[11]=-1; o[14]=2*far*near*nf;
+  return o;
 }
-function samRunPtDraw(){
-  const r=samRunGL; if(!r||!r.pt) return;
-  const {gl}=r, pt=r.pt, n=pt.live.length;
-  if(!n) return;
-  for(let i=0;i<n;i++){
-    const p=pt.live[i], k=i*4;
-    pt.pos[k]=p.x*2-1; pt.pos[k+1]=1-p.y*2; pt.pos[k+2]=p.size*(r.dpr||1); pt.pos[k+3]=p.life/p.ttl;
-    pt.col[k]=p.r; pt.col[k+1]=p.g; pt.col[k+2]=p.b; pt.col[k+3]=p.a;
+function m4LookAt(o,ex,ey,ez,tx,ty,tz,ux,uy,uz){
+  let zx=ex-tx,zy=ey-ty,zz=ez-tz, l=Math.hypot(zx,zy,zz)||1; zx/=l;zy/=l;zz/=l;
+  let xx=uy*zz-uz*zy,xy=uz*zx-ux*zz,xz=ux*zy-uy*zx; l=Math.hypot(xx,xy,xz)||1; xx/=l;xy/=l;xz/=l;
+  const yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
+  o[0]=xx;o[1]=yx;o[2]=zx;o[3]=0; o[4]=xy;o[5]=yy;o[6]=zy;o[7]=0; o[8]=xz;o[9]=yz;o[10]=zz;o[11]=0;
+  o[12]=-(xx*ex+xy*ey+xz*ez); o[13]=-(yx*ex+yy*ey+yz*ez); o[14]=-(zx*ex+zy*ey+zz*ez); o[15]=1;
+  return o;
+}
+function m4Invert(o,a){
+  const a00=a[0],a01=a[1],a02=a[2],a03=a[3],a10=a[4],a11=a[5],a12=a[6],a13=a[7],a20=a[8],a21=a[9],a22=a[10],a23=a[11],a30=a[12],a31=a[13],a32=a[14],a33=a[15];
+  const b00=a00*a11-a01*a10,b01=a00*a12-a02*a10,b02=a00*a13-a03*a10,b03=a01*a12-a02*a11,b04=a01*a13-a03*a11,b05=a02*a13-a03*a12,b06=a20*a31-a21*a30,b07=a20*a32-a22*a30,b08=a20*a33-a23*a30,b09=a21*a32-a22*a31,b10=a21*a33-a23*a31,b11=a22*a33-a23*a32;
+  let det=b00*b11-b01*b10+b02*b09+b03*b08-b04*b07+b05*b06; if(!det) return null; det=1/det;
+  o[0]=(a11*b11-a12*b10+a13*b09)*det; o[1]=(a02*b10-a01*b11-a03*b09)*det; o[2]=(a31*b05-a32*b04+a33*b03)*det; o[3]=(a22*b04-a21*b05-a23*b03)*det;
+  o[4]=(a12*b08-a10*b11-a13*b07)*det; o[5]=(a00*b11-a02*b08+a03*b07)*det; o[6]=(a32*b02-a30*b05-a33*b01)*det; o[7]=(a20*b05-a22*b02+a23*b01)*det;
+  o[8]=(a10*b10-a11*b08+a13*b06)*det; o[9]=(a01*b08-a00*b10-a03*b06)*det; o[10]=(a30*b04-a31*b02+a33*b00)*det; o[11]=(a21*b02-a20*b04-a23*b00)*det;
+  o[12]=(a11*b07-a10*b09-a12*b06)*det; o[13]=(a00*b09-a01*b07+a02*b06)*det; o[14]=(a31*b01-a30*b03-a32*b00)*det; o[15]=(a20*b03-a21*b01+a22*b00)*det;
+  return o;
+}
+function s3dHex(h){ const m=/^#?([0-9a-f]{6})$/i.exec(String(h||'').trim()); if(!m) return [.5,.5,.5]; const n=parseInt(m[1],16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; }
+function s3dMix(a,b,t){ return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]; }
+function s3dScale(a,k){ return [a[0]*k,a[1]*k,a[2]*k]; }
+function s3dClamp(v,a,b){ return v<a?a:v>b?b:v; }
+function s3dLerp(a,b,t){ return a+(b-a)*t; }
+/* piecewise-linear keyframes: [[t,v],[t,v],...] sorted by t */
+function s3dKf(t,keys){
+  if(t<=keys[0][0]) return keys[0][1];
+  for(let i=1;i<keys.length;i++){ const k=keys[i]; if(t<=k[0]){ const p=keys[i-1]; const u=(t-p[0])/(k[0]-p[0]||1); return p[1]+(k[1]-p[1])*(u*u*(3-2*u)); } }
+  return keys[keys.length-1][1];
+}
+function s3dHash(n){ const x=Math.sin(n*127.1+311.7)*43758.5453; return x-Math.floor(x); }
+
+/* --- unit meshes: everything on screen is one of these, scaled and tinted ---
+   Positions, flat or smooth normals, and a small "extra" pair the shaders use
+   for patterns (window grids, a shadow's radial fade, a sign's texture). */
+function s3dMeshBuilder(){
+  const P=[],N=[],E=[];
+  const tri=(a,b,c,n,ea,eb,ec)=>{ P.push(...a,...b,...c); N.push(...n,...n,...n); E.push(...(ea||[0,0]),...(eb||[0,0]),...(ec||[0,0])); };
+  const triS=(a,b,c,na,nb,nc,ea,eb,ec)=>{ P.push(...a,...b,...c); N.push(...na,...nb,...nc); E.push(...(ea||[0,0]),...(eb||[0,0]),...(ec||[0,0])); };
+  return {P,N,E,tri,triS,done(){ return {pos:new Float32Array(P),nrm:new Float32Array(N),ext:new Float32Array(E),count:P.length/3}; }};
+}
+function s3dBoxMesh(){
+  const b=s3dMeshBuilder();
+  const faces=[[[0,0,1],[1,0,0],[0,1,0]],[[0,0,-1],[-1,0,0],[0,1,0]],[[1,0,0],[0,0,-1],[0,1,0]],[[-1,0,0],[0,0,1],[0,1,0]],[[0,1,0],[1,0,0],[0,0,-1]],[[0,-1,0],[1,0,0],[0,0,1]]];
+  for(const [n,u,v] of faces){
+    const q=(su,sv)=>[n[0]*.5+u[0]*su*.5+v[0]*sv*.5,n[1]*.5+u[1]*su*.5+v[1]*sv*.5,n[2]*.5+u[2]*su*.5+v[2]*sv*.5];
+    const a=q(-1,-1),c=q(1,-1),d=q(1,1),e=q(-1,1);
+    b.tri(a,c,d,n,[0,0],[1,0],[1,1]); b.tri(a,d,e,n,[0,0],[1,1],[0,1]);
   }
-  gl.useProgram(pt.prog);
-  gl.bindBuffer(gl.ARRAY_BUFFER,pt.buf);
-  gl.bufferData(gl.ARRAY_BUFFER,pt.pos.subarray(0,n*4),gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(pt.a); gl.vertexAttribPointer(pt.a,4,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER,pt.cbuf);
-  gl.bufferData(gl.ARRAY_BUFFER,pt.col.subarray(0,n*4),gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(pt.c); gl.vertexAttribPointer(pt.c,4,gl.FLOAT,false,0,0);
-  gl.drawArrays(gl.POINTS,0,n);
+  return b.done();
+}
+function s3dCylMesh(segs=12,top=true,bottom=true){
+  const b=s3dMeshBuilder();
+  for(let i=0;i<segs;i++){
+    const a0=i/segs*Math.PI*2,a1=(i+1)/segs*Math.PI*2;
+    const c0=Math.cos(a0),s0=-Math.sin(a0),c1=Math.cos(a1),s1=-Math.sin(a1);
+    const n0=[c0,0,s0],n1=[c1,0,s1];
+    b.triS([c0,-.5,s0],[c1,-.5,s1],[c1,.5,s1],n0,n1,n1,[i/segs,0],[(i+1)/segs,0],[(i+1)/segs,1]);
+    b.triS([c0,-.5,s0],[c1,.5,s1],[c0,.5,s0],n0,n1,n0,[i/segs,0],[(i+1)/segs,1],[i/segs,1]);
+    if(top) b.tri([0,.5,0],[c0,.5,s0],[c1,.5,s1],[0,1,0],[.5,.5],[c0*.5+.5,s0*.5+.5],[c1*.5+.5,s1*.5+.5]);
+    if(bottom) b.tri([0,-.5,0],[c1,-.5,s1],[c0,-.5,s0],[0,-1,0]);
+  }
+  return b.done();
+}
+function s3dConeMesh(segs=10){
+  const b=s3dMeshBuilder(), k=Math.SQRT1_2;
+  for(let i=0;i<segs;i++){
+    const a0=i/segs*Math.PI*2,a1=(i+1)/segs*Math.PI*2,am=(a0+a1)/2;
+    const c0=Math.cos(a0),s0=-Math.sin(a0),c1=Math.cos(a1),s1=-Math.sin(a1);
+    b.triS([c0,-.5,s0],[c1,-.5,s1],[0,.5,0],[c0*k,k,s0*k],[c1*k,k,s1*k],[Math.cos(am)*k,k,-Math.sin(am)*k],[0,0],[1,0],[.5,1]);
+    b.tri([0,-.5,0],[c1,-.5,s1],[c0,-.5,s0],[0,-1,0]);
+  }
+  return b.done();
+}
+function s3dSphereMesh(lon=12,lat=8){
+  const b=s3dMeshBuilder();
+  const at=(i,j)=>{ const th=i/lat*Math.PI,ph=j/lon*Math.PI*2; return [Math.sin(th)*Math.cos(ph),Math.cos(th),-Math.sin(th)*Math.sin(ph)]; };
+  for(let i=0;i<lat;i++) for(let j=0;j<lon;j++){
+    const a=at(i,j),bq=at(i,j+1),c=at(i+1,j+1),d=at(i+1,j);
+    const ea=[j/lon,1-i/lat],eb=[(j+1)/lon,1-i/lat],ec=[(j+1)/lon,1-(i+1)/lat],ed=[j/lon,1-(i+1)/lat];
+    if(i<lat-1) b.triS(a,d,c,a,d,c,ea,ed,ec);
+    if(i>0) b.triS(a,c,bq,a,c,bq,ea,ec,eb);
+  }
+  return b.done();
+}
+/* a roof: a triangular prism, ridge along z */
+function s3dWedgeMesh(){
+  const b=s3dMeshBuilder();
+  const A=z=>[-.5,-.5,z],B=z=>[.5,-.5,z],C=z=>[0,.5,z];
+  b.tri(A(.5),B(.5),C(.5),[0,0,1]); b.tri(A(-.5),C(-.5),B(-.5),[0,0,-1]);
+  b.tri(A(-.5),B(-.5),B(.5),[0,-1,0]); b.tri(A(-.5),B(.5),A(.5),[0,-1,0]);
+  const nl=[-2/Math.sqrt(5),1/Math.sqrt(5),0], nr=[2/Math.sqrt(5),1/Math.sqrt(5),0];
+  b.tri(A(-.5),A(.5),C(.5),nl); b.tri(A(-.5),C(.5),C(-.5),nl);
+  b.tri(B(.5),B(-.5),C(-.5),nr); b.tri(B(.5),C(-.5),C(.5),nr);
+  return b.done();
+}
+/* a flat disc facing up; extra.x is 0 at the centre and 1 at the rim */
+function s3dDiscMesh(segs=18){
+  const b=s3dMeshBuilder();
+  for(let i=0;i<segs;i++){
+    const a0=i/segs*Math.PI*2,a1=(i+1)/segs*Math.PI*2;
+    b.tri([0,0,0],[Math.cos(a0),0,-Math.sin(a0)],[Math.cos(a1),0,-Math.sin(a1)],[0,1,0],[0,0],[1,0],[1,0]);
+  }
+  return b.done();
+}
+/* a unit square facing +z, with texture coordinates */
+function s3dQuadMesh(){
+  const b=s3dMeshBuilder(), n=[0,0,1];
+  b.tri([-.5,-.5,0],[.5,-.5,0],[.5,.5,0],n,[0,0],[1,0],[1,1]); b.tri([-.5,-.5,0],[.5,.5,0],[-.5,.5,0],n,[0,0],[1,1],[0,1]);
+  return b.done();
 }
 
+/* --- shaders --- */
+const S3D_OBJ_VS=`#version 300 es
+layout(location=0) in vec3 p;layout(location=1) in vec3 n;layout(location=2) in vec2 e;
+layout(location=3) in vec4 m0;layout(location=4) in vec4 m1;layout(location=5) in vec4 m2;layout(location=6) in vec4 m3;
+layout(location=7) in vec4 t;layout(location=8) in vec4 f;
+uniform mat4 uVP;
+out vec3 vN;out vec3 vW;out vec4 vT;out vec4 vF;out vec2 vE;out vec3 vL;out vec3 vLN;
+void main(){
+  mat4 M=mat4(m0,m1,m2,m3);
+  vec4 w=M*vec4(p,1.);
+  vW=w.xyz;vN=normalize(mat3(M)*n);vT=t;vF=f;vE=e;vL=p;vLN=n;
+  gl_Position=uVP*w;
+}`;
+/* One lighting model for everything: a sun with a soft two-step toon ramp, a
+   sky/ground hemisphere for the ambient, a touch of rim light so figures
+   separate from the road, and fog to the world's haze. The mode in f.x picks
+   a material: 1 windows, 2 gold, 3 hazard stripes, 4 a blob shadow, 5 glows
+   on its own, 6 a soft glow disc, 7 a lit window sheet at night. */
+const S3D_OBJ_FS=`#version 300 es
+precision mediump float;
+in vec3 vN;in vec3 vW;in vec4 vT;in vec4 vF;in vec2 vE;in vec3 vL;in vec3 vLN;
+uniform vec3 uSun,uSunCol,uSkyCol,uGroundCol,uHaze,uCam;uniform float uFogK,uTime,uNight;
+out vec4 o;
+float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+void main(){
+  vec3 N=normalize(vN);float mode=vF.x;vec3 base=vT.rgb;float alpha=vT.a;
+  float d=length(vW-uCam);float fog=1.-exp(-d*d*uFogK*uFogK);
+  if(mode==4.){o=vec4(0.,0.,0.,alpha*(1.-smoothstep(.45,1.,vE.x))*(1.-fog));return;}
+  if(mode==6.){o=vec4(mix(base,uHaze,fog),alpha*(1.-smoothstep(.1,1.,vE.x)));return;}
+  if(mode==5.){o=vec4(mix(base,uHaze,fog*.85),alpha);return;}
+  float emis=0.;
+  if(mode==1.&&abs(vLN.y)<.5){
+    vec2 g=abs(vLN.x)>.5?vec2(vL.z*vF.z,vL.y*vF.y):vec2(vL.x*vF.z,vL.y*vF.y);
+    vec2 c=fract(g+.5);vec2 id=floor(g+.5);
+    float win=step(.24,c.x)*step(c.x,.76)*step(.28,c.y)*step(c.y,.74);
+    /* seen edge-on the grid would shimmer, so it fades out at grazing angles and with distance */
+    vec3 Vw=normalize(uCam-vW);win*=smoothstep(.12,.4,abs(dot(N,Vw)))*(1.-smoothstep(40.,110.,d));
+    float lit=step(1.-vF.w,hash(id+vec2(sign(vLN.x)*3.,sign(vLN.z)*7.)));
+    base=mix(base,mix(base*.42,vec3(1.,.9,.62),lit),win);emis=win*lit;
+  }
+  if(mode==3.){float s=step(.5,fract(vL.x*vF.y+vL.y*.9+vL.z*.35));base=mix(base,vec3(.15,.17,.22),s);}
+  float dif=dot(N,uSun);
+  float toon=smoothstep(-.12,.16,dif)*.62+smoothstep(.28,.6,dif)*.38;
+  vec3 hemi=mix(uGroundCol,uSkyCol,N.y*.5+.5);
+  vec3 V=normalize(uCam-vW);
+  float rim=pow(1.-max(0.,dot(N,V)),3.)*.22;
+  vec3 col=base*(hemi*.55+uSunCol*toon*.9)+rim*uSkyCol;
+  if(mode==2.){vec3 H=normalize(uSun+V);col+=uSunCol*pow(max(0.,dot(N,H)),30.)*1.1;col+=base*.3;}
+  col=mix(col,base*1.05,emis);
+  o=vec4(mix(col,uHaze,fog),alpha);
+}`;
+/* The road: one long quad, every marking drawn in world space so it
+   foreshortens on its own. uScroll is metres travelled. */
+const S3D_ROAD_VS=`#version 300 es
+layout(location=0) in vec3 p;uniform mat4 uVP;out vec3 vW;
+void main(){vW=p;gl_Position=uVP*vec4(p,1.);}`;
+const S3D_ROAD_FS=`#version 300 es
+precision highp float;
+in vec3 vW;out vec4 o;
+uniform vec3 uRoadTop,uRoadLow,uVerge,uAccent,uHaze,uCam,uSunCol,uSkyCol;
+uniform float uScroll,uFogK,uLaneX,uLaneGlow,uHalfW,uLaneW,uNight;
+float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+void main(){
+  float x=vW.x,z=uScroll-vW.z;float ax=abs(x);
+  float aa=fwidth(x)*1.1;
+  vec3 col;
+  float road=1.-smoothstep(uHalfW-aa,uHalfW+aa,ax);
+  /* asphalt: a dark base with grain, a lighter crown, and a faint wear band in each lane */
+  vec3 asph=mix(uRoadTop,uRoadLow,smoothstep(0.,1.,ax/uHalfW*.5));
+  asph*=.93+.14*hash(floor(vec2(x*7.,z*7.)));
+  asph*=1.+.05*(1.-ax/uHalfW);
+  float lane=abs(mod(x+uLaneW*.5,uLaneW)-uLaneW*.5);
+  asph*=1.-.08*smoothstep(uLaneW*.36,uLaneW*.22,lane);
+  /* lane seams: short dashes on the two inner lines; solid edge lines */
+  float seam=abs(ax-uLaneW*.5);
+  float dash=step(.55,fract(z/3.2));
+  float seamLine=(1.-smoothstep(.045-aa,.045+aa,seam))*dash;
+  float edge=1.-smoothstep(.06-aa,.06+aa,abs(ax-(uHalfW-.16)));
+  asph=mix(asph,vec3(.93,.9,.8),seamLine*.85);
+  asph=mix(asph,vec3(.96,.95,.9),edge*.9);
+  /* the lane he is in glows softly, and the glow moves with him */
+  float g=exp(-pow((x-uLaneX)/(uLaneW*.55),2.))*uLaneGlow;
+  asph+=uAccent*g*.28;
+  /* kerb: a lighter lip, then the verge */
+  float kerbW=.3;
+  float kerb=smoothstep(uHalfW-aa,uHalfW+aa,ax)*(1.-smoothstep(uHalfW+kerbW-aa,uHalfW+kerbW+aa,ax));
+  vec3 kerbC=vec3(.72,.7,.66)*(.9+.1*step(.5,fract(z/1.6)));
+  vec3 verge=uVerge*(.92+.12*hash(floor(vec2(x*1.7,z*1.7))));
+  verge*=.9+.1*smoothstep(uHalfW+kerbW,uHalfW+kerbW+2.5,ax);
+  col=mix(verge,kerbC,kerb);
+  col=mix(col,asph,road);
+  /* lighting: flat ground under the same sun and sky */
+  col*=(.55*uSkyCol*.9+.35*uSunCol+vec3(.25));
+  col=mix(col,col*vec3(.55,.6,.8),uNight*.5);
+  float d=length(vW-uCam);float fog=1.-exp(-d*d*uFogK*uFogK);
+  o=vec4(mix(col,uHaze,fog),1.);
+}`;
+/* The sky is drawn behind everything from the camera's own rays: a gradient
+   to the haze, a sun (or moon), clouds that drift, stars at night and a far
+   skyline that belongs to the world. */
+const S3D_SKY_VS=`#version 300 es
+layout(location=0) in vec2 p;out vec2 vP;void main(){vP=p;gl_Position=vec4(p,0.,1.);}`;
+const S3D_SKY_FS=`#version 300 es
+precision highp float;
+in vec2 vP;out vec4 o;
+uniform mat4 uInvVP;uniform vec3 uSkyTop,uSkyMid,uHaze,uSun,uSunCol,uCloudCol;
+uniform float uTime,uNight,uCloud,uSkyline,uStars;
+float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+float hash1(float n){return fract(sin(n*127.1+311.7)*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*noise(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+void main(){
+  vec4 a=uInvVP*vec4(vP,1.,1.);vec4 b=uInvVP*vec4(vP,-1.,1.);
+  vec3 dir=normalize(a.xyz/a.w-b.xyz/b.w);
+  float t=dir.y;
+  vec3 col=mix(uHaze,uSkyMid,smoothstep(-.02,.16,t));
+  col=mix(col,uSkyTop,smoothstep(.12,.75,t));
+  /* the far skyline: a silhouette that never comes closer, so the world has an edge */
+  float az=atan(dir.x,-dir.z);
+  if(uSkyline>.5&&t<.2){
+    float h,h2;
+    if(uSkyline<1.5){h=.012+.05*hash1(floor(az*11.))*(.6+.4*hash1(floor(az*11.)+7.));h2=.008+.03*hash1(floor(az*23.)+3.);}
+    else if(uSkyline<2.5){h=.03+.025*sin(az*2.7+.4)+.014*sin(az*6.1+2.)+.006*sin(az*13.);h2=.012+.014*sin(az*4.3+1.)+.008*sin(az*9.7);}
+    else{h=.05+.04*abs(sin(az*3.3))+.025*abs(sin(az*8.1+1.))+.012*sin(az*17.);h2=.02+.02*abs(sin(az*5.+2.));}
+    vec3 farC=mix(uHaze,uSkyTop*.5,.42);vec3 nearC=mix(uHaze,uSkyTop*.35,.62);
+    col=mix(col,farC,smoothstep(h+.004,h-.004,t)*.85);
+    col=mix(col,nearC,smoothstep(h2+.003,h2-.003,t)*.9);
+    if(uSkyline<1.5&&uNight>.3){float w=step(.86,hash(floor(vec2(az*160.,t*260.))))*step(t,h-.006)*step(0.,t);col+=vec3(1.,.85,.5)*w*uNight;}
+  }
+  float s=dot(dir,uSun);
+  vec3 sunC=uSunCol;
+  col+=sunC*(smoothstep(.9975,.9992,s)*(1.-uNight*.4)+pow(max(0.,s),36.)*.4+pow(max(0.,s),5.)*.1*(1.-uNight));
+  if(uStars>0.&&t>0.){vec2 sp=dir.xz/(t+.15)*60.;float st=step(.985,hash(floor(sp)))*smoothstep(0.,.25,t);col+=vec3(.9,.95,1.)*st*uStars*(.5+.5*sin(uTime*2.+hash(floor(sp)+1.)*20.));}
+  if(uCloud>0.&&t>.03){
+    vec2 cp=dir.xz/(t+.12)*1.6+vec2(uTime*.012,uTime*.004);
+    float c=fbm(cp)*(1.-smoothstep(.03,.7,t)*.5);
+    float cl=smoothstep(.52,.72,c)*uCloud*smoothstep(.03,.14,t);
+    vec3 cc=mix(uCloudCol,uCloudCol*.72,smoothstep(.55,.85,c));
+    col=mix(col,cc,cl*.92);
+  }
+  o=vec4(col,1.);
+}`;
+const S3D_PT_VS=`#version 300 es
+layout(location=0) in vec4 a;layout(location=1) in vec4 c;
+uniform mat4 uVP;uniform float uPx;out vec4 vc;
+void main(){gl_Position=uVP*vec4(a.xyz,1.);gl_PointSize=a.w*uPx/max(.3,gl_Position.w);vc=vec4(c.rgb,(1.-c.a)*(1.-c.a));}`;
+const S3D_PT_FS=`#version 300 es
+precision mediump float;in vec4 vc;out vec4 o;
+void main(){vec2 d=gl_PointCoord-.5;float m=1.-smoothstep(.2,.5,length(d));o=vec4(vc.rgb,vc.a*m*.75);}`;
+const S3D_TEX_VS=`#version 300 es
+layout(location=0) in vec3 p;layout(location=2) in vec2 e;uniform mat4 uVP,uM;out vec2 vE;out vec3 vW;
+void main(){vec4 w=uM*vec4(p,1.);vW=w.xyz;vE=e;gl_Position=uVP*w;}`;
+const S3D_TEX_FS=`#version 300 es
+precision mediump float;in vec2 vE;in vec3 vW;uniform sampler2D uT;uniform vec3 uHaze,uCam;uniform float uFogK;out vec4 o;
+void main(){vec4 c=texture(uT,vE);float d=length(vW-uCam);float fog=1.-exp(-d*d*uFogK*uFogK);o=vec4(mix(c.rgb,uHaze,fog*.6),c.a);}`;
+
+function s3dProgram(gl,vs,fs){
+  const build=(t,src)=>{ const sh=gl.createShader(t); gl.shaderSource(sh,src); gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){ try{ console.warn('shader',gl.getShaderInfoLog(sh)); }catch(_){} return null; } return sh; };
+  const v=build(gl.VERTEX_SHADER,vs),f=build(gl.FRAGMENT_SHADER,fs); if(!v||!f) return null;
+  const prog=gl.createProgram(); gl.attachShader(prog,v); gl.attachShader(prog,f); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return null;
+  const u={}, n=gl.getProgramParameter(prog,gl.ACTIVE_UNIFORMS);
+  for(let i=0;i<n;i++){ const info=gl.getActiveUniform(prog,i); if(info) u[info.name.replace(/\[0\]$/,'')]=gl.getUniformLocation(prog,info.name); }
+  return {prog,u};
+}
+const S3D_INST=24, S3D_MAX_INST=900;
+function s3dKind(gl,mesh){
+  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  const up=(loc,data,size)=>{ const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0); return b; };
+  up(0,mesh.pos,3); up(1,mesh.nrm,3); up(2,mesh.ext,2);
+  const ib=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,ib);
+  gl.bufferData(gl.ARRAY_BUFFER,S3D_MAX_INST*S3D_INST*4,gl.DYNAMIC_DRAW);
+  for(let i=0;i<6;i++){ gl.enableVertexAttribArray(3+i); gl.vertexAttribPointer(3+i,4,gl.FLOAT,false,S3D_INST*4,i*16); gl.vertexAttribDivisor(3+i,1); }
+  gl.bindVertexArray(null);
+  return {vao,ib,count:mesh.count,data:new Float32Array(S3D_MAX_INST*S3D_INST),n:0};
+}
+/* Place one instance: a full matrix, a colour and a material. */
+const s3dTmp=new Float32Array(16), s3dTmp2=new Float32Array(16);
+function s3dPush(kind,M,r,g,b,a,mode,p1,p2,p3){
+  if(kind.n>=S3D_MAX_INST) return;
+  const o=kind.n*S3D_INST, d=kind.data;
+  d.set(M,o);
+  d[o+16]=r;d[o+17]=g;d[o+18]=b;d[o+19]=a==null?1:a;
+  d[o+20]=mode||0;d[o+21]=p1||0;d[o+22]=p2||0;d[o+23]=p3||0;
+  kind.n++;
+}
+function s3dPushTRS(kind,x,y,z,rx,ry,rz,sx,sy,sz,col,a,mode,p1,p2,p3){
+  s3dPush(kind,m4TRS(s3dTmp,x,y,z,rx,ry,rz,sx,sy,sz),col[0],col[1],col[2],a,mode,p1,p2,p3);
+}
+/* a shape hanging off a parent matrix: parent · T(off) · R · S */
+function s3dPushChild(kind,parent,ox,oy,oz,rx,ry,rz,sx,sy,sz,col,a,mode,p1,p2,p3){
+  m4TRS(s3dTmp,ox,oy,oz,rx,ry,rz,sx,sy,sz);
+  m4Mul(s3dTmp2,parent,s3dTmp);
+  s3dPush(kind,s3dTmp2,col[0],col[1],col[2],a,mode,p1,p2,p3);
+}
+
+/* --- the renderer: one per canvas --- */
+function s3dCreate(canvas,opts={}){
+  let gl=null;
+  try{ gl=canvas.getContext('webgl2',{alpha:!!opts.alpha,antialias:true,depth:true,premultipliedAlpha:false,powerPreference:'high-performance',preserveDrawingBuffer:false}); }catch(_){}
+  if(!gl) return null;
+  const obj=s3dProgram(gl,S3D_OBJ_VS,S3D_OBJ_FS); if(!obj) return null;
+  const road=opts.sky===false?null:s3dProgram(gl,S3D_ROAD_VS,S3D_ROAD_FS);
+  const sky=opts.sky===false?null:s3dProgram(gl,S3D_SKY_VS,S3D_SKY_FS);
+  const pt=s3dProgram(gl,S3D_PT_VS,S3D_PT_FS);
+  const tex=s3dProgram(gl,S3D_TEX_VS,S3D_TEX_FS);
+  if(opts.sky!==false&&(!road||!sky)) return null;
+  const kinds={
+    box:s3dKind(gl,s3dBoxMesh()),cyl:s3dKind(gl,s3dCylMesh(12)),cyl6:s3dKind(gl,s3dCylMesh(6)),cone:s3dKind(gl,s3dConeMesh(10)),
+    sphere:s3dKind(gl,s3dSphereMesh(12,8)),wedge:s3dKind(gl,s3dWedgeMesh()),disc:s3dKind(gl,s3dDiscMesh(18)),quad:s3dKind(gl,s3dQuadMesh()),
+  };
+  /* the transparent kinds are drawn last with the depth buffer read but not written */
+  const order=['box','cyl','cyl6','cone','sphere','wedge','quad'], late=['disc'];
+  let roadVao=null, skyVao=null, ptVao=null, ptBuf=null, ptCBuf=null, texVao=null;
+  if(road){
+    roadVao=gl.createVertexArray(); gl.bindVertexArray(roadVao);
+    const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    const W=60,NEAR=14,FAR=-190;
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-W,0,NEAR,W,0,NEAR,W,0,FAR,-W,0,NEAR,W,0,FAR,-W,0,FAR]),gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    skyVao=gl.createVertexArray(); gl.bindVertexArray(skyVao);
+    const s=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,s);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null);
+  }
+  if(pt){
+    ptVao=gl.createVertexArray(); gl.bindVertexArray(ptVao);
+    ptBuf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,ptBuf); gl.bufferData(gl.ARRAY_BUFFER,S3D_PT_MAX*16,gl.DYNAMIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,4,gl.FLOAT,false,0,0);
+    ptCBuf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,ptCBuf); gl.bufferData(gl.ARRAY_BUFFER,S3D_PT_MAX*16,gl.DYNAMIC_DRAW);
+    gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null);
+  }
+  if(tex){
+    texVao=gl.createVertexArray(); gl.bindVertexArray(texVao);
+    const q=s3dQuadMesh(), b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,q.pos,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    const e=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,e); gl.bufferData(gl.ARRAY_BUFFER,q.ext,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,2,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null);
+  }
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
+  const r={gl,canvas,obj,road,sky,pt,tex,kinds,order,late,roadVao,skyVao,ptVao,ptBuf,ptCBuf,texVao,
+    w:0,h:0,dpr:1,cssW:1,cssH:1,
+    V:new Float32Array(16),P:new Float32Array(16),VP:new Float32Array(16),invVP:new Float32Array(16),
+    cam:{x:0,y:3.2,z:5,tx:0,ty:1,tz:-8,fov:1.22},
+    light:{sun:[.4,.75,.5],sunCol:[1,.95,.85],sky:[.6,.75,.95],ground:[.35,.32,.3],haze:[.8,.78,.72],fogK:.011,night:0,stars:0,cloud:.6,cloudCol:[1,1,1],skyline:1,skyTop:[.2,.4,.7],skyMid:[.5,.7,.9],roadTop:[.28,.3,.35],roadLow:[.1,.12,.16],verge:[.3,.5,.25],accent:[.4,.65,1]},
+    particles:[],signs:[],texCache:new Map(),time:0,
+    lost:false,
+  };
+  /* a context we let go of ourselves fires this too, after the next one
+     is already up; only a loss we did not ask for hands the screen back */
+  canvas.addEventListener('webglcontextlost',e=>{ e.preventDefault(); if(r.lost) return; r.lost=true; opts.onLost?.(); },{once:true});
+  return r;
+}
+function s3dDestroy(r){
+  if(!r) return;
+  r.lost=true;
+  try{ r.gl.getExtension('WEBGL_lose_context')?.loseContext(); }catch(_){}
+}
+function s3dResize(r,cssW,cssH,maxDpr=2){
+  const dpr=Math.min(maxDpr,window.devicePixelRatio||1);
+  const w=Math.max(1,Math.round(cssW*dpr)),h=Math.max(1,Math.round(cssH*dpr));
+  r.cssW=cssW; r.cssH=cssH; r.dpr=dpr;
+  if(w!==r.w||h!==r.h){ r.canvas.width=w; r.canvas.height=h; r.w=w; r.h=h; r.gl.viewport(0,0,w,h); }
+}
+function s3dCamera(r){
+  const c=r.cam, aspect=r.cssW/r.cssH;
+  m4Perspective(r.P,c.fov,aspect,.25,240);
+  const rl=c.roll||0;
+  m4LookAt(r.V,c.x,c.y,c.z,c.tx,c.ty,c.tz,Math.sin(rl),Math.cos(rl),0);
+  m4Mul(r.VP,r.P,r.V);
+  m4Invert(r.invVP,r.VP);
+}
+/* world → screen, in CSS pixels of the canvas box; pxPerM is what one metre
+   across measures at that depth, which is what a DOM label needs to agree
+   with the geometry beside it */
+function s3dProject(r,x,y,z){
+  const m=r.VP;
+  const cx=m[0]*x+m[4]*y+m[8]*z+m[12], cy=m[1]*x+m[5]*y+m[9]*z+m[13], cw=m[3]*x+m[7]*y+m[11]*z+m[15];
+  if(cw<=.05) return {sx:r.cssW/2,sy:-1e4,pxPerM:0,w:cw,visible:false};
+  return {sx:(cx/cw*.5+.5)*r.cssW,sy:(1-(cy/cw*.5+.5))*r.cssH,pxPerM:.5*r.cssH*r.P[5]/cw,w:cw,visible:true};
+}
+function s3dSetLight(gl,u,L,cam){
+  if(u.uSun) gl.uniform3fv(u.uSun,L.sun); if(u.uSunCol) gl.uniform3fv(u.uSunCol,L.sunCol);
+  if(u.uSkyCol) gl.uniform3fv(u.uSkyCol,L.sky); if(u.uGroundCol) gl.uniform3fv(u.uGroundCol,L.ground);
+  if(u.uHaze) gl.uniform3fv(u.uHaze,L.haze); if(u.uFogK) gl.uniform1f(u.uFogK,L.fogK);
+  if(u.uCam) gl.uniform3f(u.uCam,cam.x,cam.y,cam.z); if(u.uNight) gl.uniform1f(u.uNight,L.night);
+}
+/* --- particles, in the world --- */
+const S3D_PT_MAX=360;
+function s3dEmit(r,spec,n){
+  if(!r) return;
+  const live=r.particles;
+  for(let i=0;i<n&&live.length<S3D_PT_MAX;i++) live.push(spec(i));
+}
+function s3dStepParticles(r,dt,speed){
+  const s=dt/1000, live=r.particles;
+  for(let i=live.length-1;i>=0;i--){
+    const p=live[i]; p.life+=dt;
+    if(p.life>=p.ttl){ live.splice(i,1); continue; }
+    p.x+=p.vx*s; p.y+=p.vy*s; p.z+=(p.vz+(p.ride?speed:0))*s; p.vy+=(p.grav==null?-1.2:p.grav)*s; p.vx*=.985; p.vz*=.985;
+  }
+}
+function s3dDrawParticles(r){
+  const {gl,pt}=r, live=r.particles, n=live.length; if(!pt||!n) return;
+  const pos=r._ptPos||(r._ptPos=new Float32Array(S3D_PT_MAX*4)), col=r._ptCol||(r._ptCol=new Float32Array(S3D_PT_MAX*4));
+  for(let i=0;i<n;i++){ const p=live[i],k=i*4; pos[k]=p.x;pos[k+1]=p.y;pos[k+2]=p.z;pos[k+3]=p.size; col[k]=p.r;col[k+1]=p.g;col[k+2]=p.b;col[k+3]=p.life/p.ttl; }
+  gl.useProgram(pt.prog);
+  gl.uniformMatrix4fv(pt.u.uVP,false,r.VP);
+  gl.uniform1f(pt.u.uPx,.5*r.h*r.P[5]);
+  gl.bindVertexArray(r.ptVao);
+  gl.bindBuffer(gl.ARRAY_BUFFER,r.ptBuf); gl.bufferSubData(gl.ARRAY_BUFFER,0,pos.subarray(0,n*4));
+  gl.bindBuffer(gl.ARRAY_BUFFER,r.ptCBuf); gl.bufferSubData(gl.ARRAY_BUFFER,0,col.subarray(0,n*4));
+  gl.depthMask(false); gl.drawArrays(gl.POINTS,0,n); gl.depthMask(true);
+  gl.bindVertexArray(null);
+}
+/* --- words in the world: a canvas draws them once, a quad carries them --- */
+function s3dTextTexture(r,text,opts={}){
+  const key=text+'|'+(opts.bg||'')+'|'+(opts.fg||'');
+  if(r.texCache.has(key)) return r.texCache.get(key);
+  const {gl}=r;
+  let tex=null;
+  try{
+    const c=document.createElement('canvas'); c.width=256; c.height=128;
+    const ctx=c.getContext('2d'); if(!ctx) return null;
+    ctx.clearRect(0,0,256,128);
+    const rr=(x,y,w,h,rad)=>{ ctx.beginPath(); ctx.moveTo(x+rad,y); ctx.arcTo(x+w,y,x+w,y+h,rad); ctx.arcTo(x+w,y+h,x,y+h,rad); ctx.arcTo(x,y+h,x,y,rad); ctx.arcTo(x,y,x+w,y,rad); ctx.closePath(); };
+    rr(6,6,244,116,26); ctx.fillStyle=opts.bg||'#111827'; ctx.fill(); ctx.lineWidth=8; ctx.strokeStyle=opts.stroke||'#ffffff'; ctx.stroke();
+    ctx.fillStyle=opts.fg||'#ffffff'; ctx.font='900 '+(opts.size||64)+'px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(text,128,70);
+    tex=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D,null);
+  }catch(_){ tex=null; }
+  r.texCache.set(key,tex);
+  return tex;
+}
+function s3dSign(r,text,x,y,z,w,opts){ r.signs.push({text,x,y,z,w,opts}); }
+function s3dDrawSigns(r){
+  const {gl,tex}=r; if(!tex||!r.signs.length) return;
+  gl.useProgram(tex.prog);
+  gl.uniformMatrix4fv(tex.u.uVP,false,r.VP);
+  gl.uniform3fv(tex.u.uHaze,r.light.haze); gl.uniform1f(tex.u.uFogK,r.light.fogK); gl.uniform3f(tex.u.uCam,r.cam.x,r.cam.y,r.cam.z);
+  gl.bindVertexArray(r.texVao); gl.activeTexture(gl.TEXTURE0); gl.uniform1i(tex.u.uT,0);
+  gl.depthMask(false); gl.disable(gl.CULL_FACE);
+  for(const s of r.signs){
+    const t=s3dTextTexture(r,s.text,s.opts); if(!t) continue;
+    gl.bindTexture(gl.TEXTURE_2D,t);
+    /* turned to face the camera, so the word is always read square on */
+    const yaw=Math.atan2(r.cam.x-s.x,r.cam.z-s.z);
+    gl.uniformMatrix4fv(tex.u.uM,false,m4TRS(s3dTmp,s.x,s.y,s.z,0,yaw,0,s.w,s.w*.5,1));
+    gl.drawArrays(gl.TRIANGLES,0,6);
+  }
+  gl.enable(gl.CULL_FACE); gl.depthMask(true);
+  gl.bindVertexArray(null); r.signs.length=0;
+}
+/* --- one frame --- */
+function s3dBegin(r){ for(const k in r.kinds) r.kinds[k].n=0; r.signs.length=0; }
+function s3dDraw(r,roadState){
+  const {gl,obj,kinds,light:L,cam}=r;
+  s3dCamera(r);
+  gl.viewport(0,0,r.w,r.h);
+  gl.disable(gl.DEPTH_TEST); gl.depthMask(false);
+  if(r.sky&&roadState){
+    gl.useProgram(r.sky.prog);
+    const u=r.sky.u;
+    gl.uniformMatrix4fv(u.uInvVP,false,r.invVP);
+    gl.uniform3fv(u.uSkyTop,L.skyTop); gl.uniform3fv(u.uSkyMid,L.skyMid); gl.uniform3fv(u.uHaze,L.haze);
+    gl.uniform3fv(u.uSun,L.sun); gl.uniform3fv(u.uSunCol,L.sunCol); gl.uniform3fv(u.uCloudCol,L.cloudCol);
+    gl.uniform1f(u.uTime,r.time); gl.uniform1f(u.uNight,L.night); gl.uniform1f(u.uCloud,L.cloud); gl.uniform1f(u.uSkyline,L.skyline); gl.uniform1f(u.uStars,L.stars);
+    gl.bindVertexArray(r.skyVao); gl.drawArrays(gl.TRIANGLES,0,3);
+  } else {
+    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+  }
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true);
+  if(r.road&&roadState){
+    gl.useProgram(r.road.prog);
+    const u=r.road.u;
+    gl.uniformMatrix4fv(u.uVP,false,r.VP);
+    gl.uniform3fv(u.uRoadTop,L.roadTop); gl.uniform3fv(u.uRoadLow,L.roadLow); gl.uniform3fv(u.uVerge,L.verge); gl.uniform3fv(u.uAccent,L.accent);
+    gl.uniform3fv(u.uHaze,L.haze); gl.uniform3fv(u.uSunCol,L.sunCol); gl.uniform3fv(u.uSkyCol,L.sky); gl.uniform3f(u.uCam,cam.x,cam.y,cam.z);
+    gl.uniform1f(u.uScroll,roadState.scroll); gl.uniform1f(u.uFogK,L.fogK); gl.uniform1f(u.uLaneX,roadState.laneX); gl.uniform1f(u.uLaneGlow,roadState.laneGlow);
+    gl.uniform1f(u.uHalfW,S3D_ROAD_HALF); gl.uniform1f(u.uLaneW,S3D_LANE_W); gl.uniform1f(u.uNight,L.night);
+    gl.bindVertexArray(r.roadVao); gl.drawArrays(gl.TRIANGLES,0,6);
+  }
+  gl.useProgram(obj.prog);
+  gl.uniformMatrix4fv(obj.u.uVP,false,r.VP);
+  s3dSetLight(gl,obj.u,L,cam); gl.uniform1f(obj.u.uTime,r.time);
+  const drawKind=k=>{ if(!k.n) return; gl.bindVertexArray(k.vao); gl.bindBuffer(gl.ARRAY_BUFFER,k.ib); gl.bufferSubData(gl.ARRAY_BUFFER,0,k.data.subarray(0,k.n*S3D_INST)); gl.drawArraysInstanced(gl.TRIANGLES,0,k.count,k.n); };
+  for(const name of r.order) drawKind(kinds[name]);
+  gl.depthMask(false);
+  for(const name of r.late) drawKind(kinds[name]);
+  gl.depthMask(true);
+  gl.bindVertexArray(null);
+  s3dDrawSigns(r);
+  s3dDrawParticles(r);
+}
+const S3D_LANE_W=1.15, S3D_ROAD_HALF=1.9, S3D_LANE_X=[-1.15,0,1.15];
+
+/* --- Sam, in three dimensions ---
+   A jointed figure built out of the unit meshes: a head with a face and one
+   of the shop's hairstyles, a torso, two arms and two legs, each with a real
+   elbow or knee. Every colour comes from the equipped look, exactly as the
+   drawn rig took them. The pose is a handful of joint angles computed fresh
+   every frame from what the runner is doing, so the run, the jump, the
+   duck, the lean and the fall all share one body instead of one animation
+   replacing another. */
+const S3D_RIG={hipY:.86,thigh:.40,shin:.40,shoulderY:1.26,upper:.28,fore:.26,headR:.19};
+function s3dLookColors(look){
+  const l=look||{};
+  return {
+    skin:s3dHex(l.skin||'#d9a878'),skinShadow:s3dHex(l.skinShadow||'#b87852'),hair:s3dHex(l.hairColor||'#231a15'),
+    clothes:s3dHex(l.clothes||'#2fa87a'),accent:s3dHex(l.accent||'#1f7f5c'),pants:s3dHex(l.pants||'#29483f'),shoes:s3dHex(l.shoes||'#6e4f39'),
+    eye:s3dHex(l.eyeColor||'#455d4d'),blush:s3dHex(l.blush||'#c87967'),hairStyle:l.hairStyle||'short',glasses:!!l.glasses,
+  };
+}
+function s3dPose(){
+  return {x:0,y:0,z:0,rootY:0,lean:0,yaw:0,bank:0,sy:1,torsoRx:0,torsoRy:0,torsoRz:0,headRx:0,headRy:0,headRz:0,
+    hipL:0,hipR:0,hipLz:0,hipRz:0,kneeL:0,kneeR:0,footL:0,footR:0,shL:0,shR:0,shLz:0,shRz:0,elL:0,elR:0,
+    alpha:1,flash:0,blink:0,ride:'',legs:true,ground:true};
+}
+/* where the lower foot would be, so the body can be set down on the road */
+function s3dFootDrop(hip,knee){
+  const R=S3D_RIG; return R.hipY-R.thigh*Math.cos(hip)-R.shin*Math.cos(hip+knee)-.06;
+}
+/* Draw the figure. `kinds` are the renderer's meshes; the pose is applied on
+   top of the base proportions. Returns the world y of the feet for the shadow. */
+function s3dDrawRig(r,look,P){
+  const K=r.kinds,C=look,R=S3D_RIG;
+  const flash=P.flash||0;
+  const tint=c=>flash>0?s3dMix(c,[1,.35,.3],flash):c;
+  const skin=tint(C.skin),cloth=tint(C.clothes),acc=tint(C.accent),pants=tint(C.pants),shoes=tint(C.shoes),hair=tint(C.hair),a=P.alpha;
+  let groundDrop=0;
+  if(P.legs&&P.ground){ groundDrop=Math.min(s3dFootDrop(P.hipL,P.kneeL),s3dFootDrop(P.hipR,P.kneeR)); }
+  const root=new Float32Array(16);
+  m4TRS(root,P.x,P.y+P.rootY-groundDrop,P.z,P.lean,P.yaw,P.bank,1,P.sy,1);
+  const torso=new Float32Array(16),node=new Float32Array(16),node2=new Float32Array(16);
+  /* pelvis */
+  s3dPushChild(K.box,root,0,R.hipY-.03,0,0,0,0,.31,.17,.21,pants,a);
+  /* torso, from the hips up */
+  m4TRS(node,0,R.hipY,0,P.torsoRx,P.torsoRy,P.torsoRz,1,1,1); m4Mul(torso,root,node);
+  s3dPushChild(K.box,torso,0,.22,0,0,0,0,.36,.44,.23,cloth,a);
+  s3dPushChild(K.box,torso,0,.40,0,0,0,0,.42,.09,.25,acc,a);
+  s3dPushChild(K.box,torso,0,.06,-.005,0,0,0,.37,.06,.235,acc,a);
+  s3dPushChild(K.cyl,torso,0,.49,0,0,0,0,.1,.09,.1,skin,a);
+  /* head */
+  m4TRS(node,0,.5,0,P.headRx,P.headRy,P.headRz,1,1,1); m4Mul(node2,torso,node);
+  const head=node2.slice();
+  s3dPushChild(K.sphere,head,0,.17,0,0,0,0,R.headR,R.headR,R.headR,skin,a);
+  s3dPushChild(K.sphere,head,-.185,.17,0,0,0,0,.04,.05,.03,skin,a);
+  s3dPushChild(K.sphere,head,.185,.17,0,0,0,0,.04,.05,.03,skin,a);
+  /* face, on the front */
+  const eyeW=[.98,.98,.96];
+  for(const s of [-1,1]){
+    const bk=1-(P.blink||0)*.9;
+    s3dPushChild(K.sphere,head,s*.068,.2,-.165,0,0,0,.032,.036*bk,.02,eyeW,a);
+    s3dPushChild(K.sphere,head,s*.068,.2,-.182,0,0,0,.017,.02*bk,.012,tint(C.eye).map(v=>v*.5),a);
+    s3dPushChild(K.box,head,s*.068,.245,-.172,0,0,s*.12,.06,.012,.012,hair,a);
+    s3dPushChild(K.sphere,head,s*.1,.15,-.15,0,0,0,.028,.018,.01,tint(C.blush),a*.8);
+  }
+  s3dPushChild(K.box,head,0,.115,-.182,0,0,0,.07,.016,.012,tint(C.skinShadow),a);
+  if(C.glasses){
+    s3dPushChild(K.box,head,0,.2,-.19,0,0,0,.2,.012,.012,[.15,.16,.2],a);
+    for(const s of [-1,1]) s3dPushChild(K.box,head,s*.068,.2,-.19,0,0,0,.012,.07,.012,[.15,.16,.2],a);
+  }
+  /* hair */
+  const hs=C.hairStyle;
+  if(hs==='cap'){
+    s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.2,.16,.2,hair,a);
+    s3dPushChild(K.sphere,head,0,.23,.01,0,0,0,.205,.15,.205,acc,a);
+    s3dPushChild(K.box,head,0,.235,-.2,-.25,0,0,.3,.025,.17,acc,a);
+  } else if(hs==='curly'){
+    s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.2,.18,.2,hair,a);
+    const puffs=[[0,.36,.02],[-.14,.31,.06],[.14,.31,.06],[-.19,.2,.06],[.19,.2,.06],[0,.32,.16],[-.11,.24,.17],[.11,.24,.17],[-.08,.36,-.08],[.08,.36,-.08]];
+    for(const [x,y,z] of puffs) s3dPushChild(K.sphere,head,x,y,z,0,0,0,.085,.085,.085,hair,a);
+  } else if(hs==='long'){
+    s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.205,.18,.205,hair,a);
+    s3dPushChild(K.box,head,0,-.04,.14,.1,0,0,.34,.46,.15,hair,a);
+    for(const s of [-1,1]) s3dPushChild(K.box,head,s*.17,.03,.02,0,0,0,.07,.36,.18,hair,a);
+  } else if(hs==='bob'){
+    s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.215,.19,.215,hair,a);
+    s3dPushChild(K.box,head,0,.06,.03,0,0,0,.4,.26,.36,hair,a);
+  } else if(hs==='bun'){
+    s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.2,.165,.2,hair,a);
+    s3dPushChild(K.sphere,head,0,.37,.07,0,0,0,.095,.085,.095,hair,a);
+  } else if(hs==='bun-side'){
+    s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.2,.165,.2,hair,a);
+    s3dPushChild(K.sphere,head,.2,.28,.05,0,0,0,.11,.1,.11,hair,a);
+    s3dPushChild(K.sphere,head,.26,.36,.03,0,0,0,.07,.07,.07,hair,a);
+  } else if(hs==='sidepart'){
+    s3dPushChild(K.sphere,head,.025,.21,.02,0,0,-.12,.205,.16,.2,hair,a);
+    s3dPushChild(K.box,head,-.06,.31,-.12,0,0,.25,.16,.05,.14,hair,a);
+  } else {
+    s3dPushChild(K.sphere,head,0,.21,.02,0,0,0,.2,.165,.2,hair,a);
+  }
+  /* arms */
+  for(const s of [-1,1]){
+    const rx=s<0?P.shL:P.shR, rz=s<0?-P.shLz:P.shRz, el=s<0?P.elL:P.elR;
+    m4TRS(node,s*.225,.4,0,rx,0,rz,1,1,1); m4Mul(node2,torso,node);
+    s3dPushChild(K.cyl,node2,0,-.14,0,0,0,0,.1,R.upper,.1,cloth,a);
+    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.095,.08,.095,cloth,a);
+    m4TRS(node,0,-R.upper,0,el,0,0,1,1,1); const arm=node2.slice(); m4Mul(node2,arm,node);
+    s3dPushChild(K.cyl,node2,0,-.13,0,0,0,0,.08,R.fore,.08,skin,a);
+    s3dPushChild(K.sphere,node2,0,-.27,0,0,0,0,.06,.065,.055,skin,a);
+  }
+  /* legs */
+  if(P.legs) for(const s of [-1,1]){
+    const hip=s<0?P.hipL:P.hipR, hz=s<0?-P.hipLz:P.hipRz, knee=s<0?P.kneeL:P.kneeR, foot=s<0?P.footL:P.footR;
+    m4TRS(node,s*.11,R.hipY,0,hip,0,hz,1,1,1); m4Mul(node2,root,node);
+    s3dPushChild(K.cyl,node2,0,-.2,0,0,0,0,.135,R.thigh,.135,pants,a);
+    m4TRS(node,0,-R.thigh,0,knee,0,0,1,1,1); const leg=node2.slice(); m4Mul(node2,leg,node);
+    s3dPushChild(K.cyl,node2,0,-.2,0,0,0,0,.115,R.shin,.115,pants,a);
+    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.12,.1,.12,pants,a);
+    m4TRS(node,0,-R.shin,0,foot,0,0,1,1,1); const shin=node2.slice(); m4Mul(node2,shin,node);
+    s3dPushChild(K.box,node2,0,-.025,-.06,0,0,0,.125,.085,.28,shoes,a);
+    s3dPushChild(K.box,node2,0,-.05,-.17,0,0,0,.13,.04,.08,[.95,.95,.95],a);
+  }
+  return {root,torso,head,footY:P.y+P.rootY-groundDrop};
+}
+/* --- rides --- */
+function s3dDrawRide(r,ride,root,look,t){
+  const K=r.kinds,acc=look.accent;
+  const dark=[.16,.17,.2],grey=[.55,.57,.6],chrome=[.82,.85,.9];
+  if(ride==='ride_scooter'){
+    const blue=[.2,.47,.86];
+    s3dPushChild(K.box,root,0,.1,-.04,0,0,0,.16,.045,.78,blue);
+    s3dPushChild(K.cyl,root,0,.6,-.44,-.16,0,0,.035,1.0,.035,chrome);
+    s3dPushChild(K.cyl,root,0,1.07,-.52,0,0,Math.PI/2,.03,.46,.03,dark);
+    for(const z of [-.42,.34]){ s3dPushChild(K.cyl,root,0,.11,z,0,0,Math.PI/2,.11,.05,.11,dark); s3dPushChild(K.cyl,root,0,.11,z,0,0,Math.PI/2,.05,.06,.05,grey); }
+    return .075;
+  }
+  if(ride==='ride_bike'){
+    const frame=acc;
+    for(const z of [-.55,.55]){ s3dPushChild(K.cyl,root,0,.32,z,0,0,Math.PI/2,.32,.04,.32,dark); s3dPushChild(K.cyl,root,0,.32,z,0,0,Math.PI/2,.26,.045,.26,grey); s3dPushChild(K.cyl,root,0,.32,z,t*6,0,Math.PI/2,.06,.06,.06,chrome); }
+    s3dPushChild(K.box,root,0,.78,-.05,0,0,0,.05,.05,.62,frame);
+    s3dPushChild(K.box,root,0,.55,-.2,.85,0,0,.05,.05,.7,frame);
+    s3dPushChild(K.box,root,0,.55,.28,-.85,0,0,.05,.05,.62,frame);
+    s3dPushChild(K.box,root,0,.6,-.5,.35,0,0,.04,.62,.04,chrome);
+    s3dPushChild(K.cyl,root,0,.99,-.5,0,0,Math.PI/2,.03,.5,.03,dark);
+    s3dPushChild(K.box,root,0,.93,.2,0,0,0,.18,.05,.26,dark);
+    s3dPushChild(K.cyl,root,0,.35,0,0,0,Math.PI/2,.06,.1,.06,grey);
+    for(const s of [-1,1]) s3dPushChild(K.box,root,s*.1,.35+Math.sin(t*6+(s<0?Math.PI:0))*.13,Math.cos(t*6+(s<0?Math.PI:0))*.13,0,0,0,.08,.03,.1,dark);
+    return .6;
+  }
+  if(ride==='ride_car'){
+    const red=[.9,.22,.2],dred=[.62,.12,.12];
+    s3dPushChild(K.box,root,0,.42,0,0,0,0,1.3,.36,2.15,red);
+    s3dPushChild(K.wedge,root,0,.68,-.45,0,0,0,1.2,.22,1.0,red);
+    s3dPushChild(K.box,root,0,.64,.55,0,0,0,1.22,.16,.9,red);
+    s3dPushChild(K.box,root,0,.92,-.4,-.55,0,0,1.0,.36,.04,[.55,.75,.95],.55);
+    s3dPushChild(K.box,root,0,.88,.95,0,0,0,1.15,.06,.28,dred);
+    for(const s of [-1,1]) s3dPushChild(K.box,root,s*.48,.86,.95,0,0,0,.06,.14,.06,dred);
+    for(const s of [-1,1]){ s3dPushChild(K.box,root,s*.42,.5,-1.08,0,0,0,.24,.1,.04,[1,.95,.75],1,5); s3dPushChild(K.box,root,s*.45,.5,1.08,0,0,0,.2,.08,.04,[1,.25,.2],1,5); }
+    for(const [x,z] of [[-.62,-.72],[.62,-.72],[-.62,.72],[.62,.72]]){ s3dPushChild(K.cyl,root,x,.27,z,0,0,Math.PI/2,.27,.2,.27,dark); s3dPushChild(K.cyl,root,x,.27,z,t*7,0,Math.PI/2,.15,.21,.15,grey); }
+    return .55;
+  }
+  return 0;
+}
+/* --- the clips ---
+   Each one writes deltas into the pose for a normalised time t. They are
+   written on shared beats: anticipate, launch, tuck, reach, contact, absorb. */
+function s3dClipJump(P,t){
+  P.rootY+=s3dKf(t,[[0,0],[.06,-.07],[.15,.2],[.32,.62],[.48,.8],[.66,.66],[.84,.18],[.91,0],[.96,-.07],[1,0]]);
+  P.sy*=s3dKf(t,[[0,1],[.06,.9],[.15,1.08],[.3,1],[.84,1],[.91,.93],[.96,.88],[1,1]]);
+  const hip=s3dKf(t,[[0,0],[.06,.35],[.15,-.2],[.32,.9],[.48,1.0],[.66,.7],[.84,.15],[.91,.3],[.96,.55],[1,0]]);
+  const knee=s3dKf(t,[[0,0],[.06,-.6],[.15,-.1],[.32,-1.7],[.48,-1.9],[.66,-1.3],[.84,-.3],[.91,-.5],[.96,-1.0],[1,0]]);
+  P.hipL+=hip*1.05; P.hipR+=hip*.9; P.kneeL+=knee; P.kneeR+=knee*.92;
+  const sh=s3dKf(t,[[0,0],[.06,-.5],[.15,2.3],[.4,2.5],[.7,1.8],[.84,.6],[.91,-.2],[.96,-.5],[1,0]]);
+  P.shL+=sh; P.shR+=sh; P.shLz+=Math.max(0,sh)*.15; P.shRz+=Math.max(0,sh)*.15;
+  P.lean+=s3dKf(t,[[0,0],[.06,-.15],[.15,.1],[.48,.05],[.84,-.05],[.96,-.2],[1,0]]);
+  P.torsoRx+=s3dKf(t,[[0,0],[.06,-.2],[.15,.12],[.48,.05],[.84,-.05],[.96,-.25],[1,0]]);
+  P.ground=t<.08||t>.9;
+}
+function s3dClipDuck(P,t){
+  P.rootY+=s3dKf(t,[[0,0],[.05,.04],[.16,-.4],[.72,-.4],[.88,.05],[1,0]]);
+  const w=s3dKf(t,[[0,0],[.16,1],[.72,1],[1,0]]);
+  P.hipL+=1.35*w; P.hipR+=1.2*w; P.hipLz+=.25*w; P.hipRz+=.25*w; P.kneeL+=-2.2*w; P.kneeR+=-2.1*w;
+  P.torsoRx+=-.75*w; P.headRx+=.4*w; P.shLz+=.6*w; P.shRz+=.6*w; P.shL+=-.4*w; P.shR+=-.4*w; P.elL+=.6*w; P.elR+=.6*w;
+  P.sy*=s3dKf(t,[[0,1],[.05,1.03],[.16,.92],[.72,.92],[.88,1.04],[1,1]]);
+  P.ground=w<.5;
+}
+function s3dClipLean(P,t,dir){
+  const b=s3dKf(t,[[0,0],[.3,.23],[.62,.09],[.82,-.05],[1,0]])*dir;
+  P.bank+=b; P.headRz-=b*.5; P.torsoRz+=b*.3;
+  /* the head turns toward the lane first, and the body follows */
+  P.headRy+=-dir*.3*s3dKf(t,[[0,1],[.55,1],[1,0]]);
+  const x=s3dKf(t,[[0,0],[.25,1],[.5,0]]); if(dir<0){ P.hipR+=.3*x; P.hipRz+=.5*x; } else { P.hipL+=.3*x; P.hipLz+=.5*x; }
+}
+function s3dClipHit(P,t){
+  P.lean+=s3dKf(t,[[0,0],[.18,.28],[.42,-.12],[.68,.06],[1,0]]);
+  P.bank+=s3dKf(t,[[0,0],[.18,-.15],[.42,.1],[.68,-.04],[1,0]]);
+  const fl=s3dKf(t,[[0,0],[.18,1.2],[.42,.6],[.68,.2],[1,0]]);
+  P.shLz+=fl; P.shRz+=fl; P.shL+=fl*.6; P.shR+=fl*.4; P.headRx-=fl*.25;
+  P.rootY+=s3dKf(t,[[0,0],[.18,-.08],[.5,0],[1,0]]);
+  P.flash=Math.max(P.flash,s3dKf(t,[[0,.9],[.2,.9],[.4,0]]));
+}
+function s3dClipStumble(P,t){
+  P.lean+=s3dKf(t,[[0,0],[.3,-.3],[.62,.12],[1,0]]);
+  P.rootY+=s3dKf(t,[[0,0],[.3,-.08],[1,0]]);
+  P.sy*=s3dKf(t,[[0,1],[.3,.9],[.62,1.03],[1,1]]);
+  const fl=s3dKf(t,[[0,0],[.3,.7],[.7,.2],[1,0]]); P.shLz+=fl; P.shRz+=fl;
+}
+function s3dClipCollect(P,t){
+  const w=s3dKf(t,[[0,0],[.3,1],[.68,1],[1,0]]);
+  P.shR+=2.5*w; P.elR+=.5*w; P.shRz+=.35*w; P.headRy-=.2*w;
+  P.rootY+=s3dKf(t,[[0,0],[.38,.12],[.72,.02],[1,0]]);
+}
+function s3dClipCelebrate(P,t){
+  const w=s3dKf(t,[[0,0],[.2,1],[.85,1],[1,0]]);
+  P.shL+=2.7*w; P.shR+=2.7*w; P.shLz+=.5*w; P.shRz+=.5*w;
+  P.elL+=(.4+.35*Math.sin(t*22))*w; P.elR+=(.4+.35*Math.sin(t*22+2))*w;
+  P.rootY+=s3dKf(t,[[0,0],[.28,.3],[.55,0],[.76,.13],[1,0]]);
+  P.headRx-=.2*w;
+}
+function s3dClipReady(P,w,kind){
+  if(kind==='jump'){ P.rootY-=.05*w; P.hipL+=.3*w; P.hipR+=.3*w; P.kneeL-=.6*w; P.kneeR-=.6*w; P.lean-=.1*w; P.shL-=.5*w; P.shR-=.5*w; }
+  else { P.rootY-=.03*w; P.torsoRx-=.25*w; P.headRx+=.15*w; }
+}
+/* the run itself: hips swing, knees fold on the way through, arms pump
+   against the legs, the torso twists a little and the head stays level */
+function s3dRunCycle(P,phi,w=1,pace=1){
+  const bump=(c,wd)=>{ let d=phi-c; d-=Math.round(d/(Math.PI*2))*Math.PI*2; const v=Math.max(0,1-Math.abs(d)/wd); return v*v; };
+  const s=Math.sin(phi), k=s3dClamp((pace-1)/1.35,0,1);
+  /* faster means a longer stride and a deeper lean, not quicker legs */
+  const swing=.5+.18*k, lean=-.11-.14*k;
+  P.hipL+=(swing*s+.12)*w; P.hipR+=(-swing*s+.12)*w;
+  P.kneeL+=-(.18+(1.3+.3*k)*bump(5.35,1.7)+.35*bump(2.5,1.0))*w;
+  P.kneeR+=-(.18+(1.3+.3*k)*bump(5.35-Math.PI,1.7)+.35*bump(2.5-Math.PI,1.0))*w;
+  P.footL+=(.2*Math.sin(phi-.6))*w; P.footR+=(-.2*Math.sin(phi-.6))*w;
+  P.shL+=(-(.5+.1*k)*s+.05)*w; P.shR+=((.5+.1*k)*s+.05)*w; P.shLz+=.1*w; P.shRz+=.1*w;
+  P.elL+=(1.5+.3*Math.sin(phi+.3))*w; P.elR+=(1.5-.3*Math.sin(phi+.3))*w;
+  P.torsoRy+=.12*s*w; P.torsoRz+=.035*s*w; P.torsoRx+=(lean-.03*Math.cos(2*phi))*w;
+  P.headRx+=(-lean*.5+.03*Math.cos(2*phi))*w; P.headRy-=.07*s*w; P.headRz-=.03*s*w;
+}
+function s3dIdleCycle(P,t){
+  P.sy*=1+.012*Math.sin(t*1.9);
+  const bl=(t%3.7); P.blink=bl>3.55?1-Math.abs((bl-3.55)/.15*2-1):0;
+  P.shLz+=.14+.02*Math.sin(t*1.9); P.shRz+=.14+.02*Math.sin(t*1.9+.4); P.elL+=.25; P.elR+=.25;
+  P.headRy+=.28*Math.sin(t*.7); P.headRx+=.04*Math.sin(t*1.1);
+  P.bank+=.015*Math.sin(t*.9); P.torsoRy+=.04*Math.sin(t*.7);
+  P.hipL-=.02; P.hipR+=.02; P.hipLz+=.05; P.hipRz+=.05;
+  /* every few seconds, a wave */
+  const cycle=t%6.5;
+  if(cycle>4.2&&cycle<5.7){ const w=Math.sin((cycle-4.2)/1.5*Math.PI); P.shR+=2.6*w; P.shRz+=.5*w; P.elR+=(.6+.5*Math.sin(t*14))*w; P.headRz+=.12*w; }
+}
+
+/* --- the eight worlds ---
+   Each world is a light, a sky and a handful of things that stand by the
+   road, all built from the unit meshes. The road colours still come from the
+   theme's CSS variables so the DOM fallback and the rendered world agree. */
+const S3D_THEMES=[
+  {sun:[.35,.8,.45],sunCol:[1,.96,.86],sky:[.62,.76,.95],ground:[.4,.38,.36],fogK:.0115,night:0,stars:0,cloud:.6,cloudCol:[1,1,1],skyline:1,verge:'#8d8f8a',
+    tpl:['block','block','tree','lamp','stop','tree','block','bench']},
+  {sun:[-.45,.5,.55],sunCol:[1,.78,.62],sky:[.85,.6,.7],ground:[.42,.3,.38],fogK:.011,night:0,stars:0,cloud:.5,cloudCol:[1,.86,.8],skyline:1,verge:'#a68a94',
+    tpl:['pastel','balloon','pastel','lamp','pastel','balloon','flowers','pastel']},
+  {sun:[.3,.85,.4],sunCol:[1,.98,.9],sky:[.6,.82,.85],ground:[.3,.42,.3],fogK:.0125,night:0,stars:0,cloud:.5,cloudCol:[1,1,1],skyline:2,verge:'#4f7a45',
+    tpl:['tree','pine','bush','fence','rock','tree','pine','bush']},
+  {sun:[.5,.85,.3],sunCol:[1,.97,.8],sky:[.65,.85,1],ground:[.4,.48,.3],fogK:.011,night:0,stars:0,cloud:.35,cloudCol:[1,1,1],skyline:2,verge:'#6f9a4a',
+    tpl:['tree','table','umbrella','flowers','tree','bench','bush','balloon']},
+  {sun:[.35,.8,.45],sunCol:[1,.95,.85],sky:[.65,.78,.95],ground:[.4,.4,.38],fogK:.0115,night:0,stars:0,cloud:.55,cloudCol:[1,1,1],skyline:1,verge:'#9a988c',
+    tpl:['school','bus','tree','sign','fence','tree','bus','lamp']},
+  {sun:[-.5,.45,.55],sunCol:[1,.7,.5],sky:[.7,.5,.55],ground:[.35,.28,.3],fogK:.011,night:.35,stars:.35,cloud:.4,cloudCol:[1,.8,.7],skyline:2,verge:'#6d6a52',
+    tpl:['house','tree','mailbox','fence','house','lamp','bush','house']},
+  {sun:[.3,.6,.6],sunCol:[.7,.75,.95],sky:[.35,.4,.6],ground:[.15,.15,.22],fogK:.0105,night:.85,stars:.6,cloud:0,cloudCol:[.5,.5,.6],skyline:1,verge:'#3a3f4d',
+    tpl:['tower','tower','taxi','lamp','tower','neon','tower','light']},
+  {sun:[.2,.55,.75],sunCol:[.55,.85,1],sky:[.25,.35,.6],ground:[.12,.12,.2],fogK:.0095,night:1,stars:1,cloud:0,cloudCol:[.4,.4,.5],skyline:3,verge:'#2a2c40',
+    tpl:['darktower','crystal','pylon','darktower','crystal','darktower','pylon','crystal']},
+];
+const S3D_PASTELS=[[.98,.72,.78],[.99,.9,.6],[.62,.88,.85],[.78,.72,.95],[.98,.8,.62],[.72,.9,.7]];
+/* Templates are lists of shapes hung off one base matrix. `k` picks the mesh,
+   `o` is the offset, `s` the size, `c` the colour, `m` a material mode. */
+function s3dTemplate(name,seed){
+  const h=i=>s3dHash(seed*7.31+i*3.7);
+  const shapes=[];
+  const add=(k,o,s,c,m,p,rot)=>shapes.push({k,o,s,c,m:m||0,p:p||[0,0,0],r:rot||[0,0,0]});
+  const trunk=[.45,.3,.18],leaf=[.28+h(1)*.15,.55+h(2)*.2,.25];
+  switch(name){
+    case 'block':{ const w=3.5+h(1)*3,d=4+h(2)*3,ht=6+h(3)*9; const c=[[.72,.66,.6],[.6,.65,.72],[.78,.74,.66],[.62,.6,.66]][Math.floor(h(4)*4)];
+      add('box',[0,ht/2,0],[w,ht,d],c,1,[ht/3.4,(w+d)/2/2.8,.12]); add('box',[0,ht+.15,0],[w+.3,.3,d+.3],s3dScale(c,.8)); if(h(5)>.5) add('box',[w*.2,ht+.9,0],[.8,1.5,.8],s3dScale(c,.7)); break; }
+    case 'tower':{ const w=4+h(1)*3,d=4+h(2)*3,ht=14+h(3)*20; const c=[[.2,.24,.34],[.25,.27,.35],[.18,.2,.28]][Math.floor(h(4)*3)];
+      add('box',[0,ht/2,0],[w,ht,d],c,1,[ht/3,(w+d)/2/2,.8]); add('box',[0,ht+.6,0],[w*.4,1.2,d*.4],s3dScale(c,.9)); add('box',[0,ht+1.6,0],[.15,1,.15],[1,.3,.3],5); break; }
+    case 'darktower':{ const w=3.5+h(1)*3,d=3.5+h(2)*3,ht=12+h(3)*22; const c=[.1,.1,.17], g=[.3,.85,1];
+      add('box',[0,ht/2,0],[w,ht,d],c,1,[ht/3.2,(w+d)/2/2.4,.25]); for(const s of [-1,1]) add('box',[s*w/2,ht/2,-d/2],[.12,ht,.12],g,5); add('box',[0,ht+.1,0],[w,.2,d],g,5); break; }
+    case 'pastel':{ const w=3+h(1)*3,d=3.5+h(2)*3,ht=5+h(3)*7; const c=S3D_PASTELS[Math.floor(h(4)*6)];
+      add('box',[0,ht/2,0],[w,ht,d],c,1,[ht/3,(w+d)/2/2.6,.15]); add('wedge',[0,ht+.6,0],[w+.4,1.2,d+.4],s3dMix(c,[.4,.2,.25],.5)); if(h(5)>.4) add('box',[0,ht/2-.5,-d/2-.1],[w*.6,.4,.2],[1,1,1]); break; }
+    case 'house':{ const w=4.5+h(1)*2,d=5+h(2)*2,ht=3+h(3)*1.2; const c=[[.92,.85,.7],[.85,.7,.6],[.75,.8,.85],[.9,.9,.85]][Math.floor(h(4)*4)], roof=[[.5,.25,.2],[.35,.32,.3],[.55,.35,.25]][Math.floor(h(5)*3)];
+      add('box',[0,ht/2,0],[w,ht,d],c,1,[ht/2.2,(w+d)/2/2.6,.7]); add('wedge',[0,ht+.9,0],[w+.6,1.8,d+.6],roof); add('box',[w*.15,ht+1.6,d*.2],[.6,1.2,.6],[.45,.35,.32]);
+      add('box',[0,1,-d/2-.05],[.9,2,.1],[.4,.25,.18]); add('box',[0,.05,-d/2-1],[1.4,.1,2],[.6,.6,.58]); break; }
+    case 'school':{ const w=9+h(1)*3,d=6,ht=4.5; const c=[.85,.72,.6];
+      add('box',[0,ht/2,0],[w,ht,d],c,1,[ht/2.4,(w+d)/2/2.6,.2]); add('box',[0,ht+.15,0],[w+.3,.3,d+.3],[.45,.3,.25]); add('box',[0,1.1,-d/2-.05],[2.2,2.2,.1],[.35,.5,.75]);
+      add('cyl',[w/2-.6,2.5,-d/2-.8],[.06,5,.06],[.7,.7,.72]); add('box',[w/2-.05,4.5,-d/2-.8],[.9,.55,.04],[.2,.45,.9]); add('box',[0,ht+1,0],[3,1.6,3],s3dScale(c,.85),1,[1,1,.5]); break; }
+    case 'tree':{ const s=.8+h(1)*.6; add('cyl',[0,.8*s,0],[.22*s,1.6*s,.22*s],trunk); add('sphere',[0,2.1*s,0],[1.25*s,1.15*s,1.25*s],leaf); add('sphere',[.55*s,2.5*s,.2*s],[.85*s,.8*s,.85*s],s3dScale(leaf,1.12)); add('sphere',[-.5*s,2.4*s,-.2*s],[.8*s,.75*s,.8*s],s3dScale(leaf,.92)); break; }
+    case 'pine':{ const s=.9+h(1)*.7, g=[.16,.42,.28]; add('cyl',[0,.6*s,0],[.2*s,1.2*s,.2*s],trunk); add('cone',[0,1.7*s,0],[1.6*s,1.8*s,1.6*s],g); add('cone',[0,2.7*s,0],[1.25*s,1.6*s,1.25*s],s3dScale(g,1.15)); add('cone',[0,3.6*s,0],[.85*s,1.4*s,.85*s],s3dScale(g,1.3)); break; }
+    case 'bush':{ const s=.6+h(1)*.5; add('sphere',[0,.45*s,0],[1.1*s,.7*s,1*s],leaf); add('sphere',[.5*s,.4*s,.2*s],[.7*s,.5*s,.7*s],s3dScale(leaf,1.1)); if(h(2)>.5) add('sphere',[-.3*s,.75*s,-.1*s],[.12,.12,.12],[.95,.3,.35]); break; }
+    case 'rock':{ const s=.5+h(1)*.7; add('sphere',[0,.3*s,0],[1.2*s,.65*s,.9*s],[.55,.55,.55]); add('sphere',[.5*s,.2*s,.3*s],[.6*s,.4*s,.5*s],[.62,.6,.58]); break; }
+    case 'lamp':{ add('cyl',[0,2.2,0],[.07,4.4,.07],[.25,.27,.3]); add('box',[0,4.4,-.35],[.1,.08,.8],[.25,.27,.3]); add('box',[0,4.35,-.7],[.35,.14,.5],[.3,.32,.35]); add('box',[0,4.27,-.7],[.3,.04,.42],[1,.95,.75],5); break; }
+    case 'light':{ add('cyl',[0,2.2,0],[.07,4.4,.07],[.25,.27,.3]); add('box',[0,4.4,-.35],[.1,.08,.8],[.25,.27,.3]); add('box',[0,4.3,-.7],[.35,.2,.5],[.3,.32,.35]); add('box',[0,4.2,-.7],[.3,.04,.42],[1,.92,.7],5); add('box',[.35,3.2,0],[.28,.75,.28],[.2,.2,.22]); add('box',[.35,3.45,-.15],[.14,.14,.02],[1,.25,.2],5); add('box',[.35,3.0,-.15],[.14,.14,.02],[.3,1,.4],5); break; }
+    case 'stop':{ add('box',[0,2.4,0],[2.6,.15,1.4],[.25,.3,.4]); for(const x of [-1.1,1.1]) add('cyl',[x,1.2,.55],[.06,2.4,.06],[.35,.38,.42]); add('box',[0,1.4,.6],[2.4,1.5,.05],[.55,.7,.9],0); add('box',[0,.55,.2],[2,.1,.5],[.45,.45,.5]); break; }
+    case 'bench':{ add('box',[0,.5,0],[1.8,.08,.5],[.55,.38,.25]); add('box',[0,.85,.25],[1.8,.45,.08],[.55,.38,.25]); for(const x of [-.75,.75]) add('box',[x,.25,0],[.08,.5,.45],[.25,.25,.28]); break; }
+    case 'table':{ add('box',[0,.75,0],[2,.08,1],[.6,.42,.28]); for(const z of [-.7,.7]) add('box',[0,.42,z],[2,.06,.35],[.6,.42,.28]); for(const x of [-.7,.7]) add('box',[x,.38,0],[.08,.75,1.6],[.5,.35,.22]); add('box',[.3,.85,-.1],[.6,.12,.4],[.9,.2,.2]); add('cyl',[-.4,.87,.2],[.12,.16,.12],[.95,.9,.6]); break; }
+    case 'umbrella':{ const c=[[.95,.3,.3],[.3,.6,.95],[.98,.8,.2]][Math.floor(h(1)*3)]; add('cyl',[0,1.2,0],[.05,2.4,.05],[.8,.8,.8]); add('cone',[0,2.45,0],[2.2,.7,2.2],c); add('box',[0,.05,0],[2.6,.08,2.6],[.9,.35,.3]); break; }
+    case 'flowers':{ for(let i=0;i<6;i++){ const c=[[.98,.3,.4],[.98,.85,.2],[.5,.4,.95],[1,.6,.3]][Math.floor(h(i+3)*4)]; add('cyl',[(h(i)-.5)*2.4,.2,(h(i+9)-.5)*1.6],[.03,.4,.03],[.3,.6,.3]); add('sphere',[(h(i)-.5)*2.4,.42,(h(i+9)-.5)*1.6],[.16,.14,.16],c); } break; }
+    case 'fence':{ add('box',[0,.62,0],[3.2,.1,.08],[.8,.78,.72]); add('box',[0,.32,0],[3.2,.1,.08],[.8,.78,.72]); for(const x of [-1.5,-.5,.5,1.5]) add('box',[x,.45,0],[.12,.9,.12],[.85,.82,.75]); break; }
+    case 'mailbox':{ add('cyl',[0,.5,0],[.05,1,.05],[.4,.4,.42]); add('box',[0,1.15,0],[.35,.3,.55],[.25,.45,.85]); add('box',[.19,1.28,.05],[.05,.22,.06],[.95,.3,.3]); break; }
+    case 'sign':{ add('cyl',[0,1.2,0],[.05,2.4,.05],[.45,.47,.5]); add('box',[0,2.6,0],[.8,.8,.05],[.98,.85,.2]); add('box',[0,2.6,-.03],[.5,.5,.02],[.15,.15,.15]); break; }
+    case 'bus':{ const y=[.98,.78,.15]; add('box',[0,1.35,0],[2.4,1.9,7],y); add('box',[0,1.75,0],[2.45,.6,6.2],[.35,.55,.85]); add('box',[0,2.35,0],[2.2,.15,7],s3dScale(y,.85)); for(const [x,z] of [[-1.1,-2.3],[1.1,-2.3],[-1.1,2.3],[1.1,2.3]]) add('cyl',[x,.45,z],[.45,.35,.45],[.15,.15,.17],0,null,[0,0,Math.PI/2]); add('box',[0,.6,-3.5],[2,.4,.1],[.3,.3,.32]); break; }
+    case 'taxi':{ const y=[.98,.8,.12]; add('box',[0,.55,0],[1.7,.5,4],y); add('box',[0,1.05,-.1],[1.5,.5,2],s3dMix(y,[.2,.3,.5],.5)); add('box',[0,1.38,-.1],[.6,.16,.35],[1,.96,.7],5); for(const [x,z] of [[-.8,-1.3],[.8,-1.3],[-.8,1.3],[.8,1.3]]) add('cyl',[x,.3,z],[.3,.25,.3],[.15,.15,.17],0,null,[0,0,Math.PI/2]); break; }
+    case 'neon':{ const c=[[1,.3,.6],[.3,.9,1],[.9,.9,.3]][Math.floor(h(1)*3)]; add('cyl',[0,2,0],[.08,4,.08],[.2,.2,.24]); add('box',[0,3.6,0],[1.8,1,.1],[.12,.12,.16]); add('box',[0,3.6,-.07],[1.5,.7,.04],c,5); add('box',[0,3.6,.07],[1.5,.7,.04],c,5); break; }
+    case 'balloon':{ const c=[[.98,.3,.4],[.98,.85,.2],[.3,.6,.98],[.4,.85,.5]][Math.floor(h(1)*4)]; add('cyl',[0,1.2,0],[.02,2.4,.02],[.85,.85,.85]); add('sphere',[0,2.8,0],[.45,.55,.45],c); add('sphere',[.15,3.2,.2],[.4,.5,.4],s3dMix(c,[1,1,1],.35)); break; }
+    case 'crystal':{ const c=[[.4,.9,1],[.85,.5,1],[.5,1,.7]][Math.floor(h(1)*3)]; add('cone',[0,2.4+h(2)*2,0],[.7,1.2,.7],c,5); add('cone',[0,1.2+h(2)*2,0],[.7,1.2,.7],s3dScale(c,.8),5,null,[Math.PI,0,0]); add('sphere',[0,1.8+h(2)*2,0],[.35,.35,.35],[1,1,1],5); add('disc',[0,.03,0],[.6,1,.6],[0,0,0],4); break; }
+    case 'pylon':{ add('cone',[0,2.2,0],[1.4,4.4,1.4],[.15,.16,.24]); add('sphere',[0,4.9,0],[.5,.5,.5],[.4,.95,1],5); add('cyl',[0,4.3,0],[.12,.8,.12],[.4,.95,1],5); break; }
+  }
+  return shapes;
+}
+const S3D_TPL_CACHE=new Map();
+function s3dTemplateFor(name,seed){
+  const key=name+':'+seed;
+  if(!S3D_TPL_CACHE.has(key)) S3D_TPL_CACHE.set(key,s3dTemplate(name,seed));
+  return S3D_TPL_CACHE.get(key);
+}
+/* Roadside objects are placed by road distance and slide toward the camera
+   with the scroll, so they move at exactly the speed the markings do. */
+function s3dSceneryStep(s,theme,scroll){
+  const list=s.scenery;
+  for(let i=list.length-1;i>=0;i--){ if(scroll-list[i].dist>8) list.splice(i,1); }
+  for(const side of [-1,1]){
+    const key=side<0?'cursorL':'cursorR';
+    if(s[key]==null) s[key]=scroll+6;
+    let guard=0;
+    while(s[key]<scroll+130&&guard++<40){
+      const seed=Math.floor(s[key]*13.7)+ (side<0?0:977);
+      const tpl=theme.tpl[Math.floor(s3dHash(seed)*theme.tpl.length)];
+      const wide=/block|tower|darktower|pastel|house|school|bus/.test(tpl);
+      const off=(wide?4.2:2.9)+s3dHash(seed+1)*(wide?2.5:1.4);
+      list.push({tpl,seed,dist:s[key],x:side*(S3D_ROAD_HALF+off),yaw:side<0?Math.PI/2:-Math.PI/2,side});
+      s[key]+=(wide?9:5.5)+s3dHash(seed+2)*(wide?6:5);
+    }
+  }
+}
+function s3dSceneryDraw(r,s,scroll,time){
+  const K=r.kinds, base=new Float32Array(16), m=new Float32Array(16);
+  for(const o of s.scenery){
+    const z=-(o.dist-scroll);
+    const shapes=s3dTemplateFor(o.tpl,o.seed);
+    m4TRS(base,o.x,0,z,0,o.yaw,0,1,1,1);
+    for(const sh of shapes){
+      let ry=sh.r[1],rx=sh.r[0],rz=sh.r[2];
+      if(o.tpl==='crystal'){ ry+=time*.8; }
+      let oy=sh.o[1]; if(o.tpl==='balloon'&&sh.k==='sphere') oy+=Math.sin(time*1.3+o.seed)*.15;
+      s3dPushChild(K[sh.k],base,sh.o[0],oy,sh.o[2],rx,ry,rz,sh.s[0],sh.s[1],sh.s[2],sh.c,1,sh.m,sh.p[0],sh.p[1],sh.p[2]);
+    }
+  }
+}
+/* --- things on the road --- */
+const S3D_HAZARD=[.98,.62,.12], S3D_BEAM=[.36,.65,.98], S3D_TUNNEL=[.18,.83,.75], S3D_GAP=[.97,.45,.45];
+function s3dDrawPickup(r,pu,z,time,state,runnerX){
+  const K=r.kinds;
+  const done=state.doneAt!=null?Math.min(1,(time-state.doneAt)/.32):0;
+  if(pu.kind==='coin'){
+    if(done>=1) return;
+    const mg=state.magnet||0;
+    const x=s3dLerp(S3D_LANE_X[pu.lane],runnerX==null?S3D_LANE_X[pu.lane]:runnerX,mg), y=s3dLerp(.62+Math.sin(time*3+z*.5)*.06,1.0,mg)+done*1.2, sc=1-done*.9;
+    z=s3dLerp(z,.1,mg*.6);
+    const M=m4TRSx(s3dTmp,x,y,z,Math.PI/2,time*3.4+pu.lane,0,.34*sc,.08,.34*sc);
+    s3dPush(K.cyl,M,1,.8,.2,1,2);
+    s3dPush(K.cyl,m4TRSx(s3dTmp,x,y,z,Math.PI/2,time*3.4+pu.lane,0,.24*sc,.13,.24*sc),.95,.62,.1,1,2);
+    s3dPushTRS(K.disc,x,.03,z,0,0,0,.36,1,.36,[0,0,0],.35*(1-done),4);
+    return;
+  }
+  if(pu.kind==='hurdle'){
+    const x=S3D_LANE_X[pu.lane], tilt=state.struck?Math.min(1,(time-state.doneAt)/.35):0;
+    const base=m4TRS(s3dTmp2,x,0,z,-tilt*1.2,0,0,1,1,1);
+    for(const dx of [-.32,0,.32]){ s3dPushChild(K.cone,base,dx,.28,0,0,0,0,.28,.56,.28,S3D_HAZARD,1); s3dPushChild(K.cyl,base,dx,.3,0,0,0,0,.2,.06,.2,[1,1,1]); }
+    s3dPushChild(K.box,base,0,.5,0,0,0,0,1,.08,.08,[.98,.98,.98],1,3,[0,7,0,0]);
+    s3dPushTRS(K.disc,x,.03,z,0,0,0,.7,1,.45,[0,0,0],.3,4);
+    return;
+  }
+  if(pu.kind==='slide'){
+    for(let i=0;i<3;i++){
+      if(i===pu.free) continue;
+      const x=S3D_LANE_X[i], sc=1-done;
+      s3dPushTRS(K.box,x,.7*sc,z,0,0,0,1.06,1.4*sc,.16,S3D_GAP,1,3,7);
+      s3dPushTRS(K.box,x,1.42*sc,z,0,0,0,1.1,.06,.2,[1,1,1],1);
+    }
+    for(const x of [-S3D_ROAD_HALF+.1,S3D_ROAD_HALF-.1]) s3dPushTRS(K.cyl,x,.75,z,0,0,0,.08,1.5,.08,[.9,.9,.92]);
+    return;
+  }
+  /* walls: a bar to go over, a beam to go under */
+  const jump=pu.kind==='jump', tunnel=!!state.tunnel, col=jump?S3D_HAZARD:tunnel?S3D_TUNNEL:S3D_BEAM;
+  const W=S3D_ROAD_HALF*2, fl=done>0?1-done:1, bright=done>0?1+done*1.5:1;
+  const barY=jump?.3:1.62, barH=jump?.42:.34;
+  if(done<1){
+    s3dPushTRS(K.box,0,barY*fl+(jump?0:0),z,0,0,0,W,barH*fl,.28,s3dScale(col,bright),1,3,6);
+    s3dPushTRS(K.box,0,(barY+barH/2)*fl,z,0,0,0,W+.1,.06,.34,[1,1,1],1);
+    if(!jump){ s3dPushTRS(K.box,0,(barY-barH/2)*fl,z,0,0,0,W+.1,.06,.34,[1,1,1],1); }
+  }
+  for(const s of [-1,1]) s3dPushTRS(K.cyl,s*(S3D_ROAD_HALF-.05),(jump?.35:.95),z,0,0,0,.09,jump?.7:1.9,.09,[.86,.87,.9]);
+  if(tunnel&&done<1){ s3dPushTRS(K.box,0,1.95*fl,z,0,0,0,W+.3,.25,.8,s3dScale(col,.8*bright),1); }
+  if(done<1) s3dSign(r,jump?'JUMP':'DUCK',0,jump?1.55:2.55,z-.01,1.5,{bg:jump?'#b45309':tunnel?'#0f5f57':'#075985',fg:'#ffffff',stroke:'#ffffff'});
+  s3dPushTRS(K.disc,0,.03,z,0,0,0,2.2,1,.5,[0,0,0],.28*fl,4);
+}
+/* three floor pads under the answers: the lane he is in lights up, and once
+   the wave resolves the right one turns green and a wrong pick red */
+function s3dDrawGate(r,ob,z,accent,st,time){
+  const K=r.kinds;
+  for(let i=0;i<3;i++){
+    const x=S3D_LANE_X[i], picked=i===ob.chosenLane;
+    let col=s3dMix(accent,[1,1,1],.15), a=.22, tall=false;
+    let lift=0;
+    if(ob.resolved){ const t=st&&st.resolvedAt!=null?Math.min(1,(time-st.resolvedAt)/.5):1; if(i===ob.correctLane){ col=[.3,.95,.6]; a=.6; tall=true; lift=t*.3; } else if(picked){ col=[1,.35,.4]; a=.55; } else a=.1; }
+    else if(picked){ a=.6; tall=true; }
+    const pulse=ob.incoming?.85+.15*Math.sin(time*7.5):1;
+    s3dPushTRS(K.box,x,.05+lift,z,0,0,0,S3D_LANE_W*.84,.05,1.5,s3dScale(col,pulse),1,5);
+    s3dPushTRS(K.disc,x,.09,z,0,0,0,S3D_LANE_W*.72,1,1.15,col,a*.55*pulse,6);
+    if(tall) for(const s of [-1,1]) s3dPushTRS(K.box,x+s*.42,1.1+lift,z,0,0,0,.05,2.2,.05,col,.55,5);
+  }
+}
+/* rotate X first, then Y, then Z — what a spinning coin needs */
+function m4TRSx(o,x,y,z,rx,ry,rz,sx,sy,sz){
+  const cx=Math.cos(rx),sX=Math.sin(rx),cy=Math.cos(ry),sY=Math.sin(ry),cz=Math.cos(rz),sZ=Math.sin(rz);
+  o[0]=cz*cy*sx; o[1]=sZ*cy*sx; o[2]=-sY*sx; o[3]=0;
+  o[4]=(cz*sY*sX-sZ*cx)*sy; o[5]=(sZ*sY*sX+cz*cx)*sy; o[6]=cy*sX*sy; o[7]=0;
+  o[8]=(cz*sY*cx+sZ*sX)*sz; o[9]=(sZ*sY*cx-cz*sX)*sz; o[10]=cy*cx*sz; o[11]=0;
+  o[12]=x;o[13]=y;o[14]=z;o[15]=1; return o;
+}
+/* --- the runner's state, read off the DOM runner the game already animates ---
+   The game keeps its own runner element up to date with classes for every
+   move; watching those means nothing about the game had to change for the
+   figure to follow along. Transitions are timed here. */
+const S3D_FX_MS={'switch-left':340,'switch-right':340,'is-hit':580,'is-stumble':420,'is-collecting':480,'is-celebrating':800,'is-safe':1200};
+function s3dRigState(){ return {phi:0,fx:{},seen:new Set(),x:0,vx:0,celebrateAt:0,lastLane:1,shake:0,shakeT:0}; }
+function s3dNoteClasses(rs,el,now){
+  if(!el||!el.classList) return;
+  const cur=new Set();
+  for(const c of el.classList){ cur.add(c); if(!rs.seen.has(c)&&S3D_FX_MS[c]) rs.fx[c]=now; }
+  rs.seen=cur;
+}
+function s3dKick(rs,cls,now){ if(S3D_FX_MS[cls]) rs.fx[cls]=now; }
+function s3dRunnerPose(g,rs,now,dt,speed,cadence,opts={}){
+  const P=s3dPose();
+  const el=document.getElementById('samRunRunner');
+  s3dNoteClasses(rs,el,now);
+  const has=c=>!!el&&el.classList&&el.classList.contains(c);
+  const fxT=c=>{ const at=rs.fx[c]; if(at==null) return -1; const t=(now-at)/S3D_FX_MS[c]; return t>1?-1:t; };
+  /* the run cycle turns with the road, faster as the pace rises */
+  const period=740/(cadence||1);
+  const running=g.running&&!opts.idle;
+  if(running) rs.phi+=dt/period*Math.PI*2;
+  let runW=1;
+  /* the vertical axis */
+  let airT=-1,airKind='',airLift=0,landed=false;
+  if(g.air&&g.lastAir){ const dur=g.air.kind==='jump'?700:600; airT=s3dClamp((g.time-g.lastAir.at)/dur,0,1); airKind=g.air.kind; rs.wasAir=airKind; }
+  else if(rs.wasAir){ landed=rs.wasAir==='jump'; rs.wasAir=''; }
+  if(airKind==='jump'){ runW=1-s3dKf(airT,[[0,0],[.1,1],[.88,1],[1,0]]); airLift=s3dKf(airT,[[0,0],[.15,.2],[.48,.8],[.84,.18],[1,0]]); }
+  if(airKind==='duck'){ runW=1-s3dKf(airT,[[0,0],[.14,1],[.74,1],[.92,0]]); }
+  if(running) s3dRunCycle(P,rs.phi,runW,speed); else s3dIdleCycle(P,opts.time!=null?opts.time:now/1000);
+  if(airKind==='jump') s3dClipJump(P,airT); else if(airKind==='duck') s3dClipDuck(P,airT);
+  else if(g.queuedAir){ s3dClipReady(P,1,g.queuedAir.kind); }
+  else if(has('is-bracing')) s3dClipReady(P,.6,'duck');
+  let t, switched=0;
+  if((t=fxT('switch-left'))>=0){ s3dClipLean(P,t,-1); if(t<.08&&!rs.switchSeen){ switched=-1; } }
+  if((t=fxT('switch-right'))>=0){ s3dClipLean(P,t,1); if(t<.08&&!rs.switchSeen){ switched=1; } }
+  rs.switchSeen=fxT('switch-left')>=0||fxT('switch-right')>=0;
+  if((t=fxT('is-hit'))>=0) s3dClipHit(P,t);
+  if((t=fxT('is-stumble'))>=0) s3dClipStumble(P,t);
+  if((t=fxT('is-collecting'))>=0&&airKind!=='duck') s3dClipCollect(P,t);
+  if(has('is-celebrating')){ if(!rs.celebrateAt) rs.celebrateAt=now; s3dClipCelebrate(P,((now-rs.celebrateAt)/800)%1); } else rs.celebrateAt=0;
+  if((t=fxT('is-safe'))>=0){ P.alpha=Math.floor(t*10)%2?1:.45; }
+  /* he looks at what is coming, and at the answer he missed */
+  const wantYaw=opts.lookX!=null?s3dClamp(Math.atan2(opts.lookX-rs.x,6),-.45,.45):0;
+  rs.lookYaw=(rs.lookYaw||0)+(wantYaw-(rs.lookYaw||0))*Math.min(1,dt/1000*8);
+  if(running) P.headRy+=rs.lookYaw;
+  return {P,airT,airKind,airLift,landed,switched};
+}
+
+/* --- the run, rendered ---
+   samRunGLStart builds the world; samRunGLDraw reads the game every frame
+   and places it; samRunGLStop hands the screen back to the DOM. Between a
+   run's screens — the start sheet, the game-over sheet — samRunGLIdle keeps
+   the world turning slowly with Sam standing in it. */
 function samRunGLColor(probe,name){
   probe.style.color='';
   probe.style.color='var('+name+')';
   const m=/(-?[\d.]+)[,\s]+(-?[\d.]+)[,\s]+(-?[\d.]+)/.exec(getComputedStyle(probe).color||'');
   return m?[+m[1]/255,+m[2]/255,+m[3]/255]:[.5,.5,.5];
 }
+/* One canvas and one context for the whole game — the run, the hub and the
+   shop all draw into it in turn. A context that is thrown away and remade
+   on every screen is slow to come up and, on some browsers, fails to come up
+   at all for a moment after the old one goes; one that is kept simply moves
+   between hosts. */
+let samRunGLShared=null;
+function samRunGLAttach(host,alpha){
+  if(!host) return null;
+  if(!samRunGLShared){
+    const canvas=document.createElement('canvas');
+    canvas.className='game-gl'; canvas.id='samRunGLCanvas'; canvas.setAttribute('aria-hidden','true');
+    samRunGLShared={canvas,r:null};
+  }
+  const S=samRunGLShared;
+  try{
+    const slot=host.querySelector?.('#samRunGLCanvas');
+    if(slot&&slot!==S.canvas) slot.replaceWith(S.canvas); else if(!slot) host.appendChild(S.canvas);
+    if(!S.r||S.r.lost){
+      if(!S.canvas.getContext) return null;
+      S.r=s3dCreate(S.canvas,{onLost:()=>{ if(samRunGL&&samRunGL.r===S.r) samRunGLStop(); samRunGLPreviewStop(); S.r=null; }});
+    }
+  }catch(_){ return null; }
+  return S.r;
+}
 function samRunGLStart(world){
   if(samRunGL||!world) return false;
-  const canvas=world.querySelector('#samRunGLCanvas'); if(!canvas||!canvas.getContext) return false;
-  let gl=null;
-  try{ gl=canvas.getContext('webgl2',{alpha:true,antialias:false,premultipliedAlpha:false,powerPreference:'high-performance'}); }catch(_){}
-  if(!gl) return false;
-  const build=(type,src)=>{ const sh=gl.createShader(type); gl.shaderSource(sh,src); gl.compileShader(sh);
-    if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)) return null; return sh; };
-  const vs=build(gl.VERTEX_SHADER,SAM_RUN_GL_VS), fs=build(gl.FRAGMENT_SHADER,SAM_RUN_GL_FS);
-  if(!vs||!fs) return false;
-  const prog=gl.createProgram();
-  gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
-  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return false;
-  gl.useProgram(prog);
-  const buf=gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
-  const loc=gl.getAttribLocation(prog,'p');
-  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  const quad=buf, quadLoc=loc;
-  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  const r=samRunGLAttach(world);
+  if(!r) return false;
   const probe=document.createElement('span');
   probe.setAttribute('aria-hidden','true');
   probe.style.cssText='position:absolute;width:0;height:0;opacity:0;pointer-events:none';
   world.appendChild(probe);
-  samRunGL={gl,canvas,prog,quad,quadLoc,probe,world,theme:'',w:0,h:0,dpr:1,pt:samRunPtInit(gl),
-    u:{res:gl.getUniformLocation(prog,'uRes'),horizon:gl.getUniformLocation(prog,'uHorizon'),
-       scroll:gl.getUniformLocation(prog,'uScroll'),roadTop:gl.getUniformLocation(prog,'uRoadTop'),
-       roadLow:gl.getUniformLocation(prog,'uRoadLow'),accent:gl.getUniformLocation(prog,'uAccent'),
-       haze:gl.getUniformLocation(prog,'uHaze')}};
-  canvas.addEventListener('webglcontextlost',e=>{ e.preventDefault(); samRunGLStop(); },{once:true});
-  world.classList.add('gl-road');
+  const store=samRun?.store||samRunStore();
+  samRunGL={gl:r.gl,canvas:r.canvas,r,probe,world,theme:'',themeIndex:-1,w:0,h:0,dpr:1,
+    look:s3dLookColors(samRunAvatarLook(store)),ride:samRunItem(store.equipped?.ride)?.id||'',
+    rig:s3dRigState(),scenery:[],cursorL:null,cursorR:null,pickupState:new WeakMap(),gateState:new WeakMap(),
+    cam:{fov:1.12,trauma:0,rollKick:0,dip:0,fovKick:0,bob:0},blend:null,warmStart:0,motesAt:0,stepAt:0,time:0,tier:2,
+    idleRaf:0,pt:true};
+  r.particles.length=0;
+  world.classList.add('gl-road','gl-scene');
   return true;
 }
 function samRunGLStop(){
   if(!samRunGL) return;
-  samRunGL.world?.classList.remove('gl-road');
+  cancelAnimationFrame(samRunGL.idleRaf);
+  samRunGL.world?.classList.remove('gl-road','gl-scene');
   samRunGL.probe?.remove();
   samRunGL=null;
 }
-function samRunGLDraw(g){
-  const r=samRunGL; if(!r||!g) return;
-  const {gl,canvas}=r;
-  const cssW=r.world.clientWidth||g.worldW||360, cssH=r.world.clientHeight||g.worldH||640;
-  const dpr=Math.min(2,window.devicePixelRatio||1);
-  const w=Math.max(1,Math.round(cssW*dpr)), h=Math.max(1,Math.round(cssH*dpr));
-  r.dpr=dpr;
-  if(w!==r.w||h!==r.h){ canvas.width=w; canvas.height=h; r.w=w; r.h=h; gl.viewport(0,0,w,h); gl.useProgram(r.prog); gl.uniform2f(r.u.res,w,h); }
-  /* Each world repaints the road in its own colours, so re-read them only when
-     the theme actually changes rather than every frame. */
-  const theme=r.world.className;
-  if(theme!==r.theme){
-    r.theme=theme;
-    gl.uniform3fv(r.u.roadTop,samRunGLColor(r.probe,'--road-top'));
-    gl.uniform3fv(r.u.roadLow,samRunGLColor(r.probe,'--road-low'));
-    gl.uniform3fv(r.u.accent,samRunGLColor(r.probe,'--world-accent'));
-    gl.uniform3fv(r.u.haze,samRunGLColor(r.probe,'--haze'));
-    const hz=parseFloat(getComputedStyle(r.world).getPropertyValue('--horizon'))||40;
-    gl.uniform1f(r.u.horizon,hz/100);
+/* Emitters are aimed in the world: dust at his feet, a burst where he lands,
+   motes in the air ahead so the run feels like moving through a place. */
+function samRunEmit(kind,x,z,n,col){
+  const R=samRunGL; if(!R||!R.r||prefersReducedStageMotion()||R.tier<1) return;
+  const rnd=Math.random, c=col||[.86,.82,.74];
+  if(kind==='dust') s3dEmit(R.r,()=>({x:x+(rnd()-.5)*.25,y:.05,z:z+(rnd()-.5)*.2,vx:(rnd()-.5)*.5,vy:.3+rnd()*.6,vz:.6+rnd()*1.2,grav:-.9,ride:true,life:0,ttl:380+rnd()*260,size:.14+rnd()*.14,r:c[0],g:c[1],b:c[2]}),n);
+  else if(kind==='land') s3dEmit(R.r,i=>{ const a=i/n*Math.PI*2; return {x:x+Math.cos(a)*.25,y:.06,z:z-Math.sin(a)*.25,vx:Math.cos(a)*1.6,vy:.4+rnd()*.7,vz:-Math.sin(a)*1.4+.5,grav:-1.6,ride:true,life:0,ttl:420+rnd()*280,size:.2+rnd()*.18,r:.9,g:.88,b:.8}; },n);
+  else if(kind==='coin') s3dEmit(R.r,()=>({x:x+(rnd()-.5)*.4,y:.5+rnd()*.5,z:z+(rnd()-.5)*.4,vx:(rnd()-.5)*2,vy:1+rnd()*2,vz:(rnd()-.5)*2,grav:-2,ride:true,life:0,ttl:300+rnd()*300,size:.12+rnd()*.12,r:1,g:.85,b:.3}),n);
+  else if(kind==='ring') s3dEmit(R.r,i=>{ const a=i/n*Math.PI*2, gold=i%2, sp=2.2+rnd()*1.6; return {x:x+Math.cos(a)*.3,y:1+rnd()*.4,z:z-Math.sin(a)*.3,vx:Math.cos(a)*sp,vy:1.6+rnd()*2,vz:-Math.sin(a)*sp,grav:-6,ride:true,life:0,ttl:420+rnd()*220,size:.16+rnd()*.12,r:gold?1:c[0],g:gold?.82:c[1],b:gold?.25:c[2]}; },n);
+  else if(kind==='side') s3dEmit(R.r,()=>({x:x+(rnd()-.5)*.2,y:.08,z:z+(rnd()-.5)*.3,vx:-Math.sign(n)*(.6+rnd()*.9),vy:.4+rnd()*.5,vz:.4+rnd(),grav:-1.5,ride:true,life:0,ttl:260+rnd()*140,size:.12+rnd()*.1,r:c[0],g:c[1],b:c[2]}),Math.abs(n));
+  else if(kind==='ember') s3dEmit(R.r,()=>({x:x+(rnd()-.5)*.2,y:.1+rnd()*.2,z:z+.1,vx:(rnd()-.5)*.4,vy:.6+rnd()*.8,vz:.8+rnd()*.8,grav:.4,ride:true,life:0,ttl:320+rnd()*160,size:.1+rnd()*.1,r:1,g:.45+rnd()*.4,b:.1}),n);
+  else s3dEmit(R.r,()=>({x:(rnd()-.5)*9,y:.3+rnd()*3.2,z:-(12+rnd()*40),vx:(rnd()-.5)*.3,vy:(rnd()-.5)*.2,vz:0,grav:0,ride:true,life:0,ttl:2600+rnd()*1200,size:.06+rnd()*.06,r:.85,g:.92,b:1}),n);
+}
+/* A world's light, read once from its CSS variables and the theme table. A
+   change of world blends from the old light to the new over a second rather
+   than cutting, so the road travels somewhere instead of switching. */
+function samRunGLPalette(R,index){
+  const {probe}=R, T=S3D_THEMES[index]||S3D_THEMES[0];
+  const P={};
+  P.skyTop=samRunGLColor(probe,'--sky-top'); P.skyMid=samRunGLColor(probe,'--sky-mid'); P.haze=samRunGLColor(probe,'--haze');
+  P.roadTop=samRunGLColor(probe,'--road-top'); P.roadLow=samRunGLColor(probe,'--road-low'); P.accent=samRunGLColor(probe,'--world-accent');
+  const n=Math.hypot(...T.sun)||1; P.sun=T.sun.map(v=>v/n); P.sunCol=T.sunCol; P.sky=T.sky; P.ground=T.ground; P.cloudCol=T.cloudCol; P.verge=s3dHex(T.verge);
+  P.fogK=T.fogK; P.night=T.night; P.stars=T.stars; P.cloud=T.cloud; P.skyline=T.skyline;
+  return P;
+}
+function samRunGLApplyPalette(L,A,B,t){
+  for(const k of ['skyTop','skyMid','haze','roadTop','roadLow','accent','sun','sunCol','sky','ground','cloudCol','verge']) L[k]=t>=1?B[k]:s3dMix(A[k],B[k],t);
+  for(const k of ['fogK','night','stars','cloud']) L[k]=t>=1?B[k]:s3dLerp(A[k],B[k],t);
+  L.skyline=t<.5?A.skyline:B.skyline;
+  if(t<1){ const n=Math.hypot(...L.sun)||1; L.sun=L.sun.map(v=>v/n); }
+}
+function samRunGLTheme(R,g){
+  const index=g.stageIndex, next=samRunGLPalette(R,index);
+  const cur=R.palette;
+  R.themeIndex=index;
+  if(cur&&!prefersReducedStageMotion()) R.blend={from:cur,to:next,t:0}; else R.blend=null;
+  R.palette=next;
+  if(!R.blend) samRunGLApplyPalette(R.r.light,next,next,1);
+}
+function samRunGLTierStep(R,g){
+  /* Effects have a cost; the road and Sam do not. Before the device veto
+     ever has to trip, the decorations go first: over 19ms a frame drops the
+     particles and the camera's stride bob, and they come back only after a
+     long quiet stretch. */
+  const ema=g.glEma||16;
+  if(R.tier===2&&ema>19&&g.glSeen>90){ R.tier=1; R.tierAt=g.glSeen; }
+  else if(R.tier===1&&ema>22){ R.tier=0; R.tierAt=g.glSeen; }
+  else if(R.tier<2&&ema<(R.tier===0?19:16)&&g.glSeen-(R.tierAt||0)>240){ R.tier++; R.tierAt=g.glSeen; }
+}
+function samRunGLDraw(g,idle){
+  const R=samRunGL; if(!R||!g||R.r.lost) return;
+  const {r,world}=R;
+  const cssW=world.clientWidth||g.worldW||360, cssH=world.clientHeight||g.worldH||640;
+  s3dResize(r,cssW,cssH,2);
+  /* the game rebuilds the world's class list at the start of a run and at
+     every change of scene; the scene has to claim its place again */
+  if(!world.classList.contains('gl-scene')) world.classList.add('gl-road','gl-scene');
+  if(R.themeIndex!==g.stageIndex) samRunGLTheme(R,g);
+  if(!idle) samRunGLTierStep(R,g);
+  const now=performance.now();
+  const dtMs=R.lastTs?Math.min(50,now-R.lastTs):16; R.lastTs=now;
+  const frozen=g.freezeUntil&&now<g.freezeUntil;
+  const dt=frozen||g.paused?0:dtMs, s=dt/1000;
+  R.time+=s; r.time=R.time;
+  if(R.blend){ R.blend.t=Math.min(1,R.blend.t+s/1.2); samRunGLApplyPalette(r.light,R.blend.from,R.blend.to,R.blend.t); if(R.blend.t>=1) R.blend=null; }
+  const speed=g.running?samRunPace(g):0, roadSpeed=8.5*speed, scroll=g.roadScroll||0;
+  const cadence=Math.min(1.12,1+(speed-1)*.16);
+  const rs=R.rig, T=S3D_THEMES[g.stageIndex]||S3D_THEMES[0], reduced=prefersReducedStageMotion();
+  const accent=r.light.accent;
+  /* where he is: a spring toward the lane, which overshoots by a hair */
+  const targetX=S3D_LANE_X[g.lane]||0;
+  const w=17,zeta=.66;
+  rs.vx+=((targetX-rs.x)*w*w-2*zeta*w*rs.vx)*s; rs.x+=rs.vx*s;
+  if(Math.abs(rs.x-targetX)<.001&&Math.abs(rs.vx)<.001){ rs.x=targetX; rs.vx=0; }
+  s3dBegin(r);
+  /* what he is looking at: the nearest thing coming, or the answer he missed */
+  let lookX=null;
+  const wave=g.obstacles.find(o=>o.laneWave&&!o.resolved);
+  if(wave&&wave.progress>.15) lookX=S3D_LANE_X[wave.chosenLane];
+  const missed=g.obstacles.find(o=>o.laneWave&&o.resolved&&o.armed!==o.cmd&&o.progress<1.25);
+  if(missed) lookX=S3D_LANE_X[missed.correctLane];
+  const pose=s3dRunnerPose(g,rs,g.time,dt,speed,cadence,{lookX,idle:!!idle||!g.running,time:R.time});
+  const P=pose.P; P.x=rs.x; P.z=0;
+  P.bank+=s3dClamp(-rs.vx*.05,-.24,.24);
+  /* rides carry him differently: standing on a scooter, seated on a bike, tucked into a car */
+  if(R.ride){
+    const rootM=new Float32Array(16); m4TRS(rootM,rs.x,P.rootY*(R.ride==='ride_car'?.4:1),0,0,0,P.bank,1,1,1);
+    const lift=s3dDrawRide(r,R.ride,rootM,R.look,R.time*(g.running?1:.2));
+    P.legs=R.ride!=='ride_car'; P.ground=false; P.rootY+=lift;
+    if(R.ride==='ride_scooter'){ P.hipL=.3;P.kneeL=-.35;P.hipR=.05;P.kneeR=-.1;P.shL=1.25;P.shR=1.25;P.elL=.45;P.elR=.45;P.torsoRx=-.1; }
+    else if(R.ride==='ride_bike'){ const ph=R.time*6*(g.running?1:.2); P.hipL=1.05+.4*Math.sin(ph);P.hipR=1.05-.4*Math.sin(ph);P.kneeL=-1.3-.5*Math.sin(ph);P.kneeR=-1.3+.5*Math.sin(ph);P.shL=1.05;P.shR=1.05;P.elL=.35;P.elR=.35;P.torsoRx=-.28;P.headRx=.22; }
+    else { P.torsoRx=-.05; P.shL=1.1;P.shR=1.1;P.elL=.5;P.elR=.5; }
   }
-  gl.uniform1f(r.u.scroll,(g.roadScroll||0)*.5);
-  /* Two programs share one context, so the road has to re-claim its own buffer
-     and attribute each frame — the particles left theirs bound. */
-  gl.useProgram(r.prog);
-  gl.bindBuffer(gl.ARRAY_BUFFER,r.quad);
-  gl.enableVertexAttribArray(r.quadLoc);
-  gl.vertexAttribPointer(r.quadLoc,2,gl.FLOAT,false,0,0);
-  gl.drawArrays(gl.TRIANGLES,0,3);
-  samRunPtDraw();
+  const drawn=s3dDrawRig(r,R.look,P);
+  const h=Math.max(0,drawn.footY);
+  s3dPushTRS(r.kinds.disc,rs.x,.03,.02,0,0,0,.5/(1+h*1.1),1,.72/(1+h*.8),[0,0,0],.5/(1+h*1.5),4);
+  /* the shield: a real bubble around him, breathing */
+  if(g.shield){ const br=1+.03*Math.sin(R.time*7.5); s3dPushTRS(r.kinds.sphere,rs.x,1.0+h,0,0,R.time*.6,0,1.0*br,1.15*br,1.0*br,[.5,.75,1],.3,6); }
+  /* the road ahead */
+  s3dSceneryStep(R,T,scroll);
+  s3dSceneryDraw(r,R,scroll,R.time);
+  samRunGLRecordLine(R,g,scroll);
+  for(const pu of g.pickups){
+    let st=R.pickupState.get(pu); if(!st){ st={}; R.pickupState.set(pu,st); }
+    if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',S3D_LANE_X[pu.lane],0,8); }
+    if(st.tunnel==null) st.tunnel=!!pu.el?.classList?.contains?.('is-tunnel');
+    const ms=samRunPickupIn(pu), z=-(ms/1000)*(roadSpeed||8.5);
+    if(z<-140||z>6) continue;
+    /* a coin in his lane is drawn to him over the last stretch, so a take never looks like a miss */
+    st.magnet=pu.kind==='coin'&&!pu.done&&pu.lane===g.lane&&pu.p>.9?Math.min(1,(pu.p-.9)/.085):0;
+    s3dDrawPickup(r,pu,z,R.time,st,rs.x);
+    const pr=s3dProject(r,pu.wide?0:S3D_LANE_X[pu.lane],pu.kind==='duck'?1.6:.5,z);
+    pu.x=pr.sx; pu.y=pr.sy;
+  }
+  for(const ob of g.obstacles){
+    if(!ob.laneWave) continue;
+    const {travelMs}=ob, dist=Math.min(travelMs/1000*roadSpeed+2,(1-ob.progress)*travelMs/1000*roadSpeed);
+    const z=-Math.max(-4,dist);
+    let st=R.gateState.get(ob); if(!st){ st={}; R.gateState.set(ob,st); }
+    if(ob.resolved&&!st.resolvedAt){ st.resolvedAt=R.time; if(ob.armed===ob.cmd){ samRunEmit('ring',S3D_LANE_X[ob.correctLane],z,24,accent); R.cam.fovKick=.06; } }
+    if(ob.progress<1.32) s3dDrawGate(r,ob,z,accent,st,R.time);
+    ob._z=z;
+  }
+  /* the camera: behind him and above, a little to his side of the road,
+     wider as he speeds up, nodding with his stride and kicked by a hit */
+  const cam=R.cam, C=r.cam;
+  const pace=Math.max(1,speed), fovBase=1.12+.17*s3dClamp((pace-1)/1.35,0,1);
+  cam.fov+=(fovBase-cam.fov)*Math.min(1,s*1.7);
+  cam.fovKick*=Math.exp(-s/.18);
+  cam.rollKick*=Math.exp(-s/.22);
+  cam.dip*=Math.exp(-s/.26);
+  cam.trauma=Math.max(0,cam.trauma-s*1.6);
+  const shake=reduced?0:cam.trauma*cam.trauma;
+  const t28=R.time*28;
+  const shx=.18*shake*Math.sin(t28*1.3+1)*Math.sin(t28*.7), shy=.15*shake*Math.sin(t28*1.1)*Math.cos(t28*.5);
+  cam.bob=g.running&&!g.air&&R.tier>=2&&!reduced?Math.sin(rs.phi*2-.4)*.03:cam.bob*.85;
+  if(pose.landed&&!reduced) cam.dip=.12;
+  if(g.warmup){
+    if(!R.warmStart) R.warmStart=R.time;
+    const u=reduced?1:s3dClamp((R.time-R.warmStart)/2.4,0,1), e=u*u*(3-2*u);
+    const a=s3dLerp(-2.35,0,e), rad=s3dLerp(3.2,5.2,e), hy=s3dLerp(1.35,2.7,e);
+    C.x=rs.x*.55+Math.sin(a)*rad; C.y=hy; C.z=Math.cos(a)*rad;
+    C.tx=rs.x*.65; C.ty=s3dLerp(1.2,1.1,e); C.tz=s3dLerp(-.5,-7,e);
+    C.fov=s3dLerp(.9,fovBase,e); C.roll=0;
+  } else if(idle==='portrait'){
+    C.x=rs.x+2.0; C.y=1.7; C.z=-6.2; C.tx=rs.x; C.ty=1.25; C.tz=0; C.fov=.9; C.roll=0;
+  } else if(idle==='orbit'){
+    const a=R.time*.28; C.x=rs.x+Math.sin(a)*4.4; C.y=1.6+Math.sin(R.time*.4)*.15; C.z=Math.cos(a)*4.4; C.tx=rs.x; C.ty=1.15; C.tz=0; C.fov=.85; C.roll=0;
+  } else {
+    R.warmStart=0;
+    const lift=pose.airLift*.28;
+    C.x=rs.x*.55+shx; C.y=2.7+cam.bob+lift-cam.dip+shy; C.z=5.2;
+    C.tx=rs.x*.65+shx*.5; C.ty=1.1+lift*.5-cam.dip*.5; C.tz=-7;
+    C.fov=cam.fov+cam.fovKick; C.roll=(reduced?0:cam.rollKick+s3dClamp(-rs.vx*.01,-.03,.03))+shake*.04*Math.sin(t28);
+  }
+  /* particles: motes in the air, dust off the planted foot, embers on a streak */
+  if(!reduced&&dt>0&&R.tier>=2&&g.running){
+    R.motesAt-=dt*speed; if(R.motesAt<=0){ R.motesAt=90; samRunEmit('mote',0,0,1); }
+    if(!g.air){ R.stepAt-=dt*cadence; if(R.stepAt<=0){ R.stepAt=370; samRunEmit('dust',rs.x+(Math.sin(rs.phi)>0?.12:-.12),.2,3); if(g.streak>=2) samRunEmit('ember',rs.x,.3,g.streak>=5?4:2); } }
+  }
+  if(pose.switched) samRunEmit('side',rs.x,.1,pose.switched*5,accent);
+  s3dStepParticles(r,dt,roadSpeed);
+  s3dDraw(r,{scroll,laneX:rs.x,laneGlow:g.running?.9:.35});
+  /* the DOM labels above the pads: their y follows the geometry, their size
+     and spread stay legible from the moment they appear. The shake never
+     reaches them — they are answered by tap. */
+  const boxPx=samRunGateBox(cssW);
+  for(const ob of g.obstacles){
+    if(!ob.laneWave||ob._z==null) continue;
+    const z=ob._z;
+    const c=s3dProject(r,0,2.0,z);
+    const scale=s3dClamp(c.pxPerM*1.32/boxPx,.56,1.0);
+    const l0=s3dProject(r,S3D_LANE_X[0],2.0,z), l2=s3dProject(r,S3D_LANE_X[2],2.0,z);
+    const trueSep=(l2.sx-l0.sx)/2, sep=Math.max(trueSep,boxPx*scale*1.06);
+    const yTop=Math.max(c.sy,cssH*.36)-shy*40;
+    ob.x=c.sx+(ob.chosenLane-1)*sep; ob.y=yTop;
+    ob.el.querySelectorAll('.lane-gate').forEach((gate,i)=>{
+      gate.style.transform=`translate(${(c.sx-shx*40+(i-1)*sep).toFixed(1)}px,${yTop.toFixed(1)}px) translate(-50%,-50%) scale(${scale.toFixed(3)})`;
+    });
+  }
+}
+/* the record: a line across the road at the best distance, so a run has
+   something to chase and a moment when it is beaten */
+function samRunGLRecordLine(R,g,scroll){
+  if(!g.endless||!g.running) return;
+  const best=g.store?.bestDistance||0; if(!best||best<40) return;
+  const ahead=best-(g.distance||0);
+  if(ahead<-6||ahead>110) return;
+  const z=-ahead, K=R.r.kinds;
+  const col=ahead>0?[1,.92,.5]:[.4,1,.7];
+  s3dPushTRS(K.box,0,1.05,z,0,0,0,S3D_ROAD_HALF*2,2.1,.04,col,.22,6);
+  for(const sx of [-1,1]) s3dPushTRS(K.cyl,sx*(S3D_ROAD_HALF-.05),1.1,z,0,0,0,.08,2.2,.08,col,1,5);
+  s3dSign(R.r,`🏆 ${best}`,0,2.5,z-.01,1.6,{bg:'#3b2a06',fg:'#ffe08a',stroke:'#ffe08a',size:56});
+  if(ahead<0&&!R.recordCrossed){ R.recordCrossed=true; samRunEmit('ring',0,0,24,[1,.9,.4]); R.cam.fovKick=.08; samRunTone('best'); samRunFloat('שברת את השיא! 🏆',null); }
+}
+/* Between the run's screens the loop is not running, so the world idles on
+   its own clock: Sam standing at the line while the start sheet is up, the
+   camera circling him once the run is over. */
+function samRunGLIdle(mode){
+  const R=samRunGL, g=samRun; if(!R||!g) return;
+  cancelAnimationFrame(R.idleRaf);
+  const tick=()=>{
+    const R2=samRunGL; if(R2!==R||samRun!==g||!R.world.isConnected){ return; }
+    if(g.running){ return; }
+    samRunGLDraw(g,mode);
+    R.idleRaf=requestAnimationFrame(tick);
+  };
+  R.idleRaf=requestAnimationFrame(tick);
+}
+function samRunGLKick(cls){ const R=samRunGL; if(!R) return; s3dKick(R.rig,cls,samRun?.time||0); if(cls==='is-hit') R.cam.trauma=.6; if(cls==='is-stumble') R.cam.trauma=.3; }
+
+/* --- Sam in the hub and the shop ---
+   The same world and the same figure, drawn into the same canvas: he stands
+   on the road of his current world with everything he owns on, breathing,
+   looking around, waving now and then, while the camera drifts round him.
+   The drawn avatar underneath stays as the fallback. */
+let samRunPreview=null;
+function samRunGLPreview(host,store,opts={}){
+  samRunGLPreviewStop();
+  if(!host||samRunGL) return false;
+  if(prefersReducedStageMotion()&&opts.static!==false){ /* still drawn, just not moving */ }
+  const r=samRunGLAttach(host); if(!r) return false;
+  const probe=document.createElement('span'); probe.setAttribute('aria-hidden','true');
+  probe.style.cssText='position:absolute;width:0;height:0;opacity:0;pointer-events:none'; host.appendChild(probe);
+  const pv={host,r,probe,look:s3dLookColors(samRunAvatarLook(store)),ride:samRunItem(store.equipped?.ride)?.id||'',
+    rig:s3dRigState(),scenery:[],cursorL:null,cursorR:null,time:0,raf:0,theme:Number(store.stage)||0,focus:opts.focus||'',yaw:opts.yaw||0,
+    g:{running:false,lane:1,obstacles:[],pickups:[],air:null,queuedAir:null,time:0,stageIndex:Number(store.stage)||0,shield:0,streak:0}};
+  samRunPreview=pv;
+  host.classList.add('has-3d');
+  const R={r,probe,palette:null};
+  const pal=samRunGLPalette(R,pv.theme); samRunGLApplyPalette(r.light,pal,pal,1);
+  r.particles.length=0;
+  const still=prefersReducedStageMotion();
+  const tick=()=>{
+    if(samRunPreview!==pv||!host.isConnected||samRunGL) return;
+    if(document.hidden){ pv.raf=requestAnimationFrame(tick); return; }
+    const cssW=host.clientWidth||300, cssH=host.clientHeight||220;
+    s3dResize(r,cssW,cssH,2);
+    const now=performance.now(), dt=pv.last?Math.min(50,now-pv.last):16; pv.last=now;
+    if(!still) pv.time+=dt/1000; r.time=pv.time;
+    s3dBegin(r);
+    s3dSceneryStep(pv,S3D_THEMES[pv.theme]||S3D_THEMES[0],0);
+    s3dSceneryDraw(r,pv,0,pv.time);
+    const pose=s3dRunnerPose(pv.g,pv.rig,0,dt,0,1,{idle:true,time:pv.time});
+    const P=pose.P; P.x=0; P.z=0;
+    if(pv.ride){ const rootM=new Float32Array(16); m4TRS(rootM,0,0,0,0,0,0,1,1,1); const lift=s3dDrawRide(r,pv.ride,rootM,pv.look,pv.time*.15); P.legs=pv.ride!=='ride_car'; P.ground=false; P.rootY+=lift;
+      if(pv.ride==='ride_scooter'){ P.hipL=.3;P.kneeL=-.35;P.hipR=.05;P.kneeR=-.1;P.shL=1.25;P.shR=1.25;P.elL=.45;P.elR=.45; }
+      else if(pv.ride==='ride_bike'){ P.hipL=1.05;P.hipR=1.05;P.kneeL=-1.3;P.kneeR=-1.3;P.shL=1.05;P.shR=1.05;P.elL=.35;P.elR=.35;P.torsoRx=-.28; }
+      else { P.shL=1.1;P.shR=1.1;P.elL=.5;P.elR=.5; } }
+    /* he faces the camera, which drifts round him; the shop turns him to show what is being tried on */
+    const C=r.cam, base=pv.yaw+(still?0:Math.sin(pv.time*.35)*.55);
+    let rad=4.2, hy=1.5, ty=1.0, fov=.72;
+    if(pv.focus==='hair'){ rad=2.6; hy=1.9; ty=1.45; fov=.6; }
+    else if(pv.focus==='shoes'){ rad=2.8; hy=1.0; ty=.25; fov=.6; }
+    else if(pv.focus==='ride'){ rad=5.2; hy=1.6; ty=.9; fov=.8; }
+    else if(pv.focus==='outfit'||pv.focus==='character'){ rad=3.2; hy=1.4; ty=1.05; fov=.62; }
+    const ang=Math.PI+base;
+    C.x=Math.sin(ang)*rad; C.y=hy; C.z=Math.cos(ang)*rad; C.tx=0; C.ty=ty; C.tz=0; C.fov=fov; C.roll=0;
+    const drawn=s3dDrawRig(r,pv.look,P);
+    s3dPushTRS(r.kinds.disc,0,.03,.02,0,0,0,.5,1,.72,[0,0,0],.5,4);
+    s3dStepParticles(r,dt,0);
+    s3dDraw(r,{scroll:0,laneX:0,laneGlow:.5});
+    pv.raf=requestAnimationFrame(tick);
+  };
+  pv.raf=requestAnimationFrame(tick);
+  return true;
+}
+function samRunGLPreviewStop(){
+  const pv=samRunPreview; if(!pv) return;
+  cancelAnimationFrame(pv.raf); pv.probe?.remove(); pv.host?.classList?.remove('has-3d');
+  samRunPreview=null;
+}
+/* The world is put up as soon as its screen is: behind the start sheet Sam
+   is already standing at the line, and the hub and the shop show him on his
+   own road. Each waits for the screen's transition to land first. */
+function samRunGLMount(selector,store,opts){
+  afterRender(()=>{ const host=document.querySelector?.(selector); if(!host||samRun) return; samRunGLPreview(host,store,opts||{}); });
+}
+function samRunGLIdleMount(g){
+  afterRender(()=>{
+    const world=document.getElementById('samRunWorld'); if(samRun!==g||!world||g.running) return;
+    g.worldW=world.clientWidth||360; g.worldH=world.clientHeight||640;
+    if(samRunGLStart(world)){ const runner=document.getElementById('samRunRunner'); if(runner) runner.hidden=false; samRunGLIdle('portrait'); }
+  });
+}
+function samRunShopPreviewHtml(store,lookStore){
+  return `<div class="game-shop-preview game-3d-preview game-world lane-game theme-${Number(store.stage)||0}" id="samRunShopPreview"><canvas class="game-gl" id="samRunGLCanvas" aria-hidden="true"></canvas>${samRunAvatarHtml(lookStore,'game-shop-sam')}</div>`;
+}
+/* --- a pause, and a first-wall coach --- */
+/* Backgrounding a run already stops its clock, but the road used to start
+   again the instant the phone came back. Now it waits, and counts back in. */
+function samRunPause(){
+  const g=samRun,card=document.getElementById('samRunCard'); if(!g||!g.running||g.paused||g.warmup||g.finishing||!card) return;
+  g.paused=true;
+  card.hidden=false;
+  card.innerHTML=`<div class="reward">⏸️</div><h2>הפסקה</h2><p>סם נח רגע. ממשיכים כשאתם מוכנים.</p><div class="btn-row"><button class="btn" onclick="samRunResumeCountdown()">ממשיכים ▶</button><button class="btn secondary" onclick="samRunExit()">יוצאים</button></div>`;
+}
+function samRunResumeCountdown(){
+  const g=samRun,card=document.getElementById('samRunCard'),world=document.getElementById('samRunWorld'); if(!g||!g.paused) return;
+  /* the tap that resumes is a gesture, which is what iOS needs to reopen the audible route */
+  samRunBeginAudioSession();
+  if(card){ card.hidden=true; card.innerHTML=''; }
+  if(!world){ samRunResume(); return; }
+  const count=document.createElement('div'); count.className='game-countdown'; world.appendChild(count);
+  const steps=['3','2','1']; let i=0;
+  const tick=()=>{
+    if(samRun!==g){ count.remove(); return; }
+    if(i>=steps.length){ count.remove(); samRunResume(); return; }
+    count.innerHTML=`<span>${steps[i++]}</span>`; samRunTone('tick');
+    g.timer=setTimeout(tick,650);
+  };
+  tick();
+}
+/* The first wall of a child's life arrives with its gesture: a pill under the
+   question that shows which way to swipe, gone the moment they do it. */
+function samRunCoach(kind){
+  const g=samRun; if(!g||!g.store) return;
+  const store=g.store; store.coached=store.coached&&typeof store.coached==='object'?store.coached:{};
+  if(store.coached[kind]) return;
+  const world=document.getElementById('samRunWorld'); if(!world||!world.appendChild) return;
+  let pill=document.getElementById('samRunCoach');
+  if(!pill){ pill=document.createElement('div'); pill.id='samRunCoach'; world.appendChild(pill); }
+  pill.className='game-coach is-'+kind;
+  pill.innerHTML=kind==='jump'?'<i>⬆️</i> מחליקים למעלה — קופצים!':'<i>⬇️</i> מחליקים למטה — מתכופפים!';
+  clearTimeout(g.coachTimer); g.coachTimer=setTimeout(()=>samRunCoachDone(),5000);
+}
+function samRunCoachDone(kind){
+  const g=samRun, pill=document.getElementById('samRunCoach'); if(pill) pill.remove();
+  if(g&&kind&&g.store){ const store=g.store; store.coached=store.coached&&typeof store.coached==='object'?store.coached:{}; if(!store.coached[kind]){ store.coached[kind]=true; samRunSave(store); } }
 }
 function samRunRunRoad(dt){
-  const g=samRun, speed=samRunPace(g), still=prefersReducedStageMotion();
+  const g=samRun, speed=samRunPace(g), still=prefersReducedStageMotion(), scene=!!samRunGL;
   g.roadScroll=(g.roadScroll||0)+dt/1000*8.5*speed;
-  samRunPtStep(g,dt);
-  samRunGLDraw(g);
-  if(!still){
+  /* the kerb stones and roadside props are the DOM road's; the rendered
+     world places its own */
+  if(!still&&!scene){
     if(g.time>=g.nextStoneAt){ samRunSpawnRush('stone'); g.nextStoneAt=g.time+230/speed; }
     if(g.time>=g.nextPropAt){ samRunSpawnRush('prop'); g.nextPropAt=g.time+(420+Math.random()*360)/speed; }
   }
@@ -13089,8 +14329,10 @@ function samRunRunRoad(dt){
     pu.p+=dt/pu.life*speed;
     if(!pu.done&&pu.p>=.985&&(pu.wide||pu.lane===g.lane)) samRunTakePickup(pu);
     if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
-    if(pu.p>0) samRunPaintPickup(pu);
+    if(pu.p>0&&!scene) samRunPaintPickup(pu);
+    else if(pu.kind==='slide'&&!pu.slid&&pu.p>=pu.slideAt){ pu.slid=true; pu.free=pu.free2; samRunPaintGap(pu); }
   }
+  samRunGLDraw(g);
 }
 /* One camera for everything on the road. Screen size follows 1/z, so a thing
    hangs small near the horizon and then rushes past the player over the last
@@ -13252,6 +14494,7 @@ function samRunSpawnWall(kind,arriveMs){
   host.appendChild(el);
   const pu={el,kind,lane:1,wide:true,p:0,life:samRunLifeFor(arriveMs),done:false};
   g.pickups.push(pu);
+  samRunCoach(kind);
   return pu;
 }
 function samRunSpawnGap(arriveMs){
@@ -13385,7 +14628,9 @@ function samRunTakePickup(pu){
   const at={x:pu.x??(pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*.31)),y:pu.y??g.worldH*.9};
   if(pu.kind==='coin'){
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
-    pu.el.classList.add('is-taken'); samRunCoinFlight(at); samRunTone('tick'); samRunFloat('+1',at); samRunPaintHud(true);
+    /* each coin in a line rings a semitone above the last: three coins are a phrase */
+    g.coinLadder=g.time-(g.coinAt||-1e9)<600?Math.min(12,(g.coinLadder||0)+1):0; g.coinAt=g.time;
+    pu.el.classList.add('is-taken'); samRunCoinFlight(at); samRunTone('coin',Math.pow(2,g.coinLadder/12)); samRunFloat('+1',at); samRunPaintHud(true);
     return;
   }
   if(pu.kind==='slide'){
@@ -13412,7 +14657,7 @@ function samRunTakePickup(pu){
     g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
     g.clearedWalls=(g.clearedWalls||0)+1;
     pu.el.classList.add('is-cleared');
-    samRunTone('catch'); samRunFloat(pu.kind==='jump'?'JUMP! +1':'DUCK! +1',at); samRunPaintHud(true);
+    samRunTone('clear'); samRunFloat(pu.kind==='jump'?'JUMP! +1':'DUCK! +1',at); samRunPaintHud(true);
     samRunWorldFx('is-success',360);
     return;
   }
@@ -13442,12 +14687,13 @@ function samRunStartAir(kind){
   if(runner){
     samRunReplayFx(runner,['is-ready-jump','is-ready-duck','is-air-jump','is-air-duck'],kind==='jump'?'is-air-jump':'is-air-duck');
   }
-  samRunTone(kind==='jump'?'jump':'tick');
+  samRunTone(kind==='jump'?'jump':'whoosh');
   try{ navigator.vibrate?.(8); }catch(_){}
   return true;
 }
 function samRunAirborne(kind){
-  const g=samRun; if(!g||!g.running||!g.laneGame) return;
+  const g=samRun; if(!g||!g.running||!g.laneGame||g.paused) return;
+  samRunCoachDone(kind);
   if(g.air&&g.air.until>g.time+220) return;
   const target=(g.pickups||[]).filter(p=>!p.done&&p.wide&&p.kind===kind).sort((a,b)=>samRunPickupIn(a)-samRunPickupIn(b))[0];
   const runner=document.getElementById('samRunRunner');
@@ -13476,7 +14722,7 @@ function samRunLand(){
   g.air=null;
   const runner=document.getElementById('samRunRunner');
   if(runner) runner.classList.remove('is-air-jump','is-air-duck');
-  if(jumped){ samRunWorldFx('is-land',300); samRunEmit('land',(g.runnerX||60)/(g.worldW||360),.965,12); }
+  if(jumped){ samRunWorldFx('is-land',300); samRunTone('land'); samRunEmit('land',samRunGL?.rig?.x||0,0,14); }
 }
 function samRunPickKind(){
   const g=samRun;
@@ -13650,7 +14896,7 @@ function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
   if(!samRunPlayRecordedWord(spoken,ob,lane,finish,afterResolve)) finish(samRunSay(spoken));
 }
 function samRunChooseLane(lane){
-  const g=samRun; if(!g||!g.running||!g.laneGame) return;
+  const g=samRun; if(!g||!g.running||!g.laneGame||g.paused) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0)); const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
   const runner=document.getElementById('samRunRunner');
   if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';samRunReplayFx(runner,['switch-left','switch-right'],cls);setTimeout(()=>runner.classList.remove(cls),340); }
@@ -13950,6 +15196,9 @@ function samRunReplayFx(el,cls,add){
   cl.remove(...classes);
   if(running) void el.offsetWidth;
   if(add) cl.add(add);
+  /* the rendered figure follows the same classes, and a class put straight
+     back on in the same tick would otherwise go unseen */
+  if(add&&el.id==='samRunRunner') samRunGLKick(add);
 }
 function samRunWorldFx(cls,ms=420){
   const world=document.getElementById('samRunWorld'); if(!world||prefersReducedStageMotion()) return;
@@ -14135,6 +15384,8 @@ function samRunOver(finished=false){
   const g=samRun; if(!g||!g.running) return;
   g.running=false; if(g.raf) cancelAnimationFrame(g.raf);
   const world=document.getElementById('samRunWorld'); if(world){ world.classList.remove('is-running'); world.classList.add('is-halted'); }
+  /* the world stays up behind the sheet, and the camera goes round him */
+  if(samRunGL) samRunGLIdle('orbit');
   const card=document.getElementById('samRunCard'); if(!card) return;
   const store=g.store, newBest=g.score>(store.best||0);
   store.best=Math.max(store.best||0,g.score);
