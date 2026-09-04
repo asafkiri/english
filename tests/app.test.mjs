@@ -103,6 +103,8 @@ function runtime(seed = new Map(), options = {}) {
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
       setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
+      S3D_THEMES, S3D_LANE_X, s3dTemplate, s3dPose, s3dRunCycle, s3dClipJump, s3dClipDuck, s3dKf, m4Perspective, m4LookAt, m4Mul,
+      samRunGLPreview, samRunPause, samRunResumeCountdown, samRunCoach, samRunCoachDone,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -4259,7 +4261,7 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
     'a coin never appears while a question is already closing in, nor during the countdown');
   assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
     'the first, gentlest phase of a world stays a pure reading run');
-  assert.match(html, /if\(!still\)\{/, 'decoration is skipped for players who asked for less motion');
+  assert.match(html, /if\(!still&&!scene\)\{/, 'decoration is skipped for players who asked for less motion, and left to the rendered world when that is up');
 
   const markerHost = { children: [], appendChild(node) { this.children.push(node); } };
   context.document.getElementById = id => id === 'samRunRush' ? markerHost : null;
@@ -4920,50 +4922,132 @@ test("the world is already running behind the countdown, and the road throws dus
      no metres are counted at all. */
   assert.match(html, /g\.roadScroll=\(g\.roadScroll\|\|0\)\+dt\/1000\*8\.5\*speed;/,
     'the road scrolls on its own clock, not on the scoreboard');
-  assert.match(html, /gl\.uniform1f\(r\.u\.scroll,\(g\.roadScroll\|\|0\)\*\.5\);/,
-    'and that is what the shader reads');
+  assert.match(html, /gl\.uniform1f\(u\.uScroll,roadState\.scroll\)/, 'and that is what the road shader reads');
+  assert.match(html, /s3dDraw\(r,\{scroll,laneX:rs\.x,/, 'handed over from the run every frame');
 
   /* Particles ride in the road's own context, so the device veto covers them. */
   assert.match(html, /gl\.drawArrays\(gl\.POINTS,0,n\);/, 'they are points, not elements');
   assert.match(html, /samRunEmit\('land'/, 'a landing throws dust');
   assert.match(html, /if\(!g\.air\)\{[\s\S]*?samRunEmit\('dust'/, 'his feet throw it while he runs, but not mid-air');
-  assert.match(html, /function samRunEmit\([\s\S]*?if\(!r\|\|!r\.pt\|\|prefersReducedStageMotion\(\)\) return;/,
-    'and a phone asking for less motion gets none of it');
-  /* Two programs share one context, so each must re-claim its own state. */
-  assert.match(html, /gl\.useProgram\(r\.prog\);\n  gl\.bindBuffer\(gl\.ARRAY_BUFFER,r\.quad\);/,
-    'the road rebinds its own buffer before drawing, since the particles left theirs bound');
+  assert.match(html, /function samRunEmit\([\s\S]*?if\(!R\|\|!R\.r\|\|prefersReducedStageMotion\(\)\|\|R\.tier<1\) return;/,
+    'and a phone asking for less motion gets none of it — nor one that is already struggling');
+  /* The particles live in the world now, not on the screen. */
+  assert.match(html, /gl_Position=uVP\*vec4\(a\.xyz,1\.\);gl_PointSize=min\(60\.,a\.w\*uPx\/max\(\.3,gl_Position\.w\)\);/,
+    'they are placed in the world and shrink with distance like everything else, never past the point size a phone allows');
 });
 
-test("the road is rendered, and the device gets to veto it", () => {
-  /* The DOM road is a clip-path trapezoid with an evenly spaced repeating
-     gradient, and evenly spaced stripes are exactly what a receding road does
-     not have. This draws the same trapezoid on a GL surface using the game's
-     OWN camera, so everything the DOM still owns stays registered against it. */
-  assert.match(html, /float s=max\(\.30,\(y-uHorizon\)\*100\.\/60\.606\+\.44\);/,
-    "the shader inverts the game's own camera rather than inventing a second one");
-  assert.match(html, /float z=min\(1\.35,\.44\/s\);/, 'and reads depth back out of it');
-  assert.match(html, /float halfW=\.42045\*s;/,
-    'the road widens with the same scale the gates and coins are drawn at');
-  assert.match(html, /float v=z\*30\.-uScroll;/,
-    'markings are laid out in road space, so they foreshorten on their own');
+test("the world is rendered in three dimensions, and the device gets to veto it", () => {
+  /* The flat road shader has become a world: one perspective camera, a road
+     drawn in world space, everything else placed in it as instanced meshes.
+     The DOM renderer is untouched underneath and is what a phone without
+     WebGL2 — or one that cannot sustain it — gets. */
+  assert.match(html, /m4Perspective\(r\.P,c\.fov,aspect,\.25,240\);/, 'one real perspective camera');
+  assert.match(html, /float x=vW\.x,z=uScroll-vW\.z;/, 'the road is drawn in world space, so its markings foreshorten on their own');
+  assert.match(html, /gl\.drawArraysInstanced\(gl\.TRIANGLES,0,k\.count,k\.n\)/, 'everything on it is instanced per mesh');
+  assert.match(html, /sx:\(cx\/cw\*\.5\+\.5\)\*r\.cssW,sy:\(1-\(cy\/cw\*\.5\+\.5\)\)\*r\.cssH,pxPerM:/,
+    'and the DOM gate labels are placed by projecting through the same camera');
 
-  /* Nothing may hide the CSS road until the context is genuinely up. */
-  assert.match(html, /if\(!gl\) return false;/, 'no context, no takeover');
-  assert.match(html, /world\.classList\.add\('gl-road'\);\n  return true;/,
-    'the class that hides the CSS road goes on last, once everything linked');
+  /* Nothing may hide the DOM road until the world is genuinely up. */
+  assert.match(html, /function samRunGLStart\(world\)\{[\s\S]*?if\(!r\) return false;/, 'no context, no takeover');
+  assert.match(html, /world\.classList\.add\('gl-road','gl-scene'\);\n  return true;/,
+    'the classes that hide the DOM road and runner go on last, once everything linked');
   assert.match(html, /\.game-world\.lane-game\.gl-road \.game-lane-grid\{display:none\}/,
-    'and that class is the only thing that hides it');
-  assert.match(html, /addEventListener\('webglcontextlost',e=>\{ e\.preventDefault\(\); samRunGLStop\(\); \}/,
+    'and those classes are the only thing that hides them');
+  assert.match(html, /\.game-world\.lane-game\.gl-scene \.game-runner\{visibility:hidden\}/);
+  assert.match(html, /addEventListener\('webglcontextlost',e=>\{ e\.preventDefault\(\); if\(r\.lost\) return; r\.lost=true; opts\.onLost\?\.\(\); \}/,
     'a lost context hands the road straight back');
+  assert.match(html, /onLost:\(\)=>\{ if\(samRunGL&&samRunGL\.r===S\.r\) samRunGLStop\(\);/,
+    'but only a loss of the context that is actually in use');
+
+  /* One context for the whole game, carried between screens. */
+  assert.match(html, /let samRunGLShared=null;/);
+  assert.match(html, /if\(slot&&slot!==S\.canvas\) slot\.replaceWith\(S\.canvas\)/,
+    'the canvas moves between the run, the hub and the shop instead of being remade');
 
   /* A shader is either nearly free or ruinous depending on the GPU, and that
      cannot be known from here — so the device measures itself. */
   assert.match(html, /g\.glEma=g\.glEma\?g\.glEma\*\.97\+dt\*\.03:dt;/,
     'it watches a rolling average, not one early sample from the quiet part of a run');
   assert.match(html, /if\(g\.glSeen>60&&g\.glEma>24\) samRunGLStop\(\);/,
-    'and drops the rendered road if the device cannot sustain it');
+    'and drops the rendered world if the device cannot sustain it');
+  assert.match(html, /if\(R\.tier===2&&ema>19&&g\.glSeen>90\)\{ R\.tier=1;/,
+    'the decorations go first, before the world does');
   assert.doesNotMatch(html, /samRunGLStart\([^)]*\)[^;]*;[\s\S]{0,80}glEma/,
-    'nothing ever turns it back on mid-run, so the two roads cannot flap');
+    'nothing ever turns it back on mid-run, so the two renderers cannot flap');
+
+  /* Less motion: no swoop, no shake, no dust — the run itself still runs. */
+  assert.match(html, /const u=reduced\?1:s3dClamp\(\(R\.time-R\.warmStart\)\/2\.4,0,1\)/,
+    'a phone asking for less motion gets the chase view without the countdown swoop');
+  assert.match(html, /const shake=reduced\?0:cam\.trauma\*cam\.trauma;/, 'and no camera shake');
+});
+
+test("Sam runs in a real 3D world: rig, clips, worlds, hub and the pause", () => {
+  const { api, app, context } = runtime();
+  /* Eight worlds, each built from the unit meshes only. */
+  assert.equal(api.S3D_THEMES.length, api.SAM_RUN_STAGES.length, 'every stage has a world');
+  const kinds = new Set(['box', 'cyl', 'cyl6', 'cone', 'sphere', 'wedge', 'disc']);
+  for (const theme of api.S3D_THEMES) {
+    assert.ok(theme.tpl.length >= 6, 'a world has enough kinds of things by its road');
+    for (const name of theme.tpl) {
+      const shapes = api.s3dTemplate(name, 3);
+      assert.ok(shapes.length > 0, name + ' builds something');
+      for (const sh of shapes) assert.ok(kinds.has(sh.k), name + ' uses only the unit meshes: ' + sh.k);
+    }
+  }
+  /* The run cycle: legs in opposition, arms against the legs, and a longer
+     stride at speed rather than faster legs. */
+  const slow = api.s3dPose(); api.s3dRunCycle(slow, Math.PI / 2, 1, 1);
+  assert.ok(slow.hipL > .3 && slow.hipR < -.3, 'the legs swing against each other');
+  assert.ok(slow.shL < 0 && slow.shR > 0, 'and the arms pump against them');
+  const fast = api.s3dPose(); api.s3dRunCycle(fast, Math.PI / 2, 1, 2.35);
+  assert.ok(fast.hipL > slow.hipL + .1, 'faster means a longer stride');
+  assert.ok(fast.torsoRx < slow.torsoRx, 'and a deeper lean');
+  /* The jump and the duck are written on shared beats. */
+  const apex = api.s3dPose(); api.s3dClipJump(apex, .48);
+  assert.ok(apex.rootY > .7, 'the jump reaches its apex at 48%');
+  assert.ok(apex.kneeL < -1.5 && apex.ground === false, 'tucked, and off the ground');
+  const landed = api.s3dPose(); api.s3dClipJump(landed, 1);
+  assert.ok(Math.abs(landed.rootY) < 1e-6 && landed.ground === true, 'and he is back on his feet at the end');
+  const low = api.s3dPose(); api.s3dClipDuck(low, .5);
+  assert.ok(low.rootY < -.35 && low.torsoRx < -.5, 'the duck goes low and bends forward');
+  /* The camera actually sees the road ahead. */
+  const P = new Float32Array(16), V = new Float32Array(16), VP = new Float32Array(16);
+  api.m4Perspective(P, 1.12, 390 / 780, .25, 240);
+  api.m4LookAt(V, 0, 2.7, 5.2, 0, 1.1, -7, 0, 1, 0);
+  api.m4Mul(VP, P, V);
+  const clip = [0, 1, -8, 1].map((_, i) => VP[i] * 0 + VP[4 + i] * 1 + VP[8 + i] * -8 + VP[12 + i]);
+  assert.ok(clip[3] > 0 && Math.abs(clip[0] / clip[3]) < 1 && Math.abs(clip[1] / clip[3]) < 1, 'a point on the road ahead lands on the screen');
+  /* Without WebGL the previews keep the drawn avatar. */
+  const host = { classList: { list: [], add(c) { this.list.push(c); }, remove() {} }, querySelector: () => null, appendChild() {}, isConnected: true };
+  assert.equal(api.samRunGLPreview(host, api.samRunStore(), {}), false, 'no context, no preview');
+  assert.ok(!host.classList.list.includes('has-3d'), 'and the fallback stays visible');
+  const store = api.samRunStore();
+  assert.match(api.samRunHubHtml(store), /id="samRunHubPreview"[\s\S]*?id="samRunGLCanvas"[\s\S]*?game-intro-runner/,
+    'the hub carries the world with the drawn avatar inside it as the fallback');
+  api.renderSamRunShop('hair');
+  assert.match(app.innerHTML, /id="samRunShopPreview"[\s\S]*?<canvas[^>]*id="samRunGLCanvas"[\s\S]*?game-shop-sam/,
+    'and so does the shop');
+  /* Backgrounding pauses the run behind a sheet, and a tap counts it back in. */
+  const card = { hidden: true, innerHTML: '' };
+  context.document.getElementById = id => id === 'samRunCard' ? card : null;
+  const g = { running: true, paused: false, warmup: false, finishing: false, laneGame: true, lane: 1, obstacles: [], store };
+  api.setSamRun(g);
+  api.samRunPause();
+  assert.equal(g.paused, true);
+  assert.equal(card.hidden, false);
+  assert.match(card.innerHTML, /הפסקה[\s\S]*samRunResumeCountdown/, 'the sheet offers to continue');
+  api.samRunResumeCountdown();
+  assert.equal(g.paused, false, 'with no road to count over, it simply resumes');
+  /* The first wall teaches its swipe once. */
+  const world = { children: [], appendChild(n) { this.children.push(n); } };
+  context.document.getElementById = id => id === 'samRunWorld' ? world : null;
+  api.samRunCoach('jump');
+  assert.equal(world.children.length, 1, 'a coach pill appears under the question');
+  assert.match(world.children[0].innerHTML, /למעלה/, 'and says which way to swipe');
+  api.samRunCoachDone('jump');
+  assert.equal(api.samRunStore().coached?.jump, true, 'the lesson is remembered');
+  api.samRunCoach('jump');
+  assert.equal(world.children.length, 1, 'and never shown again');
 });
 
 test("a hit stops the world for a moment, and a lane change lands with weight", () => {
