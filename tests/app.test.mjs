@@ -100,6 +100,8 @@ function runtime(seed = new Map(), options = {}) {
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
+      samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
+      getSamRun:()=>samRun,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
       setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
@@ -3722,7 +3724,7 @@ test("Sam's Run: offered above the course path, remembers its best, and never ou
   assert.match(app.innerHTML, /game-screen/);
   assert.match(app.innerHTML, /data-character="sam"/, 'Sam himself is on the hub');
   assert.match(app.innerHTML, /onclick="renderSamRunEndless\(\)"/, 'the endless run is the front door');
-  assert.match(app.innerHTML, /השיא שלך במטרים/, 'and a personal best is what it shows');
+  assert.match(app.innerHTML, /שיא במטרים/, 'and a personal best is what it shows');
   assert.match(app.innerHTML, /onclick="renderSamRunMap\(\)"/, 'the worlds are one button down as focused practice');
   api.renderSamRunMap();
   assert.match(app.innerHTML, /JUMP[\s\S]*DUCK/, 'which still lists every world and its words');
@@ -4038,7 +4040,7 @@ test("Sam's quiet game is a real three-lane runner rather than a word queue", ()
   assert.match(app.innerHTML, /game-lane-focus/, 'the selected road gets immediate visual feedback');
   assert.doesNotMatch(app.innerHTML, /game-swipe-hint/,
     'tutorial cards never cover a live lane or obstacle');
-  assert.match(app.innerHTML, /↔️ לוחצים על המסלול הנכון · ⬆️ למעלה קופצים · ⬇️ למטה מתכופפים/,
+  assert.match(app.innerHTML, /↔️ מחליקים או לוחצים על מסלול · ⬆️ קופצים · ⬇️ מתכופפים/,
     'the controls are explained on the start card before the road begins');
   assert.doesNotMatch(app.innerHTML, /lane-choices/, 'answers are not duplicated below the road');
   assert.match(html, /const distractors=shuffled\(choices\.filter\(id=>id!==cmd\)\)\.slice\(0,2\)/,
@@ -5152,6 +5154,117 @@ test("the game's front door shows the shop and every world behind it", () => {
   const hub = api.samRunHubHtml(store);
   assert.ok(hub.indexOf('game-hub-go') < hub.indexOf('game-shop-card'), 'the run is still the first thing offered');
   assert.ok(hub.includes('game-shop-card') && hub.includes('game-world-grid'), 'the front door carries the shop and the worlds');
+});
+
+test('arcade missions rotate through attainable goals and bank completed rewards exactly once', () => {
+  const { api, seed } = runtime();
+  const store=api.samRunStore();
+  for(let plays=0;plays<20;plays++){
+    const mission=api.samRunEndlessMission({...store,plays});
+    assert.notEqual(mission.metric,'hearts');
+    assert.notEqual(mission.metric,'walls','new runners are not asked to clear locked obstacles');
+  }
+  assert.notEqual(api.samRunEndlessMission({...store,plays:0}).id,api.samRunEndlessMission({...store,plays:1}).id);
+  const g={store,mission:{metric:'correct',target:12,reward:25},correctCount:12,runCoinBonus:10,clearedWalls:2};
+  const reward=api.samRunBankArcade(g,400,1);
+  assert.equal(reward.earned,62,'12 words + 10 road coins + 15 medal + 25 mission');
+  assert.equal(reward.xp,202);
+  assert.equal(reward.levelUp,true);
+  api.samRunBankArcade(g,400,1);
+  assert.equal(store.coins,62,'rendering or banking a result again cannot grant another reward');
+  assert.equal(store.totalMetres,400);
+  api.samRunSave(store);
+  assert.equal(runtime(seed).api.samRunStore().runnerXp,202);
+  const failed={store:api.samRunStore(),mission:{metric:'distance',target:400,reward:35},distance:399,correctCount:1};
+  assert.equal(api.samRunBankArcade(failed,399,0).missionBonus,0,'nearly complete is not complete');
+});
+
+test('arcade progress migrates old saves without touching coins, cosmetics or lessons', () => {
+  const {api,seed}=runtime();
+  const old={...api.samRunStore(),coins:500,owned:['outfit_blue'],equipped:{outfit:'outfit_blue'},mastery:{jump:4}};
+  delete old.runnerXp;delete old.totalMetres;
+  seed.set(api.SAM_RUN_KEY,JSON.stringify(old));
+  const migrated=api.samRunStore();
+  assert.equal(migrated.runnerXp,0);assert.equal(migrated.coins,500);
+  assert.equal(migrated.equipped.outfit,'outfit_blue');assert.equal(migrated.mastery.jump,4);
+  assert.equal(api.samRunRank(199).level,1);assert.equal(api.samRunRank(200).level,2);
+  assert.equal(api.samRunRank(520).level,3);
+  assert.equal(api.samRunNextTarget({distance:249,store:{bestDistance:200}}).at,250);
+  assert.equal(api.samRunNextTarget({distance:250,store:{bestDistance:400}}).at,400);
+  assert.equal(api.samRunNextTarget({distance:400,store:{bestDistance:400}}).at,600);
+  assert.equal(api.samRunNextTarget({distance:3000,store:{bestDistance:200}}).at,3500);
+});
+
+test('six correct answers earn a timed magnet without changing question pace', () => {
+  const {api}=runtime();
+  const g={endless:true,time:1000,distance:500,flowCharge:0};api.setSamRun(g);
+  const timing=JSON.stringify(api.samRunWaveTiming(g));
+  for(let i=0;i<5;i++)api.samRunChargeFlow(g);
+  assert.equal(api.samRunFlowActive(g),false);
+  api.samRunChargeFlow(g);
+  assert.equal(api.samRunFlowActive(g),true);assert.equal(g.flowCount,1);
+  assert.equal(JSON.stringify(api.samRunWaveTiming(g)),timing);
+  const until=g.flowUntil;
+  api.samRunChargeFlow(g);assert.equal(g.flowUntil,until,'answers during a bonus do not make it permanent');
+  g.paused=true;assert.equal(api.samRunFlowActive(g),true,'only advancing simulation time consumes the bonus');
+  g.paused=false;g.time=until;assert.equal(api.samRunFlowActive(g),false);
+  api.samRunChargeFlow(g);assert.equal(g.flowCharge,1);
+  api.samRunBreakFlow(g);assert.equal(g.flowCharge,0);
+  const practice={endless:false,time:0};api.samRunChargeFlow(practice);assert.equal(practice.flowCharge,undefined);
+});
+
+test('the magnet collects and doubles coins across lanes without collecting an off-lane hazard', () => {
+  const {api,context}=runtime();
+  vm.runInContext('samRunGLDraw=()=>{};samRunPaintPickup=()=>{};',context);
+  const el=()=>({classList:{add(){}},remove(){}});
+  const coins=[0,2].map(lane=>({kind:'coin',lane,p:.98,life:1000,el:el()}));
+  const hurdle={kind:'hurdle',lane:0,p:.98,life:1000,el:el()};
+  const g={endless:true,running:true,time:1000,flowUntil:2000,lane:1,distance:0,worldW:390,worldH:760,
+    obstacles:[],props:[],pickups:[...coins,hurdle],nextStoneAt:Infinity,nextPropAt:Infinity,nextPickupAt:Infinity,
+    mission:{metric:'coins',target:20},streak:6,lives:3,store:api.samRunStore()};
+  api.setSamRun(g);api.samRunRunRoad(10);
+  assert.equal(g.coinsRun,4);assert.equal(g.runCoinBonus,4);
+  assert.ok(coins.every(c=>c.done));assert.ok(!hurdle.done);assert.equal(g.streak,6);
+  api.samRunRunRoad(10);assert.equal(g.coinsRun,4,'each coin can be collected once');
+  g.time=2000;
+  api.samRunTakePickup({kind:'coin',lane:1,el:el()});
+  assert.equal(g.coinsRun,5,'normal value resumes after the bonus');
+});
+
+test('overlapping vocabulary pools always produce three different lane choices', () => {
+  const {api,context}=runtime();
+  vm.runInContext('samRunSpeakLane=()=>{};',context);
+  context.document.getElementById=id=>id==='samRunObstacles'?{appendChild(){}}:null;
+  const active=['jump','duck','stop','run','walk'];
+  const g={store:api.samRunStore(),active,review:[...active,...active],lesson:[],mode:'tap',phase:api.SAM_RUN_PHASES[0],
+    stageIndex:0,runSeen:{},hits:{},lastKind:'',sameKind:0,lane:1,time:0,score:0,obstacles:[],obstacleSeq:0};
+  api.setSamRun(g);
+  for(let i=0;i<80;i++){
+    api.samRunSpawnLaneWave();const wave=g.obstacles.pop();
+    assert.equal(wave.options.length,3);assert.equal(new Set(wave.options).size,3);
+    assert.equal(wave.options[wave.correctLane],wave.cmd);
+  }
+});
+
+test('one-tap replay resets rewards, boosts, road and 3D state and rotates the mission', () => {
+  const {api,context}=runtime();
+  api.renderSamRunEndless();const g=api.getSamRun();
+  const nodes=new Map();
+  for(const id of ['samRunRunner','samRunCard','samRunWorld','samRunObstacles','samRunRush'])nodes.set(id,{
+    className:'',innerHTML:'',hidden:false,isConnected:true,
+    classList:{add(){},remove(){},toggle(){}},style:{setProperty(){}},
+  });
+  context.document.getElementById=id=>nodes.get(id)||null;
+  vm.runInContext('samRunSay=()=>{};samRunBeginCountdown=()=>{samRun.running=true;samRun.warmup=true;};samRunGL={idleRaf:0,world:document.getElementById("samRunWorld"),probe:{remove(){}}};',context);
+  Object.assign(g,{running:false,flowUntil:99999,flowCharge:5,flowCount:3,arcadeReward:{earned:500},distance:1500,roadScroll:1500,glSeen:500,glEma:30,lastAir:{kind:'jump'}});
+  const oldMission=g.mission.id;g.store.plays=1;
+  api.samRunStart();
+  assert.equal(g.distance,0);assert.equal(g.roadScroll,0);assert.equal(g.coinsRun,0);
+  assert.equal(g.flowCharge,0);assert.equal(g.flowUntil,0);assert.equal(g.flowCount,0);assert.equal(g.arcadeReward,null);
+  assert.equal(g.glSeen,0);assert.equal(g.glEma,0);assert.equal(g.lastAir,null);
+  assert.equal(vm.runInContext('samRunGL',context),null,'the old 3D scene cannot retain scenery or pose clocks');
+  assert.notEqual(g.mission.id,oldMission);assert.equal(g.store.plays,2);
+  assert.equal(g.running,true);
 });
 
 test("Sam's optional missions fund a persistent cosmetic shop", () => {
