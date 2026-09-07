@@ -102,6 +102,11 @@ function runtime(seed = new Map(), options = {}) {
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
       samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
       samRunTeach, samRunSpawn, s3dCamera, s3dProject,
+      samRunAskAloud, samRunAskAgain, samRunCanVoice, samRunGateFontHe, SAM_RUN_LISTEN_EVERY,
+      samRunStationPool, samRunStartStation, samRunStationStep, SAM_RUN_STATION_LEN, SAM_RUN_STATION_COIN, SAM_RUN_STATION_EVERY,
+      samRunAlbumWords, samRunAlbumCard, renderSamRunAlbum, samRunAlbumCardHtml,
+      samRunTimeFor, samRunGhostSpeed, samRunGhostAhead, samRunGLRival, samRunBeat, samRunMusicOn, samRunToggleMusic,
+      samRunSeed, samRunSeededOrder, samRunDailyWords, samRunDaily, samRunDayKey, samRunDailyCardHtml, renderSamRunDaily,
       getSamRun:()=>samRun, samRunCareer, samRunAwardCareer, samRunOver, samRunTeardown,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
@@ -4262,8 +4267,8 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
   assert.match(html, /if\(!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in, nor during the countdown — on the endless road as much as inside a world');
-  assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
-    'the first, gentlest phase of a world stays a pure reading run');
+  assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\|\|feature==='listen'\) return g\.phase\.id!=='learn';/,
+    'the first, gentlest phase of a world stays a plain, quiet question run');
   assert.match(html, /if\(!still&&!scene\)\{/, 'decoration is skipped for players who asked for less motion, and left to the rendered world when that is up');
 
   const markerHost = { children: [], appendChild(node) { this.children.push(node); } };
@@ -4916,8 +4921,8 @@ test("the world is already running behind the countdown, and the road throws dus
     'and the scenery and the runner are unpaused for it');
   assert.match(html, /const warmed=g\.running&&g\.warmup;[\s\S]*?if\(!warmed\) g\.raf=requestAnimationFrame\(samRunFrame\);/,
     'GO picks the loop up rather than starting a second one');
-  assert.match(html, /if\(g\.endless&&!g\.warmup\)\{ g\.distance/,
-    'no metre is scored before GO');
+  assert.match(html, /if\(g\.endless&&!g\.warmup\)\{ g\.raceTime=\(g\.raceTime\|\|0\)\+dt\/1000;g\.distance/,
+    'no metre is scored before GO, and the rival is not running yet either');
   assert.match(html, /!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt/,
     'and no coin or roadworks appears either');
 
@@ -5459,4 +5464,173 @@ test('the endless wave never tightens below a readable window', () => {
     assert.ok(travelMs + warnMs >= 1800,
       `three English words need time to be read at ${distance}m, got ${travelMs + warnMs}ms`);
   }
+});
+
+/* ---- what the run added once it was a language exercise again ----
+   Every one of these has to hold the same line: a mechanic may be answered by
+   listening, or it may live in the gap between two questions, but it may never
+   compete for the moment in which the child is deciding on a word. */
+
+test('every fourth question is asked by ear, with Hebrew on the gates and no English to read', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun(), prompt = promptStub();
+  context.document.getElementById = id =>
+    id === 'samRunObstacles' ? { appendChild() {} } : id === 'samRunLanePrompt' ? prompt : null;
+  vm.runInContext('samRunSpeakLane=()=>{};samRunPromptPop=()=>{};samRunCanVoice=()=>true;samRunAskedWords=[];samRunAskAloud=ob=>{samRunAskedWords.push(ob.cmd)};', context);
+  Object.assign(g, { running: true, time: 0, worldW: 390, distance: 900, obstacles: [], pickups: [], waveSeq: 0 });
+  const kinds = [];
+  for (let i = 0; i < api.SAM_RUN_LISTEN_EVERY; i++) {
+    g.obstacles.length = 0;
+    api.samRunSpawnLaneWave();
+    kinds.push(!!g.obstacles[0].listen);
+  }
+  assert.deepEqual(kinds, [false, false, false, true], 'one question in four is a listening question');
+  const wave = g.obstacles[0];
+  const gates = wave.el.innerHTML;
+  assert.equal((gates.match(/is-he/g) || []).length, 3, 'all three gates carry Hebrew');
+  for (const id of wave.options) {
+    assert.ok(gates.includes(api.SAM_RUN_COMMANDS[id].he), 'the Hebrew of every option is on its gate');
+    assert.ok(!gates.includes(api.SAM_RUN_COMMANDS[id].en), 'and none of the English is, so it cannot be read instead of heard');
+  }
+  assert.ok(!prompt.innerHTML.includes(api.SAM_RUN_COMMANDS[wave.cmd].en), 'the panel does not give the word away either');
+  assert.ok(prompt.classList.contains('is-listen'));
+  assert.deepEqual(Array.from(vm.runInContext('samRunAskedWords', context)), [wave.cmd], 'the word is played, whatever lane the runner is in');
+  api.samRunTeardown();
+});
+
+test('a listening question falls back to writing when the device will not speak', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun(), prompt = promptStub();
+  prompt.classList.add('is-listen');
+  context.document.getElementById = id => id === 'samRunLanePrompt' ? prompt : null;
+  // no recorded audio, no speech synthesis: samRunSay returns false
+  vm.runInContext('samRunSay=()=>false;', context);
+  Object.assign(g, { running: true, time: 0 });
+  api.samRunAskAloud({ cmd: 'jump', listen: true, resolved: false, el: { classList: { add() {} } } });
+  assert.ok(prompt.innerHTML.includes('JUMP'), 'a muted phone still gets an answerable question');
+  api.samRunTeardown();
+});
+
+test('a station is built from the run\'s own mistakes, is slower, and costs no heart', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun();
+  context.document.getElementById = () => null;
+  context.document.getElementById = id => id === 'samRunObstacles' ? { appendChild() {} } : null;
+  vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunBanner=()=>{};samRunCoinFlight=()=>{};samRunPaintHud=()=>{};samRunFreeze=()=>{};samRunPose=()=>{};samRunSpeakLane=()=>{};', context);
+  Object.assign(g, { running: true, time: 0, lives: 3, distance: 520, obstacles: [], pickups: [],
+    active: ['jump', 'duck', 'stop', 'run', 'walk'], review: [], lesson: [],
+    missed: ['jump', 'duck'], nextStationAt: api.SAM_RUN_STATION_EVERY, coinsRun: 0, runCoinBonus: 0 });
+  assert.deepEqual(Array.from(api.samRunStationPool(g)), ['jump', 'duck']);
+  api.samRunSpawn();
+  assert.ok(g.station, 'past 500m the road stops at a station');
+  assert.equal(g.station.left, api.SAM_RUN_STATION_LEN);
+
+  const plain = api.samRunWaveTiming({ endless: true, distance: 520, score: 0 });
+  const slow = api.samRunWaveTiming({ endless: true, distance: 520, score: 0, station: g.station });
+  assert.ok(slow.travelMs > plain.travelMs && slow.warnMs > plain.warnMs, 'a station gives its words more time');
+
+  assert.ok(['jump', 'duck'].includes(api.samRunPickKind()), 'and asks only for the words that were missed');
+
+  const gate = () => ({ classList: { add() {} }, querySelectorAll: () => [] });
+  api.samRunResolve({ cmd: 'jump', laneWave: true, options: ['jump', 'duck', 'stop'], correctLane: 0,
+    chosenLane: 2, armed: 'stop', el: gate() });
+  assert.equal(g.lives, 3, 'being wrong inside the repair shop never costs a heart');
+  assert.equal(g.station.left, api.SAM_RUN_STATION_LEN - 1);
+  api.samRunResolve({ cmd: 'duck', laneWave: true, options: ['duck', 'jump', 'stop'], correctLane: 0,
+    chosenLane: 0, armed: 'duck', el: gate() });
+  assert.equal(g.coinsRun, api.SAM_RUN_STATION_COIN, 'a repair pays');
+  assert.ok(!g.missed.includes('duck'), 'and the word stops being outstanding');
+  api.samRunTeardown();
+});
+
+test('a station ends after its words and books the next one further down the road', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun();
+  context.document.getElementById = () => null;
+  vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunBanner=()=>{};samRunCoinFlight=()=>{};samRunPaintHud=()=>{};', context);
+  Object.assign(g, { running: true, time: 0, distance: 500, coinsRun: 0, runCoinBonus: 0, missed: ['jump'],
+    station: { words: ['jump'], cursor: 0, left: 2, coins: 0, right: 0 } });
+  const ob = { cmd: 'jump', armed: 'jump', el: { classList: { add() {} } } };
+  api.samRunStationStep(ob);
+  assert.equal(g.station.left, 1);
+  api.samRunStationStep(ob);
+  assert.equal(g.station, null, 'the station closes when its words are done');
+  assert.equal(g.stationsDone, 1);
+  assert.equal(g.nextStationAt, 500 + api.SAM_RUN_STATION_EVERY);
+  api.samRunTeardown();
+});
+
+test('the rival runs the personal best and can be overtaken', () => {
+  const { api } = runtime();
+  const store = { bestDistance: 900, bestSeconds: 90 };
+  assert.equal(api.samRunGhostSpeed(store), 10);
+  assert.equal(api.samRunGhostSpeed({ bestDistance: 40 }), 0, 'no record worth chasing yet, no rival');
+  // a record saved before the rival existed still yields a pace, from the road's own curve
+  const derived = api.samRunGhostSpeed({ bestDistance: 900 });
+  assert.ok(derived > 8 && derived < 20, `a legacy record still produces a sane pace, got ${derived}`);
+  assert.ok(api.samRunTimeFor(900) > api.samRunTimeFor(400), 'further takes longer');
+
+  const g = { endless: true, store, raceTime: 10, distance: 60 };
+  assert.equal(api.samRunGhostAhead(g), 40, 'behind the record pace, the rival is ahead');
+  g.distance = 140;
+  assert.equal(api.samRunGhostAhead(g), -40, 'ahead of it, the rival is behind');
+  assert.equal(api.samRunGhostAhead({ endless: false, store }), null, 'a world run has no rival');
+});
+
+test('the streak soundtrack only plays on a run of right answers, and can be switched off', () => {
+  const { api } = runtime();
+  assert.equal(api.samRunMusicOn({ store: { music: true } }), true);
+  assert.equal(api.samRunMusicOn({ store: { music: false } }), false);
+  // below the streak threshold nothing is scheduled, so the beat clock never moves
+  const quiet = { running: true, store: { music: true }, streak: 2, time: 5000, beatAt: 0 };
+  api.samRunBeat(quiet);
+  assert.equal(quiet.beatAt, 0, 'silence is the default state; answers turn it on');
+  const loud = { running: true, store: { music: true }, streak: 6, time: 5000, beatAt: 0, flowUntil: 0 };
+  api.samRunBeat(loud);
+  assert.ok(loud.beatAt > 5000, 'on a streak it keeps a beat');
+});
+
+test('the route of the day is fixed for the day and different tomorrow', () => {
+  const { api } = runtime();
+  const store = api.samRunStore();
+  const a = Array.from(api.samRunDailyWords(store, 0)), b = Array.from(api.samRunDailyWords(store, 0));
+  assert.deepEqual(a, b, 'the same day always gives the same route');
+  assert.equal(a.length, 12);
+  assert.equal(new Set(a).size, a.length, 'without repeats');
+  const order = (seed, list) => api.samRunSeededOrder(list, seed).join(',');
+  const list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  assert.equal(order('2026-09-07', list), order('2026-09-07', list), 'a seed is deterministic');
+  assert.notEqual(order('2026-09-07', list), order('2026-09-08', list), 'and the next day is a different route');
+
+  const fresh = api.samRunDaily({ daily: null });
+  assert.equal(fresh.plays, 0);
+  assert.equal(fresh.streak, 1);
+  const carried = api.samRunDaily({ daily: { day: '1999-01-01', last: fresh.day, best: 700, plays: 3, streak: 4 } });
+  assert.equal(carried.best, 0, 'a new day starts its record again');
+  assert.equal(carried.plays, 0);
+});
+
+test('the album makes the words the collection, and every card can be heard', () => {
+  const { api, app } = runtime();
+  const store = api.samRunStore();
+  store.mastery = { jump: 4, duck: 2 };
+  store.cleared = { jump: 9, duck: 3 };
+  api.samRunSave(store);
+  const groups = Array.from(api.samRunAlbumWords(store));
+  assert.ok(groups.length >= api.SAM_RUN_STAGES.length);
+  const full = api.samRunAlbumCard(store, 'jump'), part = api.samRunAlbumCard(store, 'duck'), none = api.samRunAlbumCard(store, 'stop');
+  assert.match(full, /is-full/);
+  assert.match(full, /samRunAlbumSay\('jump'\)/, 'a collected word can be played');
+  assert.match(full, /🔊 9/, 'and remembers how often it has been heard');
+  assert.doesNotMatch(part, /is-full/);
+  assert.match(none, /is-locked/);
+  assert.doesNotMatch(none, /STOP/, 'a word not met yet is a silhouette, not a spoiler');
+  api.renderSamRunAlbum();
+  assert.match(app.innerHTML, /אלבום המילים/);
+  assert.match(app.innerHTML, /JUMP/);
+  assert.match(app.innerHTML, /מילים נאספו/);
 });
