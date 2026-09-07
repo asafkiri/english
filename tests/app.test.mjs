@@ -101,7 +101,7 @@ function runtime(seed = new Map(), options = {}) {
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
       samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
-      getSamRun:()=>samRun,
+      getSamRun:()=>samRun, samRunCareer, samRunAwardCareer, samRunOver, samRunTeardown,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
       setSamRun:v=>{samRun=v}, setSamRunAudio:v=>{samRunAudio=v},
@@ -3724,7 +3724,7 @@ test("Sam's Run: offered above the course path, remembers its best, and never ou
   assert.match(app.innerHTML, /game-screen/);
   assert.match(app.innerHTML, /data-character="sam"/, 'Sam himself is on the hub');
   assert.match(app.innerHTML, /onclick="renderSamRunEndless\(\)"/, 'the endless run is the front door');
-  assert.match(app.innerHTML, /שיא במטרים/, 'and a personal best is what it shows');
+  assert.match(app.innerHTML, /השיא האישי/, 'and a personal best is what it shows');
   assert.match(app.innerHTML, /onclick="renderSamRunMap\(\)"/, 'the worlds are one button down as focused practice');
   api.renderSamRunMap();
   assert.match(app.innerHTML, /JUMP[\s\S]*DUCK/, 'which still lists every world and its words');
@@ -4777,7 +4777,8 @@ test("the endless run is built from this child's own words, and remembers his re
 
   assert.match(html, /store\.bestDistance=Math\.max\(store\.bestDistance\|\|0,metres\)/,
     'a shorter run can never lower the record');
-  assert.match(html, /onclick="renderSamRunEndless\(\)"/, 'the hub starts the run');
+  assert.match(api.samRunHubHtml(api.samRunStore()), /onclick="renderSamRunEndless\(\)"/, 'the first visit explains the run');
+  assert.match(api.samRunHubHtml({...api.samRunStore(),plays:1}), /onclick="samRunQuickStart\(\)"/, 'returning players go straight to the countdown');
 });
 
 test("every game word drawn from the course is really taught by the course", () => {
@@ -5295,4 +5296,47 @@ test("Sam's optional missions fund a persistent cosmetic shop", () => {
   assert.match(app.innerHTML, /תצוגה מקדימה · עדיין לא חויבת/);
   assert.match(app.innerHTML, /1 מתוך 10 פריטים נאספו/);
   assert.equal(api.samRunStore().coins, 1200, 'previewing an unowned style never spends coins');
+});
+
+test('career goals preserve the existing XP, coins and equipment when migrating saves',()=>{
+  const {api,seed}=runtime();
+  const store={...api.samRunStore(),coins:730,runnerXp:600,totalMetres:1234,owned:['outfit_blue'],equipped:{outfit:'outfit_blue'},mastery:{jump:4}};
+  delete store.career;api.samRunSave(store);
+  const fresh=runtime(seed).api.samRunStore();
+  assert.equal(fresh.coins,730);assert.equal(fresh.runnerXp,600);assert.equal(fresh.totalMetres,1234);
+  assert.equal(fresh.equipped.outfit,'outfit_blue');assert.equal(fresh.mastery.jump,4);
+  assert.equal(fresh.career.goals.words.progress,0);
+  assert.equal(api.samRunCareer({goals:{words:{tier:-2,progress:Infinity}}}).goals.words.progress,0);
+});
+
+test('three career goals accumulate across runs, carry excess progress and credit only once',()=>{
+  const {api,seed}=runtime(),store=api.samRunStore();
+  const first={store,correctCount:12,coinsRun:15,distance:220,endless:true};
+  assert.equal(api.samRunAwardCareer(first).coins,0);
+  api.samRunSave(store);
+  const restored=runtime(seed).api.samRunStore();
+  const second={store:restored,correctCount:10,coinsRun:12,distance:200,endless:true};
+  const reward=api.samRunAwardCareer(second);
+  assert.equal(reward.completed.length,3);assert.equal(reward.coins,90);
+  assert.equal(restored.coins,90);assert.equal(restored.runnerXp,0,'the existing XP engine is the only XP writer');
+  assert.equal(restored.career.goals.words.progress,2);
+  assert.equal(restored.career.goals.coins.progress,2);
+  assert.equal(restored.career.goals.distance.progress,20);
+  const before=JSON.stringify(restored);
+  assert.equal(api.samRunAwardCareer(second),reward);assert.equal(JSON.stringify(restored),before);
+});
+
+test('a completed run combines mission and career rewards in its saved wallet exactly once',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  g.store.career.goals.words.progress=18;
+  Object.assign(g,{running:true,correctCount:5,streakPeak:5,resolvedCount:5,distance:0,runCoinBonus:7,coinsRun:7,mission:{metric:'streak',target:5,reward:18,title:'רצף'},clearedWalls:0});
+  const card={hidden:true,innerHTML:'',classList:{add(){}}};
+  context.document.getElementById=id=>id==='samRunCard'?card:null;
+  api.samRunOver(false);
+  assert.equal(g.store.coins,55,'5 correct + 7 collected + 18 mission + 25 career goal');
+  assert.equal(g.store.runnerXp,60,'XP is awarded once by the existing engine');
+  assert.match(card.innerHTML,/\+55/);assert.match(card.innerHTML,/\+25/);
+  assert.equal(api.samRunStore().coins,55);
+  api.samRunOver(false);assert.equal(api.samRunStore().coins,55);
+  api.samRunTeardown();
 });
