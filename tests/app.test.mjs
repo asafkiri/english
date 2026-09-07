@@ -100,7 +100,7 @@ function runtime(seed = new Map(), options = {}) {
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
-      samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
+      samRunHuntRound, samRunRoofAt, samRunSpawnHunt, samRunResolveHunt, samRunAdventureStep, samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
       getSamRun:()=>samRun, samRunCareer, samRunAwardCareer, samRunOver, samRunTeardown,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
@@ -4259,7 +4259,7 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /el\.className='rush-hurdle'; el\.innerHTML='<span><\/span><span><\/span><span><\/span>'/,
     'single-lane roadworks use a consistent cone graphic rather than an emoji barrier');
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
-  assert.match(html, /if\(!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
+  assert.match(html, /if\(!g\.endless&&!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in, nor during the countdown');
   assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
     'the first, gentlest phase of a world stays a pure reading run');
@@ -5339,4 +5339,62 @@ test('a completed run combines mission and career rewards in its saved wallet ex
   assert.equal(api.samRunStore().coins,55);
   api.samRunOver(false);assert.equal(api.samRunStore().coins,55);
   api.samRunTeardown();
+});
+
+
+test('expeditions vary target count and switch to an explicit avoidance round', () => {
+  const {api}=runtime();
+  const ids=Object.keys(api.SAM_RUN_COMMANDS).slice(0,8);
+  const g={active:ids,review:[],lesson:[]};
+  api.samRunHuntRound(g);assert.equal(g.hunt.targets.length,1);assert.equal(g.hunt.avoid,false);
+  api.samRunHuntRound(g);assert.equal(g.hunt.targets.length,2);
+  api.samRunHuntRound(g);assert.equal(g.hunt.targets.length,1);assert.equal(g.hunt.avoid,true);
+  assert.equal(g.hunt.dodged,0);
+});
+test('train ramps rise continuously, support the roof and descend to the street',()=>{
+  const {api}=runtime();const g={trains:[{lane:2,start:100}]};
+  assert.equal(api.samRunRoofAt(g,89,2),0);
+  assert.equal(api.samRunRoofAt(g,95,2),.625);
+  assert.equal(api.samRunRoofAt(g,110,2),1.25);
+  assert.equal(api.samRunRoofAt(g,135,2),.625);
+  assert.equal(api.samRunRoofAt(g,141,2),0);
+  assert.equal(api.samRunRoofAt(g,110,1),0,'changing lanes leaves the roof');
+});
+test('missed and expired hunt tokens do not cost hearts or teach false errors',()=>{
+  const {api}=runtime();const g={lane:0,lives:3,hunt:{round:2,found:[],targets:['jump']}};api.setSamRun(g);
+  for(const data of [{tokenLane:2,huntRound:2},{tokenLane:0,huntRound:1}]){
+    const ob={...data,cmd:'jump',el:{classList:{add(){}}}};
+    api.samRunResolveHunt(ob);assert.equal(ob.resolved,true);assert.equal(g.lives,3);
+  }
+});
+
+test('individual tokens overlap in time, have one visible word and keep valid spoken answers',()=>{
+  const {api,context}=runtime();
+  context.document.getElementById=id=>id==='samRunObstacles'?{appendChild(){}}:null;
+  const g={active:['jump','duck','stop','run','walk'],store:api.samRunStore(),time:0,lane:1,obstacles:[],obstacleSeq:0,worldW:390};
+  api.setSamRun(g);api.samRunSpawnHunt();
+  const first=g.obstacles[0];assert.equal((first.el.innerHTML.match(/<button/g)||[]).length,1);
+  assert.equal(first.options[first.correctLane],first.cmd);
+  assert.ok(g.nextSpawnAt<first.travelMs,'the next word appears while the first is on the road');
+  g.time=g.nextSpawnAt;api.samRunSpawnHunt();assert.equal(g.obstacles.length,2);
+  assert.notEqual(g.obstacles[0].tokenLane,g.obstacles[1].tokenLane);
+});
+test('avoidance rewards four successful dodges once and collisions lose a heart',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  Object.assign(g,{running:true,lane:0,hunt:{round:3,avoid:true,dodged:0,targets:['jump'],found:[]},coinsRun:0,runCoinBonus:0});
+  vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunFreeze=()=>{};',context);
+  const token=lane=>({cmd:'jump',tokenLane:lane,huntToken:true,huntRound:3,el:{classList:{add(){}}}});
+  api.samRunResolve(token(0));assert.equal(g.lives,2);assert.equal(g.hunt.dodged,0);
+  for(let i=0;i<4;i++){const ob=token(2);api.samRunResolve(ob);api.samRunResolve(ob);}
+  assert.equal(g.hunt.round,4);assert.equal(g.hunt.targets.length,3);assert.equal(g.coinsRun,10);assert.equal(g.runCoinBonus,10);
+  api.samRunTeardown();
+});
+test('a roof target credits vocabulary, roof coins and expedition reward exactly once',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  Object.assign(g,{running:true,lane:2,roofHeight:1.25,hunt:{round:1,targets:['jump'],found:[]},coinsRun:0,runCoinBonus:0});
+  vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunBurst=()=>{};samRunCoinFlight=()=>{};samRunSpeakLane=()=>{};',context);
+  const ob={cmd:'jump',tokenLane:2,correctLane:2,chosenLane:2,options:['jump','jump','jump'],huntToken:true,huntRound:1,laneWave:true,el:{classList:{add(){}},querySelectorAll:()=>[]}};
+  api.samRunResolve(ob);api.samRunResolve(ob);
+  assert.equal(g.correctCount,1);assert.equal(g.store.mastery.jump,1);assert.equal(g.hunt.round,2);
+  assert.equal(g.coinsRun,13);assert.equal(g.runCoinBonus,13);api.samRunTeardown();
 });

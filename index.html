@@ -2629,6 +2629,21 @@ body{
 
 .arcade-how{display:grid;gap:13px;text-align:right;max-width:330px;margin:12px 0}.arcade-how>div{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center}.arcade-how b{display:grid;place-items:center;width:42px;height:42px;background:#21384f;border:1px solid #5f7f9666;border-radius:12px;font-size:20px;color:#93f0d2}.arcade-how span{font-size:13px;color:#d1dfed;line-height:1.5}
 
+
+/* Expedition board and readable individual word tokens. */
+#samRunLanePrompt.is-hunt{max-width:520px;width:94%;padding:10px 12px;background:rgba(10,29,45,.92);border:1px solid #77e4d477;border-radius:20px;color:#fff;box-shadow:0 8px 30px #001b3540}
+#samRunLanePrompt.is-hunt small{font-size:11px;color:#b5d6de;display:block;margin:3px 0}
+.hunt-list{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}
+.hunt-list b{padding:6px 12px;border-radius:30px;background:#ffffff14;border:1px solid #ffffff30;font-size:18px}
+.hunt-list b.found{background:#3cd7a3;color:#082b25;border-color:#8affd6}
+.hunt-token .lane-gate{border-radius:20px!important;background:linear-gradient(145deg,#fffbe5,#ffe4a0)!important;color:#172d3e!important;border:2px solid #fff7c4!important;box-shadow:0 5px 0 #b58937,0 9px 25px #061d3a50!important;min-height:48px}
+.hunt-token .lane-gate.is-picked{outline:3px solid #62f3d0;outline-offset:3px}
+.hunt-train{position:absolute;width:95px;height:230px;z-index:2;border-radius:24px 24px 8px 8px;background:linear-gradient(90deg,#17465b,#42a8ac 18%,#39c9bc 80%,#17465b);border:3px solid #9df0e5;box-shadow:0 15px 0 #102638;color:white;display:flex;align-items:center;flex-direction:column;justify-content:space-around;pointer-events:none;transform-origin:50% 100%}
+.hunt-train i{position:absolute;top:100%;height:90px;width:100%;background:repeating-linear-gradient(0deg,#e0a63d 0 12px,#ffe591 12px 16px);clip-path:polygon(0 0,100% 0,90% 100%,10% 100%);color:#18394a;font-size:40px;text-align:center;font-style:normal}
+.hunt-train b{font-size:10px;writing-mode:vertical-rl;letter-spacing:3px}.hunt-train span{color:#b5f1ff;font-size:22px;writing-mode:vertical-rl}
+.game-back-rig .back-body{filter:drop-shadow(2px 2px 2px #0003)}
+
+#samRunLanePrompt.hunt-avoid{border-color:#ff997c;background:#431e32ed}#samRunLanePrompt.hunt-avoid .hunt-list b{background:#df6347;color:white}
 </style>
 </head>
 <body>
@@ -7230,7 +7245,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.52.0';
+const APP_VERSION = '2.53.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11908,12 +11923,12 @@ function samRunBackAvatarHtml(store){
   }
   if(hairStyle==='cap') hairDetail=`<path class="back-cap" fill="${accent}" stroke="#172033" stroke-width="1.5" d="M49 25C51 8 59 1 70 1s19 7 21 24l-4 8H53z"/><path fill="none" stroke="rgba(255,255,255,.32)" stroke-width="1.6" d="M52 27h36M63 29v7h14v-7"/>`;
   return `<div class="game-back-avatar${ride?' has-ride':''}"><i class="back-ground-shadow" aria-hidden="true"></i><div class="back-lane-root"><div class="back-air-root">${ride?`<span class="game-back-ride" aria-hidden="true">${ride}</span>`:''}<div class="back-ride-offset"><div class="back-run-bob"><svg class="game-back-rig" viewBox="0 0 140 260" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-    <g class="back-leg back-leg-l"><path class="back-thigh" fill="${pants}" d="M49 130c5-3 13-3 20 0l-4 60-19 1z"/><g class="back-knee back-knee-l"><path class="back-shin" fill="${pants}" d="M46 184h19l-2 54-17 1z"/><path class="back-shoe" fill="${shoes}" d="M45 232h19l6 13c-8 7-21 8-29 2z"/></g></g>
-    <g class="back-leg back-leg-r"><path class="back-thigh" fill="${pants}" d="M71 130c7-3 15-3 20 0l3 61-19-1z"/><g class="back-knee back-knee-r"><path class="back-shin" fill="${pants}" d="M75 184h19v55l-17-1z"/><path class="back-shoe" fill="${shoes}" d="M76 232h19l5 15c-9 6-22 5-29-2z"/></g></g>
+    <g class="back-leg back-leg-l"><path class="back-thigh" fill="${pants}" d="M51 130Q60 126 68 133Q68 159 63 190Q56 195 49 189Q46 157 51 130z"/><g class="back-knee back-knee-l"><path class="back-shin" fill="${pants}" d="M46 184h19l-2 54-17 1z"/><path class="back-shoe" fill="${shoes}" d="M45 232h19l6 13c-8 7-21 8-29 2z"/></g></g>
+    <g class="back-leg back-leg-r"><path class="back-thigh" fill="${pants}" d="M73 133Q82 126 90 130Q94 158 91 189Q84 195 77 190Q72 160 73 133z"/><g class="back-knee back-knee-r"><path class="back-shin" fill="${pants}" d="M75 184h19v55l-17-1z"/><path class="back-shoe" fill="${shoes}" d="M76 232h19l5 15c-9 6-22 5-29-2z"/></g></g>
     <path fill="${accent}" stroke="#172033" stroke-width="1.7" d="M48 126c11 4 33 4 44 0l-3 18c-12 6-26 6-38 0z"/>
     <g class="back-arm back-arm-l"><path class="back-upper-arm" fill="${clothes}" d="M45 64c-10 2-17 12-18 27l14 4c2-10 6-17 11-22z"/><g class="back-elbow back-elbow-l"><path class="back-forearm" fill="${skinShadow}" d="M27 88l14 4c-1 18 2 34 9 47l-12 7c-9-16-14-37-11-58z"/><ellipse cx="43" cy="148" rx="5.5" ry="7" fill="${skin}"/></g></g>
     <g class="back-arm back-arm-r"><path class="back-upper-arm" fill="${clothes}" d="M95 64c10 2 17 12 18 27l-14 4c-2-10-6-17-11-22z"/><g class="back-elbow back-elbow-r"><path class="back-forearm" fill="${skinShadow}" d="M99 92l14-4c3 21-2 42-11 58l-12-7c7-13 10-29 9-47z"/><ellipse cx="97" cy="148" rx="5.5" ry="7" fill="${skin}"/></g></g>
-    <g class="back-torso"><path class="back-body" fill="${clothes}" d="M45 63c8-6 16-8 25-8s17 2 25 8l5 66c-17 9-43 9-60 0z"/><path fill="${accent}" opacity=".8" d="M45 64c6 6 10 13 12 22l-4 47-13-4zm50 0c-6 6-10 13-12 22l4 47 13-4z"/><path fill="none" stroke="rgba(255,255,255,.36)" stroke-width="1.8" stroke-linecap="round" d="M48 78Q70 90 92 78M55 112Q70 119 85 112"/><path fill="${accent}" d="M55 61q15-11 30 0l-5 8q-10-6-20 0z"/><path fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.7" d="M60 61q10 6 20 0"/></g>
+    <g class="back-torso"><path class="back-body" fill="${clothes}" d="M45 66Q47 55 70 55Q93 55 95 66Q92 91 90 108Q89 121 94 129Q70 140 46 129Q51 112 48 95z"/><path fill="${accent}" opacity=".8" d="M45 64c6 6 10 13 12 22l-4 47-13-4zm50 0c-6 6-10 13-12 22l4 47 13-4z"/><path fill="none" stroke="rgba(255,255,255,.36)" stroke-width="1.8" stroke-linecap="round" d="M48 78Q70 90 92 78M55 112Q70 119 85 112"/><path fill="${accent}" d="M55 61q15-11 30 0l-5 8q-10-6-20 0z"/><path fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.7" d="M60 61q10 6 20 0"/></g>
     <g class="back-head">${hairBehind}<ellipse cx="51" cy="29" rx="2.2" ry="4.4" fill="${skinShadow}"/><ellipse cx="89" cy="29" rx="2.2" ry="4.4" fill="${skinShadow}"/>${hairMass}${hairDetail}<path class="back-nape" fill="${skinShadow}" d="M63 42q7 5 14 0v10q-7 5-14 0z"/></g>
   </svg></div></div></div></div></div>`;
 }
@@ -12502,10 +12517,10 @@ function samRunWordsHtml(g){
 }
 function samRunEndlessCardHtml(store){
   const best=store.bestDistance||0;
-  return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN · GOLD RUSH</span><h2>הדרך לשיא הבא מתחילה כאן</h2>
-    <div class="arcade-how"><div><b>↔</b><span>מחליקים או לוחצים על המסלול עם התרגום הנכון</span></div><div><b>↑ ↓</b><span>מחליקים למעלה לקפיצה ולמטה להתכופפות</span></div><div><b>⚡</b><span>6 תשובות ברצף = מטבעות כפולים ומגנט ל־11 שניות</span></div></div>
+  return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN · ROOFTOP EXPRESS</span><h2>כל מסע — דרך חדשה</h2>
+    <div class="arcade-how"><div><b>↔</b><span>מילה אחת בכל פעם בדרך — אוספים מטרות ומתחמקים מפיתיונות</span></div><div><b>↑ ↓</b><span>בוחרים רמפה, רצים על גג הרכבת ויורדים למסלול אחר</span></div><div><b>⚡</b><span>6 תשובות ברצף = מטבעות כפולים ומגנט ל־11 שניות</span></div></div>
     <p>${best?`השיא שלך: ${best} מ׳`:'אסוף מטבעות, השלם יעדים ועצב את סם בחנות.'}</p>
-    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ◀</button><small class="game-start-tip">3 לבבות · המכשולים נכנסים בהדרגה · אפשר לעצור בכל רגע</small>`;
+    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ◀</button><small class="game-start-tip">מטרות משתנות · אספו או התחמקו לפי ההוראה · 3 לבבות</small>`;
 }
 function samRunHeardHtml(g){
   return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 התשובה הנכונה נשמעת כשסם במסלול שלה.';
@@ -12938,7 +12953,7 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
+    hunt:null,trains:[],nextTrain:0,roofHeight:0,props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,careerReward:null,arcadeSeen:{},hudSeen:{},missionCelebrated:false,bannerUntil:0,checkpointAt:0,recordCelebrated:false,lastAir:null,roadScroll:0,glSeen:0,glEma:0});
   document.getElementById('samRunBanner')?.classList.remove('on');
@@ -12949,7 +12964,7 @@ function samRunStart(){
   /* Leave transform to the stylesheet: the lane runner's rule already centres
      the character and folds in --swipe-lean, so an inline transform here would
      freeze him upright through every swipe. */
-  runner.style.top=''; runner.style.left='50%'; runner.style.transform='';
+  runner.style.translate=''; runner.style.top=''; runner.style.left='50%'; runner.style.transform='';
   runner.style.setProperty('--swipe-lean','0deg');
   world.className=samRunWorldClass(g); world.style.setProperty('--speed','1'); world.style.setProperty('--run-cadence','1');
   samRunPaintHud();
@@ -13052,6 +13067,7 @@ function samRunFrame(ts){
   }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
+    samRunAdventureStep(g,dt);
     if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
@@ -13088,8 +13104,8 @@ function samRunFrame(ts){
         ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100); ob.y=g.worldH*y/100;
         ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
         ob.el.querySelectorAll('.lane-gate').forEach((gate,i)=>{
-          const x=g.worldW*(50+(i-1)*spread)/100;
-          gate.style.transform=`translate(${x.toFixed(1)}px,${ob.y.toFixed(1)}px) translate(-50%,-50%) scale(${scale})`;
+          const x=g.worldW*(50+((ob.huntToken?ob.tokenLane:i)-1)*spread)/100;
+          gate.style.transform=`translate(${x.toFixed(1)}px,${(ob.y-(ob.huntToken?samRunRoofAt(g,(g.roadScroll||0)+(1-ob.progress)*ob.travelMs/1000*8.5*samRunPace(g),ob.tokenLane)*55*scale:0)).toFixed(1)}px) translate(-50%,-50%) scale(${scale})`;
         });
       } else {
         const startX=g.worldW-62;
@@ -13734,12 +13750,12 @@ function s3dDrawRig(r,look,P){
   m4TRS(root,P.x,P.y+P.rootY-groundDrop,P.z,P.lean,P.yaw,P.bank,1,P.sy,1);
   const torso=new Float32Array(16),node=new Float32Array(16),node2=new Float32Array(16);
   /* pelvis */
-  s3dPushChild(K.box,root,0,R.hipY-.03,0,0,0,0,.31,.17,.21,pants,a);
+  s3dPushChild(K.sphere,root,0,R.hipY-.03,0,0,0,0,.17,.13,.125,pants,a);
   /* torso, from the hips up */
   m4TRS(node,0,R.hipY,0,P.torsoRx,P.torsoRy,P.torsoRz,1,1,1); m4Mul(torso,root,node);
-  s3dPushChild(K.box,torso,0,.22,0,0,0,0,.36,.44,.23,cloth,a);
-  s3dPushChild(K.box,torso,0,.40,0,0,0,0,.42,.09,.25,acc,a);
-  s3dPushChild(K.box,torso,0,.06,-.005,0,0,0,.37,.06,.235,acc,a);
+  s3dPushChild(K.sphere,torso,0,.22,0,0,0,0,.19,.265,.14,cloth,a);
+  s3dPushChild(K.sphere,torso,0,.38,0,0,0,0,.205,.095,.135,acc,a);
+  s3dPushChild(K.sphere,torso,0,.06,-.005,0,0,0,.175,.065,.125,acc,a);
   s3dPushChild(K.cyl,torso,0,.49,0,0,0,0,.1,.09,.1,skin,a);
   /* head */
   m4TRS(node,0,.5,0,P.headRx,P.headRy,P.headRz,1,1,1); m4Mul(node2,torso,node);
@@ -13795,23 +13811,23 @@ function s3dDrawRig(r,look,P){
   for(const s of [-1,1]){
     const rx=s<0?P.shL:P.shR, rz=s<0?-P.shLz:P.shRz, el=s<0?P.elL:P.elR;
     m4TRS(node,s*.225,.4,0,rx,0,rz,1,1,1); m4Mul(node2,torso,node);
-    s3dPushChild(K.cyl,node2,0,-.14,0,0,0,0,.1,R.upper,.1,cloth,a);
-    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.095,.08,.095,cloth,a);
+    s3dPushChild(K.sphere,node2,0,-.13,0,0,0,0,.062,.18,.065,cloth,a);
+    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.065,.07,.065,cloth,a);
     m4TRS(node,0,-R.upper,0,el,0,0,1,1,1); const arm=node2.slice(); m4Mul(node2,arm,node);
-    s3dPushChild(K.cyl,node2,0,-.13,0,0,0,0,.08,R.fore,.08,skin,a);
+    s3dPushChild(K.sphere,node2,0,-.12,0,0,0,0,.045,.16,.048,skin,a);
     s3dPushChild(K.sphere,node2,0,-.27,0,0,0,0,.06,.065,.055,skin,a);
   }
   /* legs */
   if(P.legs) for(const s of [-1,1]){
     const hip=s<0?P.hipL:P.hipR, hz=s<0?-P.hipLz:P.hipRz, knee=s<0?P.kneeL:P.kneeR, foot=s<0?P.footL:P.footR;
     m4TRS(node,s*.11,R.hipY,0,hip,0,hz,1,1,1); m4Mul(node2,root,node);
-    s3dPushChild(K.cyl,node2,0,-.2,0,0,0,0,.135,R.thigh,.135,pants,a);
+    s3dPushChild(K.sphere,node2,0,-.18,0,0,0,0,.083,.245,.09,pants,a);
     m4TRS(node,0,-R.thigh,0,knee,0,0,1,1,1); const leg=node2.slice(); m4Mul(node2,leg,node);
-    s3dPushChild(K.cyl,node2,0,-.2,0,0,0,0,.115,R.shin,.115,pants,a);
-    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.12,.1,.12,pants,a);
+    s3dPushChild(K.sphere,node2,0,-.18,0,0,0,0,.061,.235,.065,pants,a);
+    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.064,.07,.065,pants,a);
     m4TRS(node,0,-R.shin,0,foot,0,0,1,1,1); const shin=node2.slice(); m4Mul(node2,shin,node);
-    s3dPushChild(K.box,node2,0,-.025,-.06,0,0,0,.125,.085,.28,shoes,a);
-    s3dPushChild(K.box,node2,0,-.05,-.17,0,0,0,.13,.04,.08,[.95,.95,.95],a);
+    s3dPushChild(K.sphere,node2,0,-.025,-.06,0,0,0,.075,.055,.15,shoes,a);
+    s3dPushChild(K.sphere,node2,0,-.045,-.16,0,0,0,.071,.025,.06,[.95,.95,.95],a);
   }
   return {root,torso,head,footY:P.y+P.rootY-groundDrop};
 }
@@ -14102,6 +14118,12 @@ function s3dDrawPickup(r,pu,z,time,state,runnerX){
    the wave resolves the right one turns green and a wrong pick red */
 function s3dDrawGate(r,ob,z,accent,st,time){
   const K=r.kinds;
+  if(ob.huntToken){
+    const x=S3D_LANE_X[ob.tokenLane], height=samRunRoofAt(samRun,(samRun.roadScroll||0)-z,ob.tokenLane);
+    ob.roof=height;
+    if(!ob.resolved){s3dPushTRS(K.sphere,x,height+.65+Math.sin(time*3)*.08,z,0,time,0,.16,.22,.16,[.95,.8,.3],1,5);s3dPushTRS(K.disc,x,height+.04,z,0,0,0,.65,1,.75,[.25,.9,.8],.4,6);}
+    return;
+  }
   for(let i=0;i<3;i++){
     const x=S3D_LANE_X[i], picked=i===ob.chosenLane;
     let col=s3dMix(accent,[1,1,1],.15), a=.22, tall=false;
@@ -14314,7 +14336,7 @@ function samRunGLDraw(g,idle){
   const missed=g.obstacles.find(o=>o.laneWave&&o.resolved&&o.armed!==o.cmd&&o.progress<1.25);
   if(missed) lookX=S3D_LANE_X[missed.correctLane];
   const pose=s3dRunnerPose(g,rs,g.time,dt,speed,cadence,{lookX,idle:!!idle||!g.running,time:R.time});
-  const P=pose.P; P.x=rs.x; P.z=0;
+  const P=pose.P; P.x=rs.x; P.z=0; P.y+=(g.roofHeight||0);
   P.bank+=s3dClamp(-rs.vx*.05,-.24,.24);
   /* rides carry him differently: standing on a scooter, seated on a bike, tucked into a car */
   if(R.ride){
@@ -14340,6 +14362,7 @@ function samRunGLDraw(g,idle){
   s3dSceneryStep(R,T,scroll);
   s3dSceneryDraw(r,R,scroll,R.time);
   samRunGLRecordLine(R,g,scroll);
+  s3dDrawTrains(r,g);
   for(const pu of g.pickups){
     let st=R.pickupState.get(pu); if(!st){ st={}; R.pickupState.set(pu,st); }
     if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',st.magnet?rs.x:S3D_LANE_X[pu.lane],0,8); }
@@ -14388,7 +14411,7 @@ function samRunGLDraw(g,idle){
     const a=R.time*.28; C.x=rs.x+Math.sin(a)*4.4; C.y=1.6+Math.sin(R.time*.4)*.15; C.z=Math.cos(a)*4.4; C.tx=rs.x; C.ty=1.15; C.tz=0; C.fov=.85; C.roll=0;
   } else {
     R.warmStart=0;
-    const lift=pose.airLift*.28;
+    const lift=pose.airLift*.28+(g.roofHeight||0)*.8;
     C.x=rs.x*.55+shx; C.y=2.7+cam.bob+lift-cam.dip+shy; C.z=5.2;
     C.tx=rs.x*.65+shx*.5; C.ty=1.1+lift*.5-cam.dip*.5; C.tz=-7;
     C.fov=cam.fov+cam.fovKick; C.roll=(reduced?0:cam.rollKick+s3dClamp(-rs.vx*.01,-.03,.03))+shake*.04*Math.sin(t28);
@@ -14408,6 +14431,13 @@ function samRunGLDraw(g,idle){
   for(const ob of g.obstacles){
     if(!ob.laneWave||ob._z==null) continue;
     const z=ob._z;
+    if(ob.huntToken){
+      const pr=s3dProject(r,S3D_LANE_X[ob.tokenLane],1.1+(ob.roof||0),z);
+      const scale=s3dClamp(.6+ob.progress*.4,.6,1);
+      ob.x=s3dClamp(pr.sx,boxPx/2,cssW-boxPx/2);ob.y=Math.max(cssH*.32,pr.sy);
+      ob.el.querySelectorAll('.lane-gate').forEach(gate=>{gate.style.transform=`translate(${ob.x}px,${ob.y}px) translate(-50%,-50%) scale(${scale})`;});
+      continue;
+    }
     const c=s3dProject(r,0,2.0,z);
     const scale=s3dClamp(c.pxPerM*1.32/boxPx,.56,1.0);
     const l0=s3dProject(r,S3D_LANE_X[0],2.0,z), l2=s3dProject(r,S3D_LANE_X[2],2.0,z);
@@ -14585,7 +14615,12 @@ function samRunRunRoad(dt){
   /* Coins and roadworks stay out of the way of a question that is already
      closing in, so steering for a coin can never cost an answer. */
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
-  if(!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
+  if(!g.endless&&!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
+  if(g.endless&&!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt){
+    if(samRunFlowActive(g)) for(let lane=0;lane<3;lane++) samRunSpawnCoins(lane,2200);
+    else samRunSpawnCoins((g.hunt?.cursor||0)%3,2200);
+    g.nextPickupAt=g.time+3800;
+  }
   samRunLand();
   samRunMaybeStartQueuedAir();
   samRunPaintArcade();
@@ -15171,6 +15206,10 @@ function samRunChooseLane(lane){
   const runner=document.getElementById('samRunRunner');
   if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';samRunReplayFx(runner,['switch-left','switch-right'],cls);setTimeout(()=>runner.classList.remove(cls),340); }
   try{ navigator.vibrate?.(10); }catch(_){}
+  if(g.endless&&g.hunt){
+    for(const token of g.obstacles.filter(o=>o.huntToken&&!o.resolved)){token.chosenLane=lane;token.el.querySelectorAll('.lane-gate').forEach(el=>el.classList.toggle('is-picked',token.tokenLane===lane));}
+    return;
+  }
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
   ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>el.classList.toggle('is-picked',i===lane));
@@ -15180,6 +15219,109 @@ function samRunChooseLane(lane){
      gesture and made iOS drop it. */
   samRunSpeakLane(ob,lane);
 }
+
+/* Rooftop expedition: targets stay visible, tokens arrive independently. */
+function samRunHuntBoard(g){
+  const el=document.getElementById('samRunLanePrompt'); if(!el) return;
+  el.classList.add('is-hunt');el.classList.toggle('hunt-avoid',!!g.hunt.avoid);
+  el.innerHTML=`<small>מסע ${g.hunt.round} · ${g.hunt.avoid?`התחמקו 4 פעמים! ${g.hunt.dodged}/4`:'אספו את המילים בכל סדר'}</small><div class="hunt-list">${g.hunt.targets.map(id=>`<b class="${g.hunt.found.includes(id)?'found':''}">${g.hunt.found.includes(id)?'✓ ':''}${esc(SAM_RUN_COMMANDS[id].he)}</b>`).join('')}</div><small>↔ בוחרים דרך · הרמפה מובילה לגג · בונוס מילים למעלה</small>`;
+}
+function samRunHuntRound(g){
+  const pool=[...new Set(g.active.concat(g.review||[],g.lesson||[]))].filter(id=>SAM_RUN_COMMANDS[id]);
+  for(const ob of g.obstacles||[]) if(ob.huntToken&&!ob.resolved){ob.resolved=true;ob.el.classList.add('is-poof');}
+  const round=(g.hunt?.round||0)+1,avoid=round%4===3,count=avoid?1:[1,2,1,3][(round-1)%4];
+  g.hunt={round,avoid,dodged:0,targets:shuffled(pool).slice(0,count),found:[],cursor:0};
+  samRunHuntBoard(g);
+}
+function samRunRoofAt(g,d,lane){
+  let height=0;
+  for(const t of g.trains||[]){
+    if(t.lane!==lane) continue;
+    const u=d-t.start;
+    if(u>=-10&&u<=40) height=Math.max(height,1.25*Math.max(0,Math.min(1,(u+10)/10,(40-u)/10)));
+  }
+  return height;
+}
+function samRunAdventureStep(g,dt){
+  if(!g.endless||g.warmup) return;
+  if(!g.hunt) samRunHuntRound(g);
+  if(!g.trains) g.trains=[];
+  const d=g.roadScroll||0;
+  if(d>=(g.nextTrain||0)){
+    const lane=(Math.floor(d/95)+2)%3, start=d+65;
+    const el=document.createElement('div'); el.className='hunt-train'; el.innerHTML='<i>↗</i><b>ROOFTOP EXPRESS</b><span>▰ ▰ ▰ ▰</span>';
+    document.getElementById('samRunObstacles')?.appendChild(el);
+    g.trains.push({lane,start,el}); g.nextTrain=d+95;
+    samRunBanner('🚆 דרך חדשה! בחרו ברמפה ועלו לגג');
+  }
+  const target=samRunRoofAt(g,d,g.lane);
+  g.roofHeight=(g.roofHeight||0)+(target-(g.roofHeight||0))*Math.min(1,dt/140);
+  const runner=document.getElementById('samRunRunner'); if(runner) runner.style.translate='0 '+(-g.roofHeight*80)+'px';
+  for(const t of g.trains.slice()){
+    if(d>t.start+65){t.el.remove();g.trains.splice(g.trains.indexOf(t),1);continue;}
+    t.el.hidden=!!samRunGL;
+    const depth=samRunDepth(1-(t.start-d)/80);
+    t.el.style.cssText=`left:${50+(t.lane-1)*depth.spread}%;top:${depth.y}%;transform:translate(-50%,-100%) scale(${depth.scale});`;
+  }
+}
+function samRunSpawnHunt(){
+  const g=samRun,host=document.getElementById('samRunObstacles'); if(!host||g.warmup) return;
+  if(!g.hunt) samRunHuntRound(g);
+  const remaining=g.hunt.targets.filter(id=>!g.hunt.found.includes(id));
+  const pool=g.active.filter(id=>!g.hunt.targets.includes(id));
+  const decoy=!g.hunt.avoid&&g.hunt.cursor%4===3&&pool.length>0;
+  const cmd=decoy?pick(pool):remaining[g.hunt.cursor%remaining.length];
+  if(!cmd) return;
+  const lane=(g.hunt.cursor+g.hunt.round)%3; g.hunt.cursor++;
+  const travelMs=6800, c=SAM_RUN_COMMANDS[cmd];
+  const el=document.createElement('div'); el.className='game-obstacle lane-wave hunt-token';
+  el.innerHTML=`<button type="button" class="lane-gate" style="font-size:${samRunGateFont(c.en,g.worldW)}px" onclick="samRunChooseLane(${lane})">${esc(c.en)}</button>`;host.appendChild(el);
+  g.obstacles.push({id:++g.obstacleSeq,cmd,el,options:[cmd,cmd,cmd],correctLane:lane,chosenLane:g.lane,tokenLane:lane,huntToken:true,huntRound:g.hunt.round,progress:0,travelMs,resolved:false,laneWave:true,mastery:g.store.mastery[cmd]||0});
+  g.nextSpawnAt=g.time+1450+(g.hunt.cursor%3)*180;
+}
+function samRunResolveHunt(ob){
+  const g=samRun;
+  if(g.hunt.avoid&&ob.huntRound===g.hunt.round){
+    ob.resolved=true;ob.el.classList.add('is-poof');
+    if(g.lane===ob.tokenLane){g.streak=0;samRunHit(ob);}
+    else {g.hunt.dodged++;samRunTone('tick');if(g.hunt.dodged>=4){samRunHuntReward(g);return;}}
+    samRunHuntBoard(g);return;
+  }
+  // Passing a token is a route choice, never a wrong answer. Old-board
+  // tokens expire when the expedition changes, without costing a heart.
+  if(g.lane!==ob.tokenLane||ob.huntRound!==g.hunt.round||g.hunt.found.includes(ob.cmd)){
+    ob.resolved=true;ob.el.classList.add('is-poof');return;
+  }
+  if(!g.hunt.targets.includes(ob.cmd)){
+    ob.resolved=true;ob.el.classList.add('is-poof');g.streak=0;samRunHit(ob);return;
+  }
+  g.hunt.found.push(ob.cmd);ob.armed=ob.cmd;ob.bonus=(g.roofHeight||0)>.8;
+  ob.huntToken=false;samRunResolve(ob);ob.huntToken=true;
+  if(!g.running) return;
+  if(g.hunt.found.length===g.hunt.targets.length){
+    samRunHuntReward(g);
+  } else samRunHuntBoard(g);
+}
+function samRunHuntReward(g){
+  g.coinsRun+=10;g.runCoinBonus+=10;samRunPaintHud();samRunBanner('✨ מסע הושלם! +10 זהב');samRunTone('clear');samRunHuntRound(g);
+}
+function s3dDrawTrains(r,g){
+  const K=r.kinds;
+  for(const t of g.trains||[]){
+    const x=S3D_LANE_X[t.lane],z=t.start-(g.roadScroll||0);
+    s3dPushTRS(K.box,x,.55,-z-15,0,0,0,.96,1.1,30,[.08,.26,.35]);
+    s3dPushTRS(K.box,x,1.18,-z-15,0,0,0,1.02,.14,30,[.2,.75,.7]);
+    for(const end of [0,30]){
+      const mid=end===0?-z+5:-z-35;
+      s3dPushTRS(K.box,x,.625,mid,end===0?.124:-.124,0,0,1.02,.08,10.08,[.96,.72,.24]);
+    }
+    for(let j=2;j<30;j+=4) for(const side of [-1,1]){
+      s3dPushTRS(K.box,x+side*.485,.78,-z-j,0,0,0,.015,.36,2.4,[.55,.88,.98],1,5);
+      s3dPushTRS(K.sphere,x+side*.44,.16,-z-j,0,0,0,.14,.18,.25,[.06,.08,.12]);
+    }
+  }
+}
+
 function samRunSpawnLaneWave(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host) return;
   const cmd=samRunPickKind(),c=SAM_RUN_COMMANDS[cmd];
@@ -15280,6 +15422,7 @@ function samRunAdvanceSentence(ob){
 function samRunSpawn(){
   const g=samRun, host=document.getElementById('samRunObstacles'); if(!host) return;
   if(g.finishing) return;
+  if(g.endless){samRunSpawnHunt();return;}
   // never put a new thing on the street while the last one is still in the
   // first half of its approach — one answer at a time is the whole game
   const last=g.obstacles[g.obstacles.length-1];
@@ -15380,6 +15523,7 @@ function samRunCommand(cmd,source){
 function samRunResolve(ob){
   const g=samRun;
   if(ob.resolved) return;
+  if(ob.huntToken){samRunResolveHunt(ob);return;}
   ob.resolved=true;
   const ok=ob.armed===ob.cmd;
   if(ob.laneWave) ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>{ if(i===ob.correctLane) el.classList.add('is-correct'); else if(i===ob.chosenLane) el.classList.add('is-wrong'); });
