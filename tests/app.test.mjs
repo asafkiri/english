@@ -94,7 +94,8 @@ function runtime(seed = new Map(), options = {}) {
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
-      setMicLevel, getMicLevel, startMicMeter, stopMicMeter,
+      setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
+      setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, stageLearnerHtml, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
@@ -5741,4 +5742,107 @@ test('speed is one continuous measure the whole road reads', () => {
   assert.match(html, /C\.y=3\.1-\.26\*rush\+cam\.bob/, 'and so does the camera, settling lower at speed');
   assert.match(html, /C\.tz=-8-1\.3\*rush/, 'looking further down the road as it goes');
   api.samRunTeardown();
+});
+
+/* ---- the conversation: a person who is present ----
+   The cast always acted out its own lines well. What it never did was react to
+   the learner, or look at them; and the learner had no body in the room at
+   all. These lock down the live layer that answers both. */
+
+function fakeStageDom(context) {
+  const make = cls => ({
+    className: cls,
+    style: { props: {}, setProperty(n, v) { this.props[n] = v; }, getPropertyValue(n) { return this.props[n] || ''; } },
+    classList: {
+      set: new Set(cls.split(' ')),
+      add(...c) { c.forEach(x => this.set.add(x)); },
+      remove(...c) { c.forEach(x => this.set.delete(x)); },
+      contains(c) { return this.set.has(c); },
+      toggle(c, on) { if (on === undefined ? !this.set.has(c) : on) this.set.add(c); else this.set.delete(c); },
+    },
+  });
+  const avatar = make('stage-avatar'), art = make('person-art modern-v2'), hint = make('mic-hint');
+  hint.textContent = '';
+  context.document.querySelectorAll = sel =>
+    /stage-avatar/.test(sel) && /person-art/.test(sel) ? [avatar, art]
+    : /stage-avatar/.test(sel) ? [avatar]
+    : /person-art/.test(sel) ? [art]
+    : [];
+  context.document.querySelector = sel => /stage-avatar/.test(sel) ? avatar : null;
+  context.document.getElementById = id => id === 'micHint' ? hint : null;
+  return { avatar, art, hint };
+}
+
+test('the character looks at the learner, and the look is driven by their turn not the script', () => {
+  const { api, context } = runtime();
+  const { avatar } = fakeStageDom(context);
+  // every cue the conversation can be in has somewhere to look
+  for (const cue of ['speaking', 'listening', 'heard', 'thinking', 'incoming', 'choosing'])
+    assert.ok(api.STAGE_GAZE[api.STAGE_GAZE_FOR_CUE[cue]], `${cue} has a gaze`);
+  // the learner's turn is the one that holds their eye
+  assert.equal(api.STAGE_GAZE_FOR_CUE.listening, 'attend');
+  assert.equal(api.STAGE_GAZE[api.STAGE_GAZE_FOR_CUE.listening].x, 0, 'straight at them');
+  assert.equal(api.STAGE_GAZE[api.STAGE_GAZE_FOR_CUE.listening].y, 0);
+  assert.ok(api.STAGE_GAZE.attend.jitter < api.STAGE_GAZE.speak.jitter,
+    'eye contact is steadier than the drift of someone talking');
+
+  api.setStageGaze('attend');
+  const x = avatar.style.getPropertyValue('--gaze-x');
+  assert.ok(x.endsWith('px') && Math.abs(parseFloat(x)) <= api.STAGE_GAZE.attend.jitter + .01,
+    `attention stays near the centre, got ${x}`);
+  api.setStageGaze('think');
+  assert.ok(parseFloat(avatar.style.getPropertyValue('--gaze-y')) < 0, 'thinking looks up and away');
+  api.setStageGaze('nonsense-mode');
+  assert.ok(avatar.style.getPropertyValue('--gaze-x'), 'an unknown mode still lands somewhere sane');
+  api.stopStageGaze();
+
+  // it composes with the authored gaze presets instead of overwriting them
+  assert.match(html, /\.stage-avatar \.person-art \.pupils\{translate:var\(--gaze-x,0px\) var\(--gaze-y,0px\)/,
+    'the live layer uses translate, which is its own property');
+  assert.match(html, /\.stage-gaze-up \.person-art \.pupils\{transform:/,
+    'so the authored presets keep their transform');
+});
+
+test('the figure answers the learner\'s voice, and waits for them when they go quiet', () => {
+  const { api, context } = runtime();
+  const { art, hint } = fakeStageDom(context);
+
+  api.setMicLevel(.2);
+  assert.equal(art.classList.contains('hearing'), false, 'an open microphone alone is not being heard');
+  api.setMicLevel(.8);
+  assert.equal(art.classList.contains('hearing'), true, 'sound arriving is');
+  api.setMicLevel(.1);
+  assert.equal(art.classList.contains('hearing'), false, 'and it settles when they stop');
+
+  api.stageEncourage();
+  api.stopStageGaze();
+  assert.equal(art.classList.contains('encouraging'), true, 'going quiet earns a nod, not a stare');
+  assert.match(hint.textContent, /מקשיבה/, 'and the hint softens with it');
+  assert.match(html, /@keyframes headNodTwice\{/, 'the nod is a real, bounded gesture');
+
+  // saying something cancels the wait
+  api.startMicMeter();
+  api.bumpMicLevel(.9);
+  api.stopMicMeter();
+  api.stopStageGaze();
+  assert.equal(api.getMicLevel(), 0);
+});
+
+test('the learner is in the room too, wearing what they bought', () => {
+  const { api } = runtime();
+  const store = api.samRunStore();
+  store.owned = ['outfit_fire', 'shoes_gold'];
+  store.equipped = { outfit: 'outfit_fire', shoes: 'shoes_gold' };
+  api.samRunSave(store);
+  const figure = api.stageLearnerHtml();
+  assert.match(figure, /game-back-rig/, 'it is the same back-view rig the game runs with');
+  const fire = api.SAM_RUN_SHOP_ITEMS.find(x => x.id === 'outfit_fire').apply.clothes;
+  const gold = api.SAM_RUN_SHOP_ITEMS.find(x => x.id === 'shoes_gold').apply.shoes;
+  assert.ok(figure.includes(fire), 'the jacket they bought is on them');
+  assert.ok(figure.includes(gold), 'and the shoes');
+  // standing in a conversation, not running down a road
+  assert.match(html, /\.stage-learner \.back-run-bob,\.stage-learner \.game-back-rig \*[^}]*animation:none!important/,
+    'the run cycle it was drawn for is switched off');
+  assert.match(html, /<div class="stage-learner" id="stageLearner" aria-hidden="true">/,
+    'and it lives in the scene layer, out of the reading order');
 });

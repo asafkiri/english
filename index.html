@@ -403,6 +403,21 @@ body{
 .stage-screen{position:relative}
 .stage-screen > *:not(.stage-bg){position:relative;z-index:1}
 .stage-bg{position:absolute;inset:-4px -16px;z-index:0;overflow:hidden;border-radius:20px;background:linear-gradient(180deg,var(--sky),var(--ground));isolation:isolate}
+/* The learner, standing in the room. An over-the-shoulder crop at the very
+   bottom is the film convention, but this screen has a caption card across the
+   whole lower half, so a shoulder there would be a sliver behind a panel.
+   Instead they stand on the same floor as the character, nearer the camera and
+   off to one side: fully visible, clearly a second person, and never crossing
+   the face that is doing the talking. Slightly dimmed and softened so the
+   character speaking still leads the frame. */
+.stage-learner{position:absolute;left:0;bottom:40%;width:33%;max-width:156px;height:43%;z-index:1;pointer-events:none;opacity:.93;filter:brightness(.86) drop-shadow(0 8px 16px rgba(0,0,0,.45))}
+.stage-learner .game-back-avatar{animation:stageLearnerBreath 4.9s ease-in-out infinite}
+/* The figure is standing in a conversation, not running down a road: the whole
+   run cycle it was drawn for is switched off. */
+.stage-learner .back-run-bob,.stage-learner .game-back-rig *,.stage-learner .back-ground-shadow{animation:none!important}
+.stage-learner .back-ground-shadow{opacity:0}
+@keyframes stageLearnerBreath{50%{transform:translateY(-1.4px) scaleY(1.006)}}
+@media (max-height:700px){.stage-learner{width:29%;height:38%;bottom:42%}}
 /* Full-height, layered SVG scenes replace the old single-colour silhouettes.
    The art keeps its proportions on tall phones and anchors the floor when a
    short screen has to crop a little from the top. */
@@ -1072,6 +1087,31 @@ body{
 .person-art.modern-v2.mic-live .eyelids{animation:castBlink 7s linear infinite}
 .stage-avatar.mic-live::before{border-color:rgba(52,211,153,.85);background:radial-gradient(circle at 50% 32%,rgba(52,211,153,.32),transparent 68%)}
 .person-art.retry-tilt .head{animation:headTiltOnce 1.1s ease-in-out both}
+/* ---- eye contact ----
+   The cast acted out its own lines beautifully and never once looked at the
+   child: the pupils moved only when a line's authored gaze preset told them
+   to. These two properties are the live layer on top of that. `translate` is
+   its own property rather than part of `transform`, so it composes with every
+   authored gaze and pose instead of fighting them. */
+.stage-avatar .person-art .pupils{translate:var(--gaze-x,0px) var(--gaze-y,0px);transition:translate .17s cubic-bezier(.3,.75,.3,1)}
+.stage-avatar .person-art .head{translate:calc(var(--gaze-x,0px) * .5) calc(var(--gaze-y,0px) * .3);transition:translate .34s cubic-bezier(.25,.7,.3,1)}
+/* Hearing you. The nod tightens while sound is actually arriving, so the
+   figure answers the child's voice rather than the open microphone. */
+.person-art.hearing .head{animation:headListenNod .92s ease-in-out infinite}
+.person-art.modern-v2.hearing .brows{transform:translateY(-1.6px)}
+.stage-avatar.hearing::before{border-color:rgba(110,231,183,.95)}
+/* Waiting for you. Not a stare: one small encouraging nod, the way a person
+   waits when you have gone quiet mid-sentence. */
+.person-art.encouraging .head{animation:headNodTwice 1.25s ease-in-out both}
+.person-art.modern-v2.encouraging:not(.voicing) .mouth-rest{opacity:0}
+.person-art.modern-v2.encouraging:not(.voicing) .mouth-smile{opacity:1}
+@keyframes headNodTwice{
+  0%,100%{transform:translateY(0) rotate(0)}
+  18%{transform:translateY(2.4px) rotate(1.1deg)}
+  36%{transform:translateY(-1px) rotate(0)}
+  56%{transform:translateY(2.2px) rotate(1deg)}
+  78%{transform:translateY(-.6px) rotate(0)}
+}
 .person-art.modern-v2.reacting:not(.voicing) .mouth-rest,.person-art.modern-v2.happy:not(.voicing) .mouth-rest{opacity:0}
 .person-art.modern-v2.reacting:not(.voicing) .mouth-smile,.person-art.modern-v2.happy:not(.voicing) .mouth-smile{opacity:1}
 .person-art.modern-v2.reacting .cheeks,.person-art.modern-v2.happy .cheeks{opacity:.78}
@@ -1544,6 +1584,11 @@ body{
 .stage-avatar.stage-directed.stage-settled.has-sam-cargo-doorway .person-art .arm-r .forearm{animation:none;transform:translate(-5px,3px) rotate(7deg)}
 @media (prefers-reduced-motion:reduce){
   .stage-avatar,.stage-avatar .person-art{animation:none!important;transition:none!important}
+  /* Eye contact stays — it is where the character is looking, not motion —
+     but it arrives without the flick, and the live nods do not run. */
+  .stage-avatar .person-art .pupils,.stage-avatar .person-art .head{transition:none}
+  .person-art.hearing .head,.person-art.encouraging .head{animation:none!important}
+  .stage-learner .game-back-avatar{animation:none!important}
   /* travel is real distance, so with the transition gone it would land as an
      instant jump on every beat — exactly what reduced motion asks us not to
      do. Flatten the offsets instead of merely un-animating them. */
@@ -7318,7 +7363,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.58.0';
+const APP_VERSION = '2.59.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8337,24 +8382,48 @@ function stopRecognition(){
 }
 /* ---- the phone hears him: a live ring around the mic, and a figure that
    leans in while the microphone is open ---- */
-let micLevel=0, micDecayTimer=null;
+let micLevel=0, micDecayTimer=null, micWaitTimer=null, micHeardAnything=false;
 function getMicLevel(){ return micLevel; }
 function setMicLevel(v){
   micLevel=Math.max(0, Math.min(1, Number(v)||0));
   document.querySelectorAll('.mic-btn,.conversation-mic').forEach(b=>b.style?.setProperty?.('--level', micLevel.toFixed(3)));
+  /* The figure answers the child's VOICE, not the open microphone: the nod
+     tightens while sound is really arriving and settles when it stops. */
+  const hearing=micLevel>=.45;
+  document.querySelectorAll('.stage-avatar,.person-art').forEach(el=>el.classList?.toggle?.('hearing',hearing));
 }
-function bumpMicLevel(v){ setMicLevel(Math.max(micLevel, v)); }
+function bumpMicLevel(v){
+  if(v>=.5&&!micHeardAnything){ micHeardAnything=true; clearTimeout(micWaitTimer); micWaitTimer=null; }
+  setMicLevel(Math.max(micLevel, v));
+}
+/* Gone quiet mid-turn. A person waiting for you does not simply stare — they
+   nod you on. One nod, once per attempt, and the hint softens with it. */
+function stageEncourage(){
+  if(!document.querySelector('.stage-avatar')) return;
+  pulseCharacter('encouraging');
+  setStageGaze('attend');
+  const hint=document.getElementById('micHint');
+  if(hint&&!micHeardAnything) hint.textContent='קח את הזמן — אני מקשיבה 🙂';
+  setTimeout(()=>document.querySelectorAll('.person-art').forEach(el=>el.classList?.remove?.('encouraging')),1400);
+}
 function startMicMeter(){
   stopMicMeter();
   setMicLevel(.15);
+  micHeardAnything=false;
+  micWaitTimer=setTimeout(()=>{ if(!micHeardAnything) stageEncourage(); }, 4200);
   micDecayTimer=setInterval(()=>{ if(micLevel>.15) setMicLevel(Math.max(.15, micLevel*.86)); }, 90);
 }
 function stopMicMeter(){
   if(micDecayTimer){ clearInterval(micDecayTimer); micDecayTimer=null; }
+  if(micWaitTimer){ clearTimeout(micWaitTimer); micWaitTimer=null; }
+  micHeardAnything=false;
   setMicLevel(0);
 }
 function setMicLive(on){
   document.querySelectorAll('.stage-avatar,.person-art,.conversation-person .portrait').forEach(el=>el.classList.toggle('mic-live', !!on));
+  /* An open microphone is the child's turn, and the one moment eye contact
+     matters most. */
+  if(on) setStageGaze('attend');
 }
 /* a one-shot reaction on whoever is on screen: the drawn figure on the stage
    or the small portrait above a lesson conversation */
@@ -10194,12 +10263,66 @@ function setStageCue(cue){
   if(!el||!L) return;
   el.className='stage-status cue-'+cue;
   el.innerHTML=stageCueHtml(cue, conversationMeta(L.idx).character);
+  setStageGaze(STAGE_GAZE_FOR_CUE[cue]||'idle');
 }
+/* ---- where the character is looking ----
+   Real eyes hold a target for a beat and then flick to a new one. A pair that
+   never moves reads as a mask; a pair that drifts smoothly reads as a doll.
+   So this holds a target for between half a second and a couple of seconds,
+   with a little jitter, and picks the target from what the LEARNER is doing
+   rather than from the line being spoken — which is the whole point. Holding
+   a child's eye while they are trying to say something is most of what makes
+   a person feel present. */
+const STAGE_GAZE={
+  /* the child's turn: hold their eye, barely moving */
+  attend:{x:0,y:0,jitter:.8,hold:[1000,2300]},
+  /* speaking their own line: the small natural drift of someone talking */
+  speak:{x:0,y:.4,jitter:2.3,hold:[480,1200]},
+  /* thinking: up and away, the way people do */
+  think:{x:-2.6,y:-3.2,jitter:1.5,hold:[650,1500]},
+  /* the child is reading the choices: glance down at what they are reading */
+  read:{x:1.4,y:2.8,jitter:1.3,hold:[850,1900]},
+  idle:{x:0,y:.6,jitter:1.9,hold:[900,2400]},
+};
+const STAGE_GAZE_FOR_CUE={speaking:'speak',listening:'attend',heard:'attend',thinking:'think',incoming:'attend',choosing:'read'};
+let stageGazeMode='idle', stageGazeTimer=0;
+function setStageGaze(mode){
+  stageGazeMode=STAGE_GAZE[mode]?mode:'idle';
+  stageGazeStep();
+}
+function stageGazeStep(){
+  clearTimeout(stageGazeTimer); stageGazeTimer=0;
+  const targets=document.querySelectorAll('.stage-avatar');
+  /* The stage is gone — stop rather than tick on against nothing. It is
+     started again by the next render that puts a figure on screen. */
+  if(!targets.length) return;
+  const spec=STAGE_GAZE[stageGazeMode]||STAGE_GAZE.idle;
+  const still=prefersReducedStageMotion();
+  const jitter=still?0:()=>(Math.random()*2-1)*spec.jitter;
+  const x=(spec.x+(still?0:jitter())).toFixed(2), y=(spec.y+(still?0:jitter())).toFixed(2);
+  targets.forEach(el=>{ el.style?.setProperty?.('--gaze-x',x+'px'); el.style?.setProperty?.('--gaze-y',y+'px'); });
+  if(still) return;
+  const [lo,hi]=spec.hold;
+  stageGazeTimer=setTimeout(stageGazeStep, lo+Math.random()*(hi-lo));
+}
+function stopStageGaze(){ clearTimeout(stageGazeTimer); stageGazeTimer=0; }
 /* Every beat of the conversation used to rebuild this whole screen: the
    figure snapped mid-breath, the blink restarted, and the scene faded in
    from scratch each time the caption changed — the person looked replaced,
    not like someone standing there talking to you. When the same scene is
    already on stage, morph it in place: only the words and the pose move. */
+/* ---- the child is in the room too ----
+   Until now the learner was a caption and a text box, and the character
+   opposite them was the only person in the scene — which makes it a quiz with
+   a picture on it rather than a conversation. This puts them in the frame:
+   their own character, the one they dressed in the shop, seen from behind at
+   the near edge of the shot the way an over-the-shoulder camera sees you.
+   It is the same back-view figure the game runs with, standing instead of
+   running, so every hat and jacket they own is already carried across. */
+function stageLearnerHtml(){
+  try{ return samRunBackAvatarHtml(samRunStore()); }
+  catch(e){ return ''; }
+}
 function stagePlaceHtml(meta, history){
   return `${meta.placeEmoji} ${esc(meta.place)}${history?` · <button class="stage-history" onclick="openChatHistory()">📜 מה נאמר עד עכשיו</button>`:''}`;
 }
@@ -10587,7 +10710,7 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
     // never silence a mouth mid-word: the live voice classes survive the morph
     const keep=['voicing','mouth-js'].filter(c=>art.classList.contains(c));
     // variant classes are part of the illustration, not of the current beat
-    const transient=new Set(['idle','waiting','speaking','listening','reacting','thinking','voicing','mouth-js','mic-live','retry-tilt','happy']);
+    const transient=new Set(['idle','waiting','speaking','listening','reacting','thinking','voicing','mouth-js','mic-live','retry-tilt','happy','hearing','encouraging']);
     const persistent=[...art.classList].filter(c=>c!=='person-art'&&!transient.has(c));
     art.setAttribute('class',['person-art',...persistent,state_,...keep].join(' '));
   }
@@ -10595,6 +10718,7 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   if(place) place.innerHTML=stagePlaceHtml(meta,history);
   const status=screen.querySelector('#stageStatus');
   if(status){ status.className='stage-status cue-'+cue; status.innerHTML=stageCueHtml(cue,meta.character); }
+  setStageGaze(STAGE_GAZE_FOR_CUE[cue]||'idle');
   swapStageBlock(screen.querySelector('#stageCaption'),caption);
   swapStageBlock(screen.querySelector('.conversation-composer'),composer);
   requestAnimationFrame(keepStageCaptionVisible);
@@ -10615,6 +10739,7 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
     <div class="stage-bg scene-motion-${esc(bd.motionProfile||'dust')}${rainy?' has-story-rain':''}${stageWorldClasses(stageVisual)}${stageBackdropMomentClasses(direction)}" data-backdrop="${esc(bd.id)}" data-light="${esc(bd.lightSide||'left')}" data-stage-cue="${esc(direction?.id||'')}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground};--scene-light:${bd.lightColor||'#ffffff'}">
       <svg class="backdrop-art backdrop-${esc(bd.id)}" data-art="${esc(bd.id)}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">${bd.art}</svg>
       <div class="stage-weather-layer" id="stageWeather" data-visual-key="${esc(stageVisual.key)}">${stageWeatherHtml(stageVisual)}</div>
+      <div class="stage-learner" id="stageLearner" aria-hidden="true">${stageLearnerHtml()}</div>
     </div>
     <div class="sr-only" id="stageEventAnnouncer" aria-live="polite" aria-atomic="true"></div>
     <div class="conversation-top">
@@ -10638,7 +10763,7 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
     </div>
     <div class="conversation-composer">${composer}</div>
   </div>`);
-  afterRender(keepStageCaptionVisible);
+  afterRender(()=>{ keepStageCaptionVisible(); setStageGaze(STAGE_GAZE_FOR_CUE[cue]||'idle'); });
 }
 function captionHtml(line, step, opts={}){
   const en=ptext(line,'en'), he=ptext(line,'he'), tl=ptext(line,'tl');
