@@ -2520,7 +2520,63 @@ body{
 .game-coach i{display:inline-block;font-style:normal;animation:gameCoachUp .8s ease-in-out infinite}.game-coach.is-duck i{animation-name:gameCoachDown}
 @keyframes gameCoachIn{from{opacity:0;transform:translateY(8px)}}@keyframes gameCoachUp{50%{transform:translateY(-5px)}}@keyframes gameCoachDown{50%{transform:translateY(5px)}}
 @media (prefers-reduced-motion:reduce){.game-coach i{animation:none}}
-
+/* Arcade shell: the same live 3D Sam, with a clear play button, a personal
+   record and one attainable goal. HUD effects never intercept a gesture. */
+.run-arcade{--run-mint:#9bffd0;--run-gold:#ffdc76;--run-ink:#091424;display:flex;flex-direction:column;gap:16px}
+.run-hub-hero.game-map-hero{padding:0;border:1px solid #334961;border-radius:28px;background:#0b192b;isolation:isolate;box-shadow:0 22px 55px #0004}
+.run-hub-hero:after{display:none}
+.run-hub-hero .game-3d-preview{height:320px;margin:0;border:0;border-radius:0;background:linear-gradient(#294c78,#102132)}
+.run-brand{position:absolute;z-index:5;top:23px;left:24px;font:950 clamp(48px,13vw,72px)/.82 system-ui,sans-serif;letter-spacing:-.08em;color:#fff;text-align:left;text-shadow:0 3px 20px #07142680;pointer-events:none}
+.run-brand span{display:block;color:var(--run-mint)}
+.run-hero-tag{position:absolute;z-index:5;top:25px;right:20px;max-width:105px;color:#e1edff;font-size:14px;font-weight:800;text-align:right;line-height:1.5;pointer-events:none;text-shadow:0 2px 6px #000}
+.run-hero-content{position:relative;z-index:6;margin-top:-28px;padding:0 22px 20px;background:linear-gradient(transparent,#0b192b 28px)}
+.run-hub-hero .run-hero-content h2{font-size:18px;color:#c0d3e8;letter-spacing:0;margin-bottom:14px}
+.run-records{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:10px;text-align:center}
+.run-records>div+div{border-inline-start:1px solid #8ca2bf26}
+.run-records b{display:block;font-size:clamp(24px,7vw,34px);font-weight:950;line-height:1.1;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.run-records small{display:block;font-size:13px;color:#b4c5db;margin-top:5px}
+.run-records .run-gold{color:#ffdc76}
+.run-arcade .game-hub-go,.game-playing .game-start-run,.game-playing .game-result .btn:not(.secondary){background:#9bffd0;color:#08251d;border:0;box-shadow:0 5px 0 #42a77c,0 10px 22px #0003;font-weight:950}
+.run-arcade .game-hub-go{display:flex;justify-content:center;align-items:center;gap:16px;max-width:none;min-height:58px;margin:20px 0 16px;font-size:22px;border-radius:16px}
+.run-arcade .game-hub-go span{font-size:15px}
+.run-arcade .game-hub-go:active,.game-playing .game-start-run:active,.game-playing .game-result .btn:not(.secondary):active{transform:translateY(3px);box-shadow:0 2px 0 #42a77c}
+.run-contract{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border:1px solid #a7c9f52e;border-radius:14px;background:#15253c;text-align:right;box-sizing:border-box}
+.run-contract>span{font-size:23px;flex-shrink:0;color:#9bffd0}
+.run-contract>div{min-width:0}.run-contract strong{display:block;font-size:15px;color:#f3f7ff;line-height:1.35}.run-contract small{display:block;font-size:13px;color:#b4c8e1;line-height:1.4;margin-top:3px}
+.run-contract.done{border-color:#9bffd066;background:#12342d}.run-contract.done small{color:#9bffd0}
+.run-rank{display:flex;align-items:center;gap:13px;width:100%;padding:15px;background:#102237;border:1px solid #34495e;border-radius:18px;text-align:right;box-sizing:border-box}
+.run-rank-number{display:grid;place-items:center;flex:0 0 44px;height:48px;border-radius:12px;background:#9bffd0;color:#08251d;font-size:24px;font-weight:950;box-shadow:inset 0 -4px #57b58b}
+.run-rank>div{flex:1;min-width:0}.run-rank strong{display:block;font-size:16px;color:#e9f3ff}.run-rank small{display:block;font-size:12px;color:#afc2da;margin:3px 0 8px}
+.run-track{height:6px;width:100%;border-radius:8px;background:#7893b02b;overflow:hidden;direction:ltr}.run-track i{display:block;height:100%;border-radius:inherit;background:#9bffd0;transition:width .22s ease}
+.run-medal-shelf{padding:16px;background:#0e1c30;border:1px solid #2d415b;border-radius:18px}.run-section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px}.run-section-title span{color:#ffdc76;font-size:13px}
+.run-medal-shelf .game-hub-medals{justify-content:space-between;gap:5px;margin:14px 0}.run-medal-shelf .game-hub-medals span{font-size:29px;opacity:.42;transform:none}.run-medal-shelf .game-hub-medals span.won{opacity:1}.run-medal-shelf .game-hub-medals small{display:block;font-size:12px;color:#d4e1f2;font-weight:750;font-variant-numeric:tabular-nums}.run-medal-shelf p{font-size:13px;color:#b8cbe1;margin:9px 0 0;text-align:center}
+.run-arcade .game-hub-words{margin:0;text-align:center;font-size:14px}.run-text-button{border:0;background:transparent;color:#9bffd0;font:inherit;font-weight:850;text-decoration:underline;text-underline-offset:3px;padding:7px 4px;cursor:pointer}
+.run-arcade .game-hub-worlds{margin-top:0}
+.game-playing>.game-top{padding:7px 9px;background:#081321d9;border:1px solid #b6d4ff24;border-radius:18px;box-shadow:0 4px 18px #0002}
+.game-playing>.game-top .game-title{font-size:13px;line-height:1.25}.game-playing .game-build{display:block;font-size:10px;opacity:.5}.game-playing .game-scorebox .game-score{font-size:23px;font-variant-numeric:tabular-nums}
+.game-playing .game-pause,.game-playing>.game-top>.xbtn{width:40px;height:40px;border-radius:12px;background:#d9eaff12;flex-shrink:0}
+.game-playing>.game-mission{font-size:12px;padding:7px 10px;background:#081321d9;border-radius:12px}.game-playing>.game-mission>span:last-child{max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.game-playing>.game-bonus-mission{padding:7px 10px;background:#121f32e8;border-color:#e8c57938;gap:6px}.game-playing>.game-bonus-mission strong{font-size:13px;font-weight:800;line-height:1.3}.game-playing>.game-bonus-mission .bonus-progress{font-size:12px}
+.game-world.lane-game .game-lane-prompt{border-radius:18px;border-color:#bfd8ef80;background:#091827ed;box-shadow:0 7px 24px #0005,inset 0 1px #ffffff17}
+.game-world.lane-game .game-lane-prompt small{font-size:12px;color:#c8dbed;font-weight:700}
+.game-world.lane-game .lane-gate.is-picked{border-color:#9bffd0;background-color:#12322d;box-shadow:0 0 0 2px #9bffd02e,0 10px 28px #0007}
+.run-power{position:absolute;z-index:10;bottom:max(16px,env(safe-area-inset-bottom));left:50%;translate:-50% 0;width:min(420px,calc(100% - 30px));padding:10px 13px;background:#081827e8;border:1px solid #b3d8f238;border-radius:15px;pointer-events:none;box-sizing:border-box;box-shadow:0 6px 20px #0003}
+.run-power-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;color:#d7e9fa;font-size:13px}.run-power-head b{font-size:14px;font-variant-numeric:tabular-nums}.run-power-head span{font-size:12px;color:#afc3d8}.run-power-head span.on{color:#93c5fd}.run-power .run-track{height:5px}.run-power .run-track i{transition:width .1s linear}
+.run-power.active{border-color:#ffdc76a0;background:#1e271dec;box-shadow:0 0 24px #ffd96c26}.run-power.active b{color:#ffdc76}.run-power.active .run-track i{background:#ffdc76}
+.game-playing.game-arcade-playing>.game-world{height:calc(100% - 76px - env(safe-area-inset-bottom));bottom:auto}
+.game-arcade-playing>.run-power{bottom:max(12px,env(safe-area-inset-bottom));z-index:20}
+.game-world.is-halted .run-power,.game-world.is-warming .run-power{visibility:hidden}
+.game-world.lane-game.is-flow .game-road-atmosphere{box-shadow:inset 12px 0 48px #9bffd034,inset -12px 0 48px #ffdc7630}
+.game-world.lane-game.is-flow .game-speedlines{opacity:.75}
+.run-banner{position:absolute;z-index:11;bottom:max(90px,calc(env(safe-area-inset-bottom) + 76px));left:50%;translate:-50% 8px;max-width:calc(100% - 38px);width:max-content;padding:10px 16px;border-radius:13px;background:#091d30eb;border:1px solid #a3ffd081;color:#b7ffdf;font-size:15px;font-weight:900;text-align:center;pointer-events:none;opacity:0;transition:opacity .18s,translate .18s;box-shadow:0 6px 20px #0004}
+.run-banner.on{opacity:1;translate:-50% 0}.run-banner.flow{color:#ffdc76;border-color:#ffdc7680}.game-world.is-halted .run-banner{visibility:hidden}
+.game-world.lane-game .game-card.game-result{gap:12px;padding:20px 20px max(22px,env(safe-area-inset-bottom));background:#0a1728f5}.game-world.lane-game.gl-scene .game-card.game-result{max-height:68%;border-top:1px solid #718ead66;border-radius:28px 28px 0 0}
+.game-result .run-result-kicker{font-size:14px;font-weight:900;letter-spacing:.025em;color:#9bffd0}.game-world .game-result h2.run-result-distance{font:950 clamp(46px,12vw,68px)/1 system-ui,sans-serif;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.05em;margin:0}.run-result-distance small{display:inline-block;font:700 14px/1.2 system-ui,sans-serif;color:#b8cde5;letter-spacing:0;margin-inline-start:9px}.game-result .run-records b{font-size:25px}.game-result .run-rank{padding:10px 12px}.game-result .run-rank-number{height:40px;flex-basis:40px;font-size:22px}.game-result .run-rank small{margin-bottom:5px}.game-result .run-contract{padding:9px 12px}.game-result .btn-row{max-width:none;gap:10px}.game-result .btn-row .btn{font-size:18px;min-height:49px;border-radius:14px}.run-result-medal{font-size:13px;color:#ffdc76}.run-level-up{font-size:16px;color:#ffdc76;font-weight:900}.game-result p.run-result-note{font-size:12px;color:#a7bcd4}
+.game-playing button:focus-visible,.run-arcade button:focus-visible{outline:3px solid #ffdc76;outline-offset:3px}
+@media(max-width:370px){.run-hero-content{padding-inline:15px}.run-hero-tag{max-width:88px;font-size:12px;right:15px}.game-playing>.game-top .game-title{font-size:12px}.game-playing>.game-top{gap:4px;padding-inline:5px}.game-playing .game-pause,.game-playing>.game-top>.xbtn{width:34px}.game-playing>.game-bonus-mission strong{font-size:12px}.run-power-head b{font-size:13px}}
+@media(max-height:700px){.game-world.lane-game .game-lane-prompt:not(.is-sentence){top:146px;padding:6px 14px}.game-world.lane-game.gl-scene .game-card.game-result{max-height:76%;gap:8px}.game-world .game-result h2.run-result-distance{font-size:42px}.game-result .run-records b{font-size:21px}.run-power{padding:7px 11px}.run-power-head{margin-bottom:5px}}
+@media(min-width:760px){.run-hub-hero .game-3d-preview{height:360px}.run-brand{font-size:78px}.game-card.game-result>*{width:100%;max-width:440px}.game-world.lane-game.gl-scene .game-card.game-result{align-items:center}.run-hero-tag{font-size:16px;max-width:150px}}
+@media(prefers-reduced-motion:reduce){.run-track i,.run-power,.run-banner{transition:none}.game-world.lane-game.is-flow .game-speedlines{opacity:0}.run-arcade .game-hub-go:active{transform:none}}
 /* Gold Rush: the lobby, the race and the reward sheet share one visual
    language. Gold means earned rewards; mint means the next action. */
 .arcade-hub{--arcade-gold:#ffcf65;--arcade-mint:#8cf0d2;gap:16px}
@@ -2559,31 +2615,20 @@ body{
 .arcade-goals{display:grid;gap:14px}.arcade-goal{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px}.arcade-goal-icon{display:grid;place-items:center;width:32px;height:36px;border:1px solid #ffcf652e;border-radius:10px;background:#ffcf6510;color:#ffcf65;font-size:21px}.arcade-goal strong{display:block;font-size:13px}.arcade-goal small{display:block;font-size:10px;color:#a7bcd5;margin:3px 0 6px}.arcade-goal>b{font-size:11px;color:#ffda8c}.arcade-goal-track{height:3px}.arcade-goal-track i{background:#ffd077}.arcade-career>p{margin:15px 0 0;font-size:10px;color:#8ea5bf;line-height:1.5}
 .arcade-hub .game-shop-card{display:grid;grid-template-columns:110px 1fr;text-align:right;align-items:center;margin-top:0;padding:8px;background:linear-gradient(110deg,#2b2530,#17243a);border-color:#b18f4d55}.arcade-hub .shop-card-art{padding:0;background:none}.arcade-hub .shop-card-body{padding:5px 9px}.arcade-hub .shop-card-body strong{font-size:17px}.arcade-hub .shop-card-body small{font-size:10px}.arcade-hub .shop-card-cta{font-size:10px;justify-self:start;padding:5px 9px}.arcade-hub .shop-card-coins{font-size:11px}
 .arcade-hub .game-hub-worlds{margin-top:0}.arcade-hub .game-world-card{position:relative;text-align:right;align-content:start;padding:14px;background:#162338;border-color:#2d4059}.arcade-hub .wc-name{font-size:14px}.arcade-hub .game-world-card.current{box-shadow:none;border-color:#62d9bd}.arcade-hub .wc-bar i{background:#7ce3c8}
-.game-screen.game-playing{gap:5px}
-.game-playing>.game-top{background:#091426d9;border:1px solid #ffffff12;padding:5px 7px;border-radius:15px;gap:7px}
-.game-playing>.game-top .game-title{font-size:12px;line-height:1.2;white-space:normal}.game-playing .game-build{display:none}
-.game-playing>.game-top .game-scorebox{min-width:48px}.game-playing .game-score{font-size:24px;color:#fff}.game-playing .game-best{font-size:9px;color:#b8c9dd}
-.game-playing>.game-mission{min-height:24px;padding:4px 10px;border:0;font-size:10px;background:#091426c9;box-shadow:none}
-.game-playing>.game-bonus-mission{margin:0;min-height:26px;padding:4px 9px;border:1px solid #f0c97125;box-shadow:none}.game-playing>.game-bonus-mission strong{font-size:10px}.game-playing>.game-bonus-mission .bonus-progress{font-size:10px}
-.arcade-energy{position:relative;z-index:20;width:100%;max-width:720px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:4px 10px;border-radius:10px;background:#0d1b2cc9;pointer-events:none}
-.arcade-energy b{font-size:10px;color:#c6d6e6;font-weight:800;white-space:nowrap}.arcade-energy>div{flex:1;height:5px;border-radius:9px;background:#ffffff14;overflow:hidden}.arcade-energy i{display:block;height:100%;background:linear-gradient(90deg,#ba8c3d,#ffe8a1);border-radius:inherit;transition:width .18s linear}.arcade-energy.active{background:#513613e8;box-shadow:0 0 18px #ffd37620}.arcade-energy.active b{color:#ffe5a0}
-.game-world.lane-game .game-lane-prompt{top:calc(159px + env(safe-area-inset-top));min-width:min(236px,70vw);max-width:90%;border-radius:18px;background:#081527f2;border:1px solid #b6d7ef77;box-shadow:0 8px 25px #0004;padding:9px 18px}
-.game-world.lane-game .game-streak{top:auto;bottom:max(20px,env(safe-area-inset-bottom));right:14px;left:auto;transform:none;font-size:15px;background:#10283adb;border:1px solid #96e9d05c;color:#9df6d8;padding:6px 12px;border-radius:12px}
-.arcade-announcement{position:absolute;z-index:13;top:auto;bottom:max(58px,calc(env(safe-area-inset-bottom) + 44px));left:50%;translate:-50% 8px;opacity:0;pointer-events:none;max-width:90%;width:max-content;padding:9px 16px;border:1px solid #f6d17e80;border-radius:14px;background:#142132ed;color:#ffe1a1;box-shadow:0 8px 24px #0004;transition:opacity .22s,translate .22s;text-align:center}.arcade-announcement.on{opacity:1;translate:-50% 0}.arcade-announcement b{display:block;font-size:15px}.arcade-announcement small{display:block;font-size:11px;color:#e3dbca;margin-top:2px}
-.game-world.is-gold .game-road-atmosphere{box-shadow:inset 0 -70px 100px #d18b1438,inset 25px 0 50px #ffc05220,inset -25px 0 50px #ffc05220}.game-world.is-gold .game-lane-focus{background:linear-gradient(transparent,#ffdb7c40)}.game-world.is-gold .game-runner{filter:drop-shadow(0 0 17px #ffd368aa)}.game-world.is-gold .game-speedlines{opacity:.3}
-.game-playing .game-card{z-index:22;padding:calc(82px + env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#091629f2,#0c192bea);gap:10px;touch-action:pan-y;user-select:text}
-.game-playing:has(.game-card:not([hidden]))>.game-mission,.game-playing:has(.game-card:not([hidden]))>.game-bonus-mission,.game-playing:has(.game-card:not([hidden]))>.arcade-energy{visibility:hidden}
-.game-card .arcade-eyebrow{color:#f5d288!important}.game-card h2{font-size:23px;max-width:340px;line-height:1.25}.game-card .btn{background:linear-gradient(120deg,#a6f4d9,#58dcb9);color:#092d2b;border:0;min-height:46px;border-radius:13px;font-weight:900}.game-card .btn.secondary{background:#23354d;color:#d8e6f5;border:1px solid #ffffff1a}
-.arcade-how{display:grid;gap:13px;text-align:right;max-width:330px;margin:12px 0}.arcade-how>div{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center}.arcade-how b{display:grid;place-items:center;width:42px;height:42px;background:#21384f;border:1px solid #5f7f9666;border-radius:12px;font-size:20px;color:#93f0d2}.arcade-how span{font-size:13px;color:#d1dfed;line-height:1.5}
-.arcade-result-distance{font-size:clamp(56px,10dvh,84px);line-height:1;color:#fff;font-weight:950;font-variant-numeric:tabular-nums;letter-spacing:-3px}.arcade-result-distance small{display:block;font-size:12px;letter-spacing:0;font-weight:600;color:#a5bcd6;margin-top:8px}
-.arcade-result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;max-width:340px;margin:6px 0}.arcade-result-stats span{font-size:10px;color:#aabed6;padding:8px;background:#ffffff05;border-radius:10px}.arcade-result-stats b{display:block;font-size:23px;color:#e5effb;font-variant-numeric:tabular-nums}
-.arcade-payout{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;width:100%;max-width:340px;border:1px solid #e9c16c66;border-radius:14px;background:#e9c16c0d;color:#fae0a7}.arcade-payout span{font-size:12px}.arcade-payout b{font-size:23px}
+
 .arcade-earned,.arcade-goal-won{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;max-width:340px;text-align:right;font-size:11px;color:#a8ebd7}.arcade-earned{padding:10px 12px;border-radius:12px;background:#85e1c40b}.arcade-earned b{font-size:11px}.arcade-goal-won{padding:4px 12px;color:#f6d794}.arcade-goal-won b{white-space:nowrap}
 .arcade-recap{display:grid;gap:4px;width:100%;max-width:340px;text-align:right;padding:9px 12px;background:#ffffff05;border-radius:11px}.arcade-recap small{color:#9ab2d0;font-size:10px}.arcade-recap span{font-size:12px;color:#d2e2f5}.arcade-shop-link{font:inherit;background:none;border:0;color:#f3d78f;font-size:11px;padding:10px;max-width:340px;cursor:pointer}
-@media(min-width:760px){.arcade-poster{height:340px}.arcade-poster-title h2{font-size:64px}.arcade-poster-title{right:32px;top:35px}.arcade-hub .game-world-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:370px){.game-playing>.game-top .game-title{font-size:10px}.game-playing>.game-top{gap:4px}.game-playing .game-lives{font-size:14px}.game-playing .game-run-wallet{padding:4px;min-width:36px}.arcade-hero-body{padding-inline:16px}.arcade-poster-title{right:18px}.arcade-goal{gap:7px}.arcade-rank{max-width:100px}}
-@media(max-height:560px) and (orientation:landscape){.game-screen.game-playing{padding-top:5px;gap:3px}.game-playing>.game-top{max-width:640px;padding:2px 6px}.game-playing>.game-mission,.game-playing>.game-bonus-mission{display:none}.game-playing>.arcade-energy{max-width:640px}.game-world.lane-game .game-lane-prompt{top:77px;font-size:25px;padding:5px 14px}.game-playing .game-card{padding-block:20px}.game-card .arcade-result-distance{font-size:48px}.game-card .arcade-result-stats{margin:0}.arcade-poster{height:250px}}
-@media(prefers-reduced-motion:reduce){.arcade-announcement,.arcade-energy i{transition:none}.game-world.is-gold .game-speedlines{opacity:.1}}
+
+.arcade-hero:focus-within{border-color:#6dceba}
+.game-playing button:focus-visible,.arcade-hub button:focus-visible{outline:3px solid #ffdc76;outline-offset:3px}
+.game-world.lane-game.is-flow .game-road-atmosphere{box-shadow:inset 0 -60px 80px #d18b1438,inset 20px 0 45px #ffc05220,inset -20px 0 45px #ffc05220}
+.game-world.lane-game .game-card.game-result{touch-action:pan-y;user-select:text}
+.game-playing:has(.game-card:not([hidden]))>.game-bonus-mission,.game-playing:has(.game-card:not([hidden]))>.game-mission,.game-playing:has(.game-card:not([hidden]))>.run-power{visibility:hidden}
+@media(min-width:760px){.arcade-poster{height:340px}.arcade-poster-title h2{font-size:64px}.arcade-poster-title{right:32px;top:35px}}
+@media(max-width:370px){.arcade-hero-body{padding-inline:16px}.arcade-poster-title{right:18px}.arcade-goal{gap:7px}.arcade-rank{max-width:100px}}
+
+.arcade-how{display:grid;gap:13px;text-align:right;max-width:330px;margin:12px 0}.arcade-how>div{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center}.arcade-how b{display:grid;place-items:center;width:42px;height:42px;background:#21384f;border:1px solid #5f7f9666;border-radius:12px;font-size:20px;color:#93f0d2}.arcade-how span{font-size:13px;color:#d1dfed;line-height:1.5}
+
 </style>
 </head>
 <body>
@@ -7185,7 +7230,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.51.0';
+const APP_VERSION = '2.52.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11824,9 +11869,6 @@ const SAM_RUN_MISSIONS=[
   {id:'clean8',title:'השג 8 תשובות רצופות בלי טעות',metric:'clean',target:8,reward:28},
   {id:'hearts2',title:'סיים עם לפחות 2 לבבות',metric:'hearts',target:2,reward:30},
   {id:'perfect',title:'סיים את הריצה עם כל הלבבות',metric:'hearts',target:3,reward:40},
-  {id:'distance300',title:'עבור 300 מטרים בריצה',metric:'distance',target:300,reward:24},
-  {id:'coins12',title:'אסוף 12 מטבעות במסלול',metric:'coins',target:12,reward:22},
-  {id:'walls3',title:'עבור 3 מכשולים בהצלחה',metric:'walls',target:3,reward:26},
 ];
 function samRunItem(id){ return SAM_RUN_SHOP_ITEMS.find(x=>x.id===id); }
 function samRunAvatarLook(store){
@@ -11898,9 +11940,8 @@ function samRunReviewPool(store,stageIndex,phaseIndex){
   for(let s=0;s<stageIndex;s++) for(const w of SAM_RUN_STAGES[s].words) if((store.mastery[w[0]]||0)>0) seen.push(w[0]);
   return shuffled(seen).slice(0,phaseIndex>=2?5:3);
 }
-function samRunMissionFor(store,mode,stageIndex,phaseIndex,endless=false){
-  const pool=SAM_RUN_MISSIONS.filter(m=>(!m.modes||m.modes.includes(mode))&&
-    (endless?m.metric!=='hearts':m.metric!=='distance'&&(phaseIndex>0||m.metric!=='walls')));
+function samRunMissionFor(store,mode,stageIndex,phaseIndex){
+  const pool=SAM_RUN_MISSIONS.filter(m=>!m.modes||m.modes.includes(mode));
   return pool[((store.plays||0)+stageIndex*3+phaseIndex)%pool.length];
 }
 function samRunMissionProgress(g){
@@ -11919,11 +11960,6 @@ function samRunPaintMission(){
   const g=samRun,box=document.getElementById('samRunBonusMission'); if(!g||!box) return;
   const progress=Math.min(g.mission.target,samRunMissionProgress(g)),done=progress>=g.mission.target;
   box.classList.toggle('done',done);
-  if(done&&g.running&&!g.missionCelebrated){
-    g.missionCelebrated=true;
-    samRunAnnounce('משימה הושלמה',`+${g.mission.reward} מטבעות בסיום הריצה`,'✓');
-    samRunTone('unlock');
-  }
   /* This runs with every metre the runner covers — about fourteen times a
      second — and re-parsing the same markup that often is a rebuild, a style
      pass and a layout for a line that changes a handful of times a run. */
@@ -12127,10 +12163,80 @@ const SAM_RUN_THINGS={
 };
 let samRun=null;
 
-/* Arcade progression has no calendar or streak penalty. Each completed run
-   advances three visible goals, and rewards are credited in the same save as
-   its coins. Old players keep their existing wallet, equipment and records. */
-const SAM_RUN_GOLD_CHARGE=6, SAM_RUN_GOLD_MS=11000;
+/* Arcade progress belongs to this game only. All bonuses use the simulation
+   clock, so pausing never spends a power-up and never changes reading time. */
+const SAM_RUN_FLOW_TARGET=6, SAM_RUN_FLOW_MS=11000;
+const SAM_RUN_ENDLESS_MISSIONS=[
+  {id:'run_words',title:'12 מילים נכונות',metric:'correct',target:12,reward:25},
+  {id:'run_coins',title:'אספו 20 מטבעות',metric:'coins',target:20,reward:25},
+  {id:'run_chain',title:'6 תשובות ברצף',metric:'streak',target:6,reward:30},
+  {id:'run_distance',title:'הגיעו ל־400 מטרים',metric:'distance',target:400,reward:35},
+  {id:'run_walls',title:'עברו 4 מכשולים',metric:'walls',target:4,reward:35},
+];
+function samRunEndlessMission(store){
+  const pool=SAM_RUN_ENDLESS_MISSIONS.filter(m=>m.metric!=='walls'||store.bestDistance>=SAM_RUN_FEATURE_AT.walls);
+  return pool[Math.max(0,Math.floor(Number(store.plays)||0))%pool.length];
+}
+function samRunRank(xp){
+  xp=Math.max(0,Math.min(1e9,Number(xp)||0));
+  let level=1, floor=0, need=200;
+  while(xp>=floor+need&&level<100){ floor+=need;level++;need=200+(level-1)*120; }
+  const titles=['צעדים ראשונים','תופסים קצב','רץ רחוב','מוביל המסלול','אלוף הריצה','אגדת הרחוב'];
+  return {level,title:titles[Math.min(titles.length-1,Math.floor((level-1)/3))],xp,floor,need,progress:Math.min(1,(xp-floor)/need),remaining:Math.max(0,floor+need-xp)};
+}
+function samRunRankHtml(store,earned=0){
+  const r=samRunRank(store.runnerXp);
+  return `<div class="run-rank"><span class="run-rank-number">${r.level}</span><div><strong>${r.title}</strong><small>${earned?`+${earned} XP · `:''}${r.remaining} נק׳ לדרגה הבאה</small><div class="run-track"><i style="width:${r.progress*100}%"></i></div></div></div>`;
+}
+function samRunNextTarget(g){
+  const d=Math.floor(g.distance||0), best=g.store?.bestDistance||0;
+  const medal=SAM_RUN_MEDALS.find(m=>m.m>d);
+  if(best>d&&(!medal||best<medal.m)) return {at:best,label:'לשיא האישי',icon:'🏆'};
+  if(medal) return {at:medal.m,label:medal.title,icon:medal.icon};
+  return {at:(Math.floor(d/500)+1)*500,label:'לתחנה הבאה',icon:'🏁'};
+}
+function samRunFlowActive(g){ return !!g&&g.time<(g.flowUntil||0); }
+function samRunChargeFlow(g){
+  if(!g?.endless||samRunFlowActive(g)) return;
+  g.flowCharge=(g.flowCharge||0)+1;
+  if(g.flowCharge<SAM_RUN_FLOW_TARGET) return;
+  g.flowCharge=0; g.flowUntil=g.time+SAM_RUN_FLOW_MS; g.flowCount=(g.flowCount||0)+1;
+  samRunBanner('מצב זהב! מגנט פעיל · מטבעות כפולים','flow');
+  samRunTone('unlock');
+  if(samRunGL&&!prefersReducedStageMotion()) samRunEmit('ring',samRunGL.rig.x,0,14,[.4,1,.85]);
+}
+function samRunBreakFlow(g){ if(g) g.flowCharge=0; }
+function samRunBanner(text,kind='checkpoint'){
+  const g=samRun,el=document.getElementById('samRunBanner'); if(!g||!el) return;
+  el.textContent=text; el.className='run-banner on '+kind; g.bannerUntil=g.time+2400;
+}
+function samRunPaintArcade(){
+  const g=samRun; if(!g?.endless) return;
+  const active=samRunFlowActive(g), seen=g.arcadeSeen||(g.arcadeSeen={});
+  const box=document.getElementById('samRunFlow'),fill=document.getElementById('samRunFlowFill');
+  const label=document.getElementById('samRunFlowLabel'),shield=document.getElementById('samRunShield');
+  const remaining=Math.max(0,Math.ceil(((g.flowUntil||0)-g.time)/1000));
+  const text=active?`⚡ מצב זהב ×2 · ${remaining} שנ׳`:`${g.flowCharge||0}/${SAM_RUN_FLOW_TARGET} למצב זהב`;
+  if(label&&seen.label!==text){ label.textContent=text;seen.label=text; }
+  if(fill){ const p=active?Math.max(0,(g.flowUntil-g.time)/SAM_RUN_FLOW_MS):(g.flowCharge||0)/SAM_RUN_FLOW_TARGET; const v=Math.round(p*100); if(seen.fill!==v){fill.style.width=v+'%';seen.fill=v;} }
+  if(seen.active!==active){ box?.classList.toggle('active',active);document.getElementById('samRunWorld')?.classList.toggle('is-flow',active);seen.active=active; }
+  if(shield&&seen.shield!==g.shield){shield.textContent=g.shield?'🛡 מגן פעיל':'♡ 5 ברצף = מגן';shield.classList.toggle('on',!!g.shield);seen.shield=g.shield;}
+  if(g.bannerUntil&&g.time>=g.bannerUntil){document.getElementById('samRunBanner')?.classList.remove('on');g.bannerUntil=0;}
+  if(!g.warmup&&g.running&&samRunMissionDone(g)&&!g.missionCelebrated){g.missionCelebrated=true;samRunBanner(`המשימה הושלמה! +${g.mission.reward} מטבעות`);samRunTone('clear');}
+}
+function samRunBankArcade(g,metres,freshMedals){
+  if(g.arcadeReward) return g.arcadeReward;
+  const store=g.store, missionBonus=samRunMissionDone(g)?g.mission.reward:0;
+  const earned=Math.max(1,g.correctCount)+(g.runCoinBonus||0)+freshMedals*15+missionBonus;
+  const xp=Math.floor(metres/8)+g.correctCount*12+(g.clearedWalls||0)*4;
+  const oldLevel=samRunRank(store.runnerXp).level;
+  store.coins=(Number(store.coins)||0)+earned;
+  store.runnerXp=(Number(store.runnerXp)||0)+xp;
+  store.totalMetres=(Number(store.totalMetres)||0)+metres;
+  g.arcadeReward={earned,xp,missionBonus,levelUp:samRunRank(store.runnerXp).level>oldLevel};
+  return g.arcadeReward;
+}
+
 const SAM_RUN_CAREER_GOALS=[
   {id:'words',icon:'✦',title:'מילים מנצחות',unit:'תשובות נכונות',base:20,step:10,reward:25},
   {id:'coins',icon:'◉',title:'אוסף הזהב',unit:'מטבעות מהמסלול',base:25,step:15,reward:30},
@@ -12145,72 +12251,36 @@ function samRunCareer(raw){
     const tier=samRunNatural(old?.tier,10000);
     goals[def.id]={tier,progress:samRunNatural(old?.progress,def.base+def.step*tier-1)};
   }
-  return {xp:samRunNatural(src.xp),goals};
+  return {goals};
 }
-function samRunRank(xp){
-  xp=samRunNatural(xp);
-  const level=Math.floor((Math.sqrt(1+xp/15)-1)/2)+1;
-  const start=60*(level-1)*level, next=60*level*(level+1);
-  const names=['צעד ראשון','תופס קצב','רץ רחובות','פורץ דרך','אלוף המסלול','אגדת הריצה'];
-  return {level,start,next,progress:(xp-start)/(next-start),title:names[Math.min(names.length-1,Math.floor((level-1)/3))]};
-}
+
 function samRunCareerHtml(store){
-  const career=samRunCareer(store.career),rank=samRunRank(career.xp);
+  const career=samRunCareer(store.career),rank=samRunRank(store.runnerXp);
   return `<section class="arcade-career"><div class="arcade-section-head"><div><span class="arcade-eyebrow">כל ריצה מקדמת אותך</span><h3>היעדים שלך</h3></div><span class="arcade-rank">רמה ${rank.level} · ${rank.title}</span></div>
-    <div class="arcade-xp"><i style="width:${rank.progress*100}%"></i></div><small class="arcade-xp-label">עוד ${rank.next-career.xp} נקודות לרמה ${rank.level+1}</small>
+    <div class="arcade-xp"><i style="width:${rank.progress*100}%"></i></div><small class="arcade-xp-label">עוד ${rank.remaining} נקודות לרמה ${rank.level+1}</small>
     <div class="arcade-goals">${SAM_RUN_CAREER_GOALS.map(def=>{const goal=career.goals[def.id],target=def.base+def.step*goal.tier;return `<div class="arcade-goal"><span class="arcade-goal-icon">${def.icon}</span><div><strong>${def.title}</strong><small>${goal.progress}/${target} ${def.unit}</small><div class="arcade-goal-track"><i style="width:${goal.progress/target*100}%"></i></div></div><b>+${def.reward+goal.tier*5} 🪙</b></div>`;}).join('')}</div><p>ההתקדמות נשמרת בין ריצות. כל יעד שהושלם פותח יעד חדש.</p></section>`;
 }
 function samRunAwardCareer(g){
   if(g.careerReward) return g.careerReward;
-  const career=samRunCareer(g.store.career),before=samRunRank(career.xp);
-    const xp=samRunNatural(g.correctCount)*8+samRunNatural(g.clearedWalls)*3+(g.endless?Math.floor(samRunNatural(g.distance)/25):0);
-  career.xp=samRunNatural(career.xp+xp);
+  const career=samRunCareer(g.store.career);
   const values={words:samRunNatural(g.correctCount),coins:samRunNatural(g.coinsRun),distance:g.endless?samRunNatural(g.distance):0};
-  const completed=[]; let coins=0;
+  const completed=[];let coins=0;
   for(const def of SAM_RUN_CAREER_GOALS){
-    const goal=career.goals[def.id]; goal.progress+=values[def.id];
+    const goal=career.goals[def.id];goal.progress+=values[def.id];
     while(goal.progress>=def.base+def.step*goal.tier){
       const reward=def.reward+goal.tier*5;
-      goal.progress-=def.base+def.step*goal.tier; goal.tier++;
-      coins+=reward; completed.push({title:def.title,reward});
+      goal.progress-=def.base+def.step*goal.tier;goal.tier++;
+      coins+=reward;completed.push({title:def.title,reward});
     }
   }
-  const after=samRunRank(career.xp),rankCoins=(after.level-before.level)*20;
-  coins+=rankCoins; g.store.career=career;
-  return g.careerReward={xp,coins,completed,before:before.level,level:after.level,rankCoins};
+  g.store.career=career;
+  g.store.coins=(Number(g.store.coins)||0)+coins;
+  return g.careerReward={coins,completed};
 }
 function samRunCareerResultHtml(reward){
-  return `<div class="arcade-earned"><span>✦ +${reward.xp} נקודות התקדמות</span><b>${reward.level>reward.before?`עלית לרמה ${reward.level}! +${reward.rankCoins} 🪙`:`רמה ${reward.level}`}</b></div>${reward.completed.map(x=>`<div class="arcade-goal-won">✓ ${x.title}<b>+${x.reward} 🪙</b></div>`).join('')}`;
+  return reward.completed.map(x=>`<div class="arcade-goal-won">✓ ${x.title}<b>+${x.reward} 🪙</b></div>`).join('');
 }
-function samRunGoldActive(g){ return !!g&&g.time<(g.goldUntil||0); }
-function samRunAnnounce(title,detail='',icon='✦'){
-  const g=samRun;if(!g)return;
-  // Announcements are a single non-blocking line, never a modal over a gate.
-  const el=document.getElementById('samRunAnnouncement');if(!el)return;
-  el.innerHTML=`<b>${icon} ${esc(title)}</b><small>${esc(detail)}</small>`;
-  el.classList.add('on'); g.announcementUntil=g.time+2400;
-}
-function samRunChargeGold(g){
-  if(samRunGoldActive(g)) return;
-  g.goldCharge=(g.goldCharge||0)+1;
-  if(g.goldCharge<SAM_RUN_GOLD_CHARGE)return;
-  g.goldCharge=0;g.goldUntil=g.time+SAM_RUN_GOLD_MS;g.goldRuns=(g.goldRuns||0)+1;
-  document.getElementById('samRunWorld')?.classList.add('is-gold');
-  samRunAnnounce('מצב זהב!', 'מטבעות כפולים + מגנט לכל המסלולים','⚡');
-  samRunTone('best');
-}
-function samRunArcadeTick(g){
-  if(g.goldUntil&&g.time>=g.goldUntil){g.goldUntil=0;document.getElementById('samRunWorld')?.classList.remove('is-gold');}
-  if(g.announcementUntil&&g.time>=g.announcementUntil){g.announcementUntil=0;document.getElementById('samRunAnnouncement')?.classList.remove('on');}
-  const el=document.getElementById('samRunEnergy');
-  if(!el)return;
-  const active=samRunGoldActive(g),seconds=Math.ceil(((g.goldUntil||0)-g.time)/1000);
-  const label=active?`⚡ מצב זהב · ${seconds} שנ׳ · ×2 🪙`:`⚡ ${g.goldCharge||0}/${SAM_RUN_GOLD_CHARGE} למצב זהב`;
-  if(el._label!==label){el._label=label;el.querySelector('b').textContent=label;el.classList.toggle('active',active);}
-  const amount=active?Math.max(0,((g.goldUntil-g.time)/SAM_RUN_GOLD_MS)):((g.goldCharge||0)/SAM_RUN_GOLD_CHARGE);
-  const percent=Math.round(amount*100);
-  if(el._percent!==percent){el._percent=percent;el.querySelector('i').style.width=percent+'%';}
-}
+
 function samRunQuickStart(){
   renderSamRunEndless();
   const g=samRun;
@@ -12221,7 +12291,7 @@ function samRunQuickStart(){
 }
 
 function samRunStore(){
-  const base={version:5,best:0,bestDistance:0,medals:[],plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0,owned:[],equipped:{},career:samRunCareer()};
+  const base={version:5,best:0,bestDistance:0,medals:[],plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0,owned:[],equipped:{},runnerXp:0,totalMetres:0,career:samRunCareer()};
   try{
     const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}');
     const store={...base,...(raw&&typeof raw==='object'?raw:{})};
@@ -12231,6 +12301,7 @@ function samRunStore(){
     store.owned=Array.isArray(store.owned)?[...new Set(store.owned.filter(id=>samRunItem(id)&&samRunItem(id).price>0))]:[];
     store.equipped=store.equipped&&typeof store.equipped==='object'?store.equipped:{};
     store.bestDistance=Math.max(0,Math.floor(Number(store.bestDistance)||0));
+    for(const key of ['runnerXp','totalMetres','coins','plays']) store[key]=Number.isFinite(Number(store[key]))?Math.max(0,Math.floor(Number(store[key]))):0;
     store.medals=Array.isArray(store.medals)?[...new Set(store.medals.map(Number).filter(m=>SAM_RUN_MEDALS.some(x=>x.m===m)))]:[];
     for(const type of ['outfit','shoes','hair','character','ride']) if(samRunItem(store.equipped[type])?.type!==type) delete store.equipped[type];
     /* v3 stored the old modes as phase positions. Keep unfinished progress
@@ -12432,12 +12503,12 @@ function samRunWordsHtml(g){
 function samRunEndlessCardHtml(store){
   const best=store.bestDistance||0;
   return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN · GOLD RUSH</span><h2>הדרך לשיא הבא מתחילה כאן</h2>
-    <div class="arcade-how"><div><b>↔</b><span>מחליקים או לוחצים על המסלול עם התרגום הנכון</span></div><div><b>↑ ↓</b><span>מחליקים למעלה לקפיצה ולמטה להתכופפות</span></div><div><b>⚡</b><span>6 תשובות נכונות = מטבעות כפולים ומגנט ל־11 שניות</span></div></div>
+    <div class="arcade-how"><div><b>↔</b><span>מחליקים או לוחצים על המסלול עם התרגום הנכון</span></div><div><b>↑ ↓</b><span>מחליקים למעלה לקפיצה ולמטה להתכופפות</span></div><div><b>⚡</b><span>6 תשובות ברצף = מטבעות כפולים ומגנט ל־11 שניות</span></div></div>
     <p>${best?`השיא שלך: ${best} מ׳`:'אסוף מטבעות, השלם יעדים ועצב את סם בחנות.'}</p>
     <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ◀</button><small class="game-start-tip">3 לבבות · המכשולים נכנסים בהדרגה · אפשר לעצור בכל רגע</small>`;
 }
 function samRunHeardHtml(g){
-  return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 כל תשובה שתבחר תושמע באנגלית.';
+  return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 התשובה הנכונה נשמעת כשסם במסלול שלה.';
 }
 function samRunStartCardHtml(store){
   if(samRun?.endless) return samRunEndlessCardHtml(store);
@@ -12453,7 +12524,7 @@ function samRunStartCardHtml(store){
     <p class="words-said">${ids.map(id=>SAM_RUN_COMMANDS[id].ic+' '+SAM_RUN_COMMANDS[id].en).join(' · ')}</p>
     <p>${learned?`כבר שלטת ב־${learned} מתוך ${ids.length} מילים`:'מוכנים להכיר חמש מילים חדשות?'}</p>
     ${lesson.length?`<p class="game-start-lesson">📚 ${lesson.length} ${lesson.length===1?'מילה שלמדת בשיעורים משתתפת':'מילים שלמדת בשיעורים משתתפות'} בריצה: ${lesson.map(id=>SAM_RUN_COMMANDS[id].en).join(' · ')}</p>`:''}
-    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ›</button><small class="game-start-tip">↔️ לוחצים על המסלול הנכון · ⬆️ למעלה קופצים · ⬇️ למטה מתכופפים · 🔊 כל בחירה נשמעת</small>`;
+    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ›</button><small class="game-start-tip">↔️ מחליקים או לוחצים על מסלול · ⬆️ קופצים · ⬇️ מתכופפים</small>`;
 }
 /* The front door of the game. What it shows is a personal best and a shelf of
    medals, not a ladder of worlds: the course is the only curriculum now, and
@@ -12507,7 +12578,7 @@ function samRunWorldStats(store,i){
 function samRunHubHtml(store){
   const words=samRunEndlessWords(store,state.completed);
   const course=SAM_RUN_COURSE_WORDS.filter(w=>w[6]<Math.max(0,Math.floor(Number(state.completed)||0))).length;
-  const medals=store.medals||[],best=store.bestDistance||0,rank=samRunRank(store.career?.xp);
+  const medals=store.medals||[],best=store.bestDistance||0,rank=samRunRank(store.runnerXp);
   const next=SAM_RUN_MEDALS.find(x=>best<x.m);
   return `<div class="game-map arcade-hub">
     <div class="game-map-hero arcade-hero">
@@ -12520,7 +12591,7 @@ function samRunHubHtml(store){
       <div class="arcade-hero-body"><div class="arcade-record-row"><div><span class="arcade-eyebrow">השיא האישי</span><b>${best}<small> מ׳</small></b></div><div class="arcade-medal-next">${next?`${next.icon}<strong>${next.m} מ׳</strong><small>המדליה הבאה</small>`:'🏆<strong>כל המדליות שלך</strong>'}</div></div>
       <div class="game-map-progress"><i style="width:${next?Math.min(100,best/next.m*100):100}%"></i></div>
       <button class="btn game-hub-go" onclick="${store.plays?'samRunQuickStart()':'renderSamRunEndless()'}"><span>יוצאים לריצה</span><span aria-hidden="true">◀</span></button>
-      <p class="arcade-gold-hint">⚡ 6 תשובות נכונות מפעילות מצב זהב</p>
+      <p class="arcade-gold-hint">⚡ 6 תשובות ברצף מפעילות מצב זהב</p>
       <div class="game-hub-medals">${SAM_RUN_MEDALS.map(x=>`<span class="${medals.includes(x.m)?'won':''}" title="${esc(x.title)} · ${x.m} מ׳">${x.icon}<small>${x.m}</small></span>`).join('')}</div>
       <p class="game-hub-words">${course?`📚 ${course} מילים מהשיעורים שלך`:`📚 ${words.active.length} מילים מחכות על המסלול`} · 🪙 ${store.coins||0}</p>
       <div class="game-map-actions"><button onclick="renderSamRunMap()">🎯 אימון ממוקד</button></div></div>
@@ -12661,14 +12732,14 @@ function renderSamRun(stageIndex=null,endless=false){
   const stage=SAM_RUN_STAGES[stageIndex];
   const phaseIndex=endless?0:Math.max(0,Math.min(SAM_RUN_PHASES.length-1,Number(store.phaseByStage[stageIndex])||0));
   const phase=endless?SAM_RUN_ENDLESS_PHASE:SAM_RUN_PHASES[phaseIndex], mode='tap';
-  const mission=samRunMissionFor(store,mode,stageIndex,phaseIndex,endless);
+  const mission=endless?samRunEndlessMission(store):samRunMissionFor(store,mode,stageIndex,phaseIndex);
   const endlessWords=endless?samRunEndlessWords(store,state.completed):null;
   const sentences=endless?samRunSentencePool(state.completed):[];
   samRun={
     epoch:uiEpoch,store,mode,phase,phaseIndex,stageIndex,stage,mission,endless,
     active:endless?endlessWords.active:stage.words.map(w=>w[0]),running:false,paused:false,micReady:false,micRequesting:false,
     score:0,lives:3,time:0,last:0,obstacles:[],nextSpawnAt:0,said:{},hits:{},cleared:{},runSeen:{},lane:1,laneGame:true,shield:0,runCoinBonus:0,
-    distance:0,lastMetre:-1,sceneOrigin:stageIndex,
+    distance:0,lastMetre:-1,sceneOrigin:stageIndex,flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,
     sentences,sentenceWords:[...new Set(sentences.flatMap(x=>x.words))],
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,
@@ -12677,26 +12748,26 @@ function renderSamRun(stageIndex=null,endless=false){
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
   };
   const g=samRun;
-  hx(`<div class="screen game-screen game-playing">
+  hx(`<div class="screen game-screen game-playing${endless?' game-arcade-playing':''}">
     <div class="game-top">
       <button class="xbtn" onclick="samRunExit()" aria-label="חזרה למסך הבית">←</button>
       <div class="game-title">${phase.icon} ${esc(endless?phase.title:stage.title)} <small class="game-build">v${APP_VERSION}</small></div>
       <div class="game-run-wallet" id="samRunRunWallet" aria-label="מטבעות זהב שנאספו"><i aria-hidden="true"></i><b id="samRunRunCoins" aria-live="polite">0</b></div>
       <div class="game-lives" id="samRunLives" aria-label="חיים">${'<i>❤️</i>'.repeat(3)}</div>
-      <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">${endless?'מטרים':`שיא ${store.best}`}</div></div>
+      <div class="game-scorebox"><div class="game-score" id="samRunScore">0</div><div class="game-best">${endless?`שיא ${store.bestDistance||0} מ׳`:`שיא ${store.best}`}</div></div>
       <button type="button" class="xbtn game-pause" onclick="samRunPause()" aria-label="הפסקה">⏸</button>
     </div>
-    <div class="game-mission"><span>${endless?'📏':'🎯'} <b id="samRunMissionText">${endless?'0 מ׳':`0/${SAM_RUN_GOAL}`}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span id="samRunNextTarget">${endless?'המדליה הראשונה':phase.title}</span></div>
+    <div class="game-mission"><span>${endless?'📏':'🎯'} <b id="samRunMissionText">${endless?'0 מ׳':`0/${SAM_RUN_GOAL}`}</b></span><div class="game-mission-progress"><i id="samRunMissionBar" style="width:0"></i></div><span id="samRunRouteLabel">${phase.icon} ${phase.title}</span></div>
     <div class="game-bonus-mission" id="samRunBonusMission"><span>⭐</span><strong>${esc(mission.title)}</strong><span class="bonus-progress">0/${mission.target} · +${mission.reward} 🪙</span></div>
-    <div class="arcade-energy" id="samRunEnergy"><b>⚡ 0/${SAM_RUN_GOLD_CHARGE} למצב זהב</b><div><i style="width:0%"></i></div></div>
     <div class="${samRunWorldClass(g)}" id="samRunWorld" style="--speed:1;background:linear-gradient(${stage.sky},${stage.ground})">
       <div class="game-far"></div>${samRunSceneryHtml(stageIndex)}<div class="game-lane"></div><canvas class="game-gl" id="samRunGLCanvas" aria-hidden="true"></canvas><div class="game-lane-grid"><i></i><i></i><i></i></div><div class="game-road-atmosphere"></div><div class="game-rush" id="samRunRush"></div><div class="game-lane-focus" id="samRunLaneFocus"></div><div class="game-lane-prompt" id="samRunLanePrompt"><small>בחר מסלול לפי התרגום באנגלית</small>מוכנים?</div><div class="game-speedlines"></div><div class="game-finish"></div>
       <div class="game-streak" id="samRunStreak"></div>
-      <div class="arcade-announcement" id="samRunAnnouncement" role="status" aria-live="polite"></div>
+      ${endless?`<div class="run-banner" id="samRunBanner" role="status"></div>`:''}
       <div class="game-runner" id="samRunRunner" hidden>${samRunBackAvatarHtml(store)}</div>
       <div id="samRunObstacles"></div>
       <div class="game-card" id="samRunCard">${samRunStartCardHtml(store)}</div>
     </div>
+    ${endless?`<div class="run-power" id="samRunFlow"><div class="run-power-head"><b id="samRunFlowLabel">0/6 לרצף בונוס</b><span id="samRunShield">♡ 5 ברצף = מגן</span></div><div class="run-track"><i id="samRunFlowFill" style="width:0"></i></div></div>`:''}
     <div class="game-controls mode-${mode} lane-controls" id="samRunControls">
       <div class="game-words" id="samRunWords">${samRunWordsHtml(g)}</div>
       <div class="game-heard" id="samRunHeard">${samRunHeardHtml(g)}</div>
@@ -12859,13 +12930,19 @@ function samRunStart(){
   const runner=document.getElementById('samRunRunner'), card=document.getElementById('samRunCard'), world=document.getElementById('samRunWorld');
   const obstacles=document.getElementById('samRunObstacles'), rush=document.getElementById('samRunRush');
   if(!runner||!card||!world||!obstacles) return;
+  // Reuse the canvas, but begin a fresh scene: old scenery cursors and pose
+  // clocks belong to the previous distance and must not survive instant replay.
+  samRunGLStop();
+  card.classList.remove('game-result');
   obstacles.innerHTML='';
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
-    goldCharge:0,goldUntil:0,goldRuns:0,announcementUntil:0,careerReward:null,missionCelebrated:false,recordCelebrated:false,checkpoint:0,hudSeen:{},roadScroll:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
-    sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0});
+    sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
+    flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,careerReward:null,arcadeSeen:{},hudSeen:{},missionCelebrated:false,bannerUntil:0,checkpointAt:0,recordCelebrated:false,lastAir:null,roadScroll:0,glSeen:0,glEma:0});
+  document.getElementById('samRunBanner')?.classList.remove('on');
+  if(g.endless){g.mission=samRunEndlessMission(g.store);g.sceneOrigin=g.stageIndex;}
   g.store.plays=(g.store.plays||0)+1; samRunSave(g.store);
   runner.hidden=true; runner.className='game-runner';
   runner.classList.remove('is-air-jump','is-air-duck','is-ready-jump','is-ready-duck');
@@ -12975,7 +13052,6 @@ function samRunFrame(ts){
   }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
-    samRunArcadeTick(g);
     if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
@@ -13000,6 +13076,7 @@ function samRunFrame(ts){
         ob.progress+=dt/ob.travelMs;
       }
       if(!ob.resolved&&ob.progress>=1) samRunResolve(ob);
+      if(!g.running) return; // The final result is banked; no later pickup may change it.
       if(ob.progress>=1.32){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
       // before its run a thing waits at the edge as a small badge with a "!"
       const incoming=ob.progress<0;
@@ -13031,10 +13108,12 @@ function samRunEndlessTick(){
   const g=samRun, metre=Math.floor(g.distance);
   if(metre===g.lastMetre) return;
   g.lastMetre=metre;
+  const checkpoint=samRunMedalsFor(metre).at(-1);
+  if(checkpoint&&checkpoint.m>(g.checkpointAt||0)){
+    g.checkpointAt=checkpoint.m;samRunBanner(`${checkpoint.icon} ${checkpoint.title} · ${checkpoint.m} מ׳`);samRunTone('clear');
+  }
   if(!g.recordCelebrated&&g.store.bestDistance>0&&metre>g.store.bestDistance){
-    g.recordCelebrated=true;samRunAnnounce('שיא חדש!',`${metre} מטרים — והדרך ממשיכה`,'⚑');samRunTone('best');
-  } else if(Math.floor(metre/250)>(g.checkpoint||0)){
-    g.checkpoint=Math.floor(metre/250);samRunAnnounce(`${g.checkpoint*250} מטרים!`,'ממשיכים עד המדליה הבאה','⚑');samRunTone('clear');
+    g.recordCelebrated=true;samRunBanner('שיא אישי חדש! 🏆');samRunTone('best');
   }
   /* A long run should travel somewhere, so the roadside rolls over into the
      next world every 700m instead of running the same street forever. */
@@ -13047,7 +13126,7 @@ function samRunSwapScene(index){
   g.stageIndex=index; g.stage=SAM_RUN_STAGES[index];
   /* samRunWorldClass rebuilds the class list from scratch, so the classes the
      run has earned since it started have to be carried across by hand. */
-  const earned=['is-running','is-fast','zone-2','zone-3','has-shield','is-gold','gl-road','gl-scene'].filter(c=>world.classList.contains(c));
+  const earned=['is-running','is-fast','zone-2','zone-3','has-shield','is-flow','gl-road','gl-scene'].filter(c=>world.classList.contains(c));
   world.className=samRunWorldClass(g)+(earned.length?' '+earned.join(' '):'');
   const mid=world.querySelector?.('.game-mid'),scene=SAM_RUN_SCENERY[index]||SAM_RUN_SCENERY[0];
   if(mid){
@@ -14251,7 +14330,7 @@ function samRunGLDraw(g,idle){
   s3dPushTRS(r.kinds.disc,rs.x,.03,.02,0,0,0,.5/(1+h*1.1),1,.72/(1+h*.8),[0,0,0],.5/(1+h*1.5),4);
   /* the shield: a real bubble around him, breathing */
   if(g.shield){ const br=1+.03*Math.sin(R.time*7.5); s3dPushTRS(r.kinds.sphere,rs.x,1.0+h,0,0,R.time*.6,0,1.0*br,1.15*br,1.0*br,[.5,.75,1],.3,6); }
-  if(samRunGoldActive(g)){
+  if(samRunFlowActive(g)){
     // A pool of gold and a short trail belong to the road plane. No flashing
     // overlay touches the question or changes its collision/readability.
     s3dPushTRS(r.kinds.disc,rs.x,.045,0,0,0,0,1.05,1,1.3,[1,.69,.13],.38,6);
@@ -14263,12 +14342,12 @@ function samRunGLDraw(g,idle){
   samRunGLRecordLine(R,g,scroll);
   for(const pu of g.pickups){
     let st=R.pickupState.get(pu); if(!st){ st={}; R.pickupState.set(pu,st); }
-    if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',S3D_LANE_X[pu.lane],0,8); }
+    if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',st.magnet?rs.x:S3D_LANE_X[pu.lane],0,8); }
     if(st.tunnel==null) st.tunnel=!!pu.el?.classList?.contains?.('is-tunnel');
     const ms=samRunPickupIn(pu), z=-(ms/1000)*(roadSpeed||8.5);
     if(z<-140||z>6) continue;
     /* a coin in his lane is drawn to him over the last stretch, so a take never looks like a miss */
-    st.magnet=pu.kind==='coin'&&!pu.done&&pu.lane===g.lane&&pu.p>.9?Math.min(1,(pu.p-.9)/.085):0;
+    if(!pu.done) st.magnet=pu.kind==='coin'&&(pu.lane===g.lane||samRunFlowActive(g))&&pu.p>.82?Math.min(1,(pu.p-.82)/.165):0;
     s3dDrawPickup(r,pu,z,R.time,st,rs.x);
     const pr=s3dProject(r,pu.wide?0:S3D_LANE_X[pu.lane],pu.kind==='duck'?1.6:.5,z);
     pu.x=pr.sx; pu.y=pr.sy;
@@ -14321,7 +14400,7 @@ function samRunGLDraw(g,idle){
   }
   if(pose.switched) samRunEmit('side',rs.x,.1,pose.switched*5,accent);
   s3dStepParticles(r,dt,roadSpeed);
-  s3dDraw(r,{scroll,laneX:rs.x,laneGlow:g.running?.9:.35});
+  s3dDraw(r,{scroll,laneX:rs.x,laneGlow:g.running?(samRunFlowActive(g)?1.5:.9):.35});
   /* the DOM labels above the pads: their y follows the geometry, their size
      and spread stay legible from the moment they appear. The shake never
      reaches them — they are answered by tap. */
@@ -14352,7 +14431,7 @@ function samRunGLRecordLine(R,g,scroll){
   s3dPushTRS(K.box,0,1.05,z,0,0,0,S3D_ROAD_HALF*2,2.1,.04,col,.22,6);
   for(const sx of [-1,1]) s3dPushTRS(K.cyl,sx*(S3D_ROAD_HALF-.05),1.1,z,0,0,0,.08,2.2,.08,col,1,5);
   s3dSign(R.r,`🏆 ${best}`,0,2.5,z-.01,1.6,{bg:'#3b2a06',fg:'#ffe08a',stroke:'#ffe08a',size:56});
-  if(ahead<0&&!R.recordCrossed){ R.recordCrossed=true; samRunEmit('ring',0,0,24,[1,.9,.4]); R.cam.fovKick=.08; samRunTone('best'); samRunFloat('שברת את השיא! 🏆',null); }
+  if(ahead<0&&!R.recordCrossed){ R.recordCrossed=true; samRunEmit('ring',0,0,24,[1,.9,.4]); R.cam.fovKick=.08; }
 }
 /* Between the run's screens the loop is not running, so the world idles on
    its own clock: Sam standing at the line while the start sheet is up, the
@@ -14509,9 +14588,10 @@ function samRunRunRoad(dt){
   if(!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
   samRunLand();
   samRunMaybeStartQueuedAir();
+  samRunPaintArcade();
   for(const pu of g.pickups.slice()){
     pu.p+=dt/pu.life*speed;
-    if(!pu.done&&pu.p>=.985&&(pu.wide||pu.lane===g.lane||(pu.kind==='coin'&&samRunGoldActive(g)))) samRunTakePickup(pu);
+    if(!pu.done&&pu.p>=.985&&(pu.wide||pu.lane===g.lane||(pu.kind==='coin'&&samRunFlowActive(g)))) samRunTakePickup(pu);
     if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
     if(pu.p>0&&!scene) samRunPaintPickup(pu);
     else if(pu.kind==='slide'&&!pu.slid&&pu.p>=pu.slideAt){ pu.slid=true; pu.free=pu.free2; samRunPaintGap(pu); }
@@ -14735,7 +14815,7 @@ function samRunSpawnPickup(){
      stable as the road unlocks more of them: coins never get squeezed out by
      a later mechanic, and a locked one simply is not on the list. */
   const menu=[];
-  if(samRunGoldActive(g)){
+  if(samRunFlowActive(g)){
     for(let i=0;i<3;i++) samRunSpawnCoins(i,1250);
     g.nextPickupAt=g.time+2100;
     return;
@@ -14816,7 +14896,7 @@ function samRunTakePickup(pu){
   const g=samRun; pu.done=true;
   const at={x:pu.x??(pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*.31)),y:pu.y??g.worldH*.9};
   if(pu.kind==='coin'){
-    const value=samRunGoldActive(g)?2:1;
+    const value=samRunFlowActive(g)?2:1;
     g.runCoinBonus=(g.runCoinBonus||0)+value; g.coinsRun=(g.coinsRun||0)+value;
     /* each coin in a line rings a semitone above the last: three coins are a phrase */
     g.coinLadder=g.time-(g.coinAt||-1e9)<600?Math.min(12,(g.coinLadder||0)+1):0; g.coinAt=g.time;
@@ -14833,7 +14913,7 @@ function samRunTakePickup(pu){
     }
     pu.el.classList.add('is-cleared');
     if(g.streak>=2) samRunFloat('הרצף נקטע!',at,true); else samRunFloat('💨',at,true);
-    g.streak=0; g.cleanStreak=0;
+    g.streak=0; g.cleanStreak=0; samRunBreakFlow(g);
     samRunTone('hit'); samRunPaintHud(); samRunWorldFx('is-bump',360); samRunPose('is-stumble',420);
     return;
   }
@@ -14857,7 +14937,7 @@ function samRunTakePickup(pu){
   pu.el.classList.add(pu.wide?'is-cleared':'is-struck');
   if(pu.wide&&g.queuedAir){ g.queuedAir=null; document.getElementById('samRunRunner')?.classList.remove('is-ready-jump','is-ready-duck'); }
   if(g.streak>=2) samRunFloat('הרצף נקטע!',at,true); else samRunFloat('💨',at,true);
-  g.streak=0; g.cleanStreak=0;
+  g.streak=0; g.cleanStreak=0; samRunBreakFlow(g);
   samRunTone('hit'); samRunPaintHud();
   samRunWorldFx('is-bump',360);
   samRunPose('is-stumble',420);
@@ -15318,11 +15398,11 @@ function samRunResolve(ob){
     ob.el.classList.add('is-caught');
     if(g.laneGame) samRunPose('is-collecting',480);
     g.correctCount++; g.streak++; g.cleanStreak=(g.cleanStreak||0)+1;
-    samRunChargeGold(g);
+    samRunChargeFlow(g);
     g.streakPeak=Math.max(g.streakPeak||0,g.streak); g.cleanPeak=Math.max(g.cleanPeak||0,g.cleanStreak);
     g.store.totalCorrect=(g.store.totalCorrect||0)+1;
     g.store.streakBest=Math.max(g.store.streakBest||0,g.streak);
-    if(ob.bonus){ const bonus=samRunGoldActive(g)?6:3;g.runCoinBonus=(g.runCoinBonus||0)+bonus; g.coinsRun=(g.coinsRun||0)+bonus; samRunFloat('+'+bonus+' זהב',ob); samRunCoinFlight(ob); samRunPaintHud(); }
+    if(ob.bonus){ g.runCoinBonus=(g.runCoinBonus||0)+3; g.coinsRun=(g.coinsRun||0)+3; samRunFloat('+3 זהב',ob); samRunCoinFlight(ob); samRunPaintHud(); }
     if(g.streak===5&&!g.shield){ g.shield=1; const world=document.getElementById('samRunWorld'); if(world) world.classList.add('has-shield'); samRunFloat('🛡️ מגן!',ob); samRunTone('unlock'); }
     samRunTone(ob.cmd==='jump'?'jump':'catch');
     samRunScore(1+Math.min(4,Math.floor(g.streak/5)),ob);
@@ -15340,6 +15420,7 @@ function samRunResolve(ob){
        after the correction has been visible long enough to read. */
     g.sentenceHint=ob.cmd;
     g.cleanStreak=0;
+    samRunBreakFlow(g);
     ob.el.classList.add('is-poof');
     samRunTone('tick'); samRunSentencePrompt();
     g.nextSpawnAt=Math.max(g.nextSpawnAt,g.time+950);
@@ -15444,6 +15525,7 @@ function samRunBurst(ob){
 }
 function samRunHit(ob){
   const g=samRun, runner=document.getElementById('samRunRunner'), world=document.getElementById('samRunWorld');
+  samRunBreakFlow(g);
   if(g.shield){
     g.shield=0; g.cleanStreak=0; g.hits[ob.cmd]=(g.hits[ob.cmd]||0)+1; ob.el.classList.add('is-poof');
     if(world){ world.classList.remove('has-shield'); world.classList.add('shield-pop'); setTimeout(()=>world.classList.remove('shield-pop'),480); }
@@ -15536,11 +15618,10 @@ function samRunPaintHud(bump=false){
   const mb=document.getElementById('samRunMissionBar');
   /* The bar chases the record — or, on the very first run when there is no
      record to chase, the first medal, so it is never simply full. */
-  const record=g.store?.bestDistance||0;
-  const target=g.endless?(record>g.distance?record:(SAM_RUN_MEDALS.find(x=>x.m>g.distance)?.m||((Math.floor(g.distance/500)+1)*500))):SAM_RUN_GOAL;
-  if(mb) mb.style.width=Math.min(100,(g.endless?g.distance:g.resolvedCount)/target*100)+'%';
-  const nextTarget=document.getElementById('samRunNextTarget');
-  if(nextTarget&&g.endless){const label=(record>g.distance?'שיא אישי':'היעד הבא')+' · '+target+' מ׳';if(nextTarget.textContent!==label)nextTarget.textContent=label;}
+  const target=g.endless?samRunNextTarget(g):null;
+  if(mb) mb.style.width=Math.min(100,g.endless?g.distance/target.at*100:g.resolvedCount/SAM_RUN_GOAL*100)+'%';
+  const route=document.getElementById('samRunRouteLabel');
+  if(route&&target){const value=`${target.icon} עוד ${Math.max(0,target.at-Math.floor(g.distance))} מ׳ ${target.label}`;if(seen.route!==value){route.textContent=value;seen.route=value;}}
   const streak=document.getElementById('samRunStreak');
   if(streak&&seen.streak!==g.streak){
     seen.streak=g.streak;
@@ -15548,6 +15629,7 @@ function samRunPaintHud(bump=false){
     streak.classList.toggle('on',g.streak>=2); streak.classList.toggle('hot',g.streak>=5);
   }
   samRunPaintMission();
+  samRunPaintArcade();
 }
 function samRunUpdateWords(focus){
   const g=samRun, words=document.getElementById('samRunWords'); if(!g||!words) return;
@@ -15586,7 +15668,6 @@ function samRunOver(finished=false){
   if(g.latencyEma) store.latency=Math.round(g.latencyEma);
   const ids=g.active, mastered=ids.filter(id=>(store.mastery[id]||0)>=SAM_RUN_MASTERY);
   const accuracy=g.resolvedCount?g.correctCount/g.resolvedCount:0;
-  const careerReward=samRunAwardCareer(g);
   if(g.endless){
     /* Nothing to unlock and no stars to award: an endless run is measured in
        metres, and the only thing it can leave behind is a longer record. */
@@ -15594,26 +15675,29 @@ function samRunOver(finished=false){
     store.bestDistance=Math.max(store.bestDistance||0,metres);
     const won=samRunMedalsFor(metres), fresh=won.filter(x=>!(store.medals||[]).includes(x.m));
     store.medals=[...new Set([...(store.medals||[]),...won.map(x=>x.m)])];
-    const missionDone=samRunMissionDone(g),missionBonus=missionDone?g.mission.reward:0;
-    const earned=g.correctCount+(g.runCoinBonus||0)+fresh.length*15+missionBonus+careerReward.coins;
-    store.coins=(store.coins||0)+earned;
+    const baseReward=samRunBankArcade(g,metres,fresh.length);
+    const careerReward=samRunAwardCareer(g);
+    const {xp,missionBonus,levelUp}=baseReward,earned=baseReward.earned+careerReward.coins;
+    const nextItem=SAM_RUN_SHOP_ITEMS.filter(x=>x.price>0&&!store.owned.includes(x.id)).sort((a,b)=>a.price-b.price)[0];
+    const needs=Object.keys(g.hits).filter(id=>SAM_RUN_COMMANDS[id]).sort((a,b)=>g.hits[b]-g.hits[a]).slice(0,2);
     samRunSave(store);
     samRunTone(record||fresh.length?'best':'over');
     if(record||fresh.length) confetti();
-    const nextItem=SAM_RUN_SHOP_ITEMS.filter(x=>x.price>0&&!store.owned.includes(x.id)).sort((a,b)=>a.price-b.price)[0];
-    const needs=Object.keys(g.hits).filter(id=>SAM_RUN_COMMANDS[id]).sort((a,b)=>g.hits[b]-g.hits[a]).slice(0,2);
     card.hidden=false;
-    card.innerHTML=`<span class="arcade-eyebrow">${record?'שיא אישי חדש':'הריצה הסתיימה'}</span>
-      <div class="arcade-result-distance">${metres}<small>מטרים</small></div><h2>${record?'זה השיא שלך. בינתיים.':'כל ריצה לוקחת אותך קדימה'}</h2>
-      <div class="arcade-result-stats"><span><b>${g.correctCount}</b>מילים נכונות</span><span><b>${g.streakPeak||0}</b>רצף שיא</span><span><b>${g.goldRuns||0}</b>מצבי זהב</span></div>
-      <div class="arcade-payout"><span>נוספו לארנק</span><b>+${earned} 🪙</b></div>
-      ${missionDone?`<div class="arcade-goal-won">✓ ${esc(g.mission.title)}<b>+${missionBonus} 🪙</b></div>`:''}
-      ${fresh.length?`<div class="arcade-goal-won">${fresh[fresh.length-1].icon} ${esc(fresh[fresh.length-1].title)}<b>+${fresh.length*15} 🪙</b></div>`:''}
+    card.classList.add('game-result');
+    card.innerHTML=`<div class="run-result-kicker">${record?'🏆 שיא אישי חדש':fresh.length?'מדליה חדשה!':'הריצה שלך'}</div>
+      <h2 class="run-result-distance">${metres.toLocaleString()}<small>מטרים</small></h2>
+      <div class="run-records"><div><b>${g.correctCount}</b><small>מילים נכונות</small></div><div><b>${g.streakPeak||0}</b><small>רצף בריצה</small></div><div><b class="run-gold">+${earned}</b><small>מטבעות</small></div></div>
+      ${levelUp?`<div class="run-level-up">דרגה חדשה! ${samRunRank(store.runnerXp).level} ✦</div>`:''}
+      ${samRunRankHtml(store,xp)}
       ${samRunCareerResultHtml(careerReward)}
+      <div class="run-contract ${missionBonus?'done':''}"><span>${missionBonus?'✓':'🎯'}</span><div><strong>${esc(g.mission.title)}</strong><small>${missionBonus?`הושלם · +${missionBonus} מטבעות נכללו בפרס`:`${Math.min(g.mission.target,samRunMissionProgress(g))}/${g.mission.target} · בריצה הבאה מחכה משימה חדשה`}</small></div></div>
+      ${fresh.length?`<div class="run-result-medal">${fresh.map(x=>x.icon).join(' ')} ${esc(fresh[fresh.length-1].title)} · +${fresh.length*15} מטבעות נכללו בפרס</div>`:''}
       ${needs.length?`<div class="arcade-recap"><small>מילים לקחת לפעם הבאה</small>${needs.map(id=>`<span><b dir="ltr">${esc(SAM_RUN_COMMANDS[id].en)}</b> — ${esc(SAM_RUN_COMMANDS[id].he)}</span>`).join('')}</div>`:''}
-      <div class="btn-row"><button class="btn" onclick="samRunQuickStart()">עוד ריצה ◀</button><button class="btn secondary" onclick="renderSamRun()">למסך המשחק</button></div>
-      ${nextItem?`<button class="arcade-shop-link" onclick="renderSamRunShop('${nextItem.type}','${nextItem.id}')">${nextItem.icon} ${store.coins>=nextItem.price?`אפשר לפתוח ${esc(nextItem.name)}`:`עוד ${nextItem.price-store.coins} מטבעות ל${esc(nextItem.name)}`} ←</button>`:''}`;
-    const best=document.querySelector('.game-best'); if(best) best.textContent='מטרים';
+      <div class="btn-row"><button class="btn" onclick="samRunStart()">עוד ריצה <span aria-hidden="true">↻</span></button><button class="btn secondary" onclick="renderSamRun()">למשחק</button></div>
+      ${nextItem?`<button class="arcade-shop-link" onclick="renderSamRunShop('${nextItem.type}','${nextItem.id}')">${nextItem.icon} ${store.coins>=nextItem.price?`אפשר לפתוח ${esc(nextItem.name)}`:`עוד ${nextItem.price-store.coins} מטבעות ל${esc(nextItem.name)}`} ←</button>`:''}
+      <p class="run-result-note">${g.flowCount?`${g.flowCount} בונוסים הופעלו · `:''}${record?'השיא הבא מתחיל כאן':`עוד ${Math.max(1,store.bestDistance-metres+1)} מ׳ לשיא האישי`}</p>`;
+    const best=document.querySelector('.game-best'); if(best) best.textContent='שיא '+store.bestDistance+' מ׳';
     const heard=document.getElementById('samRunHeard'); if(heard) heard.innerHTML='כל בחירה נכונה חיברה בין הכתב לצליל 🔊';
     return;
   }
@@ -15629,8 +15713,8 @@ function samRunOver(finished=false){
   const newlyUnlocked=stageComplete&&g.stageIndex===store.stage&&store.stage<SAM_RUN_STAGES.length-1;
   if(newlyUnlocked){ store.stage++; store.phaseByStage[store.stage]=0; }
   const baseEarned=Math.max(1,g.correctCount+stars*2)+(g.runCoinBonus||0), missionDone=samRunMissionDone(g);
-  const missionBonus=missionDone?g.mission.reward:0, earned=baseEarned+missionBonus+careerReward.coins;
-  store.coins=(store.coins||0)+earned;
+  const missionBonus=missionDone?g.mission.reward:0, careerReward=samRunAwardCareer(g),earned=baseEarned+missionBonus+careerReward.coins;
+  store.coins=(store.coins||0)+baseEarned+missionBonus;
   samRunSave(store);
   samRunTone(stageComplete||nextPhase?'best':newBest?'best':'over');
   if(stageComplete||nextPhase) confetti();
