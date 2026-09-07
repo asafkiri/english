@@ -102,7 +102,7 @@ function runtime(seed = new Map(), options = {}) {
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
       samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
       samRunTeach, samRunSpawn, s3dCamera, s3dProject,
-      samRunAskAloud, samRunAskAgain, samRunCanVoice, samRunGateFontHe, SAM_RUN_LISTEN_EVERY,
+      samRunAskAloud, samRunAskAgain, samRunCanVoice, samRunGateFontHe, SAM_RUN_READ_EVERY,
       samRunStationPool, samRunStartStation, samRunStationStep, SAM_RUN_STATION_LEN, SAM_RUN_STATION_COIN, SAM_RUN_STATION_EVERY,
       samRunAlbumWords, samRunAlbumCard, renderSamRunAlbum, samRunAlbumCardHtml,
       samRunBeat, samRunMusicOn, samRunToggleMusic,
@@ -4267,8 +4267,10 @@ test("the road between questions carries coins, roadworks and depth traffic", ()
   assert.match(html, /const live=g\.obstacles\.find\(o=>!o\.resolved&&o\.laneWave\);/);
   assert.match(html, /if\(!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt&&\(!live\|\|live\.progress<\.4\)\) samRunSpawnPickup\(\)/,
     'a coin never appears while a question is already closing in, nor during the countdown — on the endless road as much as inside a world');
-  assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\|\|feature==='listen'\) return g\.phase\.id!=='learn';/,
-    'the first, gentlest phase of a world stays a plain, quiet question run');
+  assert.match(html, /if\(feature==='walls'\|\|feature==='hurdles'\) return g\.phase\.id!=='learn';/,
+    "the first, gentlest phase of a world keeps the road clear of walls");
+  assert.match(html, /if\(feature==='listen'\) return true;/,
+    'but asking by ear is the normal question, so it is there from the first world and the first metre');
   assert.match(html, /if\(!still&&!scene\)\{/, 'decoration is skipped for players who asked for less motion, and left to the rendered world when that is up');
 
   const markerHost = { children: [], appendChild(node) { this.children.push(node); } };
@@ -5471,7 +5473,7 @@ test('the endless wave never tightens below a readable window', () => {
    listening, or it may live in the gap between two questions, but it may never
    compete for the moment in which the child is deciding on a word. */
 
-test('every fourth question is asked by ear, with Hebrew on the gates and no English to read', () => {
+test('asking by ear is the normal question, with Hebrew on the gates and no English to read', () => {
   const { api, context } = runtime();
   api.renderSamRunEndless();
   const g = api.getSamRun(), prompt = promptStub();
@@ -5480,13 +5482,18 @@ test('every fourth question is asked by ear, with Hebrew on the gates and no Eng
   vm.runInContext('samRunSpeakLane=()=>{};samRunPromptPop=()=>{};samRunCanVoice=()=>true;samRunAskedWords=[];samRunAskAloud=ob=>{samRunAskedWords.push(ob.cmd)};', context);
   Object.assign(g, { running: true, time: 0, worldW: 390, distance: 900, obstacles: [], pickups: [], waveSeq: 0 });
   const kinds = [];
-  for (let i = 0; i < api.SAM_RUN_LISTEN_EVERY; i++) {
+  for (let i = 0; i < api.SAM_RUN_READ_EVERY * 2; i++) {
     g.obstacles.length = 0;
     api.samRunSpawnLaneWave();
     kinds.push(!!g.obstacles[0].listen);
   }
-  assert.deepEqual(kinds, [false, false, false, true], 'one question in four is a listening question');
+  assert.deepEqual(kinds, [true, true, true, false, true, true, true, false],
+    'three questions in four are heard; the fourth is the written one');
+  g.obstacles.length = 0;
+  g.waveSeq = 0;
+  api.samRunSpawnLaneWave();
   const wave = g.obstacles[0];
+  assert.equal(wave.listen, true);
   const gates = wave.el.innerHTML;
   assert.equal((gates.match(/is-he/g) || []).length, 3, 'all three gates carry Hebrew');
   for (const id of wave.options) {
@@ -5495,7 +5502,9 @@ test('every fourth question is asked by ear, with Hebrew on the gates and no Eng
   }
   assert.ok(!prompt.innerHTML.includes(api.SAM_RUN_COMMANDS[wave.cmd].en), 'the panel does not give the word away either');
   assert.ok(prompt.classList.contains('is-listen'));
-  assert.deepEqual(Array.from(vm.runInContext('samRunAskedWords', context)), [wave.cmd], 'the word is played, whatever lane the runner is in');
+  const asked = Array.from(vm.runInContext('samRunAskedWords', context));
+  assert.equal(asked[asked.length - 1], wave.cmd, 'the word is played, whatever lane the runner is in');
+  assert.equal(asked.length, kinds.filter(Boolean).length + 1, 'every listening question is played, and only those');
   api.samRunTeardown();
 });
 

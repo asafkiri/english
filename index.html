@@ -2316,6 +2316,8 @@ body{
 .game-world.lane-game .game-lane-prompt.is-correction small{display:block;color:#6ee7b7;font-size:12px;font-weight:900}
 .game-lane-prompt.is-correction .correction-en{display:block;margin-top:2px;color:#fff;font-size:clamp(26px,7vw,34px);font-weight:1000;letter-spacing:.02em;line-height:1.1}
 .game-lane-prompt.is-correction .correction-he{display:block;margin-top:1px;color:#c8f5e2;font-size:clamp(15px,4vw,18px);font-weight:800;line-height:1.2}
+.game-lane-prompt.is-correction .correction-he-big{display:block;margin-top:2px;color:#fff;font-size:clamp(24px,6.4vw,32px);font-weight:1000;line-height:1.15}
+.game-lane-prompt.is-correction .correction-en-small{display:block;margin-top:1px;color:#c8f5e2;font-size:clamp(14px,3.7vw,17px);font-weight:800;letter-spacing:.02em;line-height:1.2}
 /* A question asked by ear. The panel carries no word at all — only the reason
    to listen and a way to hear it again — so nothing on screen can be read
    instead of heard. The gates opposite it carry Hebrew. */
@@ -2534,6 +2536,7 @@ body{
 .game-playing>.game-top{gap:6px}.game-playing>.game-top .game-title{font-size:15px}
 .game-coach{position:absolute;left:50%;top:clamp(214px,28dvh,254px);translate:-50% 0;z-index:12;padding:7px 14px;border-radius:999px;background:rgba(253,230,138,.95);color:#3b2a06;font-size:14px;font-weight:900;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.35);animation:gameCoachIn .35s ease both;pointer-events:none}
 .game-coach i{display:inline-block;font-style:normal;animation:gameCoachUp .8s ease-in-out infinite}.game-coach.is-duck i{animation-name:gameCoachDown}
+.game-coach.is-listen{top:clamp(238px,31dvh,278px);background:rgba(186,230,253,.96);color:#082f49}.game-coach.is-listen i{animation-name:cuePulse}
 @keyframes gameCoachIn{from{opacity:0;transform:translateY(8px)}}@keyframes gameCoachUp{50%{transform:translateY(-5px)}}@keyframes gameCoachDown{50%{transform:translateY(5px)}}
 @media (prefers-reduced-motion:reduce){.game-coach i{animation:none}}
 /* Arcade shell: the same live 3D Sam, with a clear play button, a personal
@@ -7294,7 +7297,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.56.1';
+const APP_VERSION = '2.57.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11879,11 +11882,14 @@ const SAM_RUN_ENDLESS_PHASE={id:'endless',icon:'♾️',title:'ריצה חופש
    sits BETWEEN the questions rather than on top of them — the walls, hurdles
    and tunnels are aimed into the gaps the scheduler leaves — so the run keeps
    getting more interesting without ever making the words harder to read. */
-const SAM_RUN_FEATURE_AT={coins:0,listen:160,walls:320,sentences:450,hurdles:620,pairs:1000,slider:1150,tunnel:1550};
-/* How often the road asks by ear instead of in writing. Every fourth question
-   drops the Hebrew prompt, plays the English word, and puts Hebrew on the
-   gates — so the answer is found by hearing rather than by reading. */
-const SAM_RUN_LISTEN_EVERY=4;
+const SAM_RUN_FEATURE_AT={coins:0,listen:0,walls:320,sentences:450,hurdles:620,pairs:1000,slider:1150,tunnel:1550};
+/* Asking by ear is the run's normal question: the English word is played, the
+   gates carry Hebrew, and the answer is found by hearing. It is what this app
+   is for — speaking, vocabulary and understanding English out loud — and it is
+   the version children actually enjoy. Every fourth question is the written
+   one instead, so the shape of a word is not a complete stranger and a child
+   on a silent phone is never stuck. */
+const SAM_RUN_READ_EVERY=4;
 /* A station is a short, safe stop built entirely out of the words this run has
    already got wrong. Distance between stations, and how many words each one
    asks for. */
@@ -12437,7 +12443,10 @@ function samRunUnlocked(g,feature){
   if(!g) return false;
   if(g.endless) return (g.distance||0)>=(SAM_RUN_FEATURE_AT[feature]||0);
   if(feature==='coins') return true;
-  if(feature==='walls'||feature==='hurdles'||feature==='listen') return g.phase.id!=='learn';
+  /* Listening is the main question, so it is there from the first world and
+     the first metre; the road mechanics still have to be earned. */
+  if(feature==='listen') return true;
+  if(feature==='walls'||feature==='hurdles') return g.phase.id!=='learn';
   if(feature==='pairs') return g.phase.id==='final';
   /* Everything else belongs to the endless road. A world is five words being
      taught: it has no phrases of the child's own to rebuild, and no room to
@@ -12661,13 +12670,13 @@ function samRunWordsHtml(g){
 }
 function samRunEndlessCardHtml(store){
   const best=store.bestDistance||0;
-  return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN</span><h2>קוראים באנגלית — ורצים</h2>
-    <div class="arcade-how"><div><b>↔</b><span>למעלה מופיעה מילה בעברית. עוברים למסלול שבו כתוב התרגום שלה באנגלית</span></div><div><b>🔊</b><span>כל תשובה נכונה נשמעת באנגלית — וטעות מראה ומשמיעה את המילה הנכונה, שחוזרת שוב בהמשך</span></div><div><b>⬆ ⬇</b><span>מחליקים למעלה או למטה כדי לקפוץ ולהתכופף מעל מכשולים בדרך</span></div></div>
+  return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN</span><h2>שומעים אנגלית — ורצים</h2>
+    <div class="arcade-how"><div><b>👂</b><span>שומעים מילה באנגלית — ועוברים למסלול עם התרגום שלה בעברית</span></div><div><b>🔊</b><span>אפשר להשמיע שוב בכל רגע. טעית? המילה נשמעת ומופיעה שוב — וחוזרת בהמשך הריצה</span></div><div><b>⬆ ⬇</b><span>מחליקים למעלה או למטה כדי לקפוץ ולהתכופף מעל מכשולים בדרך</span></div></div>
     <p>${best?`השיא שלך: ${best} מ׳`:'ככל שרצים רחוק יותר, כך מצטרפות מילים, מכשולים ומשפטים שלמים.'}</p>
     <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ◀</button><small class="game-start-tip">3 לבבות · 6 תשובות ברצף = מצב זהב</small>`;
 }
 function samRunHeardHtml(g){
-  return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 התשובה הנכונה נשמעת כשסם במסלול שלה.';
+  return g.running?'👂 הקשיבו למילה ובחרו את התרגום שלה':'🔊 כל מילה נשמעת באנגלית — והתשובה היא התרגום בעברית.';
 }
 function samRunStartCardHtml(store){
   if(samRun?.endless) return samRunEndlessCardHtml(store);
@@ -12750,7 +12759,7 @@ function samRunHubHtml(store){
       <div class="arcade-hero-body"><div class="arcade-record-row"><div><span class="arcade-eyebrow">השיא האישי</span><b>${best}<small> מ׳</small></b></div><div class="arcade-medal-next">${next?`${next.icon}<strong>${next.m} מ׳</strong><small>המדליה הבאה</small>`:'🏆<strong>כל המדליות שלך</strong>'}</div></div>
       <div class="game-map-progress"><i style="width:${next?Math.min(100,best/next.m*100):100}%"></i></div>
       <button class="btn game-hub-go" onclick="${store.plays?'samRunQuickStart()':'renderSamRunEndless()'}"><span>יוצאים לריצה</span><span aria-hidden="true">◀</span></button>
-      <p class="arcade-gold-hint">קוראים את התרגום ובוחרים מסלול · 6 ברצף = מצב זהב ⚡</p>
+      <p class="arcade-gold-hint">שומעים מילה, בוחרים את התרגום · 6 ברצף = מצב זהב ⚡</p>
       <div class="game-hub-medals">${SAM_RUN_MEDALS.map(x=>`<span class="${medals.includes(x.m)?'won':''}" title="${esc(x.title)} · ${x.m} מ׳">${x.icon}<small>${x.m}</small></span>`).join('')}</div>
       <p class="game-hub-words">${course?`📚 ${course} מילים מהשיעורים שלך`:`📚 ${words.active.length} מילים מחכות על המסלול`} · 🪙 ${store.coins||0}</p>
       <div class="game-map-actions"><button onclick="renderSamRunMap()">🎯 אימון ממוקד</button></div></div>
@@ -14830,8 +14839,11 @@ function samRunCoach(kind){
   let pill=document.getElementById('samRunCoach');
   if(!pill){ pill=document.createElement('div'); pill.id='samRunCoach'; world.appendChild(pill); }
   pill.className='game-coach is-'+kind;
-  pill.innerHTML=kind==='jump'?'<i>⬆️</i> מחליקים למעלה — קופצים!':'<i>⬇️</i> מחליקים למטה — מתכופפים!';
-  clearTimeout(g.coachTimer); g.coachTimer=setTimeout(()=>samRunCoachDone(),5000);
+  pill.innerHTML=kind==='listen'?'<i>👂</i> הקשיבו למילה — ובחרו את התרגום'
+    :kind==='jump'?'<i>⬆️</i> מחליקים למעלה — קופצים!':'<i>⬇️</i> מחליקים למטה — מתכופפים!';
+  /* A jump or a duck is marked learned by doing it. Listening has no gesture
+     to perform, so the pill retires itself once it has been shown. */
+  clearTimeout(g.coachTimer); g.coachTimer=setTimeout(()=>samRunCoachDone(kind==='listen'?kind:undefined),5000);
 }
 function samRunCoachDone(kind){
   const g=samRun, pill=document.getElementById('samRunCoach'); if(pill) pill.remove();
@@ -15507,7 +15519,7 @@ function samRunSpawnLaneWave(){
      the mastery record changes — but what it trains is listening rather than
      recognising a written shape. */
   g.waveSeq=(g.waveSeq||0)+1;
-  const listen=!g.station&&samRunUnlocked(g,'listen')&&g.waveSeq%SAM_RUN_LISTEN_EVERY===0&&samRunCanVoice(cmd);
+  const listen=samRunUnlocked(g,'listen')&&g.waveSeq%SAM_RUN_READ_EVERY!==0&&samRunCanVoice(cmd);
   const el=document.createElement('div'),bonus=Math.random()<.18;
   el.className='game-obstacle lane-wave is-incoming'+(bonus?' is-bonus':'')+(listen?' listen-wave':'');
   /* Each word is set at the largest size that still fits its box. A single
@@ -15537,7 +15549,7 @@ function samRunSpawnLaneWave(){
      runner is standing in. A written one only ever speaks the correct lane —
      already standing on the answer is still a right answer and has to sound
      like one, and a runner anywhere else hears nothing until they find it. */
-  if(listen) samRunAskAloud(ob); else samRunSpeakLane(ob,g.lane,true);
+  if(listen){ samRunAskAloud(ob); samRunCoach('listen'); } else samRunSpeakLane(ob,g.lane,true);
   g.nextSpawnAt=g.time+warnMs+travelMs*(.78+Math.random()*.16);
 }
 /* Play the word a listening question is asking for. samRunSpeakLane cannot do
@@ -15864,11 +15876,19 @@ function samRunTeach(ob){
   const prompt=document.getElementById('samRunLanePrompt');
   if(prompt&&c){
     prompt.classList.remove('is-sentence','is-listen'); prompt.classList.add('is-correction');
+    prompt.classList.toggle('was-listen',!!ob.listen);
     prompt.setAttribute('aria-live','polite');
-    prompt.innerHTML=`<small>המילה שחיפשנו</small><b class="correction-en" dir="ltr">${esc(c.en)}</b><span class="correction-he">${esc(c.he)}</span>`;
+    /* A question asked by ear is corrected by ear too: what the child was
+       choosing between was the Hebrew, so that is what leads, with the English
+       under it as the pairing rather than as the thing to read. */
+    prompt.innerHTML=ob.listen
+      ? `<small>שמעתם</small><b class="correction-he-big">${esc(c.he)}</b><span class="correction-en-small" dir="ltr">${esc(c.en)}</span>`
+      : `<small>המילה שחיפשנו</small><b class="correction-en" dir="ltr">${esc(c.en)}</b><span class="correction-he">${esc(c.he)}</span>`;
     samRunPromptPop(prompt);
   }
-  if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);
+  /* Heard again, always — for a listening question the sound IS the answer. */
+  if(ob.listen) samRunAskAloud(ob);
+  else if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);
   /* Asked again twice, a few waves apart. Once is a coincidence; twice is what
      turns a missed word into one he keeps. */
   if(c){
