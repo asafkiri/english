@@ -403,21 +403,6 @@ body{
 .stage-screen{position:relative}
 .stage-screen > *:not(.stage-bg){position:relative;z-index:1}
 .stage-bg{position:absolute;inset:-4px -16px;z-index:0;overflow:hidden;border-radius:20px;background:linear-gradient(180deg,var(--sky),var(--ground));isolation:isolate}
-/* The learner, standing in the room. An over-the-shoulder crop at the very
-   bottom is the film convention, but this screen has a caption card across the
-   whole lower half, so a shoulder there would be a sliver behind a panel.
-   Instead they stand on the same floor as the character, nearer the camera and
-   off to one side: fully visible, clearly a second person, and never crossing
-   the face that is doing the talking. Slightly dimmed and softened so the
-   character speaking still leads the frame. */
-.stage-learner{position:absolute;left:0;bottom:40%;width:33%;max-width:156px;height:43%;z-index:1;pointer-events:none;opacity:.93;filter:brightness(.86) drop-shadow(0 8px 16px rgba(0,0,0,.45))}
-.stage-learner .game-back-avatar{animation:stageLearnerBreath 4.9s ease-in-out infinite}
-/* The figure is standing in a conversation, not running down a road: the whole
-   run cycle it was drawn for is switched off. */
-.stage-learner .back-run-bob,.stage-learner .game-back-rig *,.stage-learner .back-ground-shadow{animation:none!important}
-.stage-learner .back-ground-shadow{opacity:0}
-@keyframes stageLearnerBreath{50%{transform:translateY(-1.4px) scaleY(1.006)}}
-@media (max-height:700px){.stage-learner{width:29%;height:38%;bottom:42%}}
 /* Full-height, layered SVG scenes replace the old single-colour silhouettes.
    The art keeps its proportions on tall phones and anchors the floor when a
    short screen has to crop a little from the top. */
@@ -1588,7 +1573,6 @@ body{
      but it arrives without the flick, and the live nods do not run. */
   .stage-avatar .person-art .pupils,.stage-avatar .person-art .head{transition:none}
   .person-art.hearing .head,.person-art.encouraging .head{animation:none!important}
-  .stage-learner .game-back-avatar{animation:none!important}
   /* travel is real distance, so with the transition gone it would land as an
      instant jump on every beat — exactly what reduced motion asks us not to
      do. Flatten the offsets instead of merely un-animating them. */
@@ -7363,7 +7347,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.59.0';
+const APP_VERSION = '2.59.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -10311,18 +10295,6 @@ function stopStageGaze(){ clearTimeout(stageGazeTimer); stageGazeTimer=0; }
    from scratch each time the caption changed — the person looked replaced,
    not like someone standing there talking to you. When the same scene is
    already on stage, morph it in place: only the words and the pose move. */
-/* ---- the child is in the room too ----
-   Until now the learner was a caption and a text box, and the character
-   opposite them was the only person in the scene — which makes it a quiz with
-   a picture on it rather than a conversation. This puts them in the frame:
-   their own character, the one they dressed in the shop, seen from behind at
-   the near edge of the shot the way an over-the-shoulder camera sees you.
-   It is the same back-view figure the game runs with, standing instead of
-   running, so every hat and jacket they own is already carried across. */
-function stageLearnerHtml(){
-  try{ return samRunBackAvatarHtml(samRunStore()); }
-  catch(e){ return ''; }
-}
 function stagePlaceHtml(meta, history){
   return `${meta.placeEmoji} ${esc(meta.place)}${history?` · <button class="stage-history" onclick="openChatHistory()">📜 מה נאמר עד עכשיו</button>`:''}`;
 }
@@ -10739,7 +10711,6 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
     <div class="stage-bg scene-motion-${esc(bd.motionProfile||'dust')}${rainy?' has-story-rain':''}${stageWorldClasses(stageVisual)}${stageBackdropMomentClasses(direction)}" data-backdrop="${esc(bd.id)}" data-light="${esc(bd.lightSide||'left')}" data-stage-cue="${esc(direction?.id||'')}" aria-hidden="true" style="--sky:${bd.sky};--ground:${bd.ground};--scene-light:${bd.lightColor||'#ffffff'}">
       <svg class="backdrop-art backdrop-${esc(bd.id)}" data-art="${esc(bd.id)}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">${bd.art}</svg>
       <div class="stage-weather-layer" id="stageWeather" data-visual-key="${esc(stageVisual.key)}">${stageWeatherHtml(stageVisual)}</div>
-      <div class="stage-learner" id="stageLearner" aria-hidden="true">${stageLearnerHtml()}</div>
     </div>
     <div class="sr-only" id="stageEventAnnouncer" aria-live="polite" aria-atomic="true"></div>
     <div class="conversation-top">

@@ -95,7 +95,7 @@ function runtime(seed = new Map(), options = {}) {
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
-      setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, stageLearnerHtml, setStageCue,
+      setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline,
       renderSamRun, samRunMatchCommand, samRunSpeedFor, samRunTravelMs, samRunWarnMs, samRunStore, samRunSave,
       samRunSpeakLane, samRunPlayRecordedWord, samRunBeginAudioSession, samRunEndAudioSession,
@@ -5828,21 +5828,3 @@ test('the figure answers the learner\'s voice, and waits for them when they go q
   assert.equal(api.getMicLevel(), 0);
 });
 
-test('the learner is in the room too, wearing what they bought', () => {
-  const { api } = runtime();
-  const store = api.samRunStore();
-  store.owned = ['outfit_fire', 'shoes_gold'];
-  store.equipped = { outfit: 'outfit_fire', shoes: 'shoes_gold' };
-  api.samRunSave(store);
-  const figure = api.stageLearnerHtml();
-  assert.match(figure, /game-back-rig/, 'it is the same back-view rig the game runs with');
-  const fire = api.SAM_RUN_SHOP_ITEMS.find(x => x.id === 'outfit_fire').apply.clothes;
-  const gold = api.SAM_RUN_SHOP_ITEMS.find(x => x.id === 'shoes_gold').apply.shoes;
-  assert.ok(figure.includes(fire), 'the jacket they bought is on them');
-  assert.ok(figure.includes(gold), 'and the shoes');
-  // standing in a conversation, not running down a road
-  assert.match(html, /\.stage-learner \.back-run-bob,\.stage-learner \.game-back-rig \*[^}]*animation:none!important/,
-    'the run cycle it was drawn for is switched off');
-  assert.match(html, /<div class="stage-learner" id="stageLearner" aria-hidden="true">/,
-    'and it lives in the scene layer, out of the reading order');
-});
