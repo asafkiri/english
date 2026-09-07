@@ -5461,9 +5461,9 @@ test('roof coins obey height and jump or duck obstacles obey the actual player a
   api.samRunTeardown();
 });
 
-test('word layout never overlaps and preserves reading time across phone sizes and roof heights',()=>{
+test('words identify their lane from the horizon and stay readable across phone sizes and roof heights',()=>{
   const {api}=runtime();
-  for(const [width,height] of [[320,490],[390,690],[430,790]])for(const elevation of [0,1.5])for(const wordHeight of [0,1.5])for(const lane of [-1,0,1]){
+  for(const [width,height] of [[320,490],[390,690],[430,790],[1024,700]])for(const elevation of [0,1.5])for(const wordHeight of [0,1.5])for(const lane of [-1,0,1])for(const tokenLanes of [[0,1],[1,2],[0,2]]){
     const r={cssW:width,cssH:height,P:new Float32Array(16),V:new Float32Array(16),VP:new Float32Array(16),invVP:new Float32Array(16),
       cam:{x:lane*1.15*.25,y:3.1+elevation*.7,z:5.6,tx:lane*1.15*.3,ty:1.05+elevation*.42,tz:-8,fov:1.2,roll:0}};
     api.s3dCamera(r);
@@ -5473,11 +5473,17 @@ test('word layout never overlaps and preserves reading time across phone sizes a
       for(let i=0;i<2;i++){
         const age=ms-i*2350;if(age<0||age>=3600)continue;
         const ahead=(3600-age)/1000*14;
-        const p=api.s3dProject(r,(i===0?-1:1)*1.15,.85+wordHeight,-ahead);
-        items.push({id:i,ahead,x:p.sx,y:p.sy});
+        const p=api.s3dProject(r,(tokenLanes[i]-1)*1.15,.65+wordHeight,-ahead);
+        items.push({id:i,lane:tokenLanes[i],ahead,x:p.sx,y:p.sy});
       }
       const boxes=api.samRunHuntLabelLayout(items,width,height).filter(b=>b.visible);
-      for(const b of boxes){visibleMs[b.id]+=25;assert.ok(b.x-b.w/2>=0&&b.x+b.w/2<=width);}
+      for(const b of boxes){
+        visibleMs[b.id]+=25;
+        assert.ok(b.x-b.w/2>=width*b.lane/3&&b.x+b.w/2<=width*(b.lane+1)/3,'a sign belongs entirely to one screen lane');
+        const point=items.find(item=>item.id===b.id);
+        assert.equal(b.anchorX,point.x);assert.equal(b.anchorY,point.y,'moving a label never moves the world anchor');
+      }
+      if(ms===0||ms===2350)assert.ok(boxes.some(b=>b.id===(ms===0?0:1)),'lane is readable on the very first frame, not only up close');
       if(boxes.length===2){const [a,b]=boxes;assert.ok(Math.abs(a.x-b.x)>=(a.w+b.w)/2||Math.abs(a.y-b.y)>=(a.h+b.h)/2);}
     }
     assert.ok(visibleMs.every(ms=>ms>=1400),`readable for at least 1.4s at ${width}x${height}, elevation ${elevation}, word ${wordHeight}: ${visibleMs}`);
