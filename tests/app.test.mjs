@@ -101,6 +101,7 @@ function runtime(seed = new Map(), options = {}) {
       SAM_RUN_COMMANDS, SAM_RUN_UNLOCK, SAM_RUN_ORDER, SAM_RUN_THINGS, SAM_RUN_STAGES, SAM_RUN_PHASES, SAM_RUN_SHOP_ITEMS, SAM_RUN_MISSIONS, SAM_RUN_MASTERY, SAM_RUN_GOAL, SAM_RUN_KEY, STORE_KEY,
       samRunMissionProgress, samRunMissionDone, samRunAvatarHtml, samRunHubHtml, samRunShopArt, samRunShopCardHtml, samRunWorldsHtml, samRunWorldStats, samRunBackAvatarHtml, renderSamRunShop, samRunChooseLane, samRunSpawnLaneWave, samRunStartSentence, samRunSpawnSentenceWave, samRunResolve, samRunBindLaneInput,
       samRunHuntRound, samRunRoofAt, samRunSpawnHunt, samRunResolveHunt, samRunAdventureStep, samRunEndlessMission, samRunRank, samRunNextTarget, samRunFlowActive, samRunChargeFlow, samRunBreakFlow, samRunBankArcade, samRunRunRoad, samRunStart,
+      samRunSurfaceAt, samRunMotion, samRunStepMotion, samRunCanEnterLane, samRunHuntLabelLayout, samRunPaintHuntLabels, s3dCamera, s3dProject,
       getSamRun:()=>samRun, samRunCareer, samRunAwardCareer, samRunOver, samRunTeardown,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
       renderSamRunMap, renderSamRunEndless, samRunEndlessWords, samRunUnlocked, samRunPace, samRunWaveTiming, samRunMedalsFor, SAM_RUN_MEDALS, SAM_RUN_FEATURE_AT, SAM_RUN_ENDLESS_PHASE, samRunSentencePool, samRunSpawnGap, samRunSpawnTunnel, samRunPaintPickup,
@@ -5351,12 +5352,13 @@ test('expeditions vary target count and switch to an explicit avoidance round', 
   api.samRunHuntRound(g);assert.equal(g.hunt.targets.length,1);assert.equal(g.hunt.avoid,true);
   assert.equal(g.hunt.dodged,0);
 });
-test('train ramps rise continuously, support the roof and descend to the street',()=>{
+test('a train has an entrance ramp, solid roof and a real drop at its end',()=>{
   const {api}=runtime();const g={trains:[{lane:2,start:100}]};
   assert.equal(api.samRunRoofAt(g,89,2),0);
-  assert.equal(api.samRunRoofAt(g,95,2),.625);
-  assert.equal(api.samRunRoofAt(g,110,2),1.25);
-  assert.equal(api.samRunRoofAt(g,135,2),.625);
+  assert.ok(Math.abs(api.samRunRoofAt(g,95,2)-2/3)<1e-10);
+  assert.equal(api.samRunRoofAt(g,110,2),1.5);
+  assert.equal(api.samRunRoofAt(g,124,2),1.5);
+  assert.equal(api.samRunRoofAt(g,124.01,2),0);
   assert.equal(api.samRunRoofAt(g,141,2),0);
   assert.equal(api.samRunRoofAt(g,110,1),0,'changing lanes leaves the roof');
 });
@@ -5379,21 +5381,127 @@ test('individual tokens overlap in time, have one visible word and keep valid sp
   g.time=g.nextSpawnAt;api.samRunSpawnHunt();assert.equal(g.obstacles.length,2);
   assert.notEqual(g.obstacles[0].tokenLane,g.obstacles[1].tokenLane);
 });
-test('avoidance rewards four successful dodges once and collisions lose a heart',()=>{
+test('avoidance rewards three successful dodges once and collisions lose a heart',()=>{
   const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
   Object.assign(g,{running:true,lane:0,hunt:{round:3,avoid:true,dodged:0,targets:['jump'],found:[]},coinsRun:0,runCoinBonus:0});
   vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunFreeze=()=>{};',context);
   const token=lane=>({cmd:'jump',tokenLane:lane,huntToken:true,huntRound:3,el:{classList:{add(){}}}});
   api.samRunResolve(token(0));assert.equal(g.lives,2);assert.equal(g.hunt.dodged,0);
-  for(let i=0;i<4;i++){const ob=token(2);api.samRunResolve(ob);api.samRunResolve(ob);}
-  assert.equal(g.hunt.round,4);assert.equal(g.hunt.targets.length,3);assert.equal(g.coinsRun,10);assert.equal(g.runCoinBonus,10);
+  for(let i=0;i<3;i++){const ob=token(2);api.samRunResolve(ob);api.samRunResolve(ob);}
+  assert.equal(g.hunt.round,4);assert.equal(g.hunt.targets.length,1);assert.equal(g.coinsRun,10);assert.equal(g.runCoinBonus,10);
   api.samRunTeardown();
 });
+test('solid train sides block both a swipe and a two-lane tap from street height',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  vm.runInContext('samRunTone=()=>{};samRunPose=()=>{};',context);
+  Object.assign(g,{running:true,lane:0,roadScroll:110,trains:[{lane:1,start:100,ramp:true}]});
+  assert.equal(api.samRunCanEnterLane(g,1),false);
+  api.samRunChooseLane(1);assert.equal(g.lane,0);assert.equal(g.motion.y,0);
+  api.samRunChooseLane(2);assert.equal(g.lane,0,'a tap cannot teleport through the blocked middle lane');
+  g.motion.y=1.55;g.motion.grounded=false;
+  api.samRunChooseLane(1);assert.equal(g.lane,1,'a jump from another roof may cross above its side');
+  api.samRunTeardown();
+});
+
+test('walking up a ramp, leaving the roof, and landing use continuous physical heights',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  vm.runInContext('samRunTone=()=>{};samRunPose=()=>{};samRunFreeze=()=>{};samRunFloat=()=>{};',context);
+  const train={lane:1,start:100,ramp:true};
+  Object.assign(g,{running:true,lane:1,roadScroll:90,time:0,trains:[train]});
+  api.samRunMotion(g);
+  for(let d=90;d<=111;d+=.3){g.roadScroll=d;g.time+=16;api.samRunStepMotion(g,16);}
+  assert.equal(g.motion.y,1.5);assert.equal(g.motion.grounded,true);assert.equal(g.lives,3);
+  api.samRunChooseLane(2);const before=g.motion.y;
+  api.samRunStepMotion(g,16);
+  assert.equal(g.motion.grounded,false);assert.ok(g.motion.y>1.4&&g.motion.y<before,'leaving a roof starts a fall, never a floor snap');
+  assert.equal(api.samRunStartAir('jump'),false,'there is no extra mid-air jump');
+  for(let i=0;i<50;i++){g.time+=16;api.samRunStepMotion(g,16);}
+  assert.equal(g.motion.y,0);assert.equal(g.motion.grounded,true);assert.equal(g.motion.vy,0);
+  g.pickups=[{kind:'jump',wide:true,p:0,life:2600,done:false}];
+  api.samRunAirborne('jump');
+  assert.equal(g.motion.grounded,false,'a swipe jumps immediately even with a distant wall ahead');
+  assert.ok(g.motion.vy>0);assert.equal(g.queuedAir,null);
+  let apex=0;
+  for(let i=0;i<50;i++){g.time+=16;api.samRunStepMotion(g,16);apex=Math.max(apex,g.motion.y);}
+  assert.ok(apex>.9&&apex<1.2);assert.equal(g.motion.y,0);assert.equal(g.motion.grounded,true);
+  api.samRunTeardown();
+});
+
+test('a train without a ramp collides, costs one life and pushes Sam into a clear lane',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  vm.runInContext('samRunTone=()=>{};samRunPose=()=>{};samRunFreeze=()=>{};samRunFloat=()=>{};',context);
+  Object.assign(g,{running:true,lane:1,roadScroll:99.9,time:1000,trains:[{lane:1,start:100,ramp:false}]});
+  api.samRunMotion(g);g.roadScroll=100.05;api.samRunStepMotion(g,16);
+  assert.equal(g.lives,2);assert.notEqual(g.lane,1);assert.equal(g.motion.y,0);
+  assert.equal(g.hits.train,undefined,'road collisions are not vocabulary errors');
+  api.samRunStepMotion(g,16);assert.equal(g.lives,2);
+  api.samRunTeardown();
+});
+
+test('a roof word cannot be collected by running through its lane underneath it',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  Object.assign(g,{running:true,lane:1,hunt:{round:1,targets:['jump'],found:[]},motion:{y:0,vy:0,grounded:true}});
+  const token={cmd:'jump',roof:1.5,tokenLane:1,huntRound:1,el:{classList:{add(){}}}};
+  api.samRunResolveHunt(token);
+  assert.equal(token.resolved,true);assert.equal(g.correctCount,0);assert.equal(g.lives,3);
+  api.samRunTeardown();
+});
+
+test('roof coins obey height and jump or duck obstacles obey the actual player action',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  vm.runInContext('samRunTone=()=>{};samRunPose=()=>{};samRunFreeze=()=>{};samRunFloat=()=>{};samRunGLDraw=()=>{};samRunPaintPickup=()=>{};',context);
+  const el=()=>({classList:{add(){}},remove(){}});
+  Object.assign(g,{running:true,roadScroll:100,distance:100,time:1000,lane:1,motion:{y:0,vy:0,grounded:true},
+    nextStoneAt:Infinity,nextPropAt:Infinity,nextPickupAt:Infinity,pickups:[{kind:'coin',lane:1,at:100,approach:30,roof:1.5,p:0,life:3000,el:el()}]});
+  api.samRunRunRoad(16);assert.equal(g.coinsRun,0,'street height cannot collect a roof coin');
+  g.motion.y=1.5;api.samRunRunRoad(16);assert.equal(g.coinsRun,1);
+  g.motion.y=0;api.samRunTakePickup({kind:'jump',trackHazard:true,el:el()});assert.equal(g.lives,2);
+  g.motion.y=.8;api.samRunTakePickup({kind:'jump',trackHazard:true,el:el()});assert.equal(g.clearedWalls,1);assert.equal(g.coinsRun,3);
+  g.motion.y=0;g.air={kind:'duck'};api.samRunTakePickup({kind:'duck',trackHazard:true,el:el()});assert.equal(g.clearedWalls,2);assert.equal(g.coinsRun,5);
+  api.samRunTeardown();
+});
+
+test('word layout never overlaps and preserves reading time across phone sizes and roof heights',()=>{
+  const {api}=runtime();
+  for(const [width,height] of [[320,490],[390,690],[430,790]])for(const elevation of [0,1.5])for(const wordHeight of [0,1.5])for(const lane of [-1,0,1]){
+    const r={cssW:width,cssH:height,P:new Float32Array(16),V:new Float32Array(16),VP:new Float32Array(16),invVP:new Float32Array(16),
+      cam:{x:lane*1.15*.25,y:3.1+elevation*.7,z:5.6,tx:lane*1.15*.3,ty:1.05+elevation*.42,tz:-8,fov:1.2,roll:0}};
+    api.s3dCamera(r);
+    const visibleMs=[0,0];
+    for(let ms=0;ms<6000;ms+=25){
+      const items=[];
+      for(let i=0;i<2;i++){
+        const age=ms-i*2350;if(age<0||age>=3600)continue;
+        const ahead=(3600-age)/1000*14;
+        const p=api.s3dProject(r,(i===0?-1:1)*1.15,.85+wordHeight,-ahead);
+        items.push({id:i,ahead,x:p.sx,y:p.sy});
+      }
+      const boxes=api.samRunHuntLabelLayout(items,width,height).filter(b=>b.visible);
+      for(const b of boxes){visibleMs[b.id]+=25;assert.ok(b.x-b.w/2>=0&&b.x+b.w/2<=width);}
+      if(boxes.length===2){const [a,b]=boxes;assert.ok(Math.abs(a.x-b.x)>=(a.w+b.w)/2||Math.abs(a.y-b.y)>=(a.h+b.h)/2);}
+    }
+    assert.ok(visibleMs.every(ms=>ms>=1400),`readable for at least 1.4s at ${width}x${height}, elevation ${elevation}, word ${wordHeight}: ${visibleMs}`);
+  }
+});
+
+test('the encounter director caps words and leaves a clear beat for a physical obstacle',()=>{
+  const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
+  const host={appendChild(){}};context.document.getElementById=id=>id==='samRunObstacles'||id==='samRunRush'?host:null;
+  vm.runInContext('samRunCoach=()=>{};',context);
+  Object.assign(g,{running:true,active:['jump','duck','stop','run','walk'],distance:200,roadScroll:200,time:1000,worldW:390,trains:[],encounterCount:0});
+  api.samRunSpawnHunt();g.time=g.nextSpawnAt;api.samRunSpawnHunt();
+  assert.equal(g.obstacles.length,2);g.time=g.nextSpawnAt;api.samRunSpawnHunt();assert.equal(g.obstacles.length,2);
+  g.obstacles=[];g.encounterCount=4;api.samRunSpawnHunt();
+  assert.equal(g.obstacles.length,0);assert.equal(g.pickups.filter(p=>p.trackHazard).length,1);
+  assert.ok(g.nextSpawnAt-g.time>=3000,'the next word waits until after the obstacle');
+  api.samRunTeardown();
+});
+
 test('a roof target credits vocabulary, roof coins and expedition reward exactly once',()=>{
   const {api,context}=runtime();api.renderSamRunEndless();const g=api.getSamRun();
   Object.assign(g,{running:true,lane:2,roofHeight:1.25,hunt:{round:1,targets:['jump'],found:[]},coinsRun:0,runCoinBonus:0});
   vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunBurst=()=>{};samRunCoinFlight=()=>{};samRunSpeakLane=()=>{};',context);
-  const ob={cmd:'jump',tokenLane:2,correctLane:2,chosenLane:2,options:['jump','jump','jump'],huntToken:true,huntRound:1,laneWave:true,el:{classList:{add(){}},querySelectorAll:()=>[]}};
+  const ob={cmd:'jump',roof:1.25,tokenLane:2,correctLane:2,chosenLane:2,options:['jump','jump','jump'],huntToken:true,huntRound:1,laneWave:true,el:{classList:{add(){}},querySelectorAll:()=>[]}};
   api.samRunResolve(ob);api.samRunResolve(ob);
   assert.equal(g.correctCount,1);assert.equal(g.store.mastery.jump,1);assert.equal(g.hunt.round,2);
   assert.equal(g.coinsRun,13);assert.equal(g.runCoinBonus,13);api.samRunTeardown();

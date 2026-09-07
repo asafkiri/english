@@ -2630,20 +2630,29 @@ body{
 .arcade-how{display:grid;gap:13px;text-align:right;max-width:330px;margin:12px 0}.arcade-how>div{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center}.arcade-how b{display:grid;place-items:center;width:42px;height:42px;background:#21384f;border:1px solid #5f7f9666;border-radius:12px;font-size:20px;color:#93f0d2}.arcade-how span{font-size:13px;color:#d1dfed;line-height:1.5}
 
 
-/* Expedition board and readable individual word tokens. */
-#samRunLanePrompt.is-hunt{max-width:520px;width:94%;padding:10px 12px;background:rgba(10,29,45,.92);border:1px solid #77e4d477;border-radius:20px;color:#fff;box-shadow:0 8px 30px #001b3540}
-#samRunLanePrompt.is-hunt small{font-size:11px;color:#b5d6de;display:block;margin:3px 0}
-.hunt-list{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}
-.hunt-list b{padding:6px 12px;border-radius:30px;background:#ffffff14;border:1px solid #ffffff30;font-size:18px}
+/* The task is a compact strip; the road gets the screen space. Word labels
+   use bounded reading sizes and are culled before they can overlap. */
+.game-arcade-playing>.game-mission{display:none}
+.game-arcade-playing>.game-top{min-height:48px;padding:4px 7px;border-radius:14px}
+.game-arcade-playing>.game-bonus-mission{min-height:26px;padding:5px 9px;box-shadow:none;border-radius:10px}
+.game-arcade-playing .game-title{font-size:12px;max-width:86px;white-space:normal}
+.game-arcade-playing .game-build{border:0;padding:0;background:none}
+#samRunLanePrompt.is-hunt{display:flex;align-items:center;justify-content:center;gap:9px;top:calc(max(9px,env(safe-area-inset-top)) + 102px);max-width:480px;min-width:0;width:calc(100% - 28px);min-height:48px;padding:7px 10px;background:#0a2033ed;border:1px solid #a7cad254;border-radius:14px;color:#fff;box-shadow:0 5px 15px #001b3526;box-sizing:border-box}
+.hunt-instruction{font-size:14px;font-weight:750;color:#b8e3df;white-space:nowrap}.hunt-count{font-size:12px;color:#a9c7d6;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hunt-list{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:0}
+.hunt-list b{padding:3px 7px;border-radius:7px;background:transparent;border:0;font-size:21px;line-height:1.25}
 .hunt-list b.found{background:#3cd7a3;color:#082b25;border-color:#8affd6}
-.hunt-token .lane-gate{border-radius:20px!important;background:linear-gradient(145deg,#fffbe5,#ffe4a0)!important;color:#172d3e!important;border:2px solid #fff7c4!important;box-shadow:0 5px 0 #b58937,0 9px 25px #061d3a50!important;min-height:48px}
-.hunt-token .lane-gate.is-picked{outline:3px solid #62f3d0;outline-offset:3px}
+.game-world .game-obstacle.hunt-token .lane-gate{width:116px;height:38px;min-height:0;padding:4px 6px;margin:0;border-radius:10px;background:#103047f5;color:#fff;border:1.5px solid #b0dbed;box-shadow:0 3px 0 #061c2b,0 5px 12px #0004;font-size:17px;font-weight:900;line-height:1;letter-spacing:0;white-space:nowrap;overflow:visible;outline:0;transition:border-color .1s;will-change:transform}
+.game-world .game-obstacle.hunt-token .lane-gate.is-picked{border-color:#9bffd0;box-shadow:0 3px 0 #061c2b,0 0 0 2px #9bffd03d}
+.hunt-token[hidden]{display:none!important}
+.game-world .game-obstacle.hunt-token .lane-gate:after{display:none}
 .hunt-train{position:absolute;width:95px;height:230px;z-index:2;border-radius:24px 24px 8px 8px;background:linear-gradient(90deg,#17465b,#42a8ac 18%,#39c9bc 80%,#17465b);border:3px solid #9df0e5;box-shadow:0 15px 0 #102638;color:white;display:flex;align-items:center;flex-direction:column;justify-content:space-around;pointer-events:none;transform-origin:50% 100%}
 .hunt-train i{position:absolute;top:100%;height:90px;width:100%;background:repeating-linear-gradient(0deg,#e0a63d 0 12px,#ffe591 12px 16px);clip-path:polygon(0 0,100% 0,90% 100%,10% 100%);color:#18394a;font-size:40px;text-align:center;font-style:normal}
 .hunt-train b{font-size:10px;writing-mode:vertical-rl;letter-spacing:3px}.hunt-train span{color:#b5f1ff;font-size:22px;writing-mode:vertical-rl}
 .game-back-rig .back-body{filter:drop-shadow(2px 2px 2px #0003)}
 
-#samRunLanePrompt.hunt-avoid{border-color:#ff997c;background:#431e32ed}#samRunLanePrompt.hunt-avoid .hunt-list b{background:#df6347;color:white}
+#samRunLanePrompt.hunt-avoid{border-color:#ff997c;background:#431e32ed}#samRunLanePrompt.hunt-avoid .hunt-instruction{color:#ffc8b7}#samRunLanePrompt.hunt-avoid .hunt-list b{background:transparent;color:white}
+@media(max-height:700px){#samRunLanePrompt.is-hunt{min-height:42px;padding:5px 8px;top:calc(max(9px,env(safe-area-inset-top)) + 96px)}.hunt-list b{font-size:18px}.hunt-instruction{font-size:13px}}
 </style>
 </head>
 <body>
@@ -7245,7 +7254,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.53.0';
+const APP_VERSION = '2.54.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12953,7 +12962,7 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    hunt:null,trains:[],nextTrain:0,roofHeight:0,props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
+    hunt:null,trains:[],nextTrain:0,trainSeq:0,roofHeight:0,motion:null,trackSafeUntil:0,encounterCount:0,roadBeats:0,lastRoadBeat:null,props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,careerReward:null,arcadeSeen:{},hudSeen:{},missionCelebrated:false,bannerUntil:0,checkpointAt:0,recordCelebrated:false,lastAir:null,roadScroll:0,glSeen:0,glEma:0});
   document.getElementById('samRunBanner')?.classList.remove('on');
@@ -13067,8 +13076,7 @@ function samRunFrame(ts){
   }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
-    samRunAdventureStep(g,dt);
-    if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g); samRunEndlessTick(); }
+    if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g);g.roadScroll=g.distance;samRunAdventureStep(g,dt);if(!g.running)return;samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
     // window — unless a thing is already holding for it, which runs on its
@@ -13083,7 +13091,9 @@ function samRunFrame(ts){
          Sam, once, for up to the grace window, so a word said in time is
          never lost to the time it takes to be understood. */
       const speaking=!!g.speechAt&&ob===target&&!ob.resolved&&ob.armed!==ob.cmd&&!ob.holdSpent;
-      if(speaking&&ob.progress>=.96){
+      if(ob.huntToken&&Number.isFinite(ob.at)){
+        ob.progress=1-(ob.at-(g.roadScroll||0))/ob.approach;
+      } else if(speaking&&ob.progress>=.96){
         ob.progress=.96;
         if(!ob.holding){ ob.holding=true; ob.holdAt=g.time; samRunBrace(true); }
         else if(g.time-ob.holdAt>SAM_RUN_GRACE_MS){ ob.holdSpent=true; ob.holding=false; g.speechAt=0; samRunBrace(false); samRunHearing(false); }
@@ -13093,13 +13103,13 @@ function samRunFrame(ts){
       }
       if(!ob.resolved&&ob.progress>=1) samRunResolve(ob);
       if(!g.running) return; // The final result is banked; no later pickup may change it.
-      if(ob.progress>=1.32){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
+      if(ob.progress>=(ob.huntToken?1.07:1.32)){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
       // before its run a thing waits at the edge as a small badge with a "!"
       const incoming=ob.progress<0;
       if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
       if(ob.laneWave){
         /* the rendered world places the gates itself, in samRunGLDraw */
-        if(scene) continue;
+        if(scene||ob.huntToken) continue;
         const {y,scale,spread}=samRunGateDepth(ob.progress);
         ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100); ob.y=g.worldH*y/100;
         ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
@@ -13789,11 +13799,12 @@ function s3dDrawRig(r,look,P){
     for(const [x,y,z] of puffs) s3dPushChild(K.sphere,head,x,y,z,0,0,0,.085,.085,.085,hair,a);
   } else if(hs==='long'){
     s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.205,.18,.205,hair,a);
-    s3dPushChild(K.box,head,0,-.04,.14,.1,0,0,.34,.46,.15,hair,a);
-    for(const s of [-1,1]) s3dPushChild(K.box,head,s*.17,.03,.02,0,0,0,.07,.36,.18,hair,a);
+    s3dPushChild(K.sphere,head,0,.025,.145,.1,0,0,.18,.255,.1,hair,a);
+    for(const s of [-1,1])s3dPushChild(K.sphere,head,s*.165,.025,.055,0,0,s*-.12,.05,.23,.105,hair,a);
   } else if(hs==='bob'){
     s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.215,.19,.215,hair,a);
-    s3dPushChild(K.box,head,0,.06,.03,0,0,0,.4,.26,.36,hair,a);
+    s3dPushChild(K.sphere,head,0,.09,.1,0,0,0,.2,.17,.13,hair,a);
+    for(const s of [-1,1])s3dPushChild(K.sphere,head,s*.165,.09,.02,0,0,0,.055,.15,.14,hair,a);
   } else if(hs==='bun'){
     s3dPushChild(K.sphere,head,0,.2,.02,0,0,0,.2,.165,.2,hair,a);
     s3dPushChild(K.sphere,head,0,.37,.07,0,0,0,.095,.085,.095,hair,a);
@@ -14074,12 +14085,12 @@ function s3dDrawPickup(r,pu,z,time,state,runnerX){
   if(pu.kind==='coin'){
     if(done>=1) return;
     const mg=state.magnet||0;
-    const x=s3dLerp(S3D_LANE_X[pu.lane],runnerX==null?S3D_LANE_X[pu.lane]:runnerX,mg), y=s3dLerp(.62+Math.sin(time*3+z*.5)*.06,1.0,mg)+done*1.2, sc=1-done*.9;
+    const x=s3dLerp(S3D_LANE_X[pu.lane],runnerX==null?S3D_LANE_X[pu.lane]:runnerX,mg), y=s3dLerp((pu.roof||0)+.62+Math.sin(time*3+z*.5)*.06,1.0+(state.runnerY||0),mg)+done*1.2, sc=1-done*.9;
     z=s3dLerp(z,.1,mg*.6);
     const M=m4TRSx(s3dTmp,x,y,z,Math.PI/2,time*3.4+pu.lane,0,.34*sc,.08,.34*sc);
     s3dPush(K.cyl,M,1,.8,.2,1,2);
     s3dPush(K.cyl,m4TRSx(s3dTmp,x,y,z,Math.PI/2,time*3.4+pu.lane,0,.24*sc,.13,.24*sc),.95,.62,.1,1,2);
-    s3dPushTRS(K.disc,x,.03,z,0,0,0,.36,1,.36,[0,0,0],.35*(1-done),4);
+    s3dPushTRS(K.disc,x,(pu.roof||0)+.03,z,0,0,0,.36,1,.36,[0,0,0],.35*(1-done),4);
     return;
   }
   if(pu.kind==='hurdle'){
@@ -14119,8 +14130,7 @@ function s3dDrawPickup(r,pu,z,time,state,runnerX){
 function s3dDrawGate(r,ob,z,accent,st,time){
   const K=r.kinds;
   if(ob.huntToken){
-    const x=S3D_LANE_X[ob.tokenLane], height=samRunRoofAt(samRun,(samRun.roadScroll||0)-z,ob.tokenLane);
-    ob.roof=height;
+    const x=S3D_LANE_X[ob.tokenLane], height=ob.roof||0;
     if(!ob.resolved){s3dPushTRS(K.sphere,x,height+.65+Math.sin(time*3)*.08,z,0,time,0,.16,.22,.16,[.95,.8,.3],1,5);s3dPushTRS(K.disc,x,height+.04,z,0,0,0,.65,1,.75,[.25,.9,.8],.4,6);}
     return;
   }
@@ -14336,11 +14346,16 @@ function samRunGLDraw(g,idle){
   const missed=g.obstacles.find(o=>o.laneWave&&o.resolved&&o.armed!==o.cmd&&o.progress<1.25);
   if(missed) lookX=S3D_LANE_X[missed.correctLane];
   const pose=s3dRunnerPose(g,rs,g.time,dt,speed,cadence,{lookX,idle:!!idle||!g.running,time:R.time});
-  const P=pose.P; P.x=rs.x; P.z=0; P.y+=(g.roofHeight||0);
+  const P=pose.P; P.x=rs.x; P.z=0;
+  if(g.endless&&g.motion){
+    P.y+=g.motion.y;
+    if(pose.airKind==='jump')P.rootY=0;
+    if(!g.motion.grounded){P.ground=false;P.hipL+=.2;P.hipR+=.2;P.kneeL-=.25;P.kneeR-=.25;}
+  }
   P.bank+=s3dClamp(-rs.vx*.05,-.24,.24);
   /* rides carry him differently: standing on a scooter, seated on a bike, tucked into a car */
   if(R.ride){
-    const rootM=new Float32Array(16); m4TRS(rootM,rs.x,P.rootY*(R.ride==='ride_car'?.4:1),0,0,0,P.bank,1,1,1);
+    const rootM=new Float32Array(16); m4TRS(rootM,rs.x,P.y+P.rootY*(R.ride==='ride_car'?.4:1),0,0,0,P.bank,1,1,1);
     const lift=s3dDrawRide(r,R.ride,rootM,R.look,R.time*(g.running?1:.2));
     P.legs=R.ride!=='ride_car'; P.ground=false; P.rootY+=lift;
     if(R.ride==='ride_scooter'){ P.hipL=.3;P.kneeL=-.35;P.hipR=.05;P.kneeR=-.1;P.shL=1.25;P.shR=1.25;P.elL=.45;P.elR=.45;P.torsoRx=-.1; }
@@ -14349,7 +14364,8 @@ function samRunGLDraw(g,idle){
   }
   const drawn=s3dDrawRig(r,R.look,P);
   const h=Math.max(0,drawn.footY);
-  s3dPushTRS(r.kinds.disc,rs.x,.03,.02,0,0,0,.5/(1+h*1.1),1,.72/(1+h*.8),[0,0,0],.5/(1+h*1.5),4);
+  const floor=samRunRoofAt(g,g.roadScroll||0,g.lane),above=Math.max(0,(g.motion?.y||0)-floor);
+  s3dPushTRS(r.kinds.disc,rs.x,floor+.03,.02,0,0,0,.5/(1+above),1,.72/(1+above),[0,0,0],.42/(1+above),4);
   /* the shield: a real bubble around him, breathing */
   if(g.shield){ const br=1+.03*Math.sin(R.time*7.5); s3dPushTRS(r.kinds.sphere,rs.x,1.0+h,0,0,R.time*.6,0,1.0*br,1.15*br,1.0*br,[.5,.75,1],.3,6); }
   if(samRunFlowActive(g)){
@@ -14365,19 +14381,20 @@ function samRunGLDraw(g,idle){
   s3dDrawTrains(r,g);
   for(const pu of g.pickups){
     let st=R.pickupState.get(pu); if(!st){ st={}; R.pickupState.set(pu,st); }
+    st.runnerY=g.motion?.y||0;
     if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',st.magnet?rs.x:S3D_LANE_X[pu.lane],0,8); }
     if(st.tunnel==null) st.tunnel=!!pu.el?.classList?.contains?.('is-tunnel');
     const ms=samRunPickupIn(pu), z=-(ms/1000)*(roadSpeed||8.5);
     if(z<-140||z>6) continue;
     /* a coin in his lane is drawn to him over the last stretch, so a take never looks like a miss */
-    if(!pu.done) st.magnet=pu.kind==='coin'&&(pu.lane===g.lane||samRunFlowActive(g))&&pu.p>.82?Math.min(1,(pu.p-.82)/.165):0;
+    if(!pu.done) st.magnet=pu.kind==='coin'&&(samRunFlowActive(g)||pu.lane===g.lane&&(!g.endless||Math.abs((g.motion?.y||0)-(pu.roof||0))<.7))&&pu.p>.82?Math.min(1,(pu.p-.82)/.165):0;
     s3dDrawPickup(r,pu,z,R.time,st,rs.x);
-    const pr=s3dProject(r,pu.wide?0:S3D_LANE_X[pu.lane],pu.kind==='duck'?1.6:.5,z);
+    const pr=s3dProject(r,pu.wide?0:S3D_LANE_X[pu.lane],(pu.roof||0)+(pu.kind==='duck'?1.6:.5),z);
     pu.x=pr.sx; pu.y=pr.sy;
   }
   for(const ob of g.obstacles){
     if(!ob.laneWave) continue;
-    const rv=roadSpeed||8.5, {travelMs}=ob, dist=Math.min(travelMs/1000*rv+2,(1-ob.progress)*travelMs/1000*rv);
+    const rv=roadSpeed||8.5, {travelMs}=ob, dist=ob.huntToken&&Number.isFinite(ob.at)?ob.at-scroll:Math.min(travelMs/1000*rv+2,(1-ob.progress)*travelMs/1000*rv);
     const z=-Math.max(-4,dist);
     let st=R.gateState.get(ob); if(!st){ st={}; R.gateState.set(ob,st); }
     if(ob.resolved&&!st.resolvedAt){ st.resolvedAt=R.time; if(ob.armed===ob.cmd){ samRunEmit('ring',S3D_LANE_X[ob.correctLane],z,24,accent); R.cam.fovKick=.06; } }
@@ -14411,9 +14428,11 @@ function samRunGLDraw(g,idle){
     const a=R.time*.28; C.x=rs.x+Math.sin(a)*4.4; C.y=1.6+Math.sin(R.time*.4)*.15; C.z=Math.cos(a)*4.4; C.tx=rs.x; C.ty=1.15; C.tz=0; C.fov=.85; C.roll=0;
   } else {
     R.warmStart=0;
-    const lift=pose.airLift*.28+(g.roofHeight||0)*.8;
-    C.x=rs.x*.55+shx; C.y=2.7+cam.bob+lift-cam.dip+shy; C.z=5.2;
-    C.tx=rs.x*.65+shx*.5; C.ty=1.1+lift*.5-cam.dip*.5; C.tz=-7;
+    const desiredLift=g.endless?(g.motion?.y||0)*.7:pose.airLift*.28;
+    cam.lift=(cam.lift||0)+(desiredLift-(cam.lift||0))*Math.min(1,s*5);
+    const lift=cam.lift;
+    C.x=rs.x*.25+shx; C.y=3.1+cam.bob+lift-cam.dip+shy; C.z=5.6;
+    C.tx=rs.x*.3+shx*.5; C.ty=1.05+lift*.6-cam.dip*.5; C.tz=-8;
     C.fov=cam.fov+cam.fovKick; C.roll=(reduced?0:cam.rollKick+s3dClamp(-rs.vx*.01,-.03,.03))+shake*.04*Math.sin(t28);
   }
   /* particles: motes in the air, dust off the planted foot, embers on a streak */
@@ -14431,13 +14450,7 @@ function samRunGLDraw(g,idle){
   for(const ob of g.obstacles){
     if(!ob.laneWave||ob._z==null) continue;
     const z=ob._z;
-    if(ob.huntToken){
-      const pr=s3dProject(r,S3D_LANE_X[ob.tokenLane],1.1+(ob.roof||0),z);
-      const scale=s3dClamp(.6+ob.progress*.4,.6,1);
-      ob.x=s3dClamp(pr.sx,boxPx/2,cssW-boxPx/2);ob.y=Math.max(cssH*.32,pr.sy);
-      ob.el.querySelectorAll('.lane-gate').forEach(gate=>{gate.style.transform=`translate(${ob.x}px,${ob.y}px) translate(-50%,-50%) scale(${scale})`;});
-      continue;
-    }
+    if(ob.huntToken)continue;
     const c=s3dProject(r,0,2.0,z);
     const scale=s3dClamp(c.pxPerM*1.32/boxPx,.56,1.0);
     const l0=s3dProject(r,S3D_LANE_X[0],2.0,z), l2=s3dProject(r,S3D_LANE_X[2],2.0,z);
@@ -14448,6 +14461,7 @@ function samRunGLDraw(g,idle){
       gate.style.transform=`translate(${(c.sx-shx*40+(i-1)*sep).toFixed(1)}px,${yTop.toFixed(1)}px) translate(-50%,-50%) scale(${scale.toFixed(3)})`;
     });
   }
+  if(g.endless)samRunPaintHuntLabels(g,r);
 }
 /* the record: a line across the road at the best distance, so a run has
    something to chase and a moment when it is beaten */
@@ -14600,7 +14614,7 @@ function samRunCoachDone(kind){
 }
 function samRunRunRoad(dt){
   const g=samRun, speed=samRunPace(g), still=prefersReducedStageMotion(), scene=!!samRunGL;
-  g.roadScroll=(g.roadScroll||0)+dt/1000*8.5*speed;
+  if(!g.endless||g.warmup)g.roadScroll=(g.roadScroll||0)+dt/1000*8.5*speed;
   /* the kerb stones and roadside props are the DOM road's; the rendered
      world places its own */
   if(!still&&!scene){
@@ -14625,13 +14639,17 @@ function samRunRunRoad(dt){
   samRunMaybeStartQueuedAir();
   samRunPaintArcade();
   for(const pu of g.pickups.slice()){
-    pu.p+=dt/pu.life*speed;
-    if(!pu.done&&pu.p>=.985&&(pu.wide||pu.lane===g.lane||(pu.kind==='coin'&&samRunFlowActive(g)))) samRunTakePickup(pu);
+    if(Number.isFinite(pu.at))pu.p=1-(pu.at-(g.roadScroll||0))/pu.approach;
+    else pu.p+=dt/pu.life*speed;
+    const inReach=!g.endless||pu.kind!=='coin'||samRunFlowActive(g)||Math.abs((g.motion?.y||0)-(pu.roof||0))<.7;
+    if(!pu.done&&pu.p>=.985&&inReach&&(pu.wide||pu.lane===g.lane||(pu.kind==='coin'&&samRunFlowActive(g)))) samRunTakePickup(pu);
+    if(!g.running)return;
     if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
     if(pu.p>0&&!scene) samRunPaintPickup(pu);
     else if(pu.kind==='slide'&&!pu.slid&&pu.p>=pu.slideAt){ pu.slid=true; pu.free=pu.free2; samRunPaintGap(pu); }
   }
   samRunGLDraw(g);
+  if(!scene&&g.endless) samRunPaintHuntLabels(g);
 }
 /* One camera for everything on the road. Screen size follows 1/z, so a thing
    hangs small near the horizon and then rushes past the player over the last
@@ -14919,7 +14937,7 @@ function samRunPaintPickup(pu){
      counter-scaled to a floor, so it is legible from the moment it appears. */
   if(pu.wide&&pu.kind!=='slide') pu.el.style.setProperty('--lbl',Math.min(2.5,Math.max(1,.82/scale)).toFixed(2));
   const x=pu.wide?g.worldW*.5:g.worldW*(.5+(pu.lane-1)*spread/100);
-  pu.x=x; pu.y=g.worldH*y/100;
+  pu.x=x; pu.y=g.worldH*y/100-(pu.roof||0)*55*scale;
   /* scale() sits to the left of the anchoring translate so the anchor shrinks
      with the thing itself — otherwise a distant object is lifted by its full
      unscaled height and floats above the road. */
@@ -14936,6 +14954,13 @@ function samRunTakePickup(pu){
     /* each coin in a line rings a semitone above the last: three coins are a phrase */
     g.coinLadder=g.time-(g.coinAt||-1e9)<600?Math.min(12,(g.coinLadder||0)+1):0; g.coinAt=g.time;
     pu.el.classList.add('is-taken'); samRunCoinFlight(at); samRunTone('coin',Math.pow(2,g.coinLadder/12)); samRunFloat('+'+value,at); samRunPaintHud(true);
+    return;
+  }
+  if(g.endless&&pu.trackHazard){
+    const cleared=pu.kind==='jump'?(g.motion?.y||0)>.38:g.air?.kind==='duck';
+    pu.el.classList.add('is-cleared');
+    if(cleared){g.clearedWalls++;g.coinsRun+=2;g.runCoinBonus+=2;samRunTone('clear');samRunFloat('+2',at);samRunPaintHud(true);}
+    else samRunTrackHit(g,pu.kind,pu.el);
     return;
   }
   if(pu.kind==='slide'){
@@ -14984,6 +15009,10 @@ const SAM_RUN_AIR_LEAD_MS=340;
 function samRunStartAir(kind){
   const g=samRun; if(!g||!g.running||!g.laneGame) return false;
   if(g.air&&g.air.until>g.time+220) return false;
+  if(g.endless){
+    const m=samRunMotion(g);if(!m.grounded)return false;
+    if(kind==='jump'){m.grounded=false;m.support=null;m.vy=SAM_RUN_JUMP_VELOCITY;}
+  }
   /* The airborne window has to match the animation exactly, or he is still
      drawn mid-air after the game has decided he landed. */
   const duration=kind==='jump'?700:600;
@@ -14999,6 +15028,9 @@ function samRunStartAir(kind){
 function samRunAirborne(kind){
   const g=samRun; if(!g||!g.running||!g.laneGame||g.paused) return;
   samRunCoachDone(kind);
+  // Arcade controls act on the swipe. A future obstacle must never delay a
+  // jump, especially when the player is leaving a roof right now.
+  if(g.endless){samRunStartAir(kind);return;}
   if(g.air&&g.air.until>g.time+220) return;
   const target=(g.pickups||[]).filter(p=>!p.done&&p.wide&&p.kind===kind).sort((a,b)=>samRunPickupIn(a)-samRunPickupIn(b))[0];
   const runner=document.getElementById('samRunRunner');
@@ -15202,7 +15234,10 @@ function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
 }
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame||g.paused) return;
-  lane=Math.max(0,Math.min(2,Number(lane)||0)); const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
+  lane=Math.max(0,Math.min(2,Number(lane)||0));
+  // Tapping across two lanes must also respect the solid lane in between.
+  for(let l=g.lane;l!==lane;){l+=Math.sign(lane-l);if(!samRunCanEnterLane(g,l)){samRunSetLaneVisual(g.lane);samRunPose('is-stumble',220);samRunTone('tick');return;}}
+  const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
   const runner=document.getElementById('samRunRunner');
   if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';samRunReplayFx(runner,['switch-left','switch-right'],cls);setTimeout(()=>runner.classList.remove(cls),340); }
   try{ navigator.vibrate?.(10); }catch(_){}
@@ -15220,82 +15255,205 @@ function samRunChooseLane(lane){
   samRunSpeakLane(ob,lane);
 }
 
-/* Rooftop expedition: targets stay visible, tokens arrive independently. */
+/* Distance owns the road, the words and the solid surfaces. Screen labels
+   are a reading aid, never a second, disconnected collision system. */
+const SAM_RUN_TRAIN={height:1.5,length:24,ramp:9};
+const SAM_RUN_GRAVITY=18, SAM_RUN_JUMP_VELOCITY=6.2;
 function samRunHuntBoard(g){
   const el=document.getElementById('samRunLanePrompt'); if(!el) return;
   el.classList.add('is-hunt');el.classList.toggle('hunt-avoid',!!g.hunt.avoid);
-  el.innerHTML=`<small>מסע ${g.hunt.round} · ${g.hunt.avoid?`התחמקו 4 פעמים! ${g.hunt.dodged}/4`:'אספו את המילים בכל סדר'}</small><div class="hunt-list">${g.hunt.targets.map(id=>`<b class="${g.hunt.found.includes(id)?'found':''}">${g.hunt.found.includes(id)?'✓ ':''}${esc(SAM_RUN_COMMANDS[id].he)}</b>`).join('')}</div><small>↔ בוחרים דרך · הרמפה מובילה לגג · בונוס מילים למעלה</small>`;
+  el.innerHTML=`<span class="hunt-instruction">${g.hunt.avoid?'התחמקו מ־':'אספו'}</span><div class="hunt-list">${g.hunt.targets.map(id=>`<b class="${g.hunt.found.includes(id)?'found':''}">${g.hunt.found.includes(id)?'✓ ':''}${esc(SAM_RUN_COMMANDS[id].he)}</b>`).join('')}</div><span class="hunt-count">${g.hunt.avoid?`${g.hunt.dodged}/3`:`${g.hunt.found.length}/${g.hunt.targets.length}`}</span>`;
+  g.huntLabelTop=(el.offsetTop||120)+(el.offsetHeight||48)+10;
 }
 function samRunHuntRound(g){
   const pool=[...new Set(g.active.concat(g.review||[],g.lesson||[]))].filter(id=>SAM_RUN_COMMANDS[id]);
-  for(const ob of g.obstacles||[]) if(ob.huntToken&&!ob.resolved){ob.resolved=true;ob.el.classList.add('is-poof');}
-  const round=(g.hunt?.round||0)+1,avoid=round%4===3,count=avoid?1:[1,2,1,3][(round-1)%4];
+  for(const ob of g.obstacles||[]) if(ob.huntToken){ob.resolved=true;ob.el.hidden=true;}
+  const round=(g.hunt?.round||0)+1,avoid=round%4===3,count=avoid?1:round%4===2?2:1;
   g.hunt={round,avoid,dodged:0,targets:shuffled(pool).slice(0,count),found:[],cursor:0};
+  g.nextSpawnAt=Math.max(g.nextSpawnAt||0,(g.time||0)+900);
   samRunHuntBoard(g);
 }
-function samRunRoofAt(g,d,lane){
-  let height=0;
+function samRunSurfaceAt(g,d,lane){
   for(const t of g.trains||[]){
     if(t.lane!==lane) continue;
-    const u=d-t.start;
-    if(u>=-10&&u<=40) height=Math.max(height,1.25*Math.max(0,Math.min(1,(u+10)/10,(40-u)/10)));
+    const u=d-t.start, length=t.length||SAM_RUN_TRAIN.length;
+    if(t.ramp!==false&&u>=-SAM_RUN_TRAIN.ramp&&u<0) return {height:SAM_RUN_TRAIN.height*(1+u/SAM_RUN_TRAIN.ramp),train:t,ramp:true};
+    if(u>=0&&u<=length) return {height:SAM_RUN_TRAIN.height,train:t,ramp:false};
   }
-  return height;
+  return {height:0,train:null,ramp:false};
+}
+function samRunRoofAt(g,d,lane){ return samRunSurfaceAt(g,d,lane).height; }
+function samRunMotion(g){
+  return g.motion||(g.motion={y:0,vy:0,grounded:true,support:null,lastD:g.roadScroll||0});
+}
+function samRunCanEnterLane(g,lane){
+  if(!g.endless) return true;
+  const m=samRunMotion(g),surface=samRunSurfaceAt(g,g.roadScroll||0,lane);
+  // A horizontal swipe cannot lift feet through the side of a train/ramp.
+  return surface.height<=m.y+.16;
+}
+function samRunTrackHit(g,kind,el){
+  if(g.time<(g.trackSafeUntil||0)) return;
+  g.trackSafeUntil=g.time+1100;g.streak=0;g.cleanStreak=0;samRunBreakFlow(g);
+  const hit={cmd:kind,el:el||{classList:{add(){}}}};
+  // Road collisions are not vocabulary mistakes and must not pollute mastery.
+  samRunHit(hit);delete g.hits[kind];
+}
+function samRunStepMotion(g,dt){
+  const m=samRunMotion(g),d=g.roadScroll||0,step=Math.min(50,Math.max(0,dt))/1000;
+  let surface=samRunSurfaceAt(g,d,g.lane);
+  const rise=surface.height-m.y,travel=Math.max(0,d-m.lastD);
+  if(m.grounded){
+    const canWalk=rise<=.035||(surface.ramp||surface.train&&surface.train===m.support)&&rise<=travel*SAM_RUN_TRAIN.height/SAM_RUN_TRAIN.ramp+.035;
+    if(canWalk&&surface.height>=m.y-.08){m.y=surface.height;m.support=surface.train;}
+    else if(rise>.08){
+      const safe=[g.lane-1,g.lane+1].filter(l=>l>=0&&l<=2&&samRunRoofAt(g,d,l)<=m.y+.1);
+      if(safe.length){g.lane=safe[0];samRunSetLaneVisual(g.lane);surface=samRunSurfaceAt(g,d,g.lane);}
+      samRunTrackHit(g,'train');
+    } else {m.grounded=false;m.vy=0;m.support=null;}
+  }
+  if(!m.grounded){
+    const oldY=m.y;
+    m.y+=m.vy*step-.5*SAM_RUN_GRAVITY*step*step;m.vy-=SAM_RUN_GRAVITY*step;
+    if(oldY>=surface.height-.035&&m.y<=surface.height&&m.vy<=0){
+      m.y=surface.height;m.vy=0;m.grounded=true;m.support=surface.train;
+      g.air=null;g.lastAir=null;
+      document.getElementById('samRunRunner')?.classList.remove('is-air-jump');
+      samRunTone('land');samRunPose('is-landing',180);
+      if(samRunGL&&!prefersReducedStageMotion())samRunGL.cam.dip=.075;
+    } else if(m.y<surface.height-.12){
+      const safe=[0,1,2].find(l=>l!==g.lane&&samRunRoofAt(g,d,l)<=m.y+.1);
+      if(safe!==undefined){g.lane=safe;samRunSetLaneVisual(safe);}
+      samRunTrackHit(g,'train');
+    }
+    if(m.y<0){m.y=0;m.vy=0;m.grounded=true;m.support=null;}
+  }
+  m.lastD=d;g.roofHeight=m.y;
 }
 function samRunAdventureStep(g,dt){
-  if(!g.endless||g.warmup) return;
+  if(!g.endless||g.warmup||g.paused) return;
   if(!g.hunt) samRunHuntRound(g);
   if(!g.trains) g.trains=[];
   const d=g.roadScroll||0;
   if(d>=(g.nextTrain||0)){
-    const lane=(Math.floor(d/95)+2)%3, start=d+65;
-    const el=document.createElement('div'); el.className='hunt-train'; el.innerHTML='<i>↗</i><b>ROOFTOP EXPRESS</b><span>▰ ▰ ▰ ▰</span>';
+    const seq=g.trainSeq||0,lane=[2,0,1,2,1,0][seq%6],start=d+52,ramp=seq%3!==1;
+    const el=document.createElement('div'); el.className='hunt-train'+(ramp?' has-ramp':''); el.innerHTML=`${ramp?'<i>↗</i>':''}<b>EXPRESS</b><span>▰ ▰ ▰</span>`;
     document.getElementById('samRunObstacles')?.appendChild(el);
-    g.trains.push({lane,start,el}); g.nextTrain=d+95;
-    samRunBanner('🚆 דרך חדשה! בחרו ברמפה ועלו לגג');
+    g.trains.push({lane,start,ramp,el});g.trainSeq=seq+1;g.nextTrain=d+110+(seq%2)*18;
+    if(ramp){
+      const host=document.getElementById('samRunRush');
+      if(host)for(let j=0;j<5;j++){
+        const at=start+3+j*4,approach=at-d,coin=document.createElement('i');coin.className='rush-coin';host.appendChild(coin);
+        g.pickups.push({el:coin,kind:'coin',lane,at,approach,roof:SAM_RUN_TRAIN.height,p:0,life:approach/8.5*1000,done:false});
+      }
+    }
   }
-  const target=samRunRoofAt(g,d,g.lane);
-  g.roofHeight=(g.roofHeight||0)+(target-(g.roofHeight||0))*Math.min(1,dt/140);
-  const runner=document.getElementById('samRunRunner'); if(runner) runner.style.translate='0 '+(-g.roofHeight*80)+'px';
+  samRunStepMotion(g,dt);
+  const runner=document.getElementById('samRunRunner'); if(runner){runner.style.translate='0 '+(-g.roofHeight*65)+'px';runner.classList.toggle('on-roof',g.motion.grounded&&g.motion.y>.2);}
   for(const t of g.trains.slice()){
-    if(d>t.start+65){t.el.remove();g.trains.splice(g.trains.indexOf(t),1);continue;}
+    if(d>t.start+SAM_RUN_TRAIN.length+12){t.el.remove();g.trains.splice(g.trains.indexOf(t),1);continue;}
     t.el.hidden=!!samRunGL;
     const depth=samRunDepth(1-(t.start-d)/80);
     t.el.style.cssText=`left:${50+(t.lane-1)*depth.spread}%;top:${depth.y}%;transform:translate(-50%,-100%) scale(${depth.scale});`;
   }
 }
+function samRunHuntLabelLayout(items,width,height,top=178){
+  const placed=[];
+  for(const item of items.slice().sort((a,b)=>a.ahead-b.ahead)){
+    const w=Math.min(128,width*.34),h=38;
+    const x=Math.max(w/2+6,Math.min(width-w/2-6,item.x));
+    const y=Math.max(top+h/2+2,item.y);
+    const rect={id:item.id,x,y,w,h,visible:false};
+    // Labels above a roof may project behind the task strip. Bring them just
+    // below it, then reject collisions so they can never pile up there.
+    if(item.ahead>=-1&&y>top+h/2&&y<height-20&&placed.filter(r=>r.visible).length<2){
+      rect.visible=!placed.some(r=>r.visible&&Math.abs(x-r.x)<(w+r.w)/2+10&&Math.abs(y-r.y)<(h+r.h)/2+12);
+    }
+    placed.push(rect);
+  }
+  return placed;
+}
+function samRunPaintHuntLabels(g,renderer){
+  const w=renderer?.cssW||g.worldW||390,h=renderer?.cssH||g.worldH||700;
+  const tokens=g.obstacles.filter(o=>o.huntToken),items=[];
+  for(const ob of tokens){
+    if(ob.resolved){ob.el.hidden=true;continue;}
+    const ahead=Number.isFinite(ob.at)?ob.at-(g.roadScroll||0):(1-ob.progress)*30;
+    const p=renderer?s3dProject(renderer,S3D_LANE_X[ob.tokenLane],.85+(ob.roof||0),-ahead):null;
+    const depth=samRunGateDepth(ob.progress);
+    items.push({id:ob.id,ahead,x:p?p.sx:w*(.5+(ob.tokenLane-1)*depth.spread/100),y:p?p.sy:h*depth.y/100-(ob.roof||0)*55*depth.scale});
+  }
+  const layout=samRunHuntLabelLayout(items,w,h,g.huntLabelTop);
+  for(const box of layout){
+    const ob=tokens.find(o=>o.id===box.id);ob.el.hidden=!box.visible;
+    if(!box.visible)continue;
+    ob.x=box.x;ob.y=box.y;
+    const gate=ob.el.querySelector('.lane-gate');if(!gate)continue;
+    gate.style.width=box.w+'px';gate.style.height=box.h+'px';
+    gate.style.fontSize=Math.min(18,(box.w-14)/Math.max(4,SAM_RUN_COMMANDS[ob.cmd].en.length*.6))+'px';
+    gate.style.transform=`translate(${box.x.toFixed(1)}px,${box.y.toFixed(1)}px) translate(-50%,-50%)`;
+    gate.classList.toggle('is-picked',ob.tokenLane===g.lane&&Math.abs((g.motion?.y||0)-(ob.roof||0))<.65);
+  }
+}
 function samRunSpawnHunt(){
   const g=samRun,host=document.getElementById('samRunObstacles'); if(!host||g.warmup) return;
   if(!g.hunt) samRunHuntRound(g);
+  const live=g.obstacles.filter(o=>o.huntToken&&!o.resolved);
+  if(live.length>=2){g.nextSpawnAt=g.time+150;return;}
+  const speed=8.5*samRunPace(g),distance=g.roadScroll||0;
+  // Every fourth beat is physical: read, steer, then jump or slide. There is
+  // enough clear time around it to avoid asking for two actions at contact.
+  const obstacleBeat=g.distance>=120&&g.encounterCount>0&&g.encounterCount%4===0&&g.lastRoadBeat!==g.encounterCount;
+  if(obstacleBeat){
+    const incoming=live.some(o=>(o.at-distance)/speed<4.3);
+    const trainNear=g.trains?.some(t=>t.start-distance<speed*5&&t.start+SAM_RUN_TRAIN.length>distance);
+    if(incoming){g.nextSpawnAt=g.time+150;return;}
+    if(!trainNear){
+      g.lastRoadBeat=g.encounterCount;
+      const pu=samRunSpawnWall((g.roadBeats||0)%2?'duck':'jump',2600);
+      if(pu){pu.trackHazard=true;g.roadBeats=(g.roadBeats||0)+1;g.nextSpawnAt=g.time+3300;return;}
+    }
+  }
   const remaining=g.hunt.targets.filter(id=>!g.hunt.found.includes(id));
   const pool=g.active.filter(id=>!g.hunt.targets.includes(id));
-  const decoy=!g.hunt.avoid&&g.hunt.cursor%4===3&&pool.length>0;
+  const decoy=!g.hunt.avoid&&g.hunt.cursor%3===1&&pool.length>0;
   const cmd=decoy?pick(pool):remaining[g.hunt.cursor%remaining.length];
   if(!cmd) return;
-  const lane=(g.hunt.cursor+g.hunt.round)%3; g.hunt.cursor++;
-  const travelMs=6800, c=SAM_RUN_COMMANDS[cmd];
+  const previous=live.at(-1)?.tokenLane;
+  const lanes=[0,1,2].filter(l=>l!==previous);
+  let lane=g.hunt.avoid&&g.lane!==previous?g.lane:pick(lanes);
+  const travelMs=3600,at=distance+speed*travelMs/1000;
+  // Targets only appear on roofs with an entrance still ahead of the player.
+  const surface=samRunSurfaceAt(g,at,lane);
+  if(surface.train&&(!surface.train.ramp||distance>surface.train.start-SAM_RUN_TRAIN.ramp)&&g.motion?.support!==surface.train){lane=pick(lanes.filter(l=>samRunRoofAt(g,at,l)===0));}
+  if(lane===undefined){g.nextSpawnAt=g.time+250;return;}
+  g.hunt.cursor++;
+  g.encounterCount=(g.encounterCount||0)+1;
+  const c=SAM_RUN_COMMANDS[cmd],roof=samRunRoofAt(g,at,lane);
   const el=document.createElement('div'); el.className='game-obstacle lane-wave hunt-token';
-  el.innerHTML=`<button type="button" class="lane-gate" style="font-size:${samRunGateFont(c.en,g.worldW)}px" onclick="samRunChooseLane(${lane})">${esc(c.en)}</button>`;host.appendChild(el);
-  g.obstacles.push({id:++g.obstacleSeq,cmd,el,options:[cmd,cmd,cmd],correctLane:lane,chosenLane:g.lane,tokenLane:lane,huntToken:true,huntRound:g.hunt.round,progress:0,travelMs,resolved:false,laneWave:true,mastery:g.store.mastery[cmd]||0});
-  g.nextSpawnAt=g.time+1450+(g.hunt.cursor%3)*180;
+  el.innerHTML=`<button type="button" class="lane-gate hunt-word" onclick="samRunChooseLane(${lane})">${esc(c.en)}</button>`;host.appendChild(el);
+  g.obstacles.push({id:++g.obstacleSeq,cmd,el,at,roof,approach:speed*travelMs/1000,options:[cmd,cmd,cmd],correctLane:lane,chosenLane:g.lane,tokenLane:lane,huntToken:true,huntRound:g.hunt.round,progress:0,travelMs,resolved:false,laneWave:true,mastery:g.store.mastery[cmd]||0});
+  g.nextSpawnAt=g.time+2350;
 }
 function samRunResolveHunt(ob){
   const g=samRun;
+  if(ob.resolved) return;
+  const reached=g.lane===ob.tokenLane&&Math.abs((g.motion?.y??g.roofHeight??0)-(ob.roof||0))<.65;
   if(g.hunt.avoid&&ob.huntRound===g.hunt.round){
     ob.resolved=true;ob.el.classList.add('is-poof');
-    if(g.lane===ob.tokenLane){g.streak=0;samRunHit(ob);}
-    else {g.hunt.dodged++;samRunTone('tick');if(g.hunt.dodged>=4){samRunHuntReward(g);return;}}
+    if(reached){g.streak=0;samRunHit(ob);}
+    else {g.hunt.dodged++;samRunTone('tick');if(g.hunt.dodged>=3){samRunHuntReward(g);return;}}
     samRunHuntBoard(g);return;
   }
   // Passing a token is a route choice, never a wrong answer. Old-board
   // tokens expire when the expedition changes, without costing a heart.
-  if(g.lane!==ob.tokenLane||ob.huntRound!==g.hunt.round||g.hunt.found.includes(ob.cmd)){
+  if(!reached||ob.huntRound!==g.hunt.round||g.hunt.found.includes(ob.cmd)){
     ob.resolved=true;ob.el.classList.add('is-poof');return;
   }
   if(!g.hunt.targets.includes(ob.cmd)){
     ob.resolved=true;ob.el.classList.add('is-poof');g.streak=0;samRunHit(ob);return;
   }
-  g.hunt.found.push(ob.cmd);ob.armed=ob.cmd;ob.bonus=(g.roofHeight||0)>.8;
+  g.hunt.found.push(ob.cmd);ob.armed=ob.cmd;ob.bonus=(ob.roof||0)>.8;
   ob.huntToken=false;samRunResolve(ob);ob.huntToken=true;
   if(!g.running) return;
   if(g.hunt.found.length===g.hunt.targets.length){
@@ -15306,19 +15464,28 @@ function samRunHuntReward(g){
   g.coinsRun+=10;g.runCoinBonus+=10;samRunPaintHud();samRunBanner('✨ מסע הושלם! +10 זהב');samRunTone('clear');samRunHuntRound(g);
 }
 function s3dDrawTrains(r,g){
-  const K=r.kinds;
+  const K=r.kinds,H=SAM_RUN_TRAIN.height,L=SAM_RUN_TRAIN.length,A=SAM_RUN_TRAIN.ramp;
   for(const t of g.trains||[]){
     const x=S3D_LANE_X[t.lane],z=t.start-(g.roadScroll||0);
-    s3dPushTRS(K.box,x,.55,-z-15,0,0,0,.96,1.1,30,[.08,.26,.35]);
-    s3dPushTRS(K.box,x,1.18,-z-15,0,0,0,1.02,.14,30,[.2,.75,.7]);
-    for(const end of [0,30]){
-      const mid=end===0?-z+5:-z-35;
-      s3dPushTRS(K.box,x,.625,mid,end===0?.124:-.124,0,0,1.02,.08,10.08,[.96,.72,.24]);
+    s3dPushTRS(K.box,x,.78,-z-L/2,0,0,0,.98,1.32,L,[.1,.25,.36]);
+    s3dPushTRS(K.box,x,H-.06,-z-L/2,0,0,0,1.02,.12,L,[.3,.42,.51]);
+    for(const side of [-1,1]){
+      s3dPushTRS(K.box,x+side*.44,H+.012,-z-L/2,0,0,0,.045,.025,L,[1,.76,.28],1,5);
+      s3dPushTRS(K.box,x+side*.499,.45,-z-L/2,0,0,0,.014,.11,L,[.9,.65,.19]);
     }
-    for(let j=2;j<30;j+=4) for(const side of [-1,1]){
-      s3dPushTRS(K.box,x+side*.485,.78,-z-j,0,0,0,.015,.36,2.4,[.55,.88,.98],1,5);
-      s3dPushTRS(K.sphere,x+side*.44,.16,-z-j,0,0,0,.14,.18,.25,[.06,.08,.12]);
+    if(t.ramp!==false){
+      const tilt=Math.atan(H/A);
+      s3dPushTRS(K.box,x,H/2-.03,-z+A/2,tilt,0,0,1.02,.06,Math.hypot(H,A),[.82,.58,.2]);
+      for(let j=1;j<A;j+=1.5)s3dPushTRS(K.box,x,H*(1-j/A)+.018,-z+j,tilt,0,0,.98,.025,.1,[1,.88,.56]);
+    }else{
+      s3dPushTRS(K.box,x,.7,-z+.025,0,0,0,.82,.15,.04,[.98,.58,.22],1,3,7);
+      for(const side of [-1,1])s3dPushTRS(K.sphere,x+side*.3,.38,-z+.06,0,0,0,.065,.055,.025,[1,.26,.18],1,5);
     }
+    for(let j=1.5;j<L;j+=3)for(const side of [-1,1]){
+      s3dPushTRS(K.box,x+side*.497,1.0,-z-j,0,0,0,.016,.39,1.7,[.4,.66,.8]);
+      s3dPushTRS(K.cyl,x+side*.46,.18,-z-j,0,0,Math.PI/2,.24,.13,.24,[.065,.09,.12]);
+    }
+    s3dPushTRS(K.box,x,H+.015,-z-L+.3,0,0,0,1.02,.03,.5,[1,.75,.25],1,3,7);
   }
 }
 
