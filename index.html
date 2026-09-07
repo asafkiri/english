@@ -2310,6 +2310,12 @@ body{
 .game-lane-prompt .sentence-slot.current.is-hint{padding-inline:.38em;color:#fff3b0}
 .game-lane-prompt .sentence-slot.future{width:1.5em;border-bottom:3px solid rgba(221,214,254,.46);border-radius:0}
 .game-lane-prompt .game-sentence.done .sentence-slot{color:#6ee7b7;border-color:rgba(110,231,183,.5);background:rgba(16,185,129,.13)}
+/* The beat after a wrong answer. Deliberately the calmest thing on the road:
+   green rather than red, because what it shows is the answer, not the mistake. */
+.game-world.lane-game .game-lane-prompt.is-correction{width:min(360px,calc(100% - 22px));min-width:0;padding:8px 14px 10px;border:2px solid rgba(110,231,183,.66);border-radius:19px;background:linear-gradient(145deg,rgba(6,40,33,.96),rgba(8,15,30,.96));box-shadow:0 10px 30px rgba(0,0,0,.44)}
+.game-world.lane-game .game-lane-prompt.is-correction small{display:block;color:#6ee7b7;font-size:12px;font-weight:900}
+.game-lane-prompt.is-correction .correction-en{display:block;margin-top:2px;color:#fff;font-size:clamp(26px,7vw,34px);font-weight:1000;letter-spacing:.02em;line-height:1.1}
+.game-lane-prompt.is-correction .correction-he{display:block;margin-top:1px;color:#c8f5e2;font-size:clamp(15px,4vw,18px);font-weight:800;line-height:1.2}
 /* Only the few words that cannot fit give any size back. WEDNESDAY and
    BEAUTIFUL are rare; JUMP and RED are not, and they get the full size. */
 .game-obstacle.lane-wave 
@@ -2630,29 +2636,15 @@ body{
 .arcade-how{display:grid;gap:13px;text-align:right;max-width:330px;margin:12px 0}.arcade-how>div{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center}.arcade-how b{display:grid;place-items:center;width:42px;height:42px;background:#21384f;border:1px solid #5f7f9666;border-radius:12px;font-size:20px;color:#93f0d2}.arcade-how span{font-size:13px;color:#d1dfed;line-height:1.5}
 
 
-/* The task is a compact strip; the road gets the screen space. Word labels
-   use bounded reading sizes and are culled before they can overlap. */
-.game-arcade-playing>.game-mission{display:none}
+/* The chrome above the road is a compact strip; the road gets the screen
+   space. The distance strip stays — on the endless road it is the score. */
+.game-arcade-playing>.game-mission{min-height:26px;padding:4px 9px}
 .game-arcade-playing>.game-top{min-height:48px;padding:4px 7px;border-radius:14px}
 .game-arcade-playing>.game-bonus-mission{min-height:26px;padding:5px 9px;box-shadow:none;border-radius:10px}
 .game-arcade-playing .game-title{font-size:12px;max-width:86px;white-space:normal}
 .game-arcade-playing .game-build{border:0;padding:0;background:none}
-#samRunLanePrompt.is-hunt{display:flex;align-items:center;justify-content:center;gap:9px;top:calc(max(9px,env(safe-area-inset-top)) + 102px);max-width:480px;min-width:0;width:calc(100% - 28px);min-height:48px;padding:7px 10px;background:#0a2033ed;border:1px solid #a7cad254;border-radius:14px;color:#fff;box-shadow:0 5px 15px #001b3526;box-sizing:border-box}
-.hunt-instruction{font-size:14px;font-weight:750;color:#b8e3df;white-space:nowrap}.hunt-count{font-size:12px;color:#a9c7d6;font-variant-numeric:tabular-nums;white-space:nowrap}
-.hunt-list{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:0}
-.hunt-list b{padding:3px 7px;border-radius:7px;background:transparent;border:0;font-size:21px;line-height:1.25}
-.hunt-list b.found{background:#3cd7a3;color:#082b25;border-color:#8affd6}
-.game-world .game-obstacle.hunt-token .lane-gate{width:112px;height:38px;min-height:0;padding:5px 6px;margin:0;border-radius:12px;background:linear-gradient(160deg,#1c4258f5,#102b40f5);color:#fff;border:1.5px solid #b0dbed;box-shadow:inset 0 1px #ffffff18,0 3px 0 #061c2b,0 5px 12px #0004;font-size:17px;font-weight:900;line-height:1;letter-spacing:0;white-space:nowrap;overflow:visible;outline:0;transition:border-color .1s;will-change:transform;z-index:2}
-.game-world .game-obstacle.hunt-token .lane-gate.is-picked{border-color:#9bffd0;box-shadow:0 3px 0 #061c2b,0 0 0 2px #9bffd03d}
-.hunt-token[hidden]{display:none!important}
-.game-world .game-obstacle.hunt-token .lane-gate:after{display:none}
-.hunt-train{position:absolute;width:95px;height:230px;z-index:2;border-radius:24px 24px 8px 8px;background:linear-gradient(90deg,#17465b,#42a8ac 18%,#39c9bc 80%,#17465b);border:3px solid #9df0e5;box-shadow:0 15px 0 #102638;color:white;display:flex;align-items:center;flex-direction:column;justify-content:space-around;pointer-events:none;transform-origin:50% 100%}
-.hunt-train i{position:absolute;top:100%;height:90px;width:100%;background:repeating-linear-gradient(0deg,#e0a63d 0 12px,#ffe591 12px 16px);clip-path:polygon(0 0,100% 0,90% 100%,10% 100%);color:#18394a;font-size:40px;text-align:center;font-style:normal}
-.hunt-train b{font-size:10px;writing-mode:vertical-rl;letter-spacing:3px}.hunt-train span{color:#b5f1ff;font-size:22px;writing-mode:vertical-rl}
 .game-back-rig .back-body{filter:drop-shadow(2px 2px 2px #0003)}
 
-#samRunLanePrompt.hunt-avoid{border-color:#ff997c;background:#431e32ed}#samRunLanePrompt.hunt-avoid .hunt-instruction{color:#ffc8b7}#samRunLanePrompt.hunt-avoid .hunt-list b{background:transparent;color:white}
-@media(max-height:700px){#samRunLanePrompt.is-hunt{min-height:42px;padding:5px 8px;top:calc(max(9px,env(safe-area-inset-top)) + 96px)}.hunt-list b{font-size:18px}.hunt-instruction{font-size:13px}}
 </style>
 </head>
 <body>
@@ -7254,7 +7246,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.54.2';
+const APP_VERSION = '2.55.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11835,6 +11827,10 @@ const SAM_RUN_PHASES=[
    grows is the distance. Everything a world used to gate behind a phase is
    gated here behind distance instead, so the run introduces itself. */
 const SAM_RUN_ENDLESS_PHASE={id:'endless',icon:'♾️',title:'ריצה חופשית',hint:'רצים כמה שאפשר — המילים שלך, המהירות עולה.'};
+/* What the endless road earns as it goes. Everything here is a mechanic that
+   sits BETWEEN the questions rather than on top of them — the walls, hurdles
+   and tunnels are aimed into the gaps the scheduler leaves — so the run keeps
+   getting more interesting without ever making the words harder to read. */
 const SAM_RUN_FEATURE_AT={coins:0,walls:320,sentences:450,hurdles:620,pairs:1000,slider:1150,tunnel:1550};
 const SAM_RUN_MEDALS=[
   {m:250,icon:'🥉',title:'רץ מתחיל'},
@@ -12361,8 +12357,11 @@ function samRunPace(g){
 function samRunWaveTiming(g){
   if(g.endless){
     /* No phases out here: the wave tightens as the run gets longer, and the
-       look the player gets before it starts moving shortens with it. */
-    return {travelMs:Math.max(1100,Math.round(2400/samRunPace(g))),warnMs:Math.max(400,Math.round(700-(g.distance||0)/5))};
+       look the player gets before it starts moving shortens with it. The
+       floors are the point at which it stops tightening: three English words
+       have to be read and one of them chosen, and below about 1.9s in total
+       that stops being a reading task and becomes a guessing one. */
+    return {travelMs:Math.max(1350,Math.round(2400/samRunPace(g))),warnMs:Math.max(540,Math.round(700-(g.distance||0)/5))};
   }
   const phasePace=g.phase.id==='final'?.74:g.phase.id==='speed'?.82:1;
   const warnMs=g.phase.id==='final'?500:650;
@@ -12526,10 +12525,10 @@ function samRunWordsHtml(g){
 }
 function samRunEndlessCardHtml(store){
   const best=store.bestDistance||0;
-  return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN · ROOFTOP EXPRESS</span><h2>כל מסע — דרך חדשה</h2>
-    <div class="arcade-how"><div><b>↔</b><span>מילה אחת בכל פעם בדרך — אוספים מטרות ומתחמקים מפיתיונות</span></div><div><b>↑ ↓</b><span>בוחרים רמפה, רצים על גג הרכבת ויורדים למסלול אחר</span></div><div><b>⚡</b><span>6 תשובות ברצף = מטבעות כפולים ומגנט ל־11 שניות</span></div></div>
-    <p>${best?`השיא שלך: ${best} מ׳`:'אסוף מטבעות, השלם יעדים ועצב את סם בחנות.'}</p>
-    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ◀</button><small class="game-start-tip">מטרות משתנות · אספו או התחמקו לפי ההוראה · 3 לבבות</small>`;
+  return `<span class="arcade-eyebrow" dir="ltr">SAM’S RUN</span><h2>קוראים באנגלית — ורצים</h2>
+    <div class="arcade-how"><div><b>↔</b><span>למעלה מופיעה מילה בעברית. עוברים למסלול שבו כתוב התרגום שלה באנגלית</span></div><div><b>🔊</b><span>כל תשובה נכונה נשמעת באנגלית — וטעות מראה ומשמיעה את המילה הנכונה, שחוזרת שוב בהמשך</span></div><div><b>⬆ ⬇</b><span>מחליקים למעלה או למטה כדי לקפוץ ולהתכופף מעל מכשולים בדרך</span></div></div>
+    <p>${best?`השיא שלך: ${best} מ׳`:'ככל שרצים רחוק יותר, כך מצטרפות מילים, מכשולים ומשפטים שלמים.'}</p>
+    <button class="btn game-start-run" onclick="samRunStart()">מתחילים לרוץ ◀</button><small class="game-start-tip">3 לבבות · 6 תשובות ברצף = מצב זהב</small>`;
 }
 function samRunHeardHtml(g){
   return g.running?'בחר את התרגום באנגלית — והקשב להגייה 🔊':'🔊 התשובה הנכונה נשמעת כשסם במסלול שלה.';
@@ -12615,7 +12614,7 @@ function samRunHubHtml(store){
       <div class="arcade-hero-body"><div class="arcade-record-row"><div><span class="arcade-eyebrow">השיא האישי</span><b>${best}<small> מ׳</small></b></div><div class="arcade-medal-next">${next?`${next.icon}<strong>${next.m} מ׳</strong><small>המדליה הבאה</small>`:'🏆<strong>כל המדליות שלך</strong>'}</div></div>
       <div class="game-map-progress"><i style="width:${next?Math.min(100,best/next.m*100):100}%"></i></div>
       <button class="btn game-hub-go" onclick="${store.plays?'samRunQuickStart()':'renderSamRunEndless()'}"><span>יוצאים לריצה</span><span aria-hidden="true">◀</span></button>
-      <p class="arcade-gold-hint">⚡ 6 תשובות ברצף מפעילות מצב זהב</p>
+      <p class="arcade-gold-hint">קוראים את התרגום ובוחרים מסלול · 6 ברצף = מצב זהב ⚡</p>
       <div class="game-hub-medals">${SAM_RUN_MEDALS.map(x=>`<span class="${medals.includes(x.m)?'won':''}" title="${esc(x.title)} · ${x.m} מ׳">${x.icon}<small>${x.m}</small></span>`).join('')}</div>
       <p class="game-hub-words">${course?`📚 ${course} מילים מהשיעורים שלך`:`📚 ${words.active.length} מילים מחכות על המסלול`} · 🪙 ${store.coins||0}</p>
       <div class="game-map-actions"><button onclick="renderSamRunMap()">🎯 אימון ממוקד</button></div></div>
@@ -12766,7 +12765,7 @@ function renderSamRun(stageIndex=null,endless=false){
     distance:0,lastMetre:-1,sceneOrigin:stageIndex,flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,
     sentences,sentenceWords:[...new Set(sentences.flatMap(x=>x.words))],
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
-    props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,
+    retry:[],props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,
     review:endless?endlessWords.filler:samRunReviewPool(store,stageIndex,phaseIndex),
     lesson:endless?[]:(phaseIndex?samRunLessonPool(state.completed,6):[]),
     raf:0,timer:0,rec:null,heardKeys:new Set(),heardAt:0,lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,obstacleSeq:0,
@@ -12962,7 +12961,7 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    hunt:null,trains:[],nextTrain:0,trainSeq:0,roofHeight:0,motion:null,trackSafeUntil:0,encounterCount:0,roadBeats:0,lastRoadBeat:null,props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
+    retry:[],props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,careerReward:null,arcadeSeen:{},hudSeen:{},missionCelebrated:false,bannerUntil:0,checkpointAt:0,recordCelebrated:false,lastAir:null,roadScroll:0,glSeen:0,glEma:0});
   document.getElementById('samRunBanner')?.classList.remove('on');
@@ -13076,7 +13075,7 @@ function samRunFrame(ts){
   }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
-    if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g);g.roadScroll=g.distance;samRunAdventureStep(g,dt);if(!g.running)return;samRunEndlessTick(); }
+    if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g);g.roadScroll=g.distance;samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
     // window — unless a thing is already holding for it, which runs on its
@@ -13091,9 +13090,7 @@ function samRunFrame(ts){
          Sam, once, for up to the grace window, so a word said in time is
          never lost to the time it takes to be understood. */
       const speaking=!!g.speechAt&&ob===target&&!ob.resolved&&ob.armed!==ob.cmd&&!ob.holdSpent;
-      if(ob.huntToken&&Number.isFinite(ob.at)){
-        ob.progress=1-(ob.at-(g.roadScroll||0))/ob.approach;
-      } else if(speaking&&ob.progress>=.96){
+      if(speaking&&ob.progress>=.96){
         ob.progress=.96;
         if(!ob.holding){ ob.holding=true; ob.holdAt=g.time; samRunBrace(true); }
         else if(g.time-ob.holdAt>SAM_RUN_GRACE_MS){ ob.holdSpent=true; ob.holding=false; g.speechAt=0; samRunBrace(false); samRunHearing(false); }
@@ -13103,19 +13100,19 @@ function samRunFrame(ts){
       }
       if(!ob.resolved&&ob.progress>=1) samRunResolve(ob);
       if(!g.running) return; // The final result is banked; no later pickup may change it.
-      if(ob.progress>=(ob.huntToken?1.07:1.32)){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
+      if(ob.progress>=1.32){ ob.el.remove(); g.obstacles.splice(g.obstacles.indexOf(ob),1); continue; }
       // before its run a thing waits at the edge as a small badge with a "!"
       const incoming=ob.progress<0;
       if(incoming!==ob.incoming){ ob.incoming=incoming; ob.el.classList.toggle('is-incoming',incoming); }
       if(ob.laneWave){
         /* the rendered world places the gates itself, in samRunGLDraw */
-        if(scene||ob.huntToken) continue;
+        if(scene) continue;
         const {y,scale,spread}=samRunGateDepth(ob.progress);
         ob.x=g.worldW*(.5+(ob.chosenLane-1)*spread/100); ob.y=g.worldH*y/100;
         ob.el.style.setProperty('--gate-y',y+'%'); ob.el.style.setProperty('--gate-scale',scale);
         ob.el.querySelectorAll('.lane-gate').forEach((gate,i)=>{
-          const x=g.worldW*(50+((ob.huntToken?ob.tokenLane:i)-1)*spread)/100;
-          gate.style.transform=`translate(${x.toFixed(1)}px,${(ob.y-(ob.huntToken?samRunRoofAt(g,(g.roadScroll||0)+(1-ob.progress)*ob.travelMs/1000*8.5*samRunPace(g),ob.tokenLane)*55*scale:0)).toFixed(1)}px) translate(-50%,-50%) scale(${scale})`;
+          const x=g.worldW*(50+(i-1)*spread)/100;
+          gate.style.transform=`translate(${x.toFixed(1)}px,${ob.y.toFixed(1)}px) translate(-50%,-50%) scale(${scale})`;
         });
       } else {
         const startX=g.worldW-62;
@@ -14129,11 +14126,6 @@ function s3dDrawPickup(r,pu,z,time,state,runnerX){
    the wave resolves the right one turns green and a wrong pick red */
 function s3dDrawGate(r,ob,z,accent,st,time){
   const K=r.kinds;
-  if(ob.huntToken){
-    // The word itself is the collectible. A second distant orb made it look
-    // detached from its label, requiring the now-removed connector wires.
-    return;
-  }
   for(let i=0;i<3;i++){
     const x=S3D_LANE_X[i], picked=i===ob.chosenLane;
     let col=s3dMix(accent,[1,1,1],.15), a=.22, tall=false;
@@ -14347,11 +14339,6 @@ function samRunGLDraw(g,idle){
   if(missed) lookX=S3D_LANE_X[missed.correctLane];
   const pose=s3dRunnerPose(g,rs,g.time,dt,speed,cadence,{lookX,idle:!!idle||!g.running,time:R.time});
   const P=pose.P; P.x=rs.x; P.z=0;
-  if(g.endless&&g.motion){
-    P.y+=g.motion.y;
-    if(pose.airKind==='jump')P.rootY=0;
-    if(!g.motion.grounded){P.ground=false;P.hipL+=.2;P.hipR+=.2;P.kneeL-=.25;P.kneeR-=.25;}
-  }
   P.bank+=s3dClamp(-rs.vx*.05,-.24,.24);
   /* rides carry him differently: standing on a scooter, seated on a bike, tucked into a car */
   if(R.ride){
@@ -14364,8 +14351,7 @@ function samRunGLDraw(g,idle){
   }
   const drawn=s3dDrawRig(r,R.look,P);
   const h=Math.max(0,drawn.footY);
-  const floor=samRunRoofAt(g,g.roadScroll||0,g.lane),above=Math.max(0,(g.motion?.y||0)-floor);
-  s3dPushTRS(r.kinds.disc,rs.x,floor+.03,.02,0,0,0,.5/(1+above),1,.72/(1+above),[0,0,0],.42/(1+above),4);
+  s3dPushTRS(r.kinds.disc,rs.x,.03,.02,0,0,0,.5,1,.72,[0,0,0],.42,4);
   /* the shield: a real bubble around him, breathing */
   if(g.shield){ const br=1+.03*Math.sin(R.time*7.5); s3dPushTRS(r.kinds.sphere,rs.x,1.0+h,0,0,R.time*.6,0,1.0*br,1.15*br,1.0*br,[.5,.75,1],.3,6); }
   if(samRunFlowActive(g)){
@@ -14378,23 +14364,21 @@ function samRunGLDraw(g,idle){
   s3dSceneryStep(R,T,scroll);
   s3dSceneryDraw(r,R,scroll,R.time);
   samRunGLRecordLine(R,g,scroll);
-  s3dDrawTrains(r,g);
   for(const pu of g.pickups){
     let st=R.pickupState.get(pu); if(!st){ st={}; R.pickupState.set(pu,st); }
-    st.runnerY=g.motion?.y||0;
     if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',st.magnet?rs.x:S3D_LANE_X[pu.lane],0,8); }
     if(st.tunnel==null) st.tunnel=!!pu.el?.classList?.contains?.('is-tunnel');
     const ms=samRunPickupIn(pu), z=-(ms/1000)*(roadSpeed||8.5);
     if(z<-140||z>6) continue;
     /* a coin in his lane is drawn to him over the last stretch, so a take never looks like a miss */
-    if(!pu.done) st.magnet=pu.kind==='coin'&&(samRunFlowActive(g)||pu.lane===g.lane&&(!g.endless||Math.abs((g.motion?.y||0)-(pu.roof||0))<.7))&&pu.p>.82?Math.min(1,(pu.p-.82)/.165):0;
+    if(!pu.done) st.magnet=pu.kind==='coin'&&(samRunFlowActive(g)||pu.lane===g.lane)&&pu.p>.82?Math.min(1,(pu.p-.82)/.165):0;
     s3dDrawPickup(r,pu,z,R.time,st,rs.x);
     const pr=s3dProject(r,pu.wide?0:S3D_LANE_X[pu.lane],(pu.roof||0)+(pu.kind==='duck'?1.6:.5),z);
     pu.x=pr.sx; pu.y=pr.sy;
   }
   for(const ob of g.obstacles){
     if(!ob.laneWave) continue;
-    const rv=roadSpeed||8.5, {travelMs}=ob, dist=ob.huntToken&&Number.isFinite(ob.at)?ob.at-scroll:Math.min(travelMs/1000*rv+2,(1-ob.progress)*travelMs/1000*rv);
+    const rv=roadSpeed||8.5, {travelMs}=ob, dist=Math.min(travelMs/1000*rv+2,(1-ob.progress)*travelMs/1000*rv);
     const z=-Math.max(-4,dist);
     let st=R.gateState.get(ob); if(!st){ st={}; R.gateState.set(ob,st); }
     if(ob.resolved&&!st.resolvedAt){ st.resolvedAt=R.time; if(ob.armed===ob.cmd){ samRunEmit('ring',S3D_LANE_X[ob.correctLane],z,24,accent); R.cam.fovKick=.06; } }
@@ -14428,7 +14412,7 @@ function samRunGLDraw(g,idle){
     const a=R.time*.28; C.x=rs.x+Math.sin(a)*4.4; C.y=1.6+Math.sin(R.time*.4)*.15; C.z=Math.cos(a)*4.4; C.tx=rs.x; C.ty=1.15; C.tz=0; C.fov=.85; C.roll=0;
   } else {
     R.warmStart=0;
-    const desiredLift=g.endless?(g.motion?.y||0)*.7:pose.airLift*.28;
+    const desiredLift=pose.airLift*.28;
     cam.lift=(cam.lift||0)+(desiredLift-(cam.lift||0))*Math.min(1,s*5);
     const lift=cam.lift;
     C.x=rs.x*.25+shx; C.y=3.1+cam.bob+lift-cam.dip+shy; C.z=5.6;
@@ -14450,7 +14434,6 @@ function samRunGLDraw(g,idle){
   for(const ob of g.obstacles){
     if(!ob.laneWave||ob._z==null) continue;
     const z=ob._z;
-    if(ob.huntToken)continue;
     const c=s3dProject(r,0,2.0,z);
     const scale=s3dClamp(c.pxPerM*1.32/boxPx,.56,1.0);
     const l0=s3dProject(r,S3D_LANE_X[0],2.0,z), l2=s3dProject(r,S3D_LANE_X[2],2.0,z);
@@ -14461,7 +14444,6 @@ function samRunGLDraw(g,idle){
       gate.style.transform=`translate(${(c.sx-shx*40+(i-1)*sep).toFixed(1)}px,${yTop.toFixed(1)}px) translate(-50%,-50%) scale(${scale.toFixed(3)})`;
     });
   }
-  if(g.endless)samRunPaintHuntLabels(g,r);
 }
 /* the record: a line across the road at the best distance, so a run has
    something to chase and a moment when it is beaten */
@@ -14629,27 +14611,20 @@ function samRunRunRoad(dt){
   /* Coins and roadworks stay out of the way of a question that is already
      closing in, so steering for a coin can never cost an answer. */
   const live=g.obstacles.find(o=>!o.resolved&&o.laneWave);
-  if(!g.endless&&!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
-  if(g.endless&&!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt){
-    if(samRunFlowActive(g)) for(let lane=0;lane<3;lane++) samRunSpawnCoins(lane,2200);
-    else samRunSpawnCoins((g.hunt?.cursor||0)%3,2200);
-    g.nextPickupAt=g.time+3800;
-  }
+  if(!g.finishing&&!g.warmup&&g.time>=g.nextPickupAt&&(!live||live.progress<.4)) samRunSpawnPickup();
   samRunLand();
   samRunMaybeStartQueuedAir();
   samRunPaintArcade();
   for(const pu of g.pickups.slice()){
     if(Number.isFinite(pu.at))pu.p=1-(pu.at-(g.roadScroll||0))/pu.approach;
     else pu.p+=dt/pu.life*speed;
-    const inReach=!g.endless||pu.kind!=='coin'||samRunFlowActive(g)||Math.abs((g.motion?.y||0)-(pu.roof||0))<.7;
-    if(!pu.done&&pu.p>=.985&&inReach&&(pu.wide||pu.lane===g.lane||(pu.kind==='coin'&&samRunFlowActive(g)))) samRunTakePickup(pu);
+    if(!pu.done&&pu.p>=.985&&(pu.wide||pu.lane===g.lane||(pu.kind==='coin'&&samRunFlowActive(g)))) samRunTakePickup(pu);
     if(!g.running)return;
     if(pu.p>=1.2){ pu.el.remove(); g.pickups.splice(g.pickups.indexOf(pu),1); continue; }
     if(pu.p>0&&!scene) samRunPaintPickup(pu);
     else if(pu.kind==='slide'&&!pu.slid&&pu.p>=pu.slideAt){ pu.slid=true; pu.free=pu.free2; samRunPaintGap(pu); }
   }
   samRunGLDraw(g);
-  if(!scene&&g.endless) samRunPaintHuntLabels(g);
 }
 /* One camera for everything on the road. Screen size follows 1/z, so a thing
    hangs small near the horizon and then rushes past the player over the last
@@ -14956,13 +14931,6 @@ function samRunTakePickup(pu){
     pu.el.classList.add('is-taken'); samRunCoinFlight(at); samRunTone('coin',Math.pow(2,g.coinLadder/12)); samRunFloat('+'+value,at); samRunPaintHud(true);
     return;
   }
-  if(g.endless&&pu.trackHazard){
-    const cleared=pu.kind==='jump'?(g.motion?.y||0)>.38:g.air?.kind==='duck';
-    pu.el.classList.add('is-cleared');
-    if(cleared){g.clearedWalls++;g.coinsRun+=2;g.runCoinBonus+=2;samRunTone('clear');samRunFloat('+2',at);samRunPaintHud(true);}
-    else samRunTrackHit(g,pu.kind,pu.el);
-    return;
-  }
   if(pu.kind==='slide'){
     if(g.lane===pu.free){
       g.runCoinBonus=(g.runCoinBonus||0)+1; g.coinsRun=(g.coinsRun||0)+1;
@@ -15009,10 +14977,6 @@ const SAM_RUN_AIR_LEAD_MS=340;
 function samRunStartAir(kind){
   const g=samRun; if(!g||!g.running||!g.laneGame) return false;
   if(g.air&&g.air.until>g.time+220) return false;
-  if(g.endless){
-    const m=samRunMotion(g);if(!m.grounded)return false;
-    if(kind==='jump'){m.grounded=false;m.support=null;m.vy=SAM_RUN_JUMP_VELOCITY;}
-  }
   /* The airborne window has to match the animation exactly, or he is still
      drawn mid-air after the game has decided he landed. */
   const duration=kind==='jump'?700:600;
@@ -15028,9 +14992,6 @@ function samRunStartAir(kind){
 function samRunAirborne(kind){
   const g=samRun; if(!g||!g.running||!g.laneGame||g.paused) return;
   samRunCoachDone(kind);
-  // Arcade controls act on the swipe. A future obstacle must never delay a
-  // jump, especially when the player is leaving a roof right now.
-  if(g.endless){samRunStartAir(kind);return;}
   if(g.air&&g.air.until>g.time+220) return;
   const target=(g.pickups||[]).filter(p=>!p.done&&p.wide&&p.kind===kind).sort((a,b)=>samRunPickupIn(a)-samRunPickupIn(b))[0];
   const runner=document.getElementById('samRunRunner');
@@ -15063,6 +15024,18 @@ function samRunLand(){
 }
 function samRunPickKind(){
   const g=samRun;
+  /* A word just missed jumps the queue. Weighted sampling on its own left the
+     correction to chance — often twenty waves later, long after the child had
+     forgotten it — which is the difference between a game with vocabulary in
+     it and a game that teaches vocabulary. Never twice running, though: the
+     answer would still be on the screen. */
+  const retry=g.retry||(g.retry=[]);
+  while(retry.length&&!SAM_RUN_COMMANDS[retry[0]]) retry.shift();
+  if(retry.length&&retry[0]!==g.lastKind){
+    const id=retry.shift();
+    g.sameKind=1; g.lastKind=id;
+    return id;
+  }
   const pool=[];
   for(const id of g.active.concat(g.review||[],g.lesson||[])){
     /* Weak and not-yet-seen words return more often; mastered words still
@@ -15235,16 +15208,10 @@ function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
 function samRunChooseLane(lane){
   const g=samRun; if(!g||!g.running||!g.laneGame||g.paused) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0));
-  // Tapping across two lanes must also respect the solid lane in between.
-  for(let l=g.lane;l!==lane;){l+=Math.sign(lane-l);if(!samRunCanEnterLane(g,l)){samRunSetLaneVisual(g.lane);samRunPose('is-stumble',220);samRunTone('tick');return;}}
   const previous=g.lane; g.lane=lane; samRunSetLaneVisual(lane);
   const runner=document.getElementById('samRunRunner');
   if(runner&&lane!==previous){ const cls=lane>previous?'switch-right':'switch-left';samRunReplayFx(runner,['switch-left','switch-right'],cls);setTimeout(()=>runner.classList.remove(cls),340); }
   try{ navigator.vibrate?.(10); }catch(_){}
-  if(g.endless&&g.hunt){
-    for(const token of g.obstacles.filter(o=>o.huntToken&&!o.resolved)){token.chosenLane=lane;token.el.querySelectorAll('.lane-gate').forEach(el=>el.classList.toggle('is-picked',token.tokenLane===lane));}
-    return;
-  }
   const ob=g.obstacles.find(x=>!x.resolved&&x.laneWave); if(!ob) return;
   ob.chosenLane=lane; ob.armed=ob.options[lane];
   ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>el.classList.toggle('is-picked',i===lane));
@@ -15253,244 +15220,6 @@ function samRunChooseLane(lane){
      nothing to debounce — the debounce only ever moved the word out of the
      gesture and made iOS drop it. */
   samRunSpeakLane(ob,lane);
-}
-
-/* Distance owns the road, the words and the solid surfaces. Screen labels
-   are a reading aid, never a second, disconnected collision system. */
-const SAM_RUN_TRAIN={height:1.5,length:24,ramp:9};
-const SAM_RUN_GRAVITY=18, SAM_RUN_JUMP_VELOCITY=6.2;
-function samRunHuntBoard(g){
-  const el=document.getElementById('samRunLanePrompt'); if(!el) return;
-  el.classList.add('is-hunt');el.classList.toggle('hunt-avoid',!!g.hunt.avoid);
-  el.innerHTML=`<span class="hunt-instruction">${g.hunt.avoid?'התחמקו מ־':'אספו'}</span><div class="hunt-list">${g.hunt.targets.map(id=>`<b class="${g.hunt.found.includes(id)?'found':''}">${g.hunt.found.includes(id)?'✓ ':''}${esc(SAM_RUN_COMMANDS[id].he)}</b>`).join('')}</div><span class="hunt-count">${g.hunt.avoid?`${g.hunt.dodged}/3`:`${g.hunt.found.length}/${g.hunt.targets.length}`}</span>`;
-  g.huntLabelTop=(el.offsetTop||120)+(el.offsetHeight||48)+10;
-}
-function samRunHuntRound(g){
-  const pool=[...new Set(g.active.concat(g.review||[],g.lesson||[]))].filter(id=>SAM_RUN_COMMANDS[id]);
-  for(const ob of g.obstacles||[]) if(ob.huntToken){ob.resolved=true;ob.el.hidden=true;}
-  const round=(g.hunt?.round||0)+1,avoid=round%4===3,count=avoid?1:round%4===2?2:1;
-  g.hunt={round,avoid,dodged:0,targets:shuffled(pool).slice(0,count),found:[],cursor:0};
-  g.nextSpawnAt=Math.max(g.nextSpawnAt||0,(g.time||0)+900);
-  samRunHuntBoard(g);
-}
-function samRunSurfaceAt(g,d,lane){
-  for(const t of g.trains||[]){
-    if(t.lane!==lane) continue;
-    const u=d-t.start, length=t.length||SAM_RUN_TRAIN.length;
-    if(t.ramp!==false&&u>=-SAM_RUN_TRAIN.ramp&&u<0) return {height:SAM_RUN_TRAIN.height*(1+u/SAM_RUN_TRAIN.ramp),train:t,ramp:true};
-    if(u>=0&&u<=length) return {height:SAM_RUN_TRAIN.height,train:t,ramp:false};
-  }
-  return {height:0,train:null,ramp:false};
-}
-function samRunRoofAt(g,d,lane){ return samRunSurfaceAt(g,d,lane).height; }
-function samRunMotion(g){
-  return g.motion||(g.motion={y:0,vy:0,grounded:true,support:null,lastD:g.roadScroll||0});
-}
-function samRunCanEnterLane(g,lane){
-  if(!g.endless) return true;
-  const m=samRunMotion(g),surface=samRunSurfaceAt(g,g.roadScroll||0,lane);
-  // A horizontal swipe cannot lift feet through the side of a train/ramp.
-  return surface.height<=m.y+.16;
-}
-function samRunTrackHit(g,kind,el){
-  if(g.time<(g.trackSafeUntil||0)) return;
-  g.trackSafeUntil=g.time+1100;g.streak=0;g.cleanStreak=0;samRunBreakFlow(g);
-  const hit={cmd:kind,el:el||{classList:{add(){}}}};
-  // Road collisions are not vocabulary mistakes and must not pollute mastery.
-  samRunHit(hit);delete g.hits[kind];
-}
-function samRunStepMotion(g,dt){
-  const m=samRunMotion(g),d=g.roadScroll||0,step=Math.min(50,Math.max(0,dt))/1000;
-  let surface=samRunSurfaceAt(g,d,g.lane);
-  const rise=surface.height-m.y,travel=Math.max(0,d-m.lastD);
-  if(m.grounded){
-    const canWalk=rise<=.035||(surface.ramp||surface.train&&surface.train===m.support)&&rise<=travel*SAM_RUN_TRAIN.height/SAM_RUN_TRAIN.ramp+.035;
-    if(canWalk&&surface.height>=m.y-.08){m.y=surface.height;m.support=surface.train;}
-    else if(rise>.08){
-      const safe=[g.lane-1,g.lane+1].filter(l=>l>=0&&l<=2&&samRunRoofAt(g,d,l)<=m.y+.1);
-      if(safe.length){g.lane=safe[0];samRunSetLaneVisual(g.lane);surface=samRunSurfaceAt(g,d,g.lane);}
-      samRunTrackHit(g,'train');
-    } else {m.grounded=false;m.vy=0;m.support=null;}
-  }
-  if(!m.grounded){
-    const oldY=m.y;
-    m.y+=m.vy*step-.5*SAM_RUN_GRAVITY*step*step;m.vy-=SAM_RUN_GRAVITY*step;
-    if(oldY>=surface.height-.035&&m.y<=surface.height&&m.vy<=0){
-      m.y=surface.height;m.vy=0;m.grounded=true;m.support=surface.train;
-      g.air=null;g.lastAir=null;
-      document.getElementById('samRunRunner')?.classList.remove('is-air-jump');
-      samRunTone('land');samRunPose('is-landing',180);
-      if(samRunGL&&!prefersReducedStageMotion())samRunGL.cam.dip=.075;
-    } else if(m.y<surface.height-.12){
-      const safe=[0,1,2].find(l=>l!==g.lane&&samRunRoofAt(g,d,l)<=m.y+.1);
-      if(safe!==undefined){g.lane=safe;samRunSetLaneVisual(safe);}
-      samRunTrackHit(g,'train');
-    }
-    if(m.y<0){m.y=0;m.vy=0;m.grounded=true;m.support=null;}
-  }
-  m.lastD=d;g.roofHeight=m.y;
-}
-function samRunAdventureStep(g,dt){
-  if(!g.endless||g.warmup||g.paused) return;
-  if(!g.hunt) samRunHuntRound(g);
-  if(!g.trains) g.trains=[];
-  const d=g.roadScroll||0;
-  if(d>=(g.nextTrain||0)){
-    const seq=g.trainSeq||0,lane=[2,0,1,2,1,0][seq%6],start=d+52,ramp=seq%3!==1;
-    const el=document.createElement('div'); el.className='hunt-train'+(ramp?' has-ramp':''); el.innerHTML=`${ramp?'<i>↗</i>':''}<b>EXPRESS</b><span>▰ ▰ ▰</span>`;
-    document.getElementById('samRunObstacles')?.appendChild(el);
-    g.trains.push({lane,start,ramp,el});g.trainSeq=seq+1;g.nextTrain=d+110+(seq%2)*18;
-    if(ramp){
-      const host=document.getElementById('samRunRush');
-      if(host)for(let j=0;j<5;j++){
-        const at=start+3+j*4,approach=at-d,coin=document.createElement('i');coin.className='rush-coin';host.appendChild(coin);
-        g.pickups.push({el:coin,kind:'coin',lane,at,approach,roof:SAM_RUN_TRAIN.height,p:0,life:approach/8.5*1000,done:false});
-      }
-    }
-  }
-  samRunStepMotion(g,dt);
-  const runner=document.getElementById('samRunRunner'); if(runner){runner.style.translate='0 '+(-g.roofHeight*65)+'px';runner.classList.toggle('on-roof',g.motion.grounded&&g.motion.y>.2);}
-  for(const t of g.trains.slice()){
-    if(d>t.start+SAM_RUN_TRAIN.length+12){t.el.remove();g.trains.splice(g.trains.indexOf(t),1);continue;}
-    t.el.hidden=!!samRunGL;
-    const depth=samRunDepth(1-(t.start-d)/80);
-    t.el.style.cssText=`left:${50+(t.lane-1)*depth.spread}%;top:${depth.y}%;transform:translate(-50%,-100%) scale(${depth.scale});`;
-  }
-}
-function samRunHuntLabelLayout(items,width,height,top=178){
-  const placed=[];
-  for(const item of items.slice().sort((a,b)=>a.ahead-b.ahead)){
-    const lane=item.lane,w=Math.min(112,width/3-16),h=38;
-    // Keep the words in readable lane columns at the horizon. Ease into the
-    // road projection up close, without detached points or guide lines.
-    const t=Math.max(0,Math.min(1,(12-item.ahead)/12)),near=t*t*(3-2*t);
-    const column=width*(lane+.5)/3;
-    const x=Math.max(width*lane/3+w/2+6,Math.min(width*(lane+1)/3-w/2-6,column+(item.x-column)*near));
-    const y=Math.max(top+h/2+2,item.y);
-    const rect={id:item.id,lane,x,y,w,h,visible:false};
-    // Keep words below the task strip and clear of each other, also on roofs.
-    if(item.ahead>=-1&&item.y<height+8&&y+h/2<height-8&&placed.filter(r=>r.visible).length<2){
-      rect.visible=!placed.some(r=>r.visible&&Math.abs(x-r.x)<(w+r.w)/2+10&&Math.abs(y-r.y)<(h+r.h)/2+12);
-    }
-    placed.push(rect);
-  }
-  return placed;
-}
-function samRunPaintHuntLabels(g,renderer){
-  const w=renderer?.cssW||g.worldW||390,h=renderer?.cssH||g.worldH||700;
-  const tokens=g.obstacles.filter(o=>o.huntToken),items=[];
-  for(const ob of tokens){
-    if(ob.resolved){ob.el.hidden=true;continue;}
-    const ahead=Number.isFinite(ob.at)?ob.at-(g.roadScroll||0):(1-ob.progress)*30;
-    const p=renderer?s3dProject(renderer,S3D_LANE_X[ob.tokenLane],.65+(ob.roof||0),-ahead):null;
-    const depth=samRunGateDepth(ob.progress);
-    items.push({id:ob.id,lane:ob.tokenLane,ahead,x:p?p.sx:w*(.5+(ob.tokenLane-1)*depth.spread/100),y:p?p.sy:h*depth.y/100-(ob.roof||0)*55*depth.scale});
-  }
-  const layout=samRunHuntLabelLayout(items,w,h,g.huntLabelTop);
-  for(const box of layout){
-    const ob=tokens.find(o=>o.id===box.id);ob.el.hidden=!box.visible;
-    if(!box.visible)continue;
-    ob.x=box.x;ob.y=box.y;
-    const gate=ob.el.querySelector('.lane-gate');if(!gate)continue;
-    gate.style.width=box.w+'px';gate.style.height=box.h+'px';
-    gate.style.fontSize=Math.min(18,(box.w-14)/Math.max(4,SAM_RUN_COMMANDS[ob.cmd].en.length*.7))+'px';
-    gate.style.transform=`translate(${box.x.toFixed(1)}px,${box.y.toFixed(1)}px) translate(-50%,-50%)`;
-    gate.classList.toggle('is-picked',ob.tokenLane===g.lane&&Math.abs((g.motion?.y||0)-(ob.roof||0))<.65);
-  }
-}
-function samRunSpawnHunt(){
-  const g=samRun,host=document.getElementById('samRunObstacles'); if(!host||g.warmup) return;
-  if(!g.hunt) samRunHuntRound(g);
-  const live=g.obstacles.filter(o=>o.huntToken&&!o.resolved);
-  if(live.length>=2){g.nextSpawnAt=g.time+150;return;}
-  const speed=8.5*samRunPace(g),distance=g.roadScroll||0;
-  // Every fourth beat is physical: read, steer, then jump or slide. There is
-  // enough clear time around it to avoid asking for two actions at contact.
-  const obstacleBeat=g.distance>=120&&g.encounterCount>0&&g.encounterCount%4===0&&g.lastRoadBeat!==g.encounterCount;
-  if(obstacleBeat){
-    const incoming=live.some(o=>(o.at-distance)/speed<4.3);
-    const trainNear=g.trains?.some(t=>t.start-distance<speed*5&&t.start+SAM_RUN_TRAIN.length>distance);
-    if(incoming){g.nextSpawnAt=g.time+150;return;}
-    if(!trainNear){
-      g.lastRoadBeat=g.encounterCount;
-      const pu=samRunSpawnWall((g.roadBeats||0)%2?'duck':'jump',2600);
-      if(pu){pu.trackHazard=true;g.roadBeats=(g.roadBeats||0)+1;g.nextSpawnAt=g.time+3300;return;}
-    }
-  }
-  const remaining=g.hunt.targets.filter(id=>!g.hunt.found.includes(id));
-  const pool=g.active.filter(id=>!g.hunt.targets.includes(id));
-  const decoy=!g.hunt.avoid&&g.hunt.cursor%3===1&&pool.length>0;
-  const cmd=decoy?pick(pool):remaining[g.hunt.cursor%remaining.length];
-  if(!cmd) return;
-  const previous=live.at(-1)?.tokenLane;
-  const lanes=[0,1,2].filter(l=>l!==previous);
-  let lane=g.hunt.avoid&&g.lane!==previous?g.lane:pick(lanes);
-  const travelMs=3600,at=distance+speed*travelMs/1000;
-  // Targets only appear on roofs with an entrance still ahead of the player.
-  const surface=samRunSurfaceAt(g,at,lane);
-  if(surface.train&&(!surface.train.ramp||distance>surface.train.start-SAM_RUN_TRAIN.ramp)&&g.motion?.support!==surface.train){lane=pick(lanes.filter(l=>samRunRoofAt(g,at,l)===0));}
-  if(lane===undefined){g.nextSpawnAt=g.time+250;return;}
-  g.hunt.cursor++;
-  g.encounterCount=(g.encounterCount||0)+1;
-  const c=SAM_RUN_COMMANDS[cmd],roof=samRunRoofAt(g,at,lane);
-  const el=document.createElement('div'); el.className='game-obstacle lane-wave hunt-token';
-  const laneName=['שמאל','אמצע','ימין'][lane];
-  el.innerHTML=`<button type="button" class="lane-gate hunt-word" aria-label="${esc(c.en)} — מסלול ${laneName}" onclick="samRunChooseLane(${lane})">${esc(c.en)}</button>`;host.appendChild(el);
-  g.obstacles.push({id:++g.obstacleSeq,cmd,el,at,roof,approach:speed*travelMs/1000,options:[cmd,cmd,cmd],correctLane:lane,chosenLane:g.lane,tokenLane:lane,huntToken:true,huntRound:g.hunt.round,progress:0,travelMs,resolved:false,laneWave:true,mastery:g.store.mastery[cmd]||0});
-  g.nextSpawnAt=g.time+2350;
-}
-function samRunResolveHunt(ob){
-  const g=samRun;
-  if(ob.resolved) return;
-  const reached=g.lane===ob.tokenLane&&Math.abs((g.motion?.y??g.roofHeight??0)-(ob.roof||0))<.65;
-  if(g.hunt.avoid&&ob.huntRound===g.hunt.round){
-    ob.resolved=true;ob.el.classList.add('is-poof');
-    if(reached){g.streak=0;samRunHit(ob);}
-    else {g.hunt.dodged++;samRunTone('tick');if(g.hunt.dodged>=3){samRunHuntReward(g);return;}}
-    samRunHuntBoard(g);return;
-  }
-  // Passing a token is a route choice, never a wrong answer. Old-board
-  // tokens expire when the expedition changes, without costing a heart.
-  if(!reached||ob.huntRound!==g.hunt.round||g.hunt.found.includes(ob.cmd)){
-    ob.resolved=true;ob.el.classList.add('is-poof');return;
-  }
-  if(!g.hunt.targets.includes(ob.cmd)){
-    ob.resolved=true;ob.el.classList.add('is-poof');g.streak=0;samRunHit(ob);return;
-  }
-  g.hunt.found.push(ob.cmd);ob.armed=ob.cmd;ob.bonus=(ob.roof||0)>.8;
-  ob.huntToken=false;samRunResolve(ob);ob.huntToken=true;
-  if(!g.running) return;
-  if(g.hunt.found.length===g.hunt.targets.length){
-    samRunHuntReward(g);
-  } else samRunHuntBoard(g);
-}
-function samRunHuntReward(g){
-  g.coinsRun+=10;g.runCoinBonus+=10;samRunPaintHud();samRunBanner('✨ מסע הושלם! +10 זהב');samRunTone('clear');samRunHuntRound(g);
-}
-function s3dDrawTrains(r,g){
-  const K=r.kinds,H=SAM_RUN_TRAIN.height,L=SAM_RUN_TRAIN.length,A=SAM_RUN_TRAIN.ramp;
-  for(const t of g.trains||[]){
-    const x=S3D_LANE_X[t.lane],z=t.start-(g.roadScroll||0);
-    s3dPushTRS(K.box,x,.78,-z-L/2,0,0,0,.98,1.32,L,[.1,.25,.36]);
-    s3dPushTRS(K.box,x,H-.06,-z-L/2,0,0,0,1.02,.12,L,[.3,.42,.51]);
-    for(const side of [-1,1]){
-      s3dPushTRS(K.box,x+side*.44,H+.012,-z-L/2,0,0,0,.045,.025,L,[1,.76,.28],1,5);
-      s3dPushTRS(K.box,x+side*.499,.45,-z-L/2,0,0,0,.014,.11,L,[.9,.65,.19]);
-    }
-    if(t.ramp!==false){
-      const tilt=Math.atan(H/A);
-      s3dPushTRS(K.box,x,H/2-.03,-z+A/2,tilt,0,0,1.02,.06,Math.hypot(H,A),[.82,.58,.2]);
-      for(let j=1;j<A;j+=1.5)s3dPushTRS(K.box,x,H*(1-j/A)+.018,-z+j,tilt,0,0,.98,.025,.1,[1,.88,.56]);
-    }else{
-      s3dPushTRS(K.box,x,.7,-z+.025,0,0,0,.82,.15,.04,[.98,.58,.22],1,3,7);
-      for(const side of [-1,1])s3dPushTRS(K.sphere,x+side*.3,.38,-z+.06,0,0,0,.065,.055,.025,[1,.26,.18],1,5);
-    }
-    for(let j=1.5;j<L;j+=3)for(const side of [-1,1]){
-      s3dPushTRS(K.box,x+side*.497,1.0,-z-j,0,0,0,.016,.39,1.7,[.4,.66,.8]);
-      s3dPushTRS(K.cyl,x+side*.46,.18,-z-j,0,0,Math.PI/2,.24,.13,.24,[.065,.09,.12]);
-    }
-    s3dPushTRS(K.box,x,H+.015,-z-L+.3,0,0,0,1.02,.03,.5,[1,.75,.25],1,3,7);
-  }
 }
 
 function samRunSpawnLaneWave(){
@@ -15512,7 +15241,7 @@ function samRunSpawnLaneWave(){
   host.appendChild(el);
   const ob={id:++g.obstacleSeq,cmd,el,options,correctLane,chosenLane:g.lane,armed:options[g.lane],progress:-warnMs/travelMs,travelMs,resolved:false,incoming:true,laneWave:true,bonus,mastery:g.store.mastery[cmd]||0};
   g.obstacles.push(ob);
-  const prompt=document.getElementById('samRunLanePrompt'); if(prompt){ prompt.classList.remove('is-sentence'); prompt.removeAttribute('aria-live'); prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`; samRunPromptPop(prompt); }
+  const prompt=document.getElementById('samRunLanePrompt'); if(prompt){ prompt.classList.remove('is-sentence','is-correction'); prompt.removeAttribute('aria-live'); prompt.innerHTML=`<small>לאיזה מסלול עוברים?</small>${esc(c.he)}`; samRunPromptPop(prompt); }
   /* Already standing on the answer when the wave arrives is still a right
      answer, and it has to sound like one. Nothing is given away by this: the
      gate below only speaks the correct lane, so a runner standing anywhere
@@ -15538,7 +15267,7 @@ function samRunSentencePrompt(done){
     if(i===g.sentenceAt){ const hint=g.sentenceHint===w; return `<em class="sentence-slot current${hint?' is-hint':''}">${hint?esc(w):'?'}</em>`; }
     return '<i class="sentence-slot future" aria-hidden="true"></i>';
   }).join('');
-  prompt.classList.add('is-sentence'); prompt.setAttribute('aria-live','polite');
+  prompt.classList.remove('is-correction'); prompt.classList.add('is-sentence'); prompt.setAttribute('aria-live','polite');
   prompt.innerHTML=`<small class="sentence-kicker">💬 ${done?'המשפט הושלם':`בונים משפט · מילה ${at+1} מתוך ${s.words.length}`}</small><strong class="sentence-he">${esc(s.he)}</strong><span class="game-sentence${done?' done':''}">${line}</span>`;
   /* A sentence advances a word at a time in the same box, so it needs the beat
      of movement even more than a single word does. */
@@ -15593,7 +15322,6 @@ function samRunAdvanceSentence(ob){
 function samRunSpawn(){
   const g=samRun, host=document.getElementById('samRunObstacles'); if(!host) return;
   if(g.finishing) return;
-  if(g.endless){samRunSpawnHunt();return;}
   // never put a new thing on the street while the last one is still in the
   // first half of its approach — one answer at a time is the whole game
   const last=g.obstacles[g.obstacles.length-1];
@@ -15694,7 +15422,6 @@ function samRunCommand(cmd,source){
 function samRunResolve(ob){
   const g=samRun;
   if(ob.resolved) return;
-  if(ob.huntToken){samRunResolveHunt(ob);return;}
   ob.resolved=true;
   const ok=ob.armed===ob.cmd;
   if(ob.laneWave) ob.el.querySelectorAll('.lane-gate').forEach((el,i)=>{ if(i===ob.correctLane) el.classList.add('is-correct'); else if(i===ob.chosenLane) el.classList.add('is-wrong'); });
@@ -15742,8 +15469,37 @@ function samRunResolve(ob){
     return;
   }
   g.streak=0;
+  if(ob.laneWave) samRunTeach(ob);
   samRunHit(ob);
   samRunCheckFinish();
+}
+/* The one moment a run can actually teach something is the moment after a
+   wrong answer: the child has just committed to a choice and been proved
+   wrong, and is looking straight at the gates. So the road stops asking for a
+   beat, names the word that was wanted — written and spoken — and puts it back
+   in the queue so it returns while the correction is still in mind. Before
+   this a miss cost a heart and taught nothing at all. */
+function samRunTeach(ob){
+  const g=samRun,c=SAM_RUN_COMMANDS[ob.cmd];
+  if(!g) return;
+  const prompt=document.getElementById('samRunLanePrompt');
+  if(prompt&&c){
+    prompt.classList.remove('is-sentence'); prompt.classList.add('is-correction');
+    prompt.setAttribute('aria-live','polite');
+    prompt.innerHTML=`<small>המילה שחיפשנו</small><b class="correction-en" dir="ltr">${esc(c.en)}</b><span class="correction-he">${esc(c.he)}</span>`;
+    samRunPromptPop(prompt);
+  }
+  if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);
+  /* Asked again twice, a few waves apart. Once is a coincidence; twice is what
+     turns a missed word into one he keeps. */
+  if(c){
+    const retry=(g.retry||[]).filter(id=>id!==ob.cmd);
+    retry.unshift(ob.cmd,ob.cmd);
+    g.retry=retry.slice(0,6);
+  }
+  /* Hold the road long enough for the correction to be read and heard. Without
+     this the next question overwrites it within the same second. */
+  g.nextSpawnAt=Math.max(g.nextSpawnAt||0,g.time+1150);
 }
 function samRunScore(points, ob){
   const g=samRun;
