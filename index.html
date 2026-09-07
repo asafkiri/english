@@ -2427,8 +2427,12 @@ body{
    owns that job now. */
 .game-world.lane-game .game-roadside{display:none}
 .game-world.lane-game .game-dust{opacity:.5}
-.game-world.lane-game .game-speedlines{opacity:.3}
-.game-world.lane-game.is-fast .game-speedlines{opacity:.72}
+/* Speed you can feel. --rush is one continuous 0→1 written from the run's own
+   pace, so the road does not jump between two states at a threshold: the
+   streaks thicken, brighten and sweep past faster the whole way up. */
+.game-world.lane-game .game-speedlines{opacity:calc(.18 + var(--rush,0) * .58);background-size:100% 240%;animation:gameRushSweep calc(1.5s - var(--rush,0) * 1.02s) linear infinite}
+@keyframes gameRushSweep{from{background-position:50% 0%}to{background-position:50% 100%}}
+.game-world.lane-game .game-lane-grid:after{opacity:calc(.55 + var(--rush,0) * .45)}
 .game-world.is-halted .back-run-bob,.game-world.is-halted .back-ground-shadow,.game-world.is-halted .game-back-rig *,.game-world.is-halted .game-lane-grid:after{animation-play-state:paused!important}
 
 @media (min-width:760px){.game-playing>.game-top,.game-playing>.game-mission,.game-playing>.game-bonus-mission{max-width:680px}.game-world.lane-game .game-lane-prompt{top:150px}.game-world.lane-game .game-runner{width:121px;height:224px}.game-obstacle.lane-wave .lane-gate{width:128px}}
@@ -2627,6 +2631,23 @@ body{
 .game-daily-card small{color:#c3b795;font-size:12px;line-height:1.45}
 .daily-cta{color:#ffd684;font-size:12px}
 .run-daily-line{color:#c6d6ee;font-size:12px}.run-daily-line b{color:#fff}
+/* The second-chance card. Deliberately calm and uncrowded: one word, a way to
+   hear it again, three answers and a way out. */
+.revive-card{display:grid;justify-items:center;gap:6px;text-align:center}
+.revive-card .reward{font-size:34px;line-height:1}
+.revive-card h2{margin:0;font-size:21px}
+.revive-card p{margin:0;color:#a9bcd8;font-size:12.5px;line-height:1.4;max-width:290px}
+.revive-say{width:78px;height:50px;font:inherit;font-size:28px;line-height:1;border:2px solid rgba(125,211,252,.55);border-radius:15px;background:rgba(12,74,110,.62);color:#e0f2fe;cursor:pointer;transition:transform .12s ease,background .12s ease}
+.revive-say:active{transform:scale(.94);background:rgba(14,116,144,.85)}
+.revive-options{display:grid;gap:7px;width:100%;max-width:320px}
+.revive-options button{min-height:46px;padding:7px 12px;border:2px solid #4a5f8a;border-radius:14px;background:linear-gradient(150deg,#22304f,#18213a);color:#eef2fb;font:inherit;font-size:19px;font-weight:950;cursor:pointer;transition:transform .12s ease,border-color .12s ease}
+.revive-options button:active{transform:scale(.97);border-color:#7dd3fc}
+.revive-give-up{padding:6px 14px;border:0;background:none;color:#8fa5c6;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
+.revive-he{color:#c8f5e2;font-size:19px;font-weight:800}
+/* The second chance needs the whole sheet, and the road behind it has nothing
+   left to say — the question it was asking is the one on the card. */
+.game-world.lane-game.gl-scene .game-card.is-revive{max-height:84%}
+.game-world.lane-game.is-reviving .game-lane-prompt,.game-world.lane-game.is-reviving #samRunObstacles,.game-world.lane-game.is-reviving .game-coach{display:none}
 .game-world.lane-game .game-card.game-result{gap:12px;padding:20px 20px max(22px,env(safe-area-inset-bottom));background:#0a1728f5}.game-world.lane-game.gl-scene .game-card.game-result{max-height:68%;border-top:1px solid #718ead66;border-radius:28px 28px 0 0}
 .game-result .run-result-kicker{font-size:14px;font-weight:900;letter-spacing:.025em;color:#9bffd0}.game-world .game-result h2.run-result-distance{font:950 clamp(46px,12vw,68px)/1 system-ui,sans-serif;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.05em;margin:0}.run-result-distance small{display:inline-block;font:700 14px/1.2 system-ui,sans-serif;color:#b8cde5;letter-spacing:0;margin-inline-start:9px}.game-result .run-records b{font-size:25px}.game-result .run-rank{padding:10px 12px}.game-result .run-rank-number{height:40px;flex-basis:40px;font-size:22px}.game-result .run-rank small{margin-bottom:5px}.game-result .run-contract{padding:9px 12px}.game-result .btn-row{max-width:none;gap:10px}.game-result .btn-row .btn{font-size:18px;min-height:49px;border-radius:14px}.run-result-medal{font-size:13px;color:#ffdc76}.run-level-up{font-size:16px;color:#ffdc76;font-weight:900}.game-result p.run-result-note{font-size:12px;color:#a7bcd4}
 .game-playing button:focus-visible,.run-arcade button:focus-visible{outline:3px solid #ffdc76;outline-offset:3px}
@@ -7297,7 +7318,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.57.0';
+const APP_VERSION = '2.58.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -11894,6 +11915,35 @@ const SAM_RUN_READ_EVERY=4;
    already got wrong. Distance between stations, and how many words each one
    asks for. */
 const SAM_RUN_STATION_EVERY=500, SAM_RUN_STATION_LEN=4, SAM_RUN_STATION_COIN=4;
+/* What arriving somewhere is worth. */
+const SAM_RUN_STOP_COIN=6;
+/* Where the run is going. A distance is a number; a place is somewhere you
+   arrived. The roadside used to roll over to the next world every seven
+   hundred metres for no stated reason — now it changes because Sam has reached
+   the park, and the child is told so. The stops are what the progress bar
+   fills toward, so it completes every few hundred metres instead of crawling
+   toward a medal a kilometre away. */
+const SAM_RUN_STOPS=[
+  {at:300,icon:'🏫',name:'בית הספר',scene:4},
+  {at:600,icon:'🌳',name:'הפארק',scene:2},
+  {at:900,icon:'🏘️',name:'השכונה',scene:5},
+  {at:1200,icon:'🧺',name:'הפיקניק',scene:3},
+  {at:1500,icon:'🎨',name:'רחוב האמנים',scene:1},
+  {at:1800,icon:'🏙️',name:'מרכז העיר',scene:6},
+  {at:2100,icon:'🏬',name:'הקניון',scene:0},
+  {at:2400,icon:'⚡',name:'העיר בלילה',scene:7},
+  {at:2800,icon:'🌲',name:'היער',scene:2},
+  {at:3200,icon:'🌆',name:'קצה העיר',scene:6},
+];
+function samRunStopAt(metre){ return SAM_RUN_STOPS.filter(s=>metre>=s.at).at(-1)||null; }
+function samRunNextStop(metre){ return SAM_RUN_STOPS.find(s=>s.at>metre)||null; }
+/* Hebrew merges the preposition into the definite article: ל + הפארק is
+   לפארק, never להפארק. Names that do not open on one are left alone —
+   "בית הספר" becomes "לבית הספר". */
+function samRunStopTo(name){
+  const s=String(name||'');
+  return 'ל'+(s.startsWith('ה')?s.slice(1):s);
+}
 const SAM_RUN_MEDALS=[
   {m:250,icon:'🥉',title:'רץ מתחיל'},
   {m:600,icon:'🥈',title:'רץ מנוסה'},
@@ -12999,6 +13049,7 @@ function renderSamRun(stageIndex=null,endless=false,daily=false){
     sentences,sentenceWords:[...new Set(sentences.flatMap(x=>x.words))],
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     retry:[],missed:[],waveSeq:0,station:null,nextStationAt:SAM_RUN_STATION_EVERY,stationsDone:0,
+    stopAt:0,stopsReached:0,stopName:'',revived:false,reviveWord:null,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,
     /* A daily route asks only for its own twelve words: pulling extras in as
        distractors would make it a different route on every attempt. */
@@ -13166,7 +13217,7 @@ function samRunTeardown(){
   clearTimeout(g.coachTimer);
   g.gestureCleanup?.();
   if(g.raf) cancelAnimationFrame(g.raf);
-  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.freezeTimer);
+  clearTimeout(g.timer); clearTimeout(g.unlockTimer); clearTimeout(g.reviewTimer); clearTimeout(g.freezeTimer); clearTimeout(g.reviveTimer);
   /* A decode may still be finishing, or a short lane clip may still be
      playing. Invalidate both when the game closes so no word leaks onto the
      home screen or into the next run. */
@@ -13203,6 +13254,7 @@ function samRunStart(){
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
     retry:[],missed:[],waveSeq:0,station:null,nextStationAt:SAM_RUN_STATION_EVERY,stationsDone:0,beatAt:0,beatStep:0,
+    stopAt:0,stopsReached:0,stopName:'',revived:false,reviveWord:null,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,careerReward:null,arcadeSeen:{},hudSeen:{},missionCelebrated:false,bannerUntil:0,checkpointAt:0,recordCelebrated:false,lastAir:null,roadScroll:0,glSeen:0,glEma:0});
@@ -13380,10 +13432,19 @@ function samRunEndlessTick(){
   if(!g.recordCelebrated&&g.store.bestDistance>0&&metre>g.store.bestDistance){
     g.recordCelebrated=true;samRunBanner('שיא אישי חדש! 🏆');samRunTone('best');
   }
-  /* A long run should travel somewhere, so the roadside rolls over into the
-     next world every 700m instead of running the same street forever. */
-  const scene=((g.sceneOrigin||0)+Math.floor(metre/700))%SAM_RUN_STAGES.length;
-  if(scene!==g.stageIndex) samRunSwapScene(scene);
+  /* Arriving somewhere. The scenery changes here rather than on a timer, so a
+     new street means the run has got somewhere rather than simply continued. */
+  const stop=samRunStopAt(metre);
+  if(stop&&stop.at>(g.stopAt||0)){
+    g.stopAt=stop.at;
+    g.stopsReached=(g.stopsReached||0)+1;
+    g.stopName=stop.name;
+    g.coinsRun=(g.coinsRun||0)+SAM_RUN_STOP_COIN;
+    g.runCoinBonus=(g.runCoinBonus||0)+SAM_RUN_STOP_COIN;
+    samRunBanner(`${stop.icon} הגעת ${samRunStopTo(stop.name)}! +${SAM_RUN_STOP_COIN} זהב`);
+    samRunTone('best');
+    if(stop.scene!==g.stageIndex) samRunSwapScene(stop.scene);
+  }
   samRunPaintHud();
 }
 function samRunSwapScene(index){
@@ -14630,7 +14691,7 @@ function samRunGLDraw(g,idle){
   /* the camera: behind him and above, a little to his side of the road,
      wider as he speeds up, nodding with his stride and kicked by a hit */
   const cam=R.cam, C=r.cam;
-  const pace=Math.max(1,speed), fovBase=1.12+.17*s3dClamp((pace-1)/1.35,0,1);
+  const pace=Math.max(1,speed), rush=s3dClamp((pace-1)/1.35,0,1), fovBase=1.12+.26*rush;
   cam.fov+=(fovBase-cam.fov)*Math.min(1,s*1.7);
   cam.fovKick*=Math.exp(-s/.18);
   cam.rollKick*=Math.exp(-s/.22);
@@ -14657,8 +14718,11 @@ function samRunGLDraw(g,idle){
     const desiredLift=pose.airLift*.28;
     cam.lift=(cam.lift||0)+(desiredLift-(cam.lift||0))*Math.min(1,s*5);
     const lift=cam.lift;
-    C.x=rs.x*.25+shx; C.y=3.1+cam.bob+lift-cam.dip+shy; C.z=5.6;
-    C.tx=rs.x*.3+shx*.5; C.ty=1.05+lift*.6-cam.dip*.5; C.tz=-8;
+    /* At speed the camera settles lower and looks further down the road, so
+       more ground streams past the edges of the screen. It is the difference
+       between a road moving and a road being covered. */
+    C.x=rs.x*.25+shx; C.y=3.1-.26*rush+cam.bob+lift-cam.dip+shy; C.z=5.6+.55*rush;
+    C.tx=rs.x*.3+shx*.5; C.ty=1.05+lift*.6-cam.dip*.5; C.tz=-8-1.3*rush;
     C.fov=cam.fov+cam.fovKick; C.roll=(reduced?0:cam.rollKick+s3dClamp(-rs.vx*.01,-.03,.03))+shake*.04*Math.sin(t28);
   }
   /* particles: motes in the air, dust off the planted foot, embers on a streak */
@@ -16016,7 +16080,93 @@ function samRunHit(ob){
   samRunFreeze(90);
   if(world&&!prefersReducedStageMotion()) samRunReplayFx(world,'is-shake','is-shake');
   samRunPaintHud();
-  if(g.lives<=0) samRunOver(false);
+  if(g.lives<=0){ if(samRunCanRevive(g)) samRunOfferRevive(); else samRunOver(false); }
+}
+/* ---- one more chance, paid for with a word ----
+   The last heart is the moment a child is most likely to put the phone down,
+   and it is also the moment they are paying the most attention. So the run
+   does not simply end: once, it asks for the word that just beat them — slowly,
+   out loud, with nothing else moving and no clock running. Getting it right
+   buys a heart and the road starts again. The price of carrying on is doing
+   the learning, which is the only currency this game should take. */
+function samRunReviveWord(g){
+  const known=id=>!!SAM_RUN_COMMANDS[id];
+  /* The word at the front of the retry queue is the one that just took the
+     last heart, which is exactly the one worth asking for. */
+  return (g.retry||[]).find(known)
+    ||[...(g.missed||[])].reverse().find(known)
+    ||(known(g.lastHit&&g.lastHit.cmd)?g.lastHit.cmd:null);
+}
+function samRunCanRevive(g){
+  return !!g&&g.endless&&g.running&&!g.revived&&!g.finishing&&!!samRunReviveWord(g);
+}
+function samRunOfferRevive(){
+  const g=samRun,cmd=samRunReviveWord(g); if(!g||!cmd) return samRunOver(false);
+  g.paused=true; g.reviveWord=cmd;
+  /* Let the correction beat that just played be heard before the card takes
+     over the screen — they are the same word, and talking over it wastes the
+     one repetition that matters most. */
+  clearTimeout(g.reviveTimer);
+  g.reviveTimer=setTimeout(()=>{ if(samRun===g&&g.running&&g.reviveWord) samRunPaintRevive(); },1150);
+}
+function samRunPaintRevive(){
+  const g=samRun,card=document.getElementById('samRunCard'); if(!g||!card) return;
+  const pool=[...new Set(g.active.concat(g.review||[],g.lesson||[]))].filter(id=>id!==g.reviveWord&&SAM_RUN_COMMANDS[id]);
+  const options=shuffled([g.reviveWord,...shuffled(pool).slice(0,2)]);
+  card.hidden=false; card.classList.remove('game-result'); card.classList.add('is-revive');
+  document.getElementById('samRunWorld')?.classList.add('is-reviving');
+  card.innerHTML=`<div class="revive-card">
+    <div class="reward">💔</div><h2>עוד הזדמנות אחת</h2>
+    <p>ענו נכון על המילה — והריצה ממשיכה עם לב אחד.</p>
+    <button type="button" class="revive-say" onclick="samRunReviveSay()" aria-label="להשמיע את המילה שוב">🔊</button>
+    <div class="revive-options">${options.map(id=>`<button type="button" onclick="samRunReviveAnswer('${id}')">${esc(SAM_RUN_COMMANDS[id].he)}</button>`).join('')}</div>
+    <button type="button" class="revive-give-up" onclick="samRunOver(false)">מסיימים כאן</button></div>`;
+  samRunReviveSay();
+}
+function samRunReviveSay(){
+  const g=samRun,c=SAM_RUN_COMMANDS[g&&g.reviveWord]; if(!c) return;
+  /* The tap is the gesture iOS wants for the audible route. */
+  samRunBeginAudioSession();
+  const word=c.say||String(c.en).toLowerCase();
+  const stand={cmd:g.reviveWord,resolved:false,chosenLane:0};
+  if(!samRunPlayRecordedWord(word,stand,0,null,true)) samRunSay(word);
+}
+function samRunReviveAnswer(id){
+  const g=samRun,card=document.getElementById('samRunCard');
+  if(!g||!g.reviveWord||g.revived) return;
+  const cmd=g.reviveWord,c=SAM_RUN_COMMANDS[cmd];
+  g.revived=true;
+  if(id!==cmd){
+    /* Even the word that ended the run gets taught before the run is over. */
+    if(card) card.innerHTML=`<div class="revive-card"><div class="reward">💡</div>
+      <h2 dir="ltr">${esc(c.en)}</h2><p class="revive-he">${esc(c.he)}</p>
+      <div class="btn-row"><button class="btn" onclick="samRunOver(false)">לסיכום הריצה ›</button></div></div>`;
+    samRunReviveSay(); samRunTone('over');
+    if(card) card.classList.remove('is-revive');
+    return;
+  }
+  g.lives=1; g.reviveWord=null;
+  g.store.mastery[cmd]=Math.min(SAM_RUN_MASTERY,(g.store.mastery[cmd]||0)+1);
+  g.store.cleared[cmd]=(g.store.cleared[cmd]||0)+1;
+  g.store.totalCorrect=(g.store.totalCorrect||0)+1;
+  g.correctCount++;
+  g.missed=(g.missed||[]).filter(x=>x!==cmd);
+  g.retry=(g.retry||[]).filter(x=>x!==cmd);
+  samRunSave(g.store);
+  /* The road ahead belongs to the run that just ended. Clear it, so the second
+     life does not begin inside a question that was already lost. */
+  for(const ob of g.obstacles.slice()) ob.el.remove();
+  g.obstacles.length=0;
+  for(const pu of g.pickups.slice()) pu.el.remove();
+  g.pickups.length=0;
+  g.nextSpawnAt=Infinity;
+  if(card) card.classList.remove('is-revive');
+  document.getElementById('samRunWorld')?.classList.remove('is-reviving');
+  samRunTone('best'); confetti(); samRunPaintHud();
+  samRunResumeCountdown();
+  samRunBanner('עוד הזדמנות! ❤️');
+  g.nextSpawnAt=g.time+900;
+  g.nextPickupAt=g.time+1600;
 }
 function samRunPose(cls,ms){
   const runner=document.getElementById('samRunRunner'); if(!runner) return;
@@ -16089,17 +16239,36 @@ function samRunPaintHud(bump=false){
     if(seen.mission!==label){ seen.mission=label; mt.textContent=label; }
   }
   const mb=document.getElementById('samRunMissionBar');
-  /* The bar chases the record — or, on the very first run when there is no
-     record to chase, the first medal, so it is never simply full. */
+  /* The bar fills toward the next place on the road, so it completes every few
+     hundred metres. Past the last stop it goes back to chasing the record —
+     or, on a first run with no record, the first medal. */
+  const metre=Math.floor(g.distance||0);
+  const stop=g.endless?samRunNextStop(metre):null;
   const target=g.endless?samRunNextTarget(g):null;
-  if(mb) mb.style.width=Math.min(100,g.endless?g.distance/target.at*100:g.resolvedCount/SAM_RUN_GOAL*100)+'%';
+  if(mb){
+    const from=g.stopAt||0;
+    const pct=!g.endless?g.resolvedCount/SAM_RUN_GOAL*100
+      :stop?(metre-from)/Math.max(1,stop.at-from)*100
+      :g.distance/target.at*100;
+    mb.style.width=Math.min(100,Math.max(0,pct))+'%';
+  }
   const route=document.getElementById('samRunRouteLabel');
   if(route&&target){
     /* A station changes the rules for a moment — no heart is at stake — so it
        says so for as long as it lasts, not just in the banner that opened it. */
     const value=g.station?`🎯 תחנת תיקון · ${g.station.left} ${g.station.left===1?'מילה':'מילים'} · בלי לבבות`
-      :`${target.icon} עוד ${Math.max(0,target.at-Math.floor(g.distance))} מ׳ ${target.label}`;
+      :stop?`${stop.icon} עוד ${Math.max(0,stop.at-metre)} מ׳ ${samRunStopTo(stop.name)}`
+      :`${target.icon} עוד ${Math.max(0,target.at-metre)} מ׳ ${target.label}`;
     if(seen.route!==value){route.textContent=value;seen.route=value;}
+  }
+  /* One continuous measure of speed for everything on the DOM road to read.
+     Rounded to twentieths, because this runs on every metre covered and a
+     style write that changes nothing still dirties the element. */
+  const rush=Math.round(Math.min(1,Math.max(0,(samRunPace(g)-1)/1.35))*20)/20;
+  if(seen.rush!==rush){
+    seen.rush=rush;
+    const world=document.getElementById('samRunWorld');
+    if(world) world.style.setProperty('--rush',rush);
   }
   const streak=document.getElementById('samRunStreak');
   if(streak&&seen.streak!==g.streak){
@@ -16176,6 +16345,7 @@ function samRunOver(finished=false){
     card.innerHTML=`<div class="run-result-kicker">${record?'🏆 שיא אישי חדש':fresh.length?'מדליה חדשה!':daily?'📅 מסלול היום':'הריצה שלך'}</div>
       <h2 class="run-result-distance">${metres.toLocaleString()}<small>מטרים</small></h2>
       ${daily?`<div class="run-daily-line">השיא שלך היום: <b>${daily.best}</b> מ׳ · ניסיון ${daily.plays} · ${daily.streak} ימים ברצף 🔥</div>`:''}
+      ${g.stopName?`<div class="run-daily-line">הגעת עד <b>${esc(g.stopName)}</b>${g.stopsReached>1?` · ${g.stopsReached} תחנות בדרך`:''}</div>`:''}
       ${g.stationsDone?`<div class="run-daily-line">🎯 ${g.stationsDone} ${g.stationsDone===1?'תחנת תיקון':'תחנות תיקון'} בדרך</div>`:''}
       <div class="run-records"><div><b>${g.correctCount}</b><small>מילים נכונות</small></div><div><b>${g.streakPeak||0}</b><small>רצף בריצה</small></div><div><b class="run-gold">+${earned}</b><small>מטבעות</small></div></div>
       ${levelUp?`<div class="run-level-up">דרגה חדשה! ${samRunRank(store.runnerXp).level} ✦</div>`:''}

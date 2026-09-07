@@ -106,6 +106,8 @@ function runtime(seed = new Map(), options = {}) {
       samRunStationPool, samRunStartStation, samRunStationStep, SAM_RUN_STATION_LEN, SAM_RUN_STATION_COIN, SAM_RUN_STATION_EVERY,
       samRunAlbumWords, samRunAlbumCard, renderSamRunAlbum, samRunAlbumCardHtml,
       samRunBeat, samRunMusicOn, samRunToggleMusic,
+      SAM_RUN_STOPS, samRunStopAt, samRunNextStop, samRunStopTo, SAM_RUN_STOP_COIN, samRunEndlessTick, samRunPaintHud, samRunSwapScene,
+      samRunReviveWord, samRunCanRevive, samRunOfferRevive, samRunPaintRevive, samRunReviveAnswer, samRunReviveSay, samRunHit,
       samRunSeed, samRunSeededOrder, samRunDailyWords, samRunDaily, samRunDayKey, samRunDailyCardHtml, renderSamRunDaily,
       getSamRun:()=>samRun, samRunCareer, samRunAwardCareer, samRunOver, samRunTeardown,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
@@ -4538,8 +4540,8 @@ test("the endless run is measured in metres and hands out its mechanics by dista
   assert.match(html, /g\.finishing\|\|g\.lives<=0\|\|g\.endless\) return;/,
     'an endless run has no finish line to reach — only the hearts can stop it');
   assert.match(html, /g\.distance\+=dt\/1000\*8\.5\*samRunPace\(g\)/, 'distance is what the run accumulates');
-  assert.match(html, /const scene=\(\(g\.sceneOrigin\|\|0\)\+Math\.floor\(metre\/700\)\)%SAM_RUN_STAGES\.length/,
-    'and the roadside rolls forward from the scene the run actually opened on');
+  assert.match(html, /if\(stop\.scene!==g\.stageIndex\) samRunSwapScene\(stop\.scene\);/,
+    'and the roadside changes because the run arrived somewhere, not on a timer');
 });
 
 test("the late road adds a gap that moves and a tunnel to stay down through", () => {
@@ -5625,4 +5627,118 @@ test('the album makes the words the collection, and every card can be heard', ()
   assert.match(app.innerHTML, /אלבום המילים/);
   assert.match(app.innerHTML, /JUMP/);
   assert.match(app.innerHTML, /מילים נאספו/);
+});
+
+test('the run travels between named places, and the roadside changes on arrival', () => {
+  const { api } = runtime();
+  const stops = Array.from(api.SAM_RUN_STOPS);
+  assert.ok(stops.length >= 8);
+  assert.deepEqual(stops.map(s => s.at), [...stops.map(s => s.at)].sort((a, b) => a - b), 'the journey goes forward');
+  for (const s of stops) {
+    assert.ok(s.name && s.icon, 'every stop is somewhere with a name');
+    assert.ok(s.scene >= 0 && s.scene < api.SAM_RUN_STAGES.length, 'and a roadside to arrive at');
+  }
+  assert.equal(api.samRunStopAt(0), null, 'nowhere reached yet');
+  assert.equal(api.samRunStopAt(stops[0].at).name, stops[0].name);
+  assert.equal(api.samRunStopAt(stops[1].at - 1).name, stops[0].name, 'you are still at the last place you reached');
+  assert.equal(api.samRunNextStop(0).name, stops[0].name);
+  assert.equal(api.samRunNextStop(99999), null, 'past the last stop the run is on its own');
+  // Hebrew merges the preposition into the definite article
+  assert.equal(api.samRunStopTo('הפארק'), 'לפארק');
+  assert.equal(api.samRunStopTo('בית הספר'), 'לבית הספר');
+  for (const s of stops) assert.doesNotMatch(api.samRunStopTo(s.name), /^לה/, `"${s.name}" reads naturally`);
+});
+
+test('arriving at a place is announced once, pays, and moves the world', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun();
+  context.document.getElementById = () => null;
+  vm.runInContext('samRunTone=()=>{};samRunPaintHud=()=>{};samRunBanners=[];samRunBanner=t=>{samRunBanners.push(t)};samRunScenes=[];samRunSwapScene=i=>{samRunScenes.push(i);samRun.stageIndex=i};', context);
+  const first = api.SAM_RUN_STOPS[0];
+  Object.assign(g, { running: true, distance: first.at, lastMetre: -1, coinsRun: 0, runCoinBonus: 0, stopAt: 0, stageIndex: 0 });
+  api.samRunEndlessTick();
+  assert.equal(g.stopAt, first.at);
+  assert.equal(g.stopsReached, 1);
+  assert.equal(g.stopName, first.name);
+  assert.equal(g.coinsRun, api.SAM_RUN_STOP_COIN, 'arriving somewhere is worth something');
+  const banners = Array.from(vm.runInContext('samRunBanners', context));
+  assert.ok(banners.some(t => String(t).includes(first.name)), 'and the child is told where they are');
+  assert.deepEqual(Array.from(vm.runInContext('samRunScenes', context)), [first.scene], 'the roadside becomes that place');
+  // the same metre again must not pay twice
+  g.lastMetre = -1;
+  api.samRunEndlessTick();
+  assert.equal(g.stopsReached, 1);
+  assert.equal(g.coinsRun, api.SAM_RUN_STOP_COIN);
+  api.samRunTeardown();
+});
+
+test('the last heart offers one more chance, and the price is the word that took it', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun();
+  const card = { hidden: true, innerHTML: '', classList: { add() {}, remove() {}, toggle() {} } };
+  context.document.getElementById = id => id === 'samRunCard' ? card : null;
+  vm.runInContext('samRunTone=()=>{};samRunFloat=()=>{};samRunFreeze=()=>{};samRunPose=()=>{};samRunPaintHud=()=>{};samRunBanner=()=>{};samRunReviveSay=()=>{};confetti=()=>{};samRunResumeCountdown=()=>{samRun.paused=false};', context);
+  Object.assign(g, { running: true, time: 0, lives: 1, distance: 400, obstacles: [], pickups: [],
+    active: ['jump', 'duck', 'stop', 'run', 'walk'], review: [], lesson: [], retry: ['duck'], missed: ['duck'], correctCount: 3 });
+
+  assert.equal(api.samRunReviveWord(g), 'duck', 'the word that just beat them is the one asked for');
+  assert.equal(api.samRunCanRevive(g), true);
+
+  api.samRunHit({ cmd: 'duck', el: { classList: { add() {} } } });
+  assert.equal(g.lives, 0);
+  assert.equal(g.paused, true, 'the world stops rather than the run ending');
+  assert.equal(g.reviveWord, 'duck');
+
+  api.samRunPaintRevive();
+  assert.match(card.innerHTML, /עוד הזדמנות אחת/);
+  assert.equal((card.innerHTML.match(/samRunReviveAnswer/g) || []).length, 3, 'three answers, in Hebrew');
+  assert.ok(card.innerHTML.includes(api.SAM_RUN_COMMANDS.duck.he));
+  assert.doesNotMatch(card.innerHTML, /DUCK/, 'the answer is not written out on the card');
+
+  api.samRunReviveAnswer('duck');
+  assert.equal(g.lives, 1, 'a right answer buys a heart');
+  assert.equal(g.revived, true);
+  assert.equal(g.correctCount, 4);
+  assert.equal(g.store.mastery.duck, 1, 'and counts as the practice it was');
+  assert.ok(!g.missed.includes('duck'));
+  assert.equal(api.samRunCanRevive(g), false, 'only ever once in a run');
+  api.samRunTeardown();
+});
+
+test('a wrong second chance still teaches before the run ends', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun();
+  const card = { hidden: true, innerHTML: '', classList: { add() {}, remove() {}, toggle() {} } };
+  context.document.getElementById = id => id === 'samRunCard' ? card : null;
+  vm.runInContext('samRunTone=()=>{};samRunReviveSay=()=>{};', context);
+  Object.assign(g, { running: true, lives: 0, reviveWord: 'duck', revived: false, store: api.samRunStore() });
+  api.samRunReviveAnswer('jump');
+  assert.equal(g.revived, true);
+  assert.equal(g.lives, 0, 'a wrong answer does not buy a heart');
+  assert.ok(card.innerHTML.includes('DUCK') && card.innerHTML.includes(api.SAM_RUN_COMMANDS.duck.he),
+    'but the word is paired up one last time');
+  assert.match(card.innerHTML, /samRunOver\(false\)/, 'and the run is closed from there');
+  api.samRunTeardown();
+});
+
+test('speed is one continuous measure the whole road reads', () => {
+  const { api, context } = runtime();
+  api.renderSamRunEndless();
+  const g = api.getSamRun();
+  const world = { style: { props: {}, setProperty(n, v) { this.props[n] = v; } }, classList: { add() {}, remove() {}, toggle() {} } };
+  context.document.getElementById = id => id === 'samRunWorld' ? world : null;
+  Object.assign(g, { running: true, distance: 0, hudSeen: {} });
+  api.samRunPaintHud();
+  assert.equal(world.style.props['--rush'], 0, 'a fresh run is not rushing');
+  Object.assign(g, { distance: 2600, hudSeen: {} });
+  api.samRunPaintHud();
+  assert.equal(world.style.props['--rush'], 1, 'and the far end of the road is');
+  assert.match(html, /\.game-world\.lane-game \.game-speedlines\{opacity:calc\(\.18 \+ var\(--rush,0\) \* \.58\)/,
+    'the streaks read it rather than flipping at a threshold');
+  assert.match(html, /C\.y=3\.1-\.26\*rush\+cam\.bob/, 'and so does the camera, settling lower at speed');
+  assert.match(html, /C\.tz=-8-1\.3\*rush/, 'looking further down the road as it goes');
+  api.samRunTeardown();
 });
