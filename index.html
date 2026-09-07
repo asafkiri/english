@@ -2642,15 +2642,10 @@ body{
 .hunt-list{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:0}
 .hunt-list b{padding:3px 7px;border-radius:7px;background:transparent;border:0;font-size:21px;line-height:1.25}
 .hunt-list b.found{background:#3cd7a3;color:#082b25;border-color:#8affd6}
-.game-world .game-obstacle.hunt-token .lane-gate{width:112px;height:52px;min-height:0;padding:5px 6px;margin:0;border-radius:10px;background:#103047f5;color:#fff;border:1.5px solid #b0dbed;box-shadow:0 3px 0 #061c2b,0 5px 12px #0004;font-size:17px;font-weight:900;line-height:1;letter-spacing:0;white-space:nowrap;overflow:visible;outline:0;transition:border-color .1s;will-change:transform;z-index:2;gap:5px}
+.game-world .game-obstacle.hunt-token .lane-gate{width:112px;height:38px;min-height:0;padding:5px 6px;margin:0;border-radius:12px;background:linear-gradient(160deg,#1c4258f5,#102b40f5);color:#fff;border:1.5px solid #b0dbed;box-shadow:inset 0 1px #ffffff18,0 3px 0 #061c2b,0 5px 12px #0004;font-size:17px;font-weight:900;line-height:1;letter-spacing:0;white-space:nowrap;overflow:visible;outline:0;transition:border-color .1s;will-change:transform;z-index:2}
 .game-world .game-obstacle.hunt-token .lane-gate.is-picked{border-color:#9bffd0;box-shadow:0 3px 0 #061c2b,0 0 0 2px #9bffd03d}
 .hunt-token[hidden]{display:none!important}
 .game-world .game-obstacle.hunt-token .lane-gate:after{display:none}
-.hunt-lane{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:650;line-height:1;color:#b8d3de;direction:rtl}
-.hunt-lane-map{display:flex;gap:2px;direction:ltr}.hunt-lane-map i{display:block;width:4px;height:9px;border-radius:1px;background:#7595a04d}.hunt-lane-map i.on{background:#ffe2a6}
-.hunt-link,.hunt-anchor{position:absolute;pointer-events:none;z-index:1;background:#ffe2a6}
-.hunt-link{height:2px;transform-origin:0 50%;box-shadow:0 1px 2px #001322cc}
-.hunt-anchor{width:8px;height:8px;border:1px solid #fff3d5;border-radius:50%;box-shadow:0 0 0 3px #08253880;transform:translate(-50%,-50%)}
 .hunt-train{position:absolute;width:95px;height:230px;z-index:2;border-radius:24px 24px 8px 8px;background:linear-gradient(90deg,#17465b,#42a8ac 18%,#39c9bc 80%,#17465b);border:3px solid #9df0e5;box-shadow:0 15px 0 #102638;color:white;display:flex;align-items:center;flex-direction:column;justify-content:space-around;pointer-events:none;transform-origin:50% 100%}
 .hunt-train i{position:absolute;top:100%;height:90px;width:100%;background:repeating-linear-gradient(0deg,#e0a63d 0 12px,#ffe591 12px 16px);clip-path:polygon(0 0,100% 0,90% 100%,10% 100%);color:#18394a;font-size:40px;text-align:center;font-style:normal}
 .hunt-train b{font-size:10px;writing-mode:vertical-rl;letter-spacing:3px}.hunt-train span{color:#b5f1ff;font-size:22px;writing-mode:vertical-rl}
@@ -7259,7 +7254,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.54.1';
+const APP_VERSION = '2.54.2';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -14135,8 +14130,8 @@ function s3dDrawPickup(r,pu,z,time,state,runnerX){
 function s3dDrawGate(r,ob,z,accent,st,time){
   const K=r.kinds;
   if(ob.huntToken){
-    const x=S3D_LANE_X[ob.tokenLane], height=ob.roof||0;
-    if(!ob.resolved){s3dPushTRS(K.sphere,x,height+.65+Math.sin(time*3)*.08,z,0,time,0,.16,.22,.16,[.95,.8,.3],1,5);s3dPushTRS(K.disc,x,height+.04,z,0,0,0,.42,1,.6,[.95,.8,.3],.5,6);}
+    // The word itself is the collectible. A second distant orb made it look
+    // detached from its label, requiring the now-removed connector wires.
     return;
   }
   for(let i=0;i<3;i++){
@@ -15365,17 +15360,15 @@ function samRunAdventureStep(g,dt){
 function samRunHuntLabelLayout(items,width,height,top=178){
   const placed=[];
   for(const item of items.slice().sort((a,b)=>a.ahead-b.ahead)){
-    const lane=item.lane,w=Math.min(112,width/3-16),h=52;
-    // A readable sign cannot fit a lane at the vanishing point. Give it a
-    // stable lane column and tether it to the real, projected collectible.
-    // Up close it follows that point, staying inside its own screen third.
-    const near=Math.max(0,Math.min(1,(12-item.ahead)/12));
+    const lane=item.lane,w=Math.min(112,width/3-16),h=38;
+    // Keep the words in readable lane columns at the horizon. Ease into the
+    // road projection up close, without detached points or guide lines.
+    const t=Math.max(0,Math.min(1,(12-item.ahead)/12)),near=t*t*(3-2*t);
     const column=width*(lane+.5)/3;
     const x=Math.max(width*lane/3+w/2+6,Math.min(width*(lane+1)/3-w/2-6,column+(item.x-column)*near));
-    const y=Math.max(top+h/2+2,item.y-h/2-22);
-    const rect={id:item.id,lane,x,y,w,h,anchorX:item.x,anchorY:item.y,visible:false};
-    // Keep signs below the task strip and clear of each other, including on
-    // roofs. The anchor stays at the actual world position when a sign moves.
+    const y=Math.max(top+h/2+2,item.y);
+    const rect={id:item.id,lane,x,y,w,h,visible:false};
+    // Keep words below the task strip and clear of each other, also on roofs.
     if(item.ahead>=-1&&item.y<height+8&&y+h/2<height-8&&placed.filter(r=>r.visible).length<2){
       rect.visible=!placed.some(r=>r.visible&&Math.abs(x-r.x)<(w+r.w)/2+10&&Math.abs(y-r.y)<(h+r.h)/2+12);
     }
@@ -15403,12 +15396,6 @@ function samRunPaintHuntLabels(g,renderer){
     gate.style.fontSize=Math.min(18,(box.w-14)/Math.max(4,SAM_RUN_COMMANDS[ob.cmd].en.length*.7))+'px';
     gate.style.transform=`translate(${box.x.toFixed(1)}px,${box.y.toFixed(1)}px) translate(-50%,-50%)`;
     gate.classList.toggle('is-picked',ob.tokenLane===g.lane&&Math.abs((g.motion?.y||0)-(ob.roof||0))<.65);
-    const link=ob.el.querySelector('.hunt-link'),anchor=ob.el.querySelector('.hunt-anchor');
-    if(link&&anchor){
-      const fromY=box.y+box.h/2,dx=box.anchorX-box.x,dy=box.anchorY-fromY;
-      link.style.cssText=`left:${box.x}px;top:${fromY}px;width:${Math.hypot(dx,dy)}px;transform:rotate(${Math.atan2(dy,dx)}rad)`;
-      anchor.style.left=box.anchorX+'px';anchor.style.top=box.anchorY+'px';
-    }
   }
 }
 function samRunSpawnHunt(){
@@ -15448,7 +15435,7 @@ function samRunSpawnHunt(){
   const c=SAM_RUN_COMMANDS[cmd],roof=samRunRoofAt(g,at,lane);
   const el=document.createElement('div'); el.className='game-obstacle lane-wave hunt-token';
   const laneName=['שמאל','אמצע','ימין'][lane];
-  el.innerHTML=`<i class="hunt-link" aria-hidden="true"></i><i class="hunt-anchor" aria-hidden="true"></i><button type="button" class="lane-gate hunt-word" aria-label="${esc(c.en)} — מסלול ${laneName}" onclick="samRunChooseLane(${lane})">${esc(c.en)}<small class="hunt-lane" aria-hidden="true"><i class="hunt-lane-map">${[0,1,2].map(l=>`<i class="${l===lane?'on':''}"></i>`).join('')}</i>${laneName}</small></button>`;host.appendChild(el);
+  el.innerHTML=`<button type="button" class="lane-gate hunt-word" aria-label="${esc(c.en)} — מסלול ${laneName}" onclick="samRunChooseLane(${lane})">${esc(c.en)}</button>`;host.appendChild(el);
   g.obstacles.push({id:++g.obstacleSeq,cmd,el,at,roof,approach:speed*travelMs/1000,options:[cmd,cmd,cmd],correctLane:lane,chosenLane:g.lane,tokenLane:lane,huntToken:true,huntRound:g.hunt.round,progress:0,travelMs,resolved:false,laneWave:true,mastery:g.store.mastery[cmd]||0});
   g.nextSpawnAt=g.time+2350;
 }

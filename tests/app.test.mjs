@@ -5376,6 +5376,8 @@ test('individual tokens overlap in time, have one visible word and keep valid sp
   const g={active:['jump','duck','stop','run','walk'],store:api.samRunStore(),time:0,lane:1,obstacles:[],obstacleSeq:0,worldW:390};
   api.setSamRun(g);api.samRunSpawnHunt();
   const first=g.obstacles[0];assert.equal((first.el.innerHTML.match(/<button/g)||[]).length,1);
+  assert.equal(first.el.innerHTML.replace(/<[^>]*>/g,''),api.SAM_RUN_COMMANDS[first.cmd].en,'only the word is visible, without lane captions or connector markup');
+  assert.doesNotMatch(first.el.innerHTML,/hunt-link|hunt-anchor|hunt-lane/);
   assert.equal(first.options[first.correctLane],first.cmd);
   assert.ok(g.nextSpawnAt<first.travelMs,'the next word appears while the first is on the road');
   g.time=g.nextSpawnAt;api.samRunSpawnHunt();assert.equal(g.obstacles.length,2);
@@ -5480,8 +5482,6 @@ test('words identify their lane from the horizon and stay readable across phone 
       for(const b of boxes){
         visibleMs[b.id]+=25;
         assert.ok(b.x-b.w/2>=width*b.lane/3&&b.x+b.w/2<=width*(b.lane+1)/3,'a sign belongs entirely to one screen lane');
-        const point=items.find(item=>item.id===b.id);
-        assert.equal(b.anchorX,point.x);assert.equal(b.anchorY,point.y,'moving a label never moves the world anchor');
       }
       if(ms===0||ms===2350)assert.ok(boxes.some(b=>b.id===(ms===0?0:1)),'lane is readable on the very first frame, not only up close');
       if(boxes.length===2){const [a,b]=boxes;assert.ok(Math.abs(a.x-b.x)>=(a.w+b.w)/2||Math.abs(a.y-b.y)>=(a.h+b.h)/2);}
