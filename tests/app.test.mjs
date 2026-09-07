@@ -105,7 +105,7 @@ function runtime(seed = new Map(), options = {}) {
       samRunAskAloud, samRunAskAgain, samRunCanVoice, samRunGateFontHe, SAM_RUN_LISTEN_EVERY,
       samRunStationPool, samRunStartStation, samRunStationStep, SAM_RUN_STATION_LEN, SAM_RUN_STATION_COIN, SAM_RUN_STATION_EVERY,
       samRunAlbumWords, samRunAlbumCard, renderSamRunAlbum, samRunAlbumCardHtml,
-      samRunTimeFor, samRunGhostSpeed, samRunGhostAhead, samRunGLRival, samRunBeat, samRunMusicOn, samRunToggleMusic,
+      samRunBeat, samRunMusicOn, samRunToggleMusic,
       samRunSeed, samRunSeededOrder, samRunDailyWords, samRunDaily, samRunDayKey, samRunDailyCardHtml, renderSamRunDaily,
       getSamRun:()=>samRun, samRunCareer, samRunAwardCareer, samRunOver, samRunTeardown,
       samRunDepth, samRunReviewPool, samRunPickKind, samRunTakePickup, samRunAirborne, samRunStartAir, samRunMaybeStartQueuedAir, samRunRoadClear, samRunAimClear, samRunGateSep, samRunWaveArrivals, samRunSpawnPickup, samRunSpawnRush, samRunSpawnCoins, SAM_RUN_COURSE_WORDS, samRunLessonPool,
@@ -4921,8 +4921,8 @@ test("the world is already running behind the countdown, and the road throws dus
     'and the scenery and the runner are unpaused for it');
   assert.match(html, /const warmed=g\.running&&g\.warmup;[\s\S]*?if\(!warmed\) g\.raf=requestAnimationFrame\(samRunFrame\);/,
     'GO picks the loop up rather than starting a second one');
-  assert.match(html, /if\(g\.endless&&!g\.warmup\)\{ g\.raceTime=\(g\.raceTime\|\|0\)\+dt\/1000;g\.distance/,
-    'no metre is scored before GO, and the rival is not running yet either');
+  assert.match(html, /if\(g\.endless&&!g\.warmup\)\{ g\.distance/,
+    'no metre is scored before GO');
   assert.match(html, /!g\.finishing&&!g\.warmup&&g\.time>=g\.nextPickupAt/,
     'and no coin or roadworks appears either');
 
@@ -5562,23 +5562,6 @@ test('a station ends after its words and books the next one further down the roa
   assert.equal(g.stationsDone, 1);
   assert.equal(g.nextStationAt, 500 + api.SAM_RUN_STATION_EVERY);
   api.samRunTeardown();
-});
-
-test('the rival runs the personal best and can be overtaken', () => {
-  const { api } = runtime();
-  const store = { bestDistance: 900, bestSeconds: 90 };
-  assert.equal(api.samRunGhostSpeed(store), 10);
-  assert.equal(api.samRunGhostSpeed({ bestDistance: 40 }), 0, 'no record worth chasing yet, no rival');
-  // a record saved before the rival existed still yields a pace, from the road's own curve
-  const derived = api.samRunGhostSpeed({ bestDistance: 900 });
-  assert.ok(derived > 8 && derived < 20, `a legacy record still produces a sane pace, got ${derived}`);
-  assert.ok(api.samRunTimeFor(900) > api.samRunTimeFor(400), 'further takes longer');
-
-  const g = { endless: true, store, raceTime: 10, distance: 60 };
-  assert.equal(api.samRunGhostAhead(g), 40, 'behind the record pace, the rival is ahead');
-  g.distance = 140;
-  assert.equal(api.samRunGhostAhead(g), -40, 'ahead of it, the rival is behind');
-  assert.equal(api.samRunGhostAhead({ endless: false, store }), null, 'a world run has no rival');
 });
 
 test('the streak soundtrack only plays on a run of right answers, and can be switched off', () => {

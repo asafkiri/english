@@ -7294,7 +7294,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.56.0';
+const APP_VERSION = '2.56.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -12367,7 +12367,7 @@ function samRunQuickStart(){
 }
 
 function samRunStore(){
-  const base={version:5,best:0,bestDistance:0,bestSeconds:0,medals:[],plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0,owned:[],equipped:{},runnerXp:0,totalMetres:0,music:true,daily:null,career:samRunCareer()};
+  const base={version:5,best:0,bestDistance:0,medals:[],plays:0,unlocked:['jump','duck'],cleared:{},said:{},mode:'',stage:0,phaseByStage:{},mastery:{},stageStars:{},coins:0,totalCorrect:0,streakBest:0,owned:[],equipped:{},runnerXp:0,totalMetres:0,music:true,daily:null,career:samRunCareer()};
   try{
     const raw=JSON.parse(localStorage.getItem(SAM_RUN_KEY)||'{}');
     const store={...base,...(raw&&typeof raw==='object'?raw:{})};
@@ -12377,7 +12377,6 @@ function samRunStore(){
     store.owned=Array.isArray(store.owned)?[...new Set(store.owned.filter(id=>samRunItem(id)&&samRunItem(id).price>0))]:[];
     store.equipped=store.equipped&&typeof store.equipped==='object'?store.equipped:{};
     store.bestDistance=Math.max(0,Math.floor(Number(store.bestDistance)||0));
-    store.bestSeconds=Number(store.bestSeconds)>0?Number(store.bestSeconds):0;
     for(const key of ['runnerXp','totalMetres','coins','plays']) store[key]=Number.isFinite(Number(store[key]))?Math.max(0,Math.floor(Number(store[key]))):0;
     store.medals=Array.isArray(store.medals)?[...new Set(store.medals.map(Number).filter(m=>SAM_RUN_MEDALS.some(x=>x.m===m)))]:[];
     for(const type of ['outfit','shoes','hair','character','ride']) if(samRunItem(store.equipped[type])?.type!==type) delete store.equipped[type];
@@ -12493,32 +12492,6 @@ function samRunDaily(store){
   return raw.day===day
     ? {day,best:samRunNatural(raw.best),plays:samRunNatural(raw.plays),streak:samRunNatural(raw.streak)||1,last:String(raw.last||day)}
     : {day,best:0,plays:0,streak:raw.last===dateNDaysAgo(1)?samRunNatural(raw.streak)+1:1,last:day};
-}
-/* ---- the rival ----
-   A record drawn as a line across the road is a number to pass. A runner is
-   somebody to beat, and that is a different feeling entirely. The rival runs
-   the player's own personal best, so it is always exactly as fast as they have
-   ever been — ahead while they are behind their record pace, falling back the
-   moment they are ahead of it.
-   How long a flawless run takes to cover a distance, by integrating the same
-   pace curve the road itself uses. A record saved before the rival existed
-   still yields a ghost to chase, without having to store anything new. */
-function samRunTimeFor(distance){
-  let t=0;
-  for(let d=0;d<distance;d+=5) t+=5/(8.5*(1+Math.min(d,2600)/2600*1.35));
-  return t;
-}
-function samRunGhostSpeed(store){
-  const best=Math.max(0,Math.floor(Number(store?.bestDistance)||0));
-  if(best<60) return 0;
-  const seconds=Number(store.bestSeconds)>0?Number(store.bestSeconds):samRunTimeFor(best);
-  return seconds>0?best/seconds:0;
-}
-/* Where the rival is right now, in metres ahead of the player. */
-function samRunGhostAhead(g){
-  if(!g||!g.endless) return null;
-  const speed=samRunGhostSpeed(g.store); if(!speed) return null;
-  return speed*(g.raceTime||0)-(g.distance||0);
 }
 /* Sentences the child has already learned whole. A word like HOW or ARE or THE
    can never be a gate card — no picture carries it, and its Hebrew means
@@ -13016,7 +12989,7 @@ function renderSamRun(stageIndex=null,endless=false,daily=false){
     distance:0,lastMetre:-1,sceneOrigin:stageIndex,flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,
     sentences,sentenceWords:[...new Set(sentences.flatMap(x=>x.words))],
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
-    retry:[],missed:[],waveSeq:0,station:null,nextStationAt:SAM_RUN_STATION_EVERY,stationsDone:0,raceTime:0,
+    retry:[],missed:[],waveSeq:0,station:null,nextStationAt:SAM_RUN_STATION_EVERY,stationsDone:0,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:0,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,
     /* A daily route asks only for its own twelve words: pulling extras in as
        distractors would make it a different route on every attempt. */
@@ -13220,7 +13193,7 @@ function samRunStart(){
   if(rush) rush.innerHTML='';
   Object.assign(g,{score:0,lives:3,time:0,last:0,obstacles:[],paused:false,said:{},hits:{},cleared:{},runSeen:{},lastKind:'',sameKind:0,streak:0,resolvedCount:0,correctCount:0,
     streakPeak:0,cleanStreak:0,cleanPeak:0,lane:1,shield:0,runCoinBonus:0,speechAt:0,lastHit:null,late:0,latencyEma:g.store.latency||0,finishing:false,
-    retry:[],missed:[],waveSeq:0,station:null,nextStationAt:SAM_RUN_STATION_EVERY,stationsDone:0,raceTime:0,ghostAhead:null,ghostPassed:false,beatAt:0,beatStep:0,
+    retry:[],missed:[],waveSeq:0,station:null,nextStationAt:SAM_RUN_STATION_EVERY,stationsDone:0,beatAt:0,beatStep:0,
     props:[],pickups:[],nextStoneAt:0,nextPropAt:0,nextPickupAt:900,coinsRun:0,air:null,queuedAir:null,clearedWalls:0,distance:0,lastMetre:-1,
     sentence:null,sentenceAt:0,sentenceHint:null,nextSentenceAt:SAM_RUN_FEATURE_AT.sentences,sentencesDone:0,
     flowCharge:0,flowUntil:0,flowCount:0,arcadeReward:null,careerReward:null,arcadeSeen:{},hudSeen:{},missionCelebrated:false,bannerUntil:0,checkpointAt:0,recordCelebrated:false,lastAir:null,roadScroll:0,glSeen:0,glEma:0});
@@ -13335,7 +13308,7 @@ function samRunFrame(ts){
   }
   if(!g.paused&&!document.hidden){
     g.time+=dt;
-    if(g.endless&&!g.warmup){ g.raceTime=(g.raceTime||0)+dt/1000;g.distance+=dt/1000*8.5*samRunPace(g);g.roadScroll=g.distance;samRunEndlessTick(); }
+    if(g.endless&&!g.warmup){ g.distance+=dt/1000*8.5*samRunPace(g);g.roadScroll=g.distance;samRunEndlessTick(); }
     if(g.time>=g.nextSpawnAt) samRunSpawn();
     // speech that never turned into a word stops counting after the grace
     // window — unless a thing is already holding for it, which runs on its
@@ -13397,18 +13370,6 @@ function samRunEndlessTick(){
   }
   if(!g.recordCelebrated&&g.store.bestDistance>0&&metre>g.store.bestDistance){
     g.recordCelebrated=true;samRunBanner('שיא אישי חדש! 🏆');samRunTone('best');
-  }
-  /* Overtaking the rival is the moment the run is worth having, so it is
-     called out once — and once more if they take the lead back. */
-  const ahead=samRunGhostAhead(g);
-  if(ahead!=null){
-    g.ghostAhead=ahead;
-    const leading=ahead<0;
-    if(leading!==g.ghostPassed&&Math.abs(ahead)>2){
-      g.ghostPassed=leading;
-      samRunBanner(leading?'עקפת את השיא שלך! 🏃‍♂️💨':'השיא שלך חוזר קדימה…',leading?'checkpoint':'station');
-      samRunTone(leading?'unlock':'tick');
-    }
   }
   /* A long run should travel somewhere, so the roadside rolls over into the
      next world every 700m instead of running the same street forever. */
@@ -14636,7 +14597,6 @@ function samRunGLDraw(g,idle){
   s3dSceneryStep(R,T,scroll);
   s3dSceneryDraw(r,R,scroll,R.time);
   samRunGLRecordLine(R,g,scroll);
-  samRunGLRival(R,g,cadence);
   for(const pu of g.pickups){
     let st=R.pickupState.get(pu); if(!st){ st={}; R.pickupState.set(pu,st); }
     if(pu.done&&st.doneAt==null){ st.doneAt=R.time; st.struck=pu.kind==='hurdle'&&pu.el?.classList?.contains?.('is-struck'); if(pu.kind==='coin') samRunEmit('coin',st.magnet?rs.x:S3D_LANE_X[pu.lane],0,8); }
@@ -14731,37 +14691,6 @@ function samRunGLRecordLine(R,g,scroll){
   for(const sx of [-1,1]) s3dPushTRS(K.cyl,sx*(S3D_ROAD_HALF-.05),1.1,z,0,0,0,.08,2.2,.08,col,1,5);
   s3dSign(R.r,`🏆 ${best}`,0,2.5,z-.01,1.6,{bg:'#3b2a06',fg:'#ffe08a',stroke:'#ffe08a',size:56});
   if(ahead<0&&!R.recordCrossed){ R.recordCrossed=true; samRunEmit('ring',0,0,24,[1,.9,.4]); R.cam.fovKick=.08; }
-}
-/* The rival himself: the same rig, run in translucent gold, holding the lane
-   next to the player rather than sharing it — a ghost you have to run past is
-   a ghost you keep colliding with, and nothing here may ever touch the
-   player's collisions. He is drawn from the same pose machinery as Sam, so he
-   moves like a runner and not like a marker sliding down the road. */
-function samRunGLRival(R,g,cadence){
-  if(!g.endless||!g.running||g.warmup) return;
-  const ahead=samRunGhostAhead(g);
-  if(ahead==null||ahead>70||ahead<-26) return;
-  const r=R.r,P=s3dPose();
-  /* His own leg phase, tied to the road's cadence so both runners share a
-     rhythm without being in lockstep. */
-  R.rivalPhi=(R.rivalPhi||0)+(g.time-(R.rivalAt||g.time))/1000*7.4*(cadence||1);
-  R.rivalAt=g.time;
-  s3dRunCycle(P,R.rivalPhi,1,samRunPace(g));
-  /* Beside the player rather than in his lane — a rival you keep running
-     through is not a rival. He eases across instead of snapping, so a lane
-     change does not teleport him from one shoulder to the other. */
-  const side=g.lane===2?-1:1, targetX=(S3D_LANE_X[g.lane]||0)+side*.92;
-  R.rivalX=R.rivalX==null?targetX:R.rivalX+(targetX-R.rivalX)*.09;
-  P.x=R.rivalX;
-  P.z=-ahead;
-  P.alpha=.42;
-  /* The rig wants colours already resolved, and gold rather than the player's
-     own kit — two identical runners side by side is a puzzle, not a rival. */
-  s3dDrawRig(r,s3dLookColors({...samRunAvatarLook(g.store),
-    clothes:'#f3c14b',accent:'#b07d12',pants:'#8a6410',shoes:'#f6e0a0',
-    skin:'#f7e3b5',skinShadow:'#d8bf88',hairColor:'#c9a13c'}),P);
-  s3dPushTRS(r.kinds.disc,P.x,.03,P.z+.02,0,0,0,.44,1,.64,[0,0,0],.3,4);
-  if(Math.abs(ahead)<34) s3dSign(r,ahead>0?`🏆 ${Math.round(ahead)}מ׳`:'🏆',P.x,1.95,P.z-.01,1.1,{bg:'#3b2a06',fg:'#ffe08a',stroke:'#ffe08a',size:44});
 }
 /* Between the run's screens the loop is not running, so the world idles on
    its own clock: Sam standing at the line while the start sheet is up, the
@@ -16202,9 +16131,6 @@ function samRunOver(finished=false){
     /* Nothing to unlock and no stars to award: an endless run is measured in
        metres, and the only thing it can leave behind is a longer record. */
     const metres=Math.round(g.distance), record=metres>(store.bestDistance||0);
-    /* The record keeps its time as well as its length, so the next run has a
-       rival to pace against rather than a number to reach. */
-    if(record&&g.raceTime>0) store.bestSeconds=Math.round(g.raceTime*10)/10;
     store.bestDistance=Math.max(store.bestDistance||0,metres);
     /* Today's route keeps its own record, and the day count only advances the
        first time it is played — a second attempt is more practice, not another
