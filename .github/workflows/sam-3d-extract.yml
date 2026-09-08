@@ -1,0 +1,28 @@
+name: Sam 3D extraction
+on:
+  push:
+    branches: [ai/sam-3d-visual-rebuild]
+    paths:
+      - '.github/workflows/sam-3d-extract.yml'
+      - 'tools/extract-sam-3d.mjs'
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/sam-3d-visual-rebuild
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/extract-sam-3d.mjs
+      - name: Commit extraction
+        run: |
+          git config user.name "Sam 3D Visual Rebuild"
+          git config user.email "actions@users.noreply.github.com"
+          git add sam-3d-analysis.txt
+          git diff --cached --quiet && exit 0
+          git commit -m "Extract current Sam 3D renderer for visual rebuild"
+          git push
