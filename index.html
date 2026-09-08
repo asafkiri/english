@@ -15230,94 +15230,33 @@ function s3dFootDrop(hip,knee){
 /* Draw the figure. `kinds` are the renderer's meshes; the pose is applied on
    top of the base proportions. Returns the world y of the feet for the shadow. */
 function s3dDrawRig(r,look,P){
-  const K=r.kinds,C=look,R=S3D_RIG;
-  const flash=P.flash||0;
-  const tint=c=>flash>0?s3dMix(c,[1,.35,.3],flash):c;
-  const skin=tint(C.skin),cloth=tint(C.clothes),acc=tint(C.accent),pants=tint(C.pants),shoes=tint(C.shoes),hair=tint(C.hair),a=P.alpha;
-  let groundDrop=0;
-  if(P.legs&&P.ground) groundDrop=Math.min(s3dFootDrop(P.hipL,P.kneeL),s3dFootDrop(P.hipR,P.kneeR));
-  const root=new Float32Array(16);
-  m4TRS(root,P.x,P.y+P.rootY-groundDrop,P.z,P.lean,P.yaw,P.bank,1,P.sy,1);
-  const torso=new Float32Array(16),node=new Float32Array(16),node2=new Float32Array(16);
-
-  /* A soft contact shadow anchors Sam to the road instead of making him float. */
-  if(P.ground) s3dPushChild(K.disc,root,0,.012,.04,0,0,0,.34,.02,.52,[.035,.045,.06],a*.22);
-
-  /* Pelvis + tapered torso.  The old rig was a stack of stretched balls; this
-     keeps rounded joints but lets the silhouette read as one athletic body. */
-  s3dPushChild(K.sphere,root,0,R.hipY-.015,0,0,0,0,.18,.12,.13,pants,a);
-  m4TRS(node,0,R.hipY,0,P.torsoRx,P.torsoRy,P.torsoRz,1,1,1); m4Mul(torso,root,node);
-  s3dPushChild(K.sphere,torso,0,.11,0,0,0,0,.155,.13,.125,cloth,a);
-  s3dPushChild(K.sphere,torso,0,.285,0,0,0,0,.205,.19,.14,cloth,a);
-  s3dPushChild(K.sphere,torso,0,.385,-.005,0,0,0,.225,.09,.145,acc,a);
-  /* collar and neck make the head belong to the body */
-  s3dPushChild(K.cyl,torso,0,.47,0,0,0,0,.072,.10,.072,skin,a);
-  s3dPushChild(K.cyl,torso,0,.455,0,0,0,0,.105,.035,.105,acc,a);
-
-  /* Head: smaller and a little taller than wide. */
-  m4TRS(node,0,.505,0,P.headRx,P.headRy,P.headRz,1,1,1); m4Mul(node2,torso,node);
-  const head=node2.slice();
-  s3dPushChild(K.sphere,head,0,.145,0,0,0,0,.165,.19,.16,skin,a);
-  for(const s of [-1,1]) s3dPushChild(K.sphere,head,s*.164,.145,.002,0,0,0,.026,.045,.024,skin,a);
-  /* face is restrained instead of oversized toy features */
-  const eyeW=[.97,.98,1];
-  for(const s of [-1,1]){
-    const bk=1-(P.blink||0)*.92;
-    s3dPushChild(K.sphere,head,s*.058,.178,-.151,0,0,0,.023,.027*bk,.012,eyeW,a);
-    s3dPushChild(K.sphere,head,s*.058,.178,-.162,0,0,0,.011,.014*bk,.007,tint(C.eye).map(v=>v*.45),a);
-    s3dPushChild(K.box,head,s*.06,.222,-.156,0,0,s*.09,.05,.009,.009,hair,a);
-  }
-  s3dPushChild(K.sphere,head,0,.135,-.158,0,0,0,.019,.027,.014,tint(C.skinShadow),a*.85);
-  s3dPushChild(K.box,head,0,.078,-.164,0,0,0,.052,.009,.008,[.48,.20,.20],a*.8);
-  if(C.glasses){
-    for(const s of [-1,1]) s3dPushChild(K.disc,head,s*.06,.178,-.172,Math.PI/2,0,0,.047,.01,.047,[.12,.13,.17],a);
-    s3dPushChild(K.box,head,0,.178,-.174,0,0,0,.05,.008,.008,[.12,.13,.17],a);
-  }
-
-  /* Hair follows the skull instead of replacing it with a second giant ball. */
-  const hs=C.hairStyle;
-  const crown=()=>s3dPushChild(K.sphere,head,0,.235,.018,0,0,0,.17,.105,.165,hair,a);
-  if(hs==='cap'){
-    crown(); s3dPushChild(K.sphere,head,0,.25,.012,0,0,0,.178,.11,.174,acc,a);
-    s3dPushChild(K.box,head,0,.235,-.168,-.16,0,0,.22,.018,.11,acc,a);
-  } else if(hs==='curly'){
-    crown(); for(const [x,y,z] of [[-.11,.31,.02],[0,.33,.03],[.11,.31,.02],[-.16,.25,.05],[.16,.25,.05]]) s3dPushChild(K.sphere,head,x,y,z,0,0,0,.07,.065,.07,hair,a);
-  } else if(hs==='long'){
-    crown(); s3dPushChild(K.sphere,head,0,.08,.13,.08,0,0,.145,.25,.075,hair,a);
-    for(const s of [-1,1]) s3dPushChild(K.sphere,head,s*.145,.08,.045,0,0,s*-.08,.04,.19,.07,hair,a);
-  } else if(hs==='bob'){
-    crown(); s3dPushChild(K.sphere,head,0,.095,.095,0,0,0,.17,.135,.105,hair,a);
-  } else if(hs==='bun'||hs==='bun-side'){
-    crown(); s3dPushChild(K.sphere,head,hs==='bun'?0:.17,.34,.055,0,0,0,.075,.075,.075,hair,a);
-  } else if(hs==='sidepart'){
-    crown(); s3dPushChild(K.sphere,head,-.055,.275,-.04,0,0,.22,.13,.055,.13,hair,a);
-  } else crown();
-
-  /* Shoulders, upper arms and forearms are real segments now. Cylinders give
-     clean limb lines; small spheres remain only at the joints. */
-  for(const s of [-1,1]){
-    const rx=s<0?P.shL:P.shR, rz=s<0?-P.shLz:P.shRz, el=s<0?P.elL:P.elR;
-    m4TRS(node,s*.215,.39,0,rx,0,rz,1,1,1); m4Mul(node2,torso,node);
-    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.073,.073,.073,cloth,a);
-    s3dPushChild(K.cyl,node2,0,-R.upper*.48,0,0,0,0,.055,R.upper*.92,.057,cloth,a);
-    m4TRS(node,0,-R.upper,0,el,0,0,1,1,1); const elbowM=node2.slice(); m4Mul(node2,elbowM,node);
-    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.047,.047,.047,skin,a);
-    s3dPushChild(K.cyl,node2,0,-.125,0,0,0,0,.039,.25,.041,skin,a);
-    s3dPushChild(K.sphere,node2,0,-.27,-.005,0,0,0,.052,.062,.045,skin,a);
-  }
-
-  if(P.legs) for(const s of [-1,1]){
-    const hip=s<0?P.hipL:P.hipR, hz=s<0?-P.hipLz:P.hipRz, knee=s<0?P.kneeL:P.kneeR, foot=s<0?P.footL:P.footR;
-    m4TRS(node,s*.105,R.hipY,0,hip,0,hz,1,1,1); m4Mul(node2,root,node);
-    s3dPushChild(K.cyl,node2,0,-R.thigh*.48,0,0,0,0,.078,R.thigh*.94,.085,pants,a);
-    m4TRS(node,0,-R.thigh,0,knee,0,0,1,1,1); const kneeM=node2.slice(); m4Mul(node2,kneeM,node);
-    s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.066,.062,.07,pants,a);
-    s3dPushChild(K.cyl,node2,0,-R.shin*.47,0,0,0,0,.055,R.shin*.9,.06,pants,a);
-    m4TRS(node,0,-R.shin,0,foot,0,0,1,1,1); const footM=node2.slice(); m4Mul(node2,footM,node);
-    s3dPushChild(K.sphere,node2,0,-.018,-.075,-.04,0,0,.078,.05,.16,shoes,a);
-    s3dPushChild(K.box,node2,0,-.04,-.155,0,0,0,.074,.022,.075,[.96,.96,.97],a);
-  }
-  return {root,torso,head,footY:P.y+P.rootY-groundDrop};
+ const K=r.kinds,C=look,R=S3D_RIG,flash=P.flash||0,tint=c=>flash>0?s3dMix(c,[1,.35,.3],flash):c;
+ const skin=s3dMix(tint(C.skin),[1,.78,.62],.16),cloth=tint(C.clothes),acc=tint(C.accent),pants=tint(C.pants),shoes=tint(C.shoes),hair=tint(C.hair),a=P.alpha;
+ let drop=0;if(P.legs&&P.ground)drop=Math.min(s3dFootDrop(P.hipL,P.kneeL),s3dFootDrop(P.hipR,P.kneeR));
+ const root=new Float32Array(16),torso=new Float32Array(16),node=new Float32Array(16),node2=new Float32Array(16);m4TRS(root,P.x,P.y+P.rootY-drop,P.z,P.lean,P.yaw,P.bank,1,P.sy,1);
+ if(P.ground)s3dPushChild(K.disc,root,0,.012,.05,0,0,0,.30,.018,.48,[.02,.03,.04],a*.18);
+ /* compact hips, long athletic torso: no shoulder balls */
+ s3dPushChild(K.sphere,root,0,R.hipY,0,0,0,0,.155,.105,.115,pants,a);
+ m4TRS(node,0,R.hipY,0,P.torsoRx,P.torsoRy,P.torsoRz,1,1,1);m4Mul(torso,root,node);
+ s3dPushChild(K.sphere,torso,0,.12,0,0,0,0,.145,.145,.115,cloth,a);
+ s3dPushChild(K.sphere,torso,0,.30,-.005,0,0,0,.195,.205,.125,cloth,a);
+ s3dPushChild(K.box,torso,0,.395,-.005,0,0,0,.34,.055,.20,acc,a);
+ s3dPushChild(K.cyl,torso,0,.48,0,0,0,0,.058,.10,.058,skin,a);
+ m4TRS(node,0,.515,0,P.headRx,P.headRy,P.headRz,1,1,1);m4Mul(node2,torso,node);const head=node2.slice();
+ /* smaller head, visible jaw and nose; facial marks are intentionally subtle */
+ s3dPushChild(K.sphere,head,0,.145,0,0,0,0,.145,.175,.142,skin,a);
+ s3dPushChild(K.sphere,head,0,.075,-.018,0,0,0,.125,.10,.125,skin,a);
+ for(const s of [-1,1]){const bk=1-(P.blink||0)*.92;s3dPushChild(K.sphere,head,s*.052,.178,-.137,0,0,0,.018,.021*bk,.009,[.94,.95,.96],a);s3dPushChild(K.sphere,head,s*.052,.178,-.145,0,0,0,.008,.011*bk,.005,tint(C.eye).map(v=>v*.38),a);s3dPushChild(K.box,head,s*.052,.215,-.142,0,0,s*.08,.043,.007,.007,hair,a)}
+ s3dPushChild(K.sphere,head,0,.135,-.146,0,0,0,.014,.022,.012,s3dMix(skin,[.6,.32,.22],.18),a);s3dPushChild(K.box,head,0,.072,-.148,0,0,0,.042,.006,.006,[.42,.16,.14],a*.72);
+ if(C.glasses){for(const s of [-1,1])s3dPushChild(K.disc,head,s*.052,.178,-.154,Math.PI/2,0,0,.039,.008,.039,[.1,.11,.14],a);s3dPushChild(K.box,head,0,.178,-.155,0,0,0,.042,.006,.006,[.1,.11,.14],a)}
+ const hs=C.hairStyle,crown=()=>s3dPushChild(K.sphere,head,0,.235,.025,0,0,0,.148,.095,.145,hair,a);crown();
+ if(hs==='curly')for(const [x,y,z] of [[-.1,.3,.02],[0,.315,.03],[.1,.3,.02],[-.14,.25,.04],[.14,.25,.04]])s3dPushChild(K.sphere,head,x,y,z,0,0,0,.058,.055,.058,hair,a);
+ else if(hs==='long'){s3dPushChild(K.sphere,head,0,.07,.12,.08,0,0,.125,.23,.065,hair,a);for(const s of [-1,1])s3dPushChild(K.sphere,head,s*.128,.08,.04,0,0,s*-.08,.035,.17,.06,hair,a)}
+ else if(hs==='bob')s3dPushChild(K.sphere,head,0,.09,.09,0,0,0,.145,.12,.09,hair,a);else if(hs==='bun'||hs==='bun-side')s3dPushChild(K.sphere,head,hs==='bun'?0:.145,.325,.05,0,0,0,.064,.064,.064,hair,a);else if(hs==='sidepart')s3dPushChild(K.sphere,head,-.05,.27,-.04,0,0,.2,.11,.045,.11,hair,a);else if(hs==='cap'){s3dPushChild(K.sphere,head,0,.25,.02,0,0,0,.155,.1,.15,acc,a);s3dPushChild(K.box,head,0,.235,-.145,-.15,0,0,.18,.014,.085,acc,a)}
+ /* slimmer arms, shoulder begins inside torso */
+ for(const s of [-1,1]){const rx=s<0?P.shL:P.shR,rz=s<0?-P.shLz:P.shRz,el=s<0?P.elL:P.elR;m4TRS(node,s*.19,.385,0,rx,0,rz,1,1,1);m4Mul(node2,torso,node);s3dPushChild(K.cyl,node2,0,-R.upper*.48,0,0,0,0,.045,R.upper*.92,.048,cloth,a);m4TRS(node,0,-R.upper,0,el,0,0,1,1,1);const em=node2.slice();m4Mul(node2,em,node);s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.04,.04,.04,skin,a);s3dPushChild(K.cyl,node2,0,-.12,0,0,0,0,.033,.235,.035,skin,a);s3dPushChild(K.sphere,node2,0,-.255,-.008,0,0,0,.043,.055,.038,skin,a)}
+ if(P.legs)for(const s of [-1,1]){const hip=s<0?P.hipL:P.hipR,hz=s<0?-P.hipLz:P.hipRz,knee=s<0?P.kneeL:P.kneeR,foot=s<0?P.footL:P.footR;m4TRS(node,s*.09,R.hipY,0,hip,0,hz,1,1,1);m4Mul(node2,root,node);s3dPushChild(K.cyl,node2,0,-R.thigh*.48,0,0,0,0,.064,R.thigh*.95,.071,pants,a);m4TRS(node,0,-R.thigh,0,knee,0,0,1,1,1);const km=node2.slice();m4Mul(node2,km,node);s3dPushChild(K.sphere,node2,0,0,0,0,0,0,.055,.052,.058,pants,a);s3dPushChild(K.cyl,node2,0,-R.shin*.47,0,0,0,0,.045,R.shin*.91,.049,pants,a);m4TRS(node,0,-R.shin,0,foot,0,0,1,1,1);const fm=node2.slice();m4Mul(node2,fm,node);s3dPushChild(K.sphere,node2,0,-.018,-.08,-.04,0,0,.067,.043,.145,shoes,a);s3dPushChild(K.box,node2,0,-.038,-.15,0,0,0,.066,.018,.067,[.96,.96,.97],a)}
+ return {root,torso,head,footY:P.y+P.rootY-drop};
 }
 /* --- rides --- */
 function s3dDrawRide(r,ride,root,look,t){
