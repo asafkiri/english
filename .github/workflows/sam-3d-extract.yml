@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/sam-3d-extract.yml'
       - 'tools/polish-sam-3d.mjs'
+      - 'tools/trigger-sam-3d.txt'
 permissions:
   contents: write
 jobs:
