@@ -96,6 +96,7 @@ function runtime(seed = new Map(), options = {}) {
       speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
       pickVoice, characterVoice, VOICE_PREFS, playUiSound, unlockUiAudio, setUiSounds, fitStage, practiceTurnLabel,
       renderPracticePicker, practiceStoryCards, practiceStoryCardHtml, castPortraitHtml, drawPracticeStory,
+      storyThumbHtml, storyThumbArt, STORY_THUMB_ART, STORY_THUMB_PHYSICAL,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
       setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline,
@@ -5934,6 +5935,50 @@ test('small sounds are on by default and off with one switch, and never crash wi
   api.playUiSound('pass');
   api.playUiSound('arrive');
   api.fitStage();
+});
+
+test('every conversation card carries its own moving picture of what the story is about', () => {
+  const { api, app } = runtime();
+  const stories = [...api.PRACTICE_STORIES];
+  const bodies = new Map();
+  stories.forEach((story, i) => {
+    const art = api.storyThumbArt(story);
+    assert.ok(art, story.id + ' has a thumbnail');
+    assert.ok(/<(path|circle|rect|ellipse)\b/.test(art.body), story.id + ' is drawn, not empty');
+    assert.ok(Array.isArray([...art.tint]) && art.tint.length === 2, story.id + ' has a tile tint');
+    const html = api.storyThumbHtml(story, i);
+    assert.match(html, /^<svg class="story-thumb-art [^"]*m-[a-z]+"/, story.id + ' is an svg with a motion class');
+    assert.match(html, /viewBox="0 0 160 150"/);
+    assert.ok(!html.includes('stage-prop'), story.id + ' must not inherit the stage positioning');
+    if (story.stageProp?.kind) assert.ok(html.includes('physical-' + story.stageProp.kind), story.id + ' reuses its stage object');
+    bodies.set(art.body, story.id);
+  });
+  assert.equal(bodies.size, stories.length, 'no two stories share a picture');
+  // the picker puts the picture and the state badge on every card
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 12;
+  state.practiceStoryDone = ['lost_bag'];
+  api.setState(state);
+  api.renderPracticePicker();
+  const cards = app.innerHTML.match(/<button type="button" class="story-card/g) || [];
+  const thumbs = app.innerHTML.match(/<span class="story-thumb" style="--thumb-a:#[0-9a-f]{6};--thumb-b:#[0-9a-f]{6}"/g) || [];
+  assert.equal(cards.length, stories.length);
+  assert.equal(thumbs.length, stories.length, 'every card has a tinted picture tile');
+  assert.equal((app.innerHTML.match(/<svg class="story-thumb-art /g) || []).length, stories.length);
+  assert.match(app.innerHTML, /class="story-card done"[\s\S]*?<span class="story-mark">✓</);
+  assert.match(app.innerHTML, /class="story-card locked"[\s\S]*?<span class="story-mark">🔒</);
+  assert.match(app.innerHTML, /class="story-card fresh"[\s\S]*?<span class="story-mark">✨</);
+  // the shelf does not move in lockstep
+  const delays = new Set(app.innerHTML.match(/animation-delay:-?[\d.]+s/g));
+  assert.ok(delays.size >= 8, 'cards start their loops at different moments, got ' + delays.size);
+  // the CSS has a loop for every motion the drawings ask for
+  const css = html;
+  const motions = new Set([...Object.values(api.STORY_THUMB_PHYSICAL).map(m => m.motion), ...Object.values(api.STORY_THUMB_ART).map(a => a.motion)]);
+  motions.forEach(m => { if (m !== 'none') assert.ok(css.includes('.story-thumb svg.m-' + m + '{animation:'), 'motion ' + m + ' has a loop'); });
+  assert.ok(css.includes('.story-thumb svg.m-none{animation:none}'));
+  const reduced = css.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/);
+  assert.ok(reduced && reduced[0].includes('.story-thumb svg.story-thumb-art,.story-thumb .story-thumb-art *{animation:none!important}'), 'the loops stop under reduced motion');
 });
 
 test('the learner can choose a conversation, and the surprise draw respects the choice', () => {
