@@ -11,43 +11,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ai/sam-no-repeat-on-return
-      - name: Patch lane speech dedupe
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text()
-          old="""function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
-  if(!ob||!ob.options||!ob.options.length||(arrival&&(ob.arrivalSpoken||ob.arrivalPending))) return;
-  lane=Math.max(0,Math.min(2,Number(lane)||0));"""
-          new="""function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
-  if(!ob||!ob.options||!ob.options.length||(arrival&&(ob.arrivalSpoken||ob.arrivalPending))) return;
-  /* Automatic lane speech is one-shot per question. Leaving the correct lane
-     and coming back must not pronounce the same word again. */
-  if(ob.spokeCorrect) return;
-  lane=Math.max(0,Math.min(2,Number(lane)||0));"""
-          if old not in s: raise SystemExit('samRunSpeakLane header not found')
-          p.write_text(s.replace(old,new,1))
-
-          t=Path('tests/app.test.mjs')
-          x=t.read_text()
-          anchor="test(\"Sam's lane vocabulary has offline recorded pronunciation\", async () => {"
-          if anchor not in x: raise SystemExit('test anchor not found')
-          test="""test('returning to the correct lane does not repeat the word', () => {\n  const start=html.indexOf('function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){');\n  const end=html.indexOf('\\nfunction ',start+1);\n  const fn=html.slice(start,end);\n  assert.match(fn, /if\\(ob\\.spokeCorrect\\) return;/,\n    'once the correct word has been spoken for this wave, later lane changes cannot replay it');\n});\n\n"""
-          if "test('returning to the correct lane does not repeat the word'" not in x:
-            t.write_text(x.replace(anchor,test+anchor,1))
-
-          sw=Path('service-worker.js')
-          w=sw.read_text()
-          import re
-          w2,n=re.subn(r'speak-english-v(\d+)',lambda m:'speak-english-v'+str(int(m.group(1))+1),w,count=1)
-          if not n: raise SystemExit('cache version not found')
-          sw.write_text(w2)
-          PY
-      - name: Run tests
-        run: node --test tests/app.test.mjs
-      - name: Commit fix
-        run: |
+      - run: node tools/sam-no-repeat-on-return.mjs
+      - run: node --test tests/app.test.mjs
+      - run: |
           git config user.name 'Sam audio fix'
           git config user.email 'actions@users.noreply.github.com'
           git add index.html tests/app.test.mjs service-worker.js
