@@ -1,0 +1,47 @@
+name: Sam visual pass 2
+on:
+  push:
+    branches: [ai/sam-3d-visual-pass-2]
+permissions:
+  contents: write
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: ai/sam-3d-visual-pass-2}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: node tools/sam-visual-pass2.mjs
+      - run: node --test tests/app.test.mjs
+      - run: npm init -y && npm i playwright@1.55.0 && npx playwright install --with-deps chromium
+      - name: Capture actual rendered screens
+        run: |
+          python3 -m http.server 4173 >/tmp/server.log 2>&1 &
+          cat > /tmp/shot.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const b=await chromium.launch({headless:true});
+          const p=await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
+          await p.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+          await p.evaluate(()=>{ try{ localStorage.setItem('speakEnglishSamRun',JSON.stringify({coins:0,best:2213,stage:2,owned:[],equipped:{},mastery:{},stageStars:{}})); }catch(e){} });
+          await p.evaluate(()=>{ if(typeof renderSamRunHub==='function') renderSamRunHub(); });
+          await p.waitForTimeout(1800); await p.screenshot({path:'sam-hub.png',fullPage:true});
+          await p.evaluate(()=>{ if(typeof renderSamRun==='function') renderSamRun(); });
+          await p.waitForTimeout(1000); await p.evaluate(()=>{ if(typeof samRunStart==='function') samRunStart(); });
+          await p.waitForTimeout(4500); await p.screenshot({path:'sam-run.png',fullPage:true});
+          await b.close();
+          JS
+          node /tmp/shot.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sam-visual-screenshots
+          path: |
+            sam-hub.png
+            sam-run.png
+      - name: Commit rebuilt files
+        run: |
+          git config user.name 'Sam visual pass'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html service-worker.js
+          git commit -m 'Refine Sam proportions after screenshot review' || exit 0
+          git push
