@@ -1,0 +1,20 @@
+name: Sam audio race debug
+on:
+  push:
+    branches: [ai/sam-audio-race-debug]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai/sam-audio-race-debug
+      - run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text()
+          for key in ['function samRunPlayRecordedWord','function samRunSpeakLane','function samRunChooseLane','function samRunResolve']:
+            i=s.find(key)
+            print('\n###',key,i)
+            if i>=0: print(s[i:i+5000])
+          PY
