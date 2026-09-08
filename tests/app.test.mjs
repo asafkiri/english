@@ -5524,6 +5524,18 @@ test('asking by ear is the normal question, with Hebrew on the gates and no Engl
   api.samRunTeardown();
 });
 
+test('a listening question speaks automatically only once', () => {
+  assert.match(html, /if\(listen\)\{ samRunAskAloud\(ob\); samRunCoach\('listen'\); \}/,
+    'the English word is spoken when the listening question first appears');
+  const teachStart=html.indexOf('function samRunTeach(ob){');
+  const teachEnd=html.indexOf('\nfunction ',teachStart+1);
+  const teach=html.slice(teachStart,teachEnd);
+  assert.doesNotMatch(teach, /if\(ob\.listen\) samRunAskAloud\(ob\)/,
+    'correction never automatically repeats the listening word');
+  assert.match(html, /onclick=\"samRunAskAgain\(\)\"/,
+    'the speaker button still lets the learner replay it manually');
+});
+
 test('a listening question falls back to writing when the device will not speak', () => {
   const { api, context } = runtime();
   api.renderSamRunEndless();
