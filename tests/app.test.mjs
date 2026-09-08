@@ -5532,6 +5532,16 @@ test('asking by ear is the normal question, with Hebrew on the gates and no Engl
   api.samRunTeardown();
 });
 
+test('a listening prompt cannot replay when the runner enters the correct lane', () => {
+  const start=html.indexOf('function samRunAskAloud(ob){');
+  const end=html.indexOf('\nfunction ',start+1);
+  const fn=html.slice(start,end);
+  assert.match(fn, /ob\.spokeCorrect=true;/,
+    'asking by ear marks the wave as already automatically spoken');
+  assert.match(html, /if\(!ob\.spokeCorrect\) samRunSpeakLane\(ob,ob\.correctLane,false,true\);/,
+    'the normal resolve path therefore cannot replay a listening prompt');
+});
+
 test('a listening question speaks automatically only once', () => {
   assert.match(html, /if\(listen\)\{ samRunAskAloud\(ob\); samRunCoach\('listen'\); \}/,
     'the English word is spoken when the listening question first appears');
