@@ -827,6 +827,43 @@ body{
 @keyframes cueCardGust{0%{opacity:0;transform:translate(-58px,36px) rotate(-31deg) scale(.72)}42%{opacity:1;transform:translate(10px,-11px) rotate(13deg)}72%{transform:translate(-5px,4px) rotate(-18deg)}100%{transform:none}}
 @keyframes mealSteamRise{0%{opacity:0;transform:translateY(11px)}50%{opacity:.9}100%{opacity:.55;transform:translateY(-5px)}}
 @keyframes appleScatter{0%,25%{opacity:0;transform:translate(-45px,-34px) rotate(-70deg)}62%{opacity:1;transform:translate(7px,-3px) rotate(15deg)}100%{opacity:1;transform:none}}
+/* the second shelf: each new object has one small movement of its own */
+.physical-story-prop.physical-notebook{right:-28%;width:74%}.physical-story-prop.physical-elevator-panel{right:-24%;width:62%}
+.physical-story-prop.physical-lemonade{right:-31%;width:80%}.physical-story-prop.physical-cat{right:-30%;width:78%}
+.physical-story-prop.physical-pigeon{right:-31%;width:80%}.physical-story-prop.physical-snowman{right:-28%;width:74%}
+.physical-notebook.is-changing .found-notebook{animation:notebookRise 2.05s cubic-bezier(.18,.78,.22,1) both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes notebookRise{0%,45%{opacity:0;transform:translateY(40px) rotate(-8deg)}75%{opacity:1;transform:translateY(-6px) rotate(-8deg)}100%{opacity:1;transform:rotate(-8deg)}}
+.physical-ice-cream.is-revealing .window-cones{animation:conesPeek 1.6s ease-out both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes conesPeek{0%,35%{transform:translateY(30px);opacity:0}70%{transform:translateY(-3px);opacity:1}100%{transform:none}}
+.physical-ice-cream.is-changing .dropped-cone{animation:coneDrop 2.05s cubic-bezier(.3,.6,.4,1) both;transform-box:fill-box;transform-origin:center}
+@keyframes coneDrop{0%,45%{opacity:0;transform:translateY(-70px) rotate(18deg)}70%{opacity:1;transform:translateY(4px) rotate(42deg)}82%{transform:translateY(-3px) rotate(38deg)}100%{transform:rotate(38deg)}}
+.physical-elevator-panel.is-revealing .panel-lamp,.physical-elevator-panel.is-revealing .alarm-button{animation:panelFlicker .46s steps(2) 5}
+@keyframes panelFlicker{0%{opacity:1}50%{opacity:.2}100%{opacity:1}}
+.physical-elevator-panel.is-changing .physical-after .panel-lamp{animation:panelLit 2.05s ease-out both}
+@keyframes panelLit{0%,50%{opacity:.15}70%{opacity:1}100%{opacity:1}}
+.physical-lemonade.is-changing .ice-cubes rect,.physical-lemonade.is-changing .ice-cube{animation:iceDrop 1.4s cubic-bezier(.3,.7,.4,1) .55s both;transform-box:fill-box;transform-origin:center}
+.physical-lemonade.is-changing .ice-cubes rect:nth-child(2){animation-delay:.7s}.physical-lemonade.is-changing .ice-cubes rect:nth-child(3){animation-delay:.85s}
+@keyframes iceDrop{0%,30%{opacity:0;transform:translateY(-34px)}70%{opacity:1;transform:translateY(3px)}100%{opacity:1;transform:none}}
+.physical-lemonade.is-changing .cold-sparkle{animation:sparklePop 1.2s ease-out 1.1s both;transform-box:fill-box;transform-origin:center}
+@keyframes sparklePop{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.25)}100%{opacity:.9;transform:scale(1)}}
+.physical-paint-jar .tipped-jar{transform:rotate(-64deg) translateY(-4px);transform-box:fill-box;transform-origin:15% 100%}
+.physical-paint-jar.is-revealing .tipped-jar{animation:jarTip 1.7s cubic-bezier(.4,.5,.3,1) both}
+@keyframes jarTip{0%,28%{transform:none}62%{transform:rotate(-72deg) translateY(-6px)}100%{transform:rotate(-64deg) translateY(-4px)}}
+.physical-paint-jar .paint-puddle{transform-box:fill-box;transform-origin:80% 40%}
+.physical-paint-jar.is-revealing .paint-puddle{animation:puddleSpread 1.4s ease-out .7s both}
+@keyframes puddleSpread{0%{transform:scale(.15);opacity:0}40%{opacity:.94}100%{transform:none;opacity:.94}}
+.physical-cat.is-revealing .cat-tail{animation:tailWag .55s ease-in-out 4;transform-box:fill-box;transform-origin:100% 0}
+@keyframes tailWag{0%,100%{transform:rotate(0)}50%{transform:rotate(18deg)}}
+.physical-cat.is-changing .cat-hearts{animation:heartsFloat 1.6s ease-out .7s both;transform-box:fill-box;transform-origin:center}
+@keyframes heartsFloat{0%{opacity:0;transform:translateY(16px) scale(.6)}50%{opacity:1}100%{opacity:.9;transform:translateY(-6px) scale(1)}}
+.physical-pigeon.is-revealing .pigeon{animation:pigeonHop 1.7s ease-out both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes pigeonHop{0%,20%{transform:translate(50px,-40px) rotate(-12deg)}55%{transform:translate(-4px,4px)}70%{transform:translateY(-6px)}100%{transform:none}}
+.physical-pigeon.is-changing .physical-after .pigeon{animation:pigeonPeck .5s ease-in-out 1.1s 3;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes pigeonPeck{0%,100%{transform:none}50%{transform:translateY(4px) rotate(6deg)}}
+.physical-snowman.is-revealing .snowball-big{animation:snowballRoll 1.9s cubic-bezier(.3,.6,.3,1) both;transform-box:fill-box;transform-origin:center}
+@keyframes snowballRoll{0%,20%{opacity:0;transform:translateX(-90px) rotate(-360deg) scale(.5)}100%{opacity:1;transform:none}}
+.physical-snowman.is-changing .snowman-hat{animation:hatDrop 1.5s cubic-bezier(.3,.7,.4,1) .6s both;transform-box:fill-box;transform-origin:center}
+@keyframes hatDrop{0%{opacity:0;transform:translateY(-40px) rotate(-15deg)}70%{opacity:1;transform:translateY(3px)}100%{transform:none}}
 .stage-bg.has-story-ball .ball-shadow,.stage-bg.has-story-connection .signal,.stage-bg.has-story-connection .phone-signal{opacity:0!important;animation:none!important}
 @keyframes storyPropRise{0%,18%{opacity:0;transform:translate(14%,28%) scale(.72) rotate(7deg)}52%{opacity:1;transform:translate(-2%,-4%) scale(1.04)}76%,100%{opacity:1;transform:none}}
 @keyframes storyPropExit{0%,44%{opacity:1;transform:none}78%,100%{opacity:0;transform:translate(118%,-22%) scale(.7) rotate(13deg)}}
@@ -873,6 +910,14 @@ body{
 @keyframes storyRainBegin{0%,22%{opacity:0}58%{opacity:.72}100%{opacity:1}}
 @keyframes storyRainClear{0%,28%{opacity:1}76%{opacity:.24}100%{opacity:0;transform:translateY(20px)}}
 @keyframes storySunReturn{0%,32%{opacity:0;transform:scale(.82)}72%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.04)}}
+/* Snow is slower than rain and drifts; the scene goes a little pale under it. */
+.snow-field,.snow-shade{position:absolute;inset:0}
+.snow-shade{background:linear-gradient(180deg,rgba(220,232,245,.2),rgba(200,220,240,.08) 55%,rgba(255,255,255,.16))}
+.snow-field i{position:absolute;left:var(--x);top:-6%;width:var(--s,6px);height:var(--s,6px);border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 6px rgba(255,255,255,.7);animation:storySnowFlake var(--speed,6s) linear infinite;animation-delay:var(--d,0s)}
+.snow-field.is-starting{animation:storyRainBegin 2.05s ease both}
+@keyframes storySnowFlake{0%{transform:translate(0,-20px);opacity:0}10%{opacity:.95}50%{transform:translate(14px,55vh)}100%{transform:translate(-8px,112vh);opacity:.6}}
+.stage-bg.has-story-snow .backdrop-art{filter:saturate(.72) brightness(1.06)}
+.motion-paused .snow-field i{animation-play-state:paused}
 
 /* The gesture follows the same authored action as the prop. Existing idle or
    talking motions resume as soon as the action settles on the next screen. */
@@ -1705,8 +1750,8 @@ body{
 .cap-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 /* One bubble, one read. The earlier line is a quieter block above a hairline
    — no second border, no inset panel, nothing that reads as another card. */
-.cap-sequence{display:grid;gap:10px}
-.cap-previous{padding:0 2px 10px;border:none;background:none;
+.cap-sequence{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.cap-previous{padding:0 2px 10px;border:none;background:none;min-width:0;
   border-bottom:1px solid rgba(148,163,184,.17);direction:ltr;text-align:center}
 .cap-previous-en{direction:ltr;font-size:19px;font-weight:700;line-height:1.32;color:#c6d2e6}
 .cap-previous-he{direction:rtl;margin-top:3px;font-size:14.5px;font-weight:600;line-height:1.38;color:#9fadc5}
@@ -6962,6 +7007,369 @@ const PRACTICE_STORIES = [
       ]},
     ],
   },
+  /* ---- the second shelf ----
+     Eight more stories, each in a place the learner had not visited yet or
+     with a person who had only one thing to say. None of them retells an
+     earlier plot: a notebook in the wrong bag, an ice cream truck, a stuck
+     elevator, a lemonade stand out of ice, a paint spill that turns into a
+     sky, a cat with a name, a pigeon with no manners, the first snow. */
+  {
+    id:'tom_gate_notebook', min:8, sceneIds:['afterschool#0'],
+    goal:'לגלות לאן נעלמה המחברת של טום בשער בית הספר',
+    open:'הלימודים נגמרו. טום מחכה לך בשער עם התיק על הכתף, ופתאום מתחיל לחטט בו.',
+    ending:'המחברת חוזרת לתיק של טום, ואתם יוצאים מהשער {after}.',
+    stageProp:{kind:'notebook',beforeIcon:'🎒❓',afterIcon:'📓✅',beforeLabel:'התיק של טום, בלי המחברת',afterLabel:'המחברת חזרה לטום',colorA:'#3f6b9e',colorB:'#243a5f'},
+    values:{
+      after:{
+        games:{en:'to play games',he:'לשחק משחקים',tl:'טוּ פְּלֵיי גֵיימְז'},
+        friends:{en:'to hang out with friends',he:'לבלות עם חברים',tl:'טוּ הֶנְג אַאוּט וִית׳ פְרֶנְדְז'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hi, {name}! School is over. What do you do after school?',he:'היי! הלימודים נגמרו. מה [[אתה עושה|את עושה]] אחרי הלימודים?',tl:'הַיי! סְקוּל אִיז אוֹבֶר. וּוַאט דוּ יוּ דוּ אַפְטֶר סְקוּל?'},options:[
+        {id:'games',label:'אני [[משחק|משחקת]] משחקים',answer:{en:'I play games',he:'אני [[משחק|משחקת]] משחקים',tl:'אַיי פְּלֵיי גֵיימְז'},reply:{en:"Cool! Let's play together today.",he:'מגניב! [[בוא|בואי]] נשחק יחד היום.',tl:'קוּל! לֶטְס פְּלֵיי טוּגֶדֶר טוּדֵיי.'},set:{after:'games'}},
+        {id:'friends',label:'אני [[מבלה|מבלה]] עם חברים',answer:{en:'I hang out with friends',he:'אני [[מבלה|מבלה]] עם חברים',tl:'אַיי הֶנְג אַאוּט וִית׳ פְרֶנְדְז'},reply:{en:'Me too! My friends are at the park today.',he:'גם אני! החברים שלי בפארק היום.',tl:'מִי טוּ! מַיי פְרֶנְדְז אַר אֶט דֶה פַּארְק טוּדֵיי.'},set:{after:'friends'}},
+      ]},
+      {id:'homework',ask:{en:'First, one question: do you like homework?',he:'קודם, שאלה אחת: [[אתה אוהב|את אוהבת]] שיעורי בית?',tl:'פֶרְסְט, וַאן קְוֶוסְצֶ׳ן: דוּ יוּ לַייק הוֹמְוֶורְק?'},options:[
+        {id:'no',label:'לא! אני לא [[אוהב|אוהבת]] שיעורי בית',answer:{en:"No! I don't like homework",he:'לא! אני לא [[אוהב|אוהבת]] שיעורי בית',tl:'נוֹ! אַיי דוֹנְט לַייק הוֹמְוֶורְק'},reply:{en:'Same here! And my homework is in my notebook... wait.',he:'גם אני! ושיעורי הבית שלי במחברת... רגע.',tl:'סֵיים הִיר! אֶנְד מַיי הוֹמְוֶורְק אִיז אִין מַיי נוֹטְבּוּק... וֵייט.'}},
+        {id:'maybe',label:'אולי... קצת',answer:{en:'Maybe... a little',he:'אולי... קצת',tl:'מֵייבִּי... אַ לִיטֶל'},reply:{en:'A little is OK. My homework is in my notebook... wait.',he:'קצת זה בסדר. שיעורי הבית שלי במחברת... רגע.',tl:'אַ לִיטֶל אִיז אוֹקֵיי. מַיי הוֹמְוֶורְק אִיז אִין מַיי נוֹטְבּוּק... וֵייט.'}},
+      ]},
+      {id:'missing',event:{emoji:'🎒',he:'טום פותח את התיק ליד השער ומחפש בו פעמיים. המחברת לא שם.'},stageAction:{id:'tom-gate-notebook-missing',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'My notebook is not here! Do you know where it is?',he:'המחברת שלי לא כאן! [[אתה יודע|את יודעת]] איפה היא?',tl:'מַיי נוֹטְבּוּק אִיז נוֹט הִיר! דוּ יוּ נוֹאוּ וֶּור אִיט אִיז?'},options:[
+        {id:'dont_know',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'Hmm. Maybe it is in your bag. Let me look.',he:'הממ. אולי היא בתיק שלך. [[תן|תני]] לי להסתכל.',tl:'הְמְם. מֵייבִּי אִיט אִיז אִין יוֹר בֶּג. לֶט מִי לוּק.'}},
+        {id:'school',label:'אולי בבית הספר?',answer:{en:'Maybe in school?',he:'אולי בבית הספר?',tl:'מֵייבִּי אִין סְקוּל?'},reply:{en:'Maybe... but first, let me look in your bag.',he:'אולי... אבל קודם, [[תן|תני]] לי להסתכל בתיק שלך.',tl:'מֵייבִּי... בַּאט פֶרְסְט, לֶט מִי לוּק אִין יוֹר בֶּג.'}},
+      ]},
+      {id:'found',event:{emoji:'📓',he:'טום מציץ לתיק שלך ומוציא מחברת עם השם שלו על הכריכה.'},stageAction:{id:'tom-gate-notebook-found',gesture:'story-prop-change',motion:'present',set:{storyProp:'changed'}},ask:{en:'Here it is! My notebook is in your bag!',he:'הנה היא! המחברת שלי בתיק שלך!',tl:'הִיר אִיט אִיז! מַיי נוֹטְבּוּק אִיז אִין יוֹר בֶּג!'},options:[
+        {id:'sorry',label:'סליחה!',answer:{en:'Sorry!',he:'סליחה!',tl:'סוֹרִי!'},reply:{en:'It is OK. Our bags look the same!',he:'זה בסדר. התיקים שלנו נראים אותו הדבר!',tl:'אִיט אִיז אוֹקֵיי. אַאוּר בֶּגְז לוּק דֶה סֵיים!'}},
+        {id:'understand',label:'אני לא [[מבין|מבינה]]',answer:{en:"I don't understand",he:'אני לא [[מבין|מבינה]]',tl:'אַיי דוֹנְט אַנְדֶרְסְטֶנְד'},reply:{en:'Look — same bags! It is OK.',he:'[[תראה|תראי]] — אותם תיקים! זה בסדר.',tl:'לוּק — סֵיים בֶּגְז! אִיט אִיז אוֹקֵיי.'}},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'games',when:{after:'games'},ask:{en:'Now the notebook is safe. Games at my house?',he:'עכשיו המחברת בטוחה. משחקים אצלי בבית?',tl:'נַאוּ דֶה נוֹטְבּוּק אִיז סֵייף. גֵיימְז אֶט מַיי הַאוּס?'},options:[
+          {id:'go',label:'כן! [[בוא|בואי]] נלך',answer:{en:"Yes! Let's go",he:'כן! [[בוא|בואי]] נלך',tl:'יֶס! לֶטְס גוֹ'},reply:{en:'Great! Race you to my house.',he:'מעולה! מי מגיע ראשון לבית שלי.',tl:'גְרֵייט! רֵייס יוּ טוּ מַיי הַאוּס.'}},
+          {id:'sounds',label:'נשמע טוב!',answer:{en:'Sounds good!',he:'נשמע טוב!',tl:'סַאוּנְדְס גוּד!'},reply:{en:"Great! Let's go, {name}.",he:'מעולה! [[בוא|בואי]] נלך.',tl:'גְרֵייט! לֶטְס גוֹ.'}},
+        ]},
+        {id:'friends',when:{after:'friends'},ask:{en:'Now the notebook is safe. My friends are waiting — do you want to hang out?',he:'עכשיו המחברת בטוחה. החברים שלי מחכים — [[רוצה|רוצה]] לבלות איתנו?',tl:'נַאוּ דֶה נוֹטְבּוּק אִיז סֵייף. מַיי פְרֶנְדְז אַר וֵייטִינְג — דוּ יוּ וּוֹנְט טוּ הֶנְג אַאוּט?'},options:[
+          {id:'go',label:'כן! [[בוא|בואי]] נלך',answer:{en:"Yes! Let's go",he:'כן! [[בוא|בואי]] נלך',tl:'יֶס! לֶטְס גוֹ'},reply:{en:'Great! They are at the park.',he:'מעולה! הם בפארק.',tl:'גְרֵייט! דֵיי אַר אֶט דֶה פַּארְק.'}},
+          {id:'sounds',label:'נשמע טוב!',answer:{en:'Sounds good!',he:'נשמע טוב!',tl:'סַאוּנְדְס גוּד!'},reply:{en:"Great! Let's go to the park, {name}.",he:'מעולה! [[בוא|בואי]] נלך לפארק.',tl:'גְרֵייט! לֶטְס גוֹ טוּ דֶה פַּארְק.'}},
+        ]},
+      ]},
+    ],
+  },
+  {
+    id:'sam_elevator_stop', min:9, sceneIds:['greet#1'],
+    goal:'להישאר רגועים עם סם כשהמעלית נתקעת בין קומות',
+    open:'הדלת נסגרת. סם, השכן, לוחץ על הכפתור לקומה שלו ומחייך אליך.',
+    ending:'הדלת נפתחת בקומה של סם. הוא מנופף לך ואומר שהיה כיף לדבר על {hobby}.',
+    stageProp:{kind:'elevator-panel',beforeIcon:'🔴',afterIcon:'🟢',beforeLabel:'הלוח כבוי, הכפתור האדום',afterLabel:'הלוח דולק — המעלית זזה',colorA:'#3a4a63',colorB:'#1f2b40'},
+    values:{
+      hobby:{
+        games:{en:'games',he:'משחקים',tl:'גֵיימְז'},
+        music:{en:'music',he:'מוזיקה',tl:'מְיוּזִיק'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Good morning, {name}! How are you today?',he:'בוקר טוב! מה שלומך היום?',tl:'גוּד מוֹרְנִינְג! הַאוּ אַר יוּ טוּדֵיי?'},options:[
+        {id:'good',label:'אני בסדר, תודה',answer:{en:"I'm good, thanks",he:'אני בסדר, תודה',tl:'אַיְים גוּד, תֶ׳נְקְס'},reply:{en:'Good. It is a quiet morning.',he:'יופי. זה בוקר שקט.',tl:'גוּד. אִיט אִיז אַ קְוַואיֶט מוֹרְנִינְג.'}},
+        {id:'tired',label:'אני [[עייף|עייפה]]',answer:{en:"I'm tired",he:'אני [[עייף|עייפה]]',tl:'אַיְים טַיירְד'},reply:{en:'Tired? Then a quiet ride up.',he:'[[עייף|עייפה]]? אז נסיעה שקטה למעלה.',tl:'טַיירְד? דֶן אַ קְוַואיֶט רַייד אַפּ.'}},
+      ]},
+      {id:'stop',event:{emoji:'⚡',he:'המעלית נעצרת בטלטלה בין שתי קומות. האור מהבהב.'},stageAction:{id:'sam-elevator-stops',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Whoa. The elevator stopped. Are you OK?',he:'וואו. המעלית נעצרה. [[אתה|את]] בסדר?',tl:'וּוֹאָה. דֶה אֶלֶוֵייטוֹר סְטוֹפְּט. אַר יוּ אוֹקֵיי?'},options:[
+        {id:'ok',label:'אני בסדר',answer:{en:"I'm OK",he:'אני בסדר',tl:'אַיְים אוֹקֵיי'},reply:{en:'Good. This happens sometimes. It is OK.',he:'יופי. זה קורה לפעמים. זה בסדר.',tl:'גוּד. דִיס הֶפֶּנְז סַאמְטַיימְז. אִיט אִיז אוֹקֵיי.'}},
+        {id:'understand',label:'אני לא [[מבין|מבינה]]',answer:{en:"I don't understand",he:'אני לא [[מבין|מבינה]]',tl:'אַיי דוֹנְט אַנְדֶרְסְטֶנְד'},reply:{en:'The elevator stopped. But it is OK — I know what to do.',he:'המעלית נעצרה. אבל זה בסדר — אני יודע מה לעשות.',tl:'דֶה אֶלֶוֵייטוֹר סְטוֹפְּט. בַּאט אִיט אִיז אוֹקֵיי — אַיי נוֹאוּ וּוַאט טוּ דוּ.'}},
+      ]},
+      {id:'button',ask:{en:'I will press the red button and talk to the man. OK?',he:'אני אלחץ על הכפתור האדום ואדבר עם האיש. בסדר?',tl:'אַיי וִויל פְּרֶס דֶה רֶד בַּאטֶן אֶנְד טוֹק טוּ דֶה מֶן. אוֹקֵיי?'},options:[
+        {id:'yes',label:'כן',answer:{en:'Yes',he:'כן',tl:'יֶס'},reply:{en:'Good. Hello? We are stuck between floors.',he:'טוב. הלו? אנחנו תקועים בין קומות.',tl:'גוּד. הֶלוֹ? וִוי אַר סְטַאק בִּיטְוִוין פְלוֹרְז.'}},
+        {id:'help',label:'אני [[יכול|יכולה]] לעזור?',answer:{en:'Can I help you?',he:'אני [[יכול|יכולה]] לעזור?',tl:'קֶן אַיי הֶלְפּ יוּ?'},reply:{en:'Yes — talk with me. That helps. Hello? We are stuck.',he:'כן — [[דבר|דברי]] איתי. זה עוזר. הלו? אנחנו תקועים.',tl:'יֶס — טוֹק וִית׳ מִי. דֶאט הֶלְפְּס. הֶלוֹ? וִוי אַר סְטַאק.'}},
+      ]},
+      {id:'voice',event:{emoji:'📢',he:'קול מהרמקול אומר: „שתי דקות!“ סם נשען על הקיר ומחייך.'},ask:{en:'Two minutes. Let us talk. What do you do after school?',he:'שתי דקות. [[בוא|בואי]] נדבר. מה [[אתה עושה|את עושה]] אחרי הלימודים?',tl:'טוּ מִינִיטְס. לֶט אַס טוֹק. וּוַאט דוּ יוּ דוּ אַפְטֶר סְקוּל?'},options:[
+        {id:'games',label:'אני [[משחק|משחקת]] משחקים',answer:{en:'I play games',he:'אני [[משחק|משחקת]] משחקים',tl:'אַיי פְּלֵיי גֵיימְז'},reply:{en:'Games! I play games too, at night.',he:'משחקים! גם אני משחק משחקים, בלילה.',tl:'גֵיימְז! אַיי פְּלֵיי גֵיימְז טוּ, אֶט נַייט.'},set:{hobby:'games'}},
+        {id:'music',label:'אני [[מקשיב|מקשיבה]] למוזיקה',answer:{en:'I listen to music',he:'אני [[מקשיב|מקשיבה]] למוזיקה',tl:'אַיי לִיסֶן טוּ מְיוּזִיק'},reply:{en:'Music! I listen to music every day.',he:'מוזיקה! אני מקשיב למוזיקה כל יום.',tl:'מְיוּזִיק! אַיי לִיסֶן טוּ מְיוּזִיק אֶוְורִי דֵיי.'},set:{hobby:'music'}},
+      ]},
+      {id:'moving',event:{emoji:'💡',he:'האור מפסיק להבהב, הלוח נדלק, והמעלית מתחילה לזוז.'},stageAction:{id:'sam-elevator-moves-again',gesture:'story-prop-change',motion:'celebrate',set:{storyProp:'changed'}},ask:{en:'Look — the lights! We are moving. How do you feel?',he:'[[תראה|תראי]] — האורות! אנחנו זזים. איך [[אתה מרגיש|את מרגישה]]?',tl:'לוּק — דֶה לַייטְס! וִוי אַר מוּבִינְג. הַאוּ דוּ יוּ פִיל?'},options:[
+        {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Me too. That was fast.',he:'גם אני. זה היה מהיר.',tl:'מִי טוּ. דֶאט וּוֹז פַאסְט.'}},
+        {id:'happy',label:'אני [[שמח|שמחה]]',answer:{en:"I'm happy",he:'אני [[שמח|שמחה]]',tl:'אַיְים הֶפִּי'},reply:{en:'Me too. Two minutes and done.',he:'גם אני. שתי דקות וזהו.',tl:'מִי טוּ. טוּ מִינִיטְס אֶנְד דַאן.'}},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'games',when:{hobby:'games'},ask:{en:'This is my floor. Next time, tell me about your games!',he:'זאת הקומה שלי. בפעם הבאה, [[ספר|ספרי]] לי על המשחקים שלך!',tl:'דִיס אִיז מַיי פְלוֹר. נֶקְסְט טַיים, טֶל מִי אַבַּאוּט יוֹר גֵיימְז!'},options:[
+          {id:'sounds',label:'נשמע טוב!',answer:{en:'Sounds good!',he:'נשמע טוב!',tl:'סַאוּנְדְס גוּד!'},reply:{en:'Great. Have a nice day, {name}!',he:'מעולה. שיהיה לך יום טוב!',tl:'גְרֵייט. הֶב אַ נַייס דֵיי!'}},
+          {id:'later',label:'נתראה אחר כך!',answer:{en:'See you later!',he:'נתראה אחר כך!',tl:'סִי יוּ לֵייטֶר!'},reply:{en:'See you later! Take care.',he:'נתראה אחר כך! [[שמור|שמרי]] על עצמך.',tl:'סִי יוּ לֵייטֶר! טֵייק קֶר.'}},
+        ]},
+        {id:'music',when:{hobby:'music'},ask:{en:'This is my floor. Next time, tell me about your music!',he:'זאת הקומה שלי. בפעם הבאה, [[ספר|ספרי]] לי על המוזיקה שלך!',tl:'דִיס אִיז מַיי פְלוֹר. נֶקְסְט טַיים, טֶל מִי אַבַּאוּט יוֹר מְיוּזִיק!'},options:[
+          {id:'sounds',label:'נשמע טוב!',answer:{en:'Sounds good!',he:'נשמע טוב!',tl:'סַאוּנְדְס גוּד!'},reply:{en:'Great. Have a nice day, {name}!',he:'מעולה. שיהיה לך יום טוב!',tl:'גְרֵייט. הֶב אַ נַייס דֵיי!'}},
+          {id:'later',label:'נתראה אחר כך!',answer:{en:'See you later!',he:'נתראה אחר כך!',tl:'סִי יוּ לֵייטֶר!'},reply:{en:'See you later! Take care.',he:'נתראה אחר כך! [[שמור|שמרי]] על עצמך.',tl:'סִי יוּ לֵייטֶר! טֵייק קֶר.'}},
+        ]},
+      ]},
+    ],
+  },
+  {
+    id:'maya_ice_cream_truck', min:11, sceneIds:['afterschool#1'],
+    goal:'לתפוס את משאית הגלידה ולחלוק גלידה עם מאיה על הספסל',
+    open:'מאיה יושבת על הספסל בשכונה עם הטלפון. מרחוק נשמע צלצול מוכר.',
+    ending:'המשאית ממשיכה לרחוב הבא, ואתם נשארים על הספסל עם {treat}.',
+    stageProp:{kind:'ice-cream',beforeIcon:'🚚🍦',afterIcon:'🍦💥',beforeLabel:'החלון של המשאית נפתח',afterLabel:'גלידה אחת על המדרכה',colorA:'#d77aa6',colorB:'#6a3a5a'},
+    values:{
+      treat:{
+        ice:{en:'one ice cream for two',he:'גלידה אחת לשניים',tl:'וַאן אַייס קְרִים פוֹר טוּ'},
+        water:{en:'a new ice cream for Maya and water for you',he:'גלידה חדשה למאיה ובקבוק מים בשבילך',tl:'אַ נְיוּ אַייס קְרִים פוֹר מַאיָה אֶנְד ווֹטֶר פוֹר יוּ'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hi, {name}! Sit with me. How do you feel today?',he:'היי! [[שב|שבי]] איתי. איך [[אתה מרגיש|את מרגישה]] היום?',tl:'הַיי! סִיט וִית׳ מִי. הַאוּ דוּ יוּ פִיל טוּדֵיי?'},options:[
+        {id:'happy',label:'אני [[שמח|שמחה]]',answer:{en:"I'm happy",he:'אני [[שמח|שמחה]]',tl:'אַיְים הֶפִּי'},reply:{en:'Good! Me too. It is a nice day.',he:'יופי! גם אני. יום נחמד היום.',tl:'גוּד! מִי טוּ. אִיט אִיז אַ נַייס דֵיי.'}},
+        {id:'bored',label:'אני [[משועמם|משועממת]]',answer:{en:"I'm bored",he:'אני [[משועמם|משועממת]]',tl:'אַיְים בּוֹרְד'},reply:{en:'Bored? Wait — listen to that!',he:'[[משועמם|משועממת]]? רגע — [[תקשיב|תקשיבי]] לזה!',tl:'בּוֹרְד? וֵייט — לִיסֶן טוּ דֶאט!'}},
+      ]},
+      {id:'jingle',event:{emoji:'🎵',he:'מנגינה קטנה מתקרבת מהרחוב. מאיה מרימה את הראש מהטלפון.'},ask:{en:'Do you hear the music? What is this?',he:'[[אתה שומע|את שומעת]] את המוזיקה? מה זה?',tl:'דוּ יוּ הִיר דֶה מְיוּזִיק? וּוַאט אִיז דִיס?'},options:[
+        {id:'dont_know',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'It is the ice cream truck! It comes here every day.',he:'זאת משאית הגלידה! היא מגיעה לכאן כל יום.',tl:'אִיט אִיז דֶה אַייס קְרִים טְרַאק! אִיט קַאמְז הִיר אֶוְורִי דֵיי.'}},
+        {id:'hear',label:'אני שומע! מה זה?',answer:{en:'I hear it! What is it?',he:'אני [[שומע|שומעת]]! מה זה?',tl:'אַיי הִיר אִיט! וּוַאט אִיז אִיט?'},reply:{en:'The ice cream truck! It comes here every day.',he:'משאית הגלידה! היא מגיעה לכאן כל יום.',tl:'דֶה אַייס קְרִים טְרַאק! אִיט קַאמְז הִיר אֶוְורִי דֵיי.'}},
+      ]},
+      {id:'truck',event:{emoji:'🍦',he:'משאית ורודה עוצרת בפינה. חלון קטן נפתח, ובתוכו גביעים.'},stageAction:{id:'maya-ice-cream-truck-arrives',gesture:'story-prop-reveal',motion:'present',set:{storyProp:'ready'}},ask:{en:'Look — it stopped! Are you hungry?',he:'[[תראה|תראי]] — היא עצרה! [[אתה רעב|את רעבה]]?',tl:'לוּק — אִיט סְטוֹפְּט! אַר יוּ הַנְגְרִי?'},options:[
+        {id:'hungry',label:'כן, אני [[רעב|רעבה]]!',answer:{en:"Yes, I'm hungry!",he:'כן, אני [[רעב|רעבה]]!',tl:'יֶס, אַיְים הַנְגְרִי!'},reply:{en:'Then ice cream! I will buy for us.',he:'אז גלידה! אני אקנה לשנינו.',tl:'דֶן אַייס קְרִים! אַיי וִויל בַּיי פוֹר אַס.'}},
+        {id:'thirsty',label:'אני [[צמא|צמאה]]',answer:{en:"I'm thirsty",he:'אני [[צמא|צמאה]]',tl:'אַיְים תֶ׳רְסְטִי'},reply:{en:'They have water too. I will buy for us.',he:'יש להם גם מים. אני אקנה לשנינו.',tl:'דֵיי הֶב ווֹטֶר טוּ. אַיי וִויל בַּיי פוֹר אַס.'}},
+      ]},
+      {id:'order',ask:{en:'Ice cream for you, or water?',he:'גלידה בשבילך, או מים?',tl:'אַייס קְרִים פוֹר יוּ, אוֹר ווֹטֶר?'},options:[
+        {id:'ice',label:'כן, בבקשה! גלידה',answer:{en:'Yes, please!',he:'כן, בבקשה!',tl:'יֶס, פְּלִיז!'},reply:{en:'Two ice creams! One minute.',he:'שתי גלידות! דקה אחת.',tl:'טוּ אַייס קְרִימְז! וַאן מִינִיט.'},set:{treat:'ice'}},
+        {id:'water',label:'מים, בבקשה',answer:{en:'Water, please',he:'מים, בבקשה',tl:'ווֹטֶר, פְּלִיז'},reply:{en:'Water for you, ice cream for me. One minute.',he:'מים בשבילך, גלידה בשבילי. דקה אחת.',tl:'ווֹטֶר פוֹר יוּ, אַייס קְרִים פוֹר מִי. וַאן מִינִיט.'},set:{treat:'water'}},
+      ]},
+      {id:'drop',stageAction:{id:'maya-ice-cream-drops',gesture:'story-prop-change',motion:'catch',set:{storyProp:'changed'}},variants:[
+        {id:'ice',when:{treat:'ice'},event:{emoji:'💥',he:'מאיה חוזרת מהמשאית עם שתי גלידות. אחת מחליקה מהגביע ונוחתת על המדרכה.'},ask:{en:'Oh no! My ice cream is on the street! Can we share yours?',he:'אוי לא! הגלידה שלי על הרחוב! אפשר לחלוק את שלך?',tl:'אוֹ נוֹ! מַיי אַייס קְרִים אִיז אוֹן דֶה סְטְרִיט! קֶן וִוי שֶר יוֹרְז?'},options:[
+          {id:'yes',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you! Half for you, half for me.',he:'תודה! חצי לך, חצי לי.',tl:'תֶ׳נְק יוּ! הַאף פוֹר יוּ, הַאף פוֹר מִי.'}},
+          {id:'course',label:'בטח!',answer:{en:'Of course!',he:'בטח!',tl:'אוֹף קוֹרְס!'},reply:{en:'You are the best. Half and half.',he:'[[אתה הכי טוב|את הכי טובה]]. חצי חצי.',tl:'יוּ אַר דֶה בֶּסְט. הַאף אֶנְד הַאף.'}},
+        ]},
+        {id:'water',when:{treat:'water'},event:{emoji:'💥',he:'מאיה חוזרת מהמשאית עם מים וגלידה. הגלידה מחליקה מהגביע ונוחתת על המדרכה.'},ask:{en:'Oh no! My ice cream is on the street! What now?',he:'אוי לא! הגלידה שלי על הרחוב! מה עכשיו?',tl:'אוֹ נוֹ! מַיי אַייס קְרִים אִיז אוֹן דֶה סְטְרִיט! וּוַאט נַאוּ?'},options:[
+          {id:'help',label:'אני [[יכול|יכולה]] לעזור?',answer:{en:'Can I help you?',he:'אני [[יכול|יכולה]] לעזור?',tl:'קֶן אַיי הֶלְפּ יוּ?'},reply:{en:'Yes — hold my water. I will buy one more.',he:'כן — [[תחזיק|תחזיקי]] לי את המים. אני אקנה עוד אחת.',tl:'יֶס — הוֹלְד מַיי ווֹטֶר. אַיי וִויל בַּיי וַאן מוֹר.'}},
+          {id:'ok',label:'זה בסדר',answer:{en:"It's OK",he:'זה בסדר',tl:'אִיטְס אוֹקֵיי'},reply:{en:'You are right. I will buy one more.',he:'[[אתה צודק|את צודקת]]. אני אקנה עוד אחת.',tl:'יוּ אַר רַייט. אַיי וִויל בַּיי וַאן מוֹר.'}},
+        ]},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'ice',when:{treat:'ice'},ask:{en:'Mmm. How is it?',he:'ממממ. איך זה?',tl:'מְמְם. הַאוּ אִיז אִיט?'},options:[
+          {id:'tasty',label:'זה טעים!',answer:{en:"It's tasty!",he:'זה טעים!',tl:'אִיטְס טֵייסְטִי!'},reply:{en:'Very tasty. Thank you for sharing, {name}!',he:'טעים מאוד. תודה שחלקת איתי!',tl:'וֶרִי טֵייסְטִי. תֶ׳נְק יוּ פוֹר שֶרִינְג!'}},
+          {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Me too! Ice cream fixes everything.',he:'גם אני! גלידה מסדרת הכול.',tl:'מִי טוּ! אַייס קְרִים פִיקְסֶז אֶבְרִיתִ׳ינְג.'}},
+        ]},
+        {id:'water',when:{treat:'water'},ask:{en:'One new ice cream, and your water. How do you feel now?',he:'גלידה חדשה אחת, והמים שלך. איך [[אתה מרגיש|את מרגישה]] עכשיו?',tl:'וַאן נְיוּ אַייס קְרִים, אֶנְד יוֹר ווֹטֶר. הַאוּ דוּ יוּ פִיל נַאוּ?'},options:[
+          {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Me too! Thank you for the help, {name}!',he:'גם אני! תודה על העזרה!',tl:'מִי טוּ! תֶ׳נְק יוּ פוֹר דֶה הֶלְפּ!'}},
+          {id:'happy',label:'אני [[שמח|שמחה]]',answer:{en:"I'm happy",he:'אני [[שמח|שמחה]]',tl:'אַיְים הֶפִּי'},reply:{en:'Me too. Ice cream fixes everything.',he:'גם אני. גלידה מסדרת הכול.',tl:'מִי טוּ. אַייס קְרִים פִיקְסֶז אֶבְרִיתִ׳ינְג.'}},
+        ]},
+      ]},
+    ],
+  },
+  {
+    id:'nina_lemonade_stand', min:14, sceneIds:['shopping#1'],
+    goal:'לקנות לימונדה קרה בשוק ולעזור לנינה כשהקרח נגמר',
+    open:'יום חם בשוק. נינה עומדת בדוכן עם קנקן לימונדה ומנגבת את המצח.',
+    ending:'נינה מוזגת {cups} מהקנקן הקר. קר, מתוק, ובדיוק בזמן.',
+    stageProp:{kind:'lemonade',beforeIcon:'🧊❌',afterIcon:'🍋🧊',beforeLabel:'הקרח נגמר',afterLabel:'לימונדה קרה עם קרח',colorA:'#c9a227',colorB:'#4f6b2f'},
+    values:{
+      cups:{
+        one:{en:'one cup',he:'כוס אחת',tl:'וַאן קַאפּ'},
+        two:{en:'two cups',he:'שתי כוסות',tl:'טוּ קַאפְּס'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hello, {name}! It is so hot today. Are you thirsty?',he:'שלום! כל כך חם היום. [[אתה צמא|את צמאה]]?',tl:'הֶלוֹ! אִיט אִיז סוֹ הוֹט טוּדֵיי. אַר יוּ תֶ׳רְסְטִי?'},options:[
+        {id:'thirsty',label:'כן, אני [[צמא|צמאה]]',answer:{en:"Yes, I'm thirsty",he:'כן, אני [[צמא|צמאה]]',tl:'יֶס, אַיְים תֶ׳רְסְטִי'},reply:{en:'Then you are in the right place. Fresh lemonade!',he:'אז [[הגעת|הגעת]] למקום הנכון. לימונדה טרייה!',tl:'דֶן יוּ אַר אִין דֶה רַייט פְּלֵייס. פְרֶש לֶמוֹנֵייד!'}},
+        {id:'water',label:'מים, בבקשה',answer:{en:'Water, please',he:'מים, בבקשה',tl:'ווֹטֶר, פְּלִיז'},reply:{en:'Water — and my lemonade is even better. Try it!',he:'מים — והלימונדה שלי אפילו יותר טובה. [[תנסה|תנסי]]!',tl:'ווֹטֶר — אֶנְד מַיי לֶמוֹנֵייד אִיז אִיבֶן בֶּטֶר. טְרַיי אִיט!'}},
+      ]},
+      {id:'price',ask:{en:'One cup is two dollars. Do you want one?',he:'כוס אחת עולה שני דולר. [[אתה רוצה|את רוצה]] אחת?',tl:'וַאן קַאפּ אִיז טוּ דוֹלַרְז. דוּ יוּ וּוֹנְט וַאן?'},options:[
+        {id:'take',label:'אני אקח את זה',answer:{en:"I'll take it",he:'אני אקח את זה',tl:'אַיְיל טֵייק אִיט'},reply:{en:'Great choice. Let me get the ice.',he:'בחירה מעולה. אני אביא את הקרח.',tl:'גְרֵייט צ׳וֹיס. לֶט מִי גֶט דֶה אַייס.'},set:{deal:'full'}},
+        {id:'expensive',label:'זה יקר מדי',answer:{en:"It's too expensive",he:'זה יקר מדי',tl:'אִיטְס טוּ אֶקְסְפֶּנְסִיב'},reply:{en:'Hmm... for you, one dollar. Let me get the ice.',he:'הממ... בשבילך, דולר אחד. אני אביא את הקרח.',tl:'הְמְם... פוֹר יוּ, וַאן דוֹלַר. לֶט מִי גֶט דֶה אַייס.'},set:{deal:'discount'}},
+      ]},
+      {id:'no_ice',event:{emoji:'🧊',he:'נינה פותחת את הקופסה ליד הקנקן. היא ריקה — הקרח נגמר.'},stageAction:{id:'nina-lemonade-ice-runs-out',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Oh no. No ice! Warm lemonade is not good. Can you help me?',he:'אוי לא. אין קרח! לימונדה חמה זה לא טוב. [[אתה יכול|את יכולה]] לעזור לי?',tl:'אוֹ נוֹ. נוֹ אַייס! ווֹרְם לֶמוֹנֵייד אִיז נוֹט גוּד. קֶן יוּ הֶלְפּ מִי?'},options:[
+        {id:'yes',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you! Please wait here with the stand. I will run to the next stall.',he:'תודה! בבקשה [[חכה|חכי]] כאן עם הדוכן. אני ארוץ לדוכן הסמוך.',tl:'תֶ׳נְק יוּ! פְּלִיז וֵייט הִיר וִית׳ דֶה סְטֶנְד. אַיי וִויל רַאן טוּ דֶה נֶקְסְט סְטוֹל.'}},
+        {id:'course',label:'בטח!',answer:{en:'Of course!',he:'בטח!',tl:'אוֹף קוֹרְס!'},reply:{en:'You are kind. Wait here with the stand — one minute.',he:'[[אתה נחמד|את נחמדה]]. [[חכה|חכי]] כאן עם הדוכן — דקה אחת.',tl:'יוּ אַר קַיינְד. וֵייט הִיר וִית׳ דֶה סְטֶנְד — וַאן מִינִיט.'}},
+      ]},
+      {id:'ice_back',event:{emoji:'🏃‍♀️',he:'נינה חוזרת בריצה עם שקית קרח גדולה ושופכת אותה לקנקן.'},stageAction:{id:'nina-lemonade-ice-returns',gesture:'story-prop-change',motion:'carry',set:{storyProp:'changed'}},ask:{en:'Ice! Now it is cold. One cup, or two cups for a friend?',he:'קרח! עכשיו זה קר. כוס אחת, או שתי כוסות בשביל חבר?',tl:'אַייס! נַאוּ אִיט אִיז קוֹלְד. וַאן קַאפּ, אוֹר טוּ קַאפְּס פוֹר אַ פְרֶנְד?'},options:[
+        {id:'one',label:'אחת, בבקשה',answer:{en:'One, please',he:'אחת, בבקשה',tl:'וַאן, פְּלִיז'},reply:{en:'One cold cup.',he:'כוס קרה אחת.',tl:'וַאן קוֹלְד קַאפּ.'},set:{cups:'one'}},
+        {id:'two',label:'שתיים, בבקשה',answer:{en:'Two, please',he:'שתיים, בבקשה',tl:'טוּ, פְּלִיז'},reply:{en:'Two cups. Your friend is lucky.',he:'שתי כוסות. לחבר שלך יש מזל.',tl:'טוּ קַאפְּס. יוֹר פְרֶנְד אִיז לַאקִי.'},set:{cups:'two'}},
+      ]},
+      {id:'taste',ask:{en:'Here you go. Try it! How is it?',he:'בבקשה. [[תנסה|תנסי]]! איך זה?',tl:'הִיר יוּ גוֹ. טְרַיי אִיט! הַאוּ אִיז אִיט?'},options:[
+        {id:'tasty',label:'זה טעים!',answer:{en:"It's tasty!",he:'זה טעים!',tl:'אִיטְס טֵייסְטִי!'},reply:{en:'The ice makes it perfect.',he:'הקרח עושה את זה מושלם.',tl:'דֶה אַייס מֵייקְס אִיט פֶּרְפֶקְט.'}},
+        {id:'cold',label:'זה קר!',answer:{en:"It's cold!",he:'זה קר!',tl:'אִיטְס קוֹלְד!'},reply:{en:'Cold and sweet. Just right for today.',he:'קר ומתוק. בדיוק מה שצריך היום.',tl:'קוֹלְד אֶנְד סְוִויט. גַ׳סְט רַייט פוֹר טוּדֵיי.'}},
+      ]},
+      {id:'close',role:'close',variants:[
+        {id:'full',when:{deal:'full'},ask:{en:'Here — {cups}, and thank you for waiting with my stand!',he:'הנה — {cups}, ותודה שחיכית עם הדוכן שלי!',tl:'הִיר — {cups}, אֶנְד תֶ׳נְק יוּ פוֹר וֵייטִינְג וִית׳ מַיי סְטֶנְד!'},options:[
+          {id:'great',label:'תודה! היה מעולה!',answer:{en:'Thank you! It was great!',he:'תודה! היה מעולה!',tl:'תֶ׳נְק יוּ! אִיט וּוֹז גְרֵייט!'},reply:{en:'Come back tomorrow, {name}! Have a nice day!',he:'[[תחזור|תחזרי]] מחר! שיהיה לך יום טוב!',tl:'קַאם בֶּק טוּמוֹרוֹ! הֶב אַ נַייס דֵיי!'}},
+          {id:'welcome',label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:'See you next time, {name}!',he:'נתראה בפעם הבאה!',tl:'סִי יוּ נֶקְסְט טַיים!'}},
+        ]},
+        {id:'discount',when:{deal:'discount'},ask:{en:'One dollar for {cups}, for my helper. Thank you!',he:'דולר אחד על {cups}, בשביל [[העוזר|העוזרת]] שלי. תודה!',tl:'וַאן דוֹלַר פוֹר {cups}, פוֹר מַיי הֶלְפֶּר. תֶ׳נְק יוּ!'},options:[
+          {id:'great',label:'תודה! היה מעולה!',answer:{en:'Thank you! It was great!',he:'תודה! היה מעולה!',tl:'תֶ׳נְק יוּ! אִיט וּוֹז גְרֵייט!'},reply:{en:'Come back tomorrow, {name}! Have a nice day!',he:'[[תחזור|תחזרי]] מחר! שיהיה לך יום טוב!',tl:'קַאם בֶּק טוּמוֹרוֹ! הֶב אַ נַייס דֵיי!'}},
+          {id:'welcome',label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:'See you next time, {name}!',he:'נתראה בפעם הבאה!',tl:'סִי יוּ נֶקְסְט טַיים!'}},
+        ]},
+      ]},
+    ],
+  },
+  {
+    id:'dana_paint_spill', min:23, sceneIds:['meet#1'],
+    goal:'להפוך כתם צבע שנשפך לציור בחוג של דנה',
+    open:'בחוג האמנות דנה מניחה לפניך דף גדול וצנצנות צבע. היום מציירים.',
+    ending:'הציור שלך תלוי על הקיר בחוג, עם שמש {sun} — וכתם שהפך לציור.',
+    stageProp:{kind:'paint-jar',beforeIcon:'🫙💦',afterIcon:'🖼️☀️',beforeLabel:'הצנצנת נשפכה על הדף',afterLabel:'הכתם הפך לציור',colorA:'#3b7dd8',colorB:'#25406b'},
+    values:{
+      first:{
+        blue:{en:'blue',he:'הכחולה',tl:'בְּלוּ'},
+        green:{en:'green',he:'הירוקה',tl:'גְרִין'},
+      },
+      sun:{
+        yellow:{en:'yellow',he:'צהובה',tl:'יֶלוֹ'},
+        red:{en:'red',he:'אדומה',tl:'רֶד'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hi, {name}! Today we paint. What is your favorite color?',he:'היי! היום מציירים. מה הצבע האהוב עליך?',tl:'הַיי! טוּדֵיי וִוי פֵּיינְט. וּוַאט אִיז יוֹר פֵייבוֹרִיט קַאלֶר?'},options:[
+        {id:'favorite',label:'הצבע האהוב עליי הוא {color}',answer:{en:'My favorite color is {color}',he:'הצבע האהוב עליי הוא {color}',tl:'מַיי פֵייבוֹרִיט קַאלֶר אִיז {color}'},reply:{en:'Beautiful. We will use it today.',he:'יפה. נשתמש בו היום.',tl:'בְּיוּטִיפוּל. וִוי וִויל יוּז אִיט טוּדֵיי.'}},
+        {id:'blue',label:'אני [[אוהב|אוהבת]] כחול',answer:{en:'I like blue',he:'אני [[אוהב|אוהבת]] כחול',tl:'אַיי לַייק בְּלוּ'},reply:{en:'Blue is my favorite too.',he:'גם הצבע האהוב עליי הוא כחול.',tl:'בְּלוּ אִיז מַיי פֵייבוֹרִיט טוּ.'}},
+      ]},
+      {id:'first_color',ask:{en:'Let us start. Blue or green for the paper first?',he:'[[בוא|בואי]] נתחיל. כחול או ירוק על הדף קודם?',tl:'לֶט אַס סְטַארְט. בְּלוּ אוֹר גְרִין פוֹר דֶה פֵּייפֶּר פֶרְסְט?'},options:[
+        {id:'blue',label:'אני [[רוצה|רוצה]] את הכחול',answer:{en:'I want the blue one',he:'אני [[רוצה|רוצה]] את הכחול',tl:'אַיי וּוֹנְט דֶה בְּלוּ וַאן'},reply:{en:'Blue. Here is the jar.',he:'כחול. הנה הצנצנת.',tl:'בְּלוּ. הִיר אִיז דֶה גַ׳אר.'},set:{first:'blue'}},
+        {id:'green',label:'אני [[רוצה|רוצה]] את הירוק',answer:{en:'I want the green one',he:'אני [[רוצה|רוצה]] את הירוק',tl:'אַיי וּוֹנְט דֶה גְרִין וַאן'},reply:{en:'Green. Here is the jar.',he:'ירוק. הנה הצנצנת.',tl:'גְרִין. הִיר אִיז דֶה גַ׳אר.'},set:{first:'green'}},
+      ]},
+      {id:'spill',event:{emoji:'💦',he:'המרפק של דנה פוגע בצנצנת {first}. הצבע נשפך על הדף.'},stageAction:{id:'dana-paint-jar-spills',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Oh no! My elbow! The paint is on your paper. Can you help me?',he:'אוי לא! המרפק שלי! הצבע על הדף שלך. [[אתה יכול|את יכולה]] לעזור לי?',tl:'אוֹ נוֹ! מַיי אֶלְבּוֹ! דֶה פֵּיינְט אִיז אוֹן יוֹר פֵּייפֶּר. קֶן יוּ הֶלְפּ מִי?'},options:[
+        {id:'yes',label:'כן, אין בעיה',answer:{en:'Yes, no problem',he:'כן, אין בעיה',tl:'יֶס, נוֹ פְּרוֹבְּלֶם'},reply:{en:'Thank you. Paper towels, quick!',he:'תודה. מגבות נייר, מהר!',tl:'תֶ׳נְק יוּ. פֵּייפֶּר טַאוֶולְז, קְוִויק!'}},
+        {id:'worry',label:'אל תדאגי',answer:{en:"Don't worry",he:'אל תדאגי',tl:'דוֹנְט וּוֹרִי'},reply:{en:'You are right. Let us clean it together.',he:'[[אתה צודק|את צודקת]]. [[בוא|בואי]] ננקה יחד.',tl:'יוּ אַר רַייט. לֶט אַס קְלִין אִיט טוּגֶדֶר.'}},
+      ]},
+      {id:'new_picture',stageAction:{id:'dana-spill-becomes-picture',gesture:'story-prop-change',motion:'swap',set:{storyProp:'changed'}},variants:[
+        {id:'blue',when:{first:'blue'},event:{emoji:'🎨',he:'אתם מנגבים יחד. הכתם הכחול הגדול נראה עכשיו כמו שמיים.'},ask:{en:'Look at the paper now. It is not a spill — what is it?',he:'[[תסתכל|תסתכלי]] על הדף עכשיו. זה לא כתם — מה זה?',tl:'לוּק אֶט דֶה פֵּייפֶּר נַאוּ. אִיט אִיז נוֹט אַ סְפִּיל — וּוַאט אִיז אִיט?'},options:[
+          {id:'sky',label:'השמיים כחולים!',answer:{en:'The sky is blue!',he:'השמיים כחולים!',tl:'דֶה סְקַיי אִיז בְּלוּ!'},reply:{en:'Yes! A big blue sky. Now it needs a sun.',he:'כן! שמיים כחולים גדולים. עכשיו צריך שמש.',tl:'יֶס! אַ בִּיג בְּלוּ סְקַיי. נַאוּ אִיט נִידְז אַ סַאן.'}},
+          {id:'dont_know',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'It is a sky! A big blue sky. Now it needs a sun.',he:'אלה שמיים! שמיים כחולים גדולים. עכשיו צריך שמש.',tl:'אִיט אִיז אַ סְקַיי! אַ בִּיג בְּלוּ סְקַיי. נַאוּ אִיט נִידְז אַ סַאן.'}},
+        ]},
+        {id:'green',when:{first:'green'},event:{emoji:'🎨',he:'אתם מנגבים יחד. הכתם הירוק הגדול נראה עכשיו כמו דשא.'},ask:{en:'Look at the paper now. It is not a spill — what is it?',he:'[[תסתכל|תסתכלי]] על הדף עכשיו. זה לא כתם — מה זה?',tl:'לוּק אֶט דֶה פֵּייפֶּר נַאוּ. אִיט אִיז נוֹט אַ סְפִּיל — וּוַאט אִיז אִיט?'},options:[
+          {id:'green',label:'זה ירוק!',answer:{en:'It is green!',he:'זה ירוק!',tl:'אִיט אִיז גְרִין!'},reply:{en:'Yes! Green grass. Now it needs a sun.',he:'כן! דשא ירוק. עכשיו צריך שמש.',tl:'יֶס! גְרִין גְרַאס. נַאוּ אִיט נִידְז אַ סַאן.'}},
+          {id:'dont_know',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'It is grass! Green grass. Now it needs a sun.',he:'זה דשא! דשא ירוק. עכשיו צריך שמש.',tl:'אִיט אִיז גְרַאס! גְרִין גְרַאס. נַאוּ אִיט נִידְז אַ סַאן.'}},
+        ]},
+      ]},
+      {id:'sun',ask:{en:'Yellow or red for the sun?',he:'צהוב או אדום לשמש?',tl:'יֶלוֹ אוֹר רֶד פוֹר דֶה סַאן?'},options:[
+        {id:'yellow',label:'אני [[רוצה|רוצה]] את הצהוב',answer:{en:'I want the yellow one',he:'אני [[רוצה|רוצה]] את הצהוב',tl:'אַיי וּוֹנְט דֶה יֶלוֹ וַאן'},reply:{en:'Yellow. Paint a big circle.',he:'צהוב. [[צייר|ציירי]] עיגול גדול.',tl:'יֶלוֹ. פֵּיינְט אַ בִּיג סֶרְקֶל.'},set:{sun:'yellow'}},
+        {id:'red',label:'אני [[רוצה|רוצה]] את האדום',answer:{en:'I want the red one',he:'אני [[רוצה|רוצה]] את האדום',tl:'אַיי וּוֹנְט דֶה רֶד וַאן'},reply:{en:'Red. A sunset sun. Paint a big circle.',he:'אדום. שמש של שקיעה. [[צייר|ציירי]] עיגול גדול.',tl:'רֶד. אַ סַאנְסֶט סַאן. פֵּיינְט אַ בִּיג סֶרְקֶל.'},set:{sun:'red'}},
+      ]},
+      {id:'close',role:'close',ask:{en:'Done! Your picture is ready, with a {sun} sun. Well done!',he:'סיימנו! הציור שלך מוכן, עם שמש {sun}. כל הכבוד!',tl:'דַאן! יוֹר פִּיקְצֶ׳ר אִיז רֶדִי, וִית׳ אַ {sun} סַאן. וֶול דַאן!'},options:[
+        {id:'thanks',label:'תודה!',answer:{en:'Thank you!',he:'תודה!',tl:'תֶ׳נְק יוּ!'},reply:{en:'Take it home and show your family.',he:'[[קח|קחי]] אותו הביתה [[ותראה|ותראי]] למשפחה.',tl:'טֵייק אִיט הוֹם אֶנְד שוֹ יוֹר פֶמִילִי.'}},
+        {id:'awesome',label:'זה מדהים!',answer:{en:"That's awesome!",he:'זה מדהים!',tl:'דֶאטְס אוֹסַם!'},reply:{en:'It is! A spill became a picture.',he:'נכון! כתם הפך לציור.',tl:'אִיט אִיז! אַ סְפִּיל בִּיקֵיים אַ פִּיקְצֶ׳ר.'}},
+      ]},
+    ],
+  },
+  {
+    id:'tom_street_cat', min:26, sceneIds:['animals#1'],
+    goal:'לגלות למי שייך החתול הקטן שמתחכך ברגליים שלך ליד הבית של טום',
+    open:'חתול קטן מתחכך ברגליים שלך ליד הבית של טום. טום יוצא מהדלת עם קערה ביד.',
+    ending:'מימי חוזרת הביתה עם הילדה, וטום משאיר לה {feed} ליד הדלת לפעם הבאה.',
+    stageProp:{kind:'cat',beforeIcon:'🐈🥣',afterIcon:'🐈💕',beforeLabel:'החתול ליד הקערה',afterLabel:'מימי מצאה את הבית',colorA:'#7d5a3c',colorB:'#3d2a1f'},
+    values:{
+      feed:{
+        water:{en:'water',he:'מים',tl:'ווֹטֶר'},
+        food:{en:'food',he:'אוכל',tl:'פוּד'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hi, {name}! Look — a cat! Do you like cats?',he:'היי! [[תראה|תראי]] — חתול! [[אתה אוהב|את אוהבת]] חתולים?',tl:'הַיי! לוּק — אַ קֶט! דוּ יוּ לַייק קֶטְס?'},options:[
+        {id:'love',label:'כן! אני [[אוהב|אוהבת]] כלבים וחתולים',answer:{en:'Yes! I love dogs and cats',he:'כן! אני [[אוהב|אוהבת]] כלבים וחתולים',tl:'יֶס! אַיי לַאב דוֹגְז אֶנְד קֶטְס'},reply:{en:'Me too. This one is very small.',he:'גם אני. הזה קטן מאוד.',tl:'מִי טוּ. דִיס וַאן אִיז וֶרִי סְמוֹל.'}},
+        {id:'small',label:'החתול קטן!',answer:{en:'The cat is small!',he:'החתול קטן!',tl:'דֶה קֶט אִיז סְמוֹל!'},reply:{en:'Yes! And very soft.',he:'כן! ורך מאוד.',tl:'יֶס! אֶנְד וֶרִי סוֹפְט.'}},
+      ]},
+      {id:'whose',ask:{en:'Is it your cat?',he:'זה החתול שלך?',tl:'אִיז אִיט יוֹר קֶט?'},options:[
+        {id:'no',label:'לא',answer:{en:'No',he:'לא',tl:'נוֹ'},reply:{en:'Not mine either. Hmm. It has no collar.',he:'גם לא שלי. הממ. אין לו קולר.',tl:'נוֹט מַיין אִידֶר. הְמְם. אִיט הֶז נוֹ קוֹלַר.'}},
+        {id:'dog',label:'לא, יש לי כלב',answer:{en:'No, I have a dog',he:'לא, יש לי כלב',tl:'נוֹ, אַיי הֶב אַ דוֹג'},reply:{en:'A dog! This cat is not mine either. It has no collar.',he:'כלב! החתול הזה גם לא שלי. אין לו קולר.',tl:'אַ דוֹג! דִיס קֶט אִיז נוֹט מַיין אִידֶר. אִיט הֶז נוֹ קוֹלַר.'}},
+      ]},
+      {id:'bowl',event:{emoji:'🥣',he:'טום מניח את הקערה על המדרכה. החתול מריח אותה מיד.'},stageAction:{id:'tom-sets-down-cat-bowl',gesture:'story-prop-reveal',motion:'reach-low',set:{storyProp:'ready'}},ask:{en:'It looks hungry. Water or food for the cat?',he:'הוא נראה רעב. מים או אוכל לחתול?',tl:'אִיט לוּקְס הַנְגְרִי. ווֹטֶר אוֹר פוּד פוֹר דֶה קֶט?'},options:[
+        {id:'water',label:'מים, בבקשה',answer:{en:'Water, please',he:'מים, בבקשה',tl:'ווֹטֶר, פְּלִיז'},reply:{en:'Water it is. Look — it drinks!',he:'אז מים. [[תראה|תראי]] — הוא שותה!',tl:'ווֹטֶר אִיט אִיז. לוּק — אִיט דְרִינְקְס!'},set:{feed:'water'}},
+        {id:'food',label:'הוא רעב — אוכל, בבקשה',answer:{en:'It is hungry — food, please',he:'הוא רעב — אוכל, בבקשה',tl:'אִיט אִיז הַנְגְרִי — פוּד, פְּלִיז'},reply:{en:'Food it is. Look — it eats fast!',he:'אז אוכל. [[תראה|תראי]] — הוא אוכל מהר!',tl:'פוּד אִיט אִיז. לוּק — אִיט אִיטְס פַאסְט!'},set:{feed:'food'}},
+      ]},
+      {id:'girl',event:{emoji:'👧',he:'ילדה רצה במורד הרחוב וקוראת: „מימי! מימי!“'},ask:{en:'Someone is calling. Who is that?',he:'מישהו קורא. מי זאת?',tl:'סַאמְוַאן אִיז קוֹלִינְג. הוּ אִיז דֶאט?'},options:[
+        {id:'dont_know',label:'אני לא [[יודע|יודעת]]',answer:{en:"I don't know",he:'אני לא [[יודע|יודעת]]',tl:'אַיי דוֹנְט נוֹאוּ'},reply:{en:'She says Mimi. Maybe Mimi is this cat!',he:'היא אומרת מימי. אולי מימי זה החתול הזה!',tl:'שִׁי סֶז מִימִי. מֵייבִּי מִימִי אִיז דִיס קֶט!'}},
+        {id:'there',label:'[[תראה|תראי]] — שם!',answer:{en:'Look — over there!',he:'[[תראה|תראי]] — שם!',tl:'לוּק — אוֹבֶר דֶר!'},reply:{en:'A girl! She says Mimi. Maybe Mimi is this cat!',he:'ילדה! היא אומרת מימי. אולי מימי זה החתול הזה!',tl:'אַ גֶרְל! שִׁי סֶז מִימִי. מֵייבִּי מִימִי אִיז דִיס קֶט!'}},
+      ]},
+      {id:'reunion',stageAction:{id:'tom-lifts-cat-to-girl',gesture:'story-prop-change',motion:'carry',set:{storyProp:'changed'}},variants:[
+        {id:'water',when:{feed:'water'},event:{emoji:'🐈',he:'החתול מסיים לשתות. טום מרים אותו בעדינות ומוסר אותו לילדה.'},ask:{en:'It is her cat! Mimi is home. How do you feel?',he:'זה החתול שלה! מימי בבית. איך [[אתה מרגיש|את מרגישה]]?',tl:'אִיט אִיז הֶר קֶט! מִימִי אִיז הוֹם. הַאוּ דוּ יוּ פִיל?'},options:[
+          {id:'happy',label:'אני [[שמח|שמחה]]',answer:{en:"I'm happy",he:'אני [[שמח|שמחה]]',tl:'אַיְים הֶפִּי'},reply:{en:'Me too. Listen — Mimi is purring.',he:'גם אני. [[תקשיב|תקשיבי]] — מימי מגרגרת.',tl:'מִי טוּ. לִיסֶן — מִימִי אִיז פֶּרִינְג.'}},
+          {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Same here. Good work, {name}.',he:'גם אני. עבודה טובה.',tl:'סֵיים הִיר. גוּד וֶורְק.'}},
+        ]},
+        {id:'food',when:{feed:'food'},event:{emoji:'🐈',he:'החתול מסיים לאכול. טום מרים אותו בעדינות ומוסר אותו לילדה.'},ask:{en:'It is her cat! Mimi is home. How do you feel?',he:'זה החתול שלה! מימי בבית. איך [[אתה מרגיש|את מרגישה]]?',tl:'אִיט אִיז הֶר קֶט! מִימִי אִיז הוֹם. הַאוּ דוּ יוּ פִיל?'},options:[
+          {id:'happy',label:'אני [[שמח|שמחה]]',answer:{en:"I'm happy",he:'אני [[שמח|שמחה]]',tl:'אַיְים הֶפִּי'},reply:{en:'Me too. Listen — Mimi is purring.',he:'גם אני. [[תקשיב|תקשיבי]] — מימי מגרגרת.',tl:'מִי טוּ. לִיסֶן — מִימִי אִיז פֶּרִינְג.'}},
+          {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Same here. Good work, {name}.',he:'גם אני. עבודה טובה.',tl:'סֵיים הִיר. גוּד וֶורְק.'}},
+        ]},
+      ]},
+      {id:'close',role:'close',ask:{en:'The girl says thank you. Do you want a cat too?',he:'הילדה אומרת תודה. [[אתה רוצה|את רוצה]] גם חתול?',tl:'דֶה גֶרְל סֶז תֶ׳נְק יוּ. דוּ יוּ וּוֹנְט אַ קֶט טוּ?'},options:[
+        {id:'yes',label:'כן! אני [[רוצה|רוצה]] חתול',answer:{en:'Yes! I want a cat',he:'כן! אני [[רוצה|רוצה]] חתול',tl:'יֶס! אַיי וּוֹנְט אַ קֶט'},reply:{en:'Ask your mom! See you later, {name}.',he:'[[תשאל|תשאלי]] את אמא! נתראה אחר כך.',tl:'אַסְק יוֹר מוֹם! סִי יוּ לֵייטֶר.'}},
+        {id:'dogs',label:'לא, אני [[אוהב|אוהבת]] כלבים',answer:{en:'No, I like dogs',he:'לא, אני [[אוהב|אוהבת]] כלבים',tl:'נוֹ, אַיי לַייק דוֹגְז'},reply:{en:'Dogs are great too. See you later!',he:'גם כלבים מעולים. נתראה אחר כך!',tl:'דוֹגְז אַר גְרֵייט טוּ. סִי יוּ לֵייטֶר!'}},
+      ]},
+    ],
+  },
+  {
+    id:'ben_pigeon_sandwich', min:26, sceneIds:['greet#2'],
+    goal:'להציל את ארוחת הצהריים של בן מיונה חצופה בכיכר',
+    open:'בן יושב על שפת המזרקה בכיכר עם סנדוויץ׳ ביד. יונה אחת מסתובבת קרוב מדי.',
+    ending:'בן ואתה אוכלים {lunch} ליד המזרקה, והיונה מקבלת פירור אחד — לא יותר.',
+    stageProp:{kind:'pigeon',beforeIcon:'🕊️🥪',afterIcon:'🕊️🍕',beforeLabel:'היונה עם הסנדוויץ׳',afterLabel:'ארוחת צהריים חדשה',colorA:'#8d98a8',colorB:'#3e4757'},
+    values:{
+      lunch:{
+        pizza:{en:'pizza',he:'פיצה',tl:'פִּיצָה'},
+        burger:{en:'a burger',he:'המבורגר',tl:'אַ בֶּרְגֶר'},
+      },
+    },
+    beats:[
+      {id:'hello',role:'open',ask:{en:'Hello again, {name}! Lunch time. Are you hungry?',he:'שלום שוב! זמן ארוחת צהריים. [[אתה רעב|את רעבה]]?',tl:'הֶלוֹ אַגֵין! לַאנְץ׳ טַיים. אַר יוּ הַנְגְרִי?'},options:[
+        {id:'hungry',label:'כן, אני [[רעב|רעבה]]',answer:{en:"Yes, I'm hungry",he:'כן, אני [[רעב|רעבה]]',tl:'יֶס, אַיְים הַנְגְרִי'},reply:{en:'Me too. This sandwich is from the market.',he:'גם אני. הסנדוויץ׳ הזה מהשוק.',tl:'מִי טוּ. דִיס סֶנְדְוִויץ׳ אִיז פְרוֹם דֶה מַרְקֶט.'}},
+        {id:'no',label:'לא, תודה',answer:{en:'No, thanks',he:'לא, תודה',tl:'נוֹ, תֶ׳נְקְס'},reply:{en:'OK. Sit with me while I eat.',he:'בסדר. [[שב|שבי]] איתי בזמן שאני אוכל.',tl:'אוֹקֵיי. סִיט וִית׳ מִי וַואִיל אַיי אִיט.'}},
+      ]},
+      {id:'steal',event:{emoji:'🕊️',he:'היונה קופצת על שפת המזרקה, חוטפת את הסנדוויץ׳ מהיד של בן ומתעופפת למרחק צעד.'},stageAction:{id:'ben-pigeon-takes-sandwich',gesture:'story-prop-reveal',motion:'react',set:{storyProp:'ready'}},ask:{en:'Hey! My sandwich! Did you see that?',he:'היי! הסנדוויץ׳ שלי! [[ראית|ראית]] את זה?',tl:'הֵיי! מַיי סֶנְדְוִויץ׳! דִיד יוּ סִי דֶאט?'},options:[
+        {id:'wow',label:'וואו!',answer:{en:'Wow!',he:'וואו!',tl:'וַואוּ!'},reply:{en:'The pigeon took it. Right out of my hand.',he:'היונה לקחה אותו. ישר מהיד שלי.',tl:'דֶה פִּיגֶ׳ן טוּק אִיט. רַייט אַאוּט אוֹף מַיי הֶנְד.'}},
+        {id:'fast',label:'הציפורים מהירות!',answer:{en:'The birds are fast!',he:'הציפורים מהירות!',tl:'דֶה בֶּרְדְז אַר פַאסְט!'},reply:{en:'Too fast! It took the whole sandwich.',he:'מהירות מדי! היא לקחה את כל הסנדוויץ׳.',tl:'טוּ פַאסְט! אִיט טוּק דֶה הוֹל סֶנְדְוִויץ׳.'}},
+      ]},
+      {id:'no_lunch',ask:{en:'Now I have no lunch. Pizza or a burger? There is a place right here.',he:'עכשיו אין לי ארוחת צהריים. פיצה או המבורגר? יש מקום ממש כאן.',tl:'נַאוּ אַיי הֶב נוֹ לַאנְץ׳. פִּיצָה אוֹר אַ בֶּרְגֶר? דֶר אִיז אַ פְּלֵייס רַייט הִיר.'},options:[
+        {id:'pizza',label:'אני [[רוצה|רוצה]] פיצה',answer:{en:'I want pizza',he:'אני [[רוצה|רוצה]] פיצה',tl:'אַיי וּוֹנְט פִּיצָה'},reply:{en:'Pizza it is. Two minutes!',he:'אז פיצה. שתי דקות!',tl:'פִּיצָה אִיט אִיז. טוּ מִינִיטְס!'},set:{lunch:'pizza'}},
+        {id:'burger',label:'אני אקח המבורגר',answer:{en:"I'll have a burger",he:'אני אקח המבורגר',tl:'אַיְיל הֶב אַ בֶּרְגֶר'},reply:{en:'A burger. Two minutes!',he:'המבורגר. שתי דקות!',tl:'אַ בֶּרְגֶר. טוּ מִינִיטְס!'},set:{lunch:'burger'}},
+      ]},
+      {id:'back',event:{emoji:'🍽️',he:'בן חוזר עם שתי מנות ומתיישב. היונה כבר עומדת שוב על שפת המזרקה.'},stageAction:{id:'ben-returns-with-lunch',gesture:'story-prop-change',motion:'carry',set:{storyProp:'changed'}},ask:{en:'Here — {lunch} for you, {lunch} for me. And look who is back!',he:'הנה — {lunch} בשבילך, {lunch} בשבילי. [[ותראה|ותראי]] מי חזרה!',tl:'הִיר — {lunch} פוֹר יוּ, {lunch} פוֹר מִי. אֶנְד לוּק הוּ אִיז בֶּק!'},options:[
+        {id:'hungry',label:'גם היא רעבה!',answer:{en:'It is hungry too!',he:'גם היא רעבה!',tl:'אִיט אִיז הַנְגְרִי טוּ!'},reply:{en:'You are right. One small piece for the pigeon.',he:'[[אתה צודק|את צודקת]]. חתיכה קטנה אחת ליונה.',tl:'יוּ אַר רַייט. וַאן סְמוֹל פִּיס פוֹר דֶה פִּיגֶ׳ן.'}},
+        {id:'mine',label:'לא! זה שלי',answer:{en:'No! It is mine',he:'לא! זה שלי',tl:'נוֹ! אִיט אִיז מַיין'},reply:{en:'Ha! OK — I hold mine tight this time.',he:'חה! בסדר — הפעם אני מחזיק את שלי חזק.',tl:'הַא! אוֹקֵיי — אַיי הוֹלְד מַיין טַייט דִיס טַיים.'}},
+      ]},
+      {id:'close',role:'close',ask:{en:'That was a good lunch. Thank you for the company, {name}!',he:'זאת הייתה ארוחה טובה. תודה על החברה!',tl:'דֶאט וּוֹז אַ גוּד לַאנְץ׳. תֶ׳נְק יוּ פוֹר דֶה קַאמְפֶּנִי!'},options:[
+        {id:'welcome',label:'על לא דבר!',answer:{en:"You're welcome!",he:'על לא דבר!',tl:'יוֹר וֶולְקַם!'},reply:{en:'See you next time — without pigeons!',he:'נתראה בפעם הבאה — בלי יונים!',tl:'סִי יוּ נֶקְסְט טַיים — וִידְאַאוּט פִּיגֶ׳נְז!'}},
+        {id:'great',label:'היה מעולה!',answer:{en:'It was great!',he:'היה מעולה!',tl:'אִיט וּוֹז גְרֵייט!'},reply:{en:'It was! Have a nice day, {name}.',he:'נכון! שיהיה לך יום טוב.',tl:'אִיט וּוֹז! הֶב אַ נַייס דֵיי.'}},
+      ]},
+    ],
+  },
+  {
+    id:'tom_snow_day', min:29, sceneIds:['weather#0'],
+    goal:'לצאת לשלג הראשון עם טום ולבנות איש שלג',
+    open:'אתם ליד החלון בבית של טום. השמיים אפורים, ופתאום משהו לבן עף מול החלון.',
+    ending:'איש השלג עומד בחצר עם הכובע של טום, ו{clothes} ליד החימום.',
+    stageInitial:{weather:'sunny'},
+    stageProp:{kind:'snowman',beforeIcon:'⚪⚪',afterIcon:'⛄',beforeLabel:'שני כדורי שלג',afterLabel:'איש שלג עם כובע',colorA:'#9fc4e6',colorB:'#3c5f85'},
+    values:{
+      clothes:{
+        hat:{en:'your hat is drying',he:'הכובע שלך מתייבש',tl:'יוֹר הַט אִיז דְרַיינְג'},
+        shirt:{en:'your big shirt is drying',he:'החולצה הגדולה שלך מתייבשת',tl:'יוֹר בִּיג שֶרְט אִיז דְרַיינְג'},
+      },
+    },
+    beats:[
+      {id:'window',role:'open',ask:{en:'Look outside, {name}! How is the weather?',he:'[[תסתכל|תסתכלי]] החוצה! איך מזג האוויר?',tl:'לוּק אַאוּטְסַייד! הַאוּ אִיז דֶה וֶּודֶר?'},options:[
+        {id:'cold',label:'קר בחוץ',answer:{en:"It's cold outside",he:'קר בחוץ',tl:'אִיטְס קוֹלְד אַאוּטְסַייד'},reply:{en:'Very cold. And look at the sky — something is falling!',he:'קר מאוד. [[ותסתכל|ותסתכלי]] על השמיים — משהו נופל!',tl:'וֶרִי קוֹלְד. אֶנְד לוּק אֶט דֶה סְקַיי — סַאמְתִ׳ינְג אִיז פוֹלִינְג!'}},
+        {id:'rain',label:'יורד גשם!',answer:{en:"It's raining!",he:'יורד גשם!',tl:'אִיטְס רֵיינִינְג!'},reply:{en:'No, not rain. Look again — it is white!',he:'לא, לא גשם. [[תסתכל|תסתכלי]] שוב — זה לבן!',tl:'נוֹ, נוֹט רֵיין. לוּק אַגֵין — אִיט אִיז וַואיְט!'}},
+      ]},
+      {id:'snow',event:{emoji:'❄️',he:'פתיתים לבנים נופלים מול החלון. תוך דקה הרחוב כולו לבן.'},stageAction:{id:'tom-first-snow-falls',gesture:'start-snow',motion:'celebrate',set:{weather:'snow'}},ask:{en:'Snow! The first snow this year! Do you want to go out?',he:'שלג! השלג הראשון השנה! [[אתה רוצה|את רוצה]] לצאת החוצה?',tl:'סְנוֹ! דֶה פֶרְסְט סְנוֹ דִיס יִיר! דוּ יוּ וּוֹנְט טוּ גוֹ אַאוּט?'},options:[
+        {id:'go',label:'כן! [[בוא|בואי]] נצא',answer:{en:"Yes! Let's go out",he:'כן! [[בוא|בואי]] נצא',tl:'יֶס! לֶטְס גוֹ אַאוּט'},reply:{en:'Yes! But first — warm clothes.',he:'כן! אבל קודם — בגדים חמים.',tl:'יֶס! בַּאט פֶרְסְט — ווֹרְם קְלוֹת׳ז.'}},
+        {id:'maybe',label:'קר... אולי',answer:{en:"It's cold... maybe",he:'קר... אולי',tl:'אִיטְס קוֹלְד... מֵייבִּי'},reply:{en:'Come on, it is fun! But first — warm clothes.',he:'יאללה, זה כיף! אבל קודם — בגדים חמים.',tl:'קַאם אוֹן, אִיט אִיז פַאן! בַּאט פֶרְסְט — ווֹרְם קְלוֹת׳ז.'}},
+      ]},
+      {id:'clothes',ask:{en:'What do you want? A hat, or this big shirt?',he:'מה [[אתה רוצה|את רוצה]]? כובע, או את החולצה הגדולה הזאת?',tl:'וּוַאט דוּ יוּ וּוֹנְט? אַ הַט, אוֹר דִיס בִּיג שֶרְט?'},options:[
+        {id:'hat',label:'נעליים וכובע',answer:{en:'Shoes and a hat',he:'נעליים וכובע',tl:'שוּז אֶנְד אַ הַט'},reply:{en:'Good. And these shoes are warm.',he:'טוב. והנעליים האלה חמות.',tl:'גוּד. אֶנְד דִיז שוּז אַר ווֹרְם.'},set:{clothes:'hat'}},
+        {id:'shirt',label:'אני [[רוצה|רוצה]] את החולצה הזאת',answer:{en:'I want this shirt',he:'אני [[רוצה|רוצה]] את החולצה הזאת',tl:'אַיי וּוֹנְט דִיס שֶרְט'},reply:{en:'The big shirt. Good — it is warm.',he:'החולצה הגדולה. טוב — היא חמה.',tl:'דֶה בִּיג שֶרְט. גוּד — אִיט אִיז ווֹרְם.'},set:{clothes:'shirt'}},
+      ]},
+      {id:'snowball',event:{emoji:'⚪',he:'אתם יוצאים לחצר. טום מגלגל כדור שלג גדול, ואז עוד אחד קטן יותר.'},stageAction:{id:'tom-rolls-snowballs',gesture:'story-prop-reveal',motion:'reach-low',set:{storyProp:'ready'}},ask:{en:'Let us make a snowman! What does he need?',he:'[[בוא|בואי]] נבנה איש שלג! מה הוא צריך?',tl:'לֶט אַס מֵייק אַ סְנוֹמֶן! וּוַאט דַאז הִי נִיד?'},options:[
+        {id:'body',label:'ראש, ידיים ורגליים',answer:{en:'Head, hands and legs',he:'ראש, ידיים ורגליים',tl:'הֶד, הֶנְדְז אֶנְד לֶגְז'},reply:{en:'Head — yes! Hands — two sticks. Legs — no, snowmen have no legs!',he:'ראש — כן! ידיים — שני מקלות. רגליים — לא, לאנשי שלג אין רגליים!',tl:'הֶד — יֶס! הֶנְדְז — טוּ סְטִיקְס. לֶגְז — נוֹ, סְנוֹמֶן הֶב נוֹ לֶגְז!'}},
+        {id:'face',label:'עיניים, אוזניים ופה',answer:{en:'Eyes, ears and mouth',he:'עיניים, אוזניים ופה',tl:'אַייז, אִירְז אֶנְד מַאוּת׳'},reply:{en:'Eyes and a mouth — two stones and a stick. Ears? Snowmen have no ears!',he:'עיניים ופה — שתי אבנים ומקל. אוזניים? לאנשי שלג אין אוזניים!',tl:'אַייז אֶנְד אַ מַאוּת׳ — טוּ סְטוֹנְז אֶנְד אַ סְטִיק. אִירְז? סְנוֹמֶן הֶב נוֹ אִירְז!'}},
+      ]},
+      {id:'snowman',stageAction:{id:'tom-finishes-snowman',gesture:'story-prop-change',motion:'celebrate',set:{storyProp:'changed'}},variants:[
+        {id:'hat',when:{clothes:'hat'},event:{emoji:'🎩',he:'טום שם את הכובע שלו על ראש איש השלג. הכובע שלך כבר לבן משלג.'},ask:{en:'Look at him! He is wearing my hat. How do you feel?',he:'[[תראה|תראי]] אותו! הוא לובש את הכובע שלי. איך [[אתה מרגיש|את מרגישה]]?',tl:'לוּק אֶט הִים! הִי אִיז וֶוארִינְג מַיי הַט. הַאוּ דוּ יוּ פִיל?'},options:[
+          {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Me too! Best day this winter.',he:'גם אני! היום הכי טוב החורף.',tl:'מִי טוּ! בֶּסְט דֵיי דִיס וִוינְטֶר.'}},
+          {id:'cold',label:'הידיים שלי קרות',answer:{en:'My hands are cold',he:'הידיים שלי קרות',tl:'מַיי הֶנְדְז אַר קוֹלְד'},reply:{en:'Mine too. Let us go inside — hot chocolate!',he:'גם שלי. [[בוא|בואי]] ניכנס — שוקו חם!',tl:'מַיין טוּ. לֶט אַס גוֹ אִינְסַייד — הוֹט צ׳וֹקְלֶט!'}},
+        ]},
+        {id:'shirt',when:{clothes:'shirt'},event:{emoji:'🎩',he:'טום שם את הכובע שלו על ראש איש השלג. החולצה הגדולה שלך רטובה משלג.'},ask:{en:'Look at him! He is wearing my hat. How do you feel?',he:'[[תראה|תראי]] אותו! הוא לובש את הכובע שלי. איך [[אתה מרגיש|את מרגישה]]?',tl:'לוּק אֶט הִים! הִי אִיז וֶוארִינְג מַיי הַט. הַאוּ דוּ יוּ פִיל?'},options:[
+          {id:'great',label:'אני [[מרגיש|מרגישה]] מעולה!',answer:{en:'I feel great!',he:'אני [[מרגיש|מרגישה]] מעולה!',tl:'אַיי פִיל גְרֵייט!'},reply:{en:'Me too! Best day this winter.',he:'גם אני! היום הכי טוב החורף.',tl:'מִי טוּ! בֶּסְט דֵיי דִיס וִוינְטֶר.'}},
+          {id:'cold',label:'הידיים שלי קרות',answer:{en:'My hands are cold',he:'הידיים שלי קרות',tl:'מַיי הֶנְדְז אַר קוֹלְד'},reply:{en:'Mine too. Let us go inside — hot chocolate!',he:'גם שלי. [[בוא|בואי]] ניכנס — שוקו חם!',tl:'מַיין טוּ. לֶט אַס גוֹ אִינְסַייד — הוֹט צ׳וֹקְלֶט!'}},
+        ]},
+      ]},
+      {id:'close',role:'close',ask:{en:'What a day! Come again tomorrow — the snowman is waiting.',he:'איזה יום! [[בוא|בואי]] שוב מחר — איש השלג מחכה.',tl:'וּוַאט אַ דֵיי! קַאם אַגֵין טוּמוֹרוֹ — דֶה סְנוֹמֶן אִיז וֵייטִינְג.'},options:[
+        {id:'tomorrow',label:'נתראה מחר!',answer:{en:'See you tomorrow!',he:'נתראה מחר!',tl:'סִי יוּ טוּמוֹרוֹ!'},reply:{en:'See you! Take care, {name}.',he:'נתראה! [[שמור|שמרי]] על עצמך.',tl:'סִי יוּ! טֵייק קֶר.'}},
+        {id:'fun',label:'זה היה כיף!',answer:{en:'That was fun!',he:'זה היה כיף!',tl:'דֶאט וּוֹז פַאן!'},reply:{en:'It was! See you tomorrow.',he:'נכון! נתראה מחר.',tl:'אִיט וּוֹז! סִי יוּ טוּמוֹרוֹ.'}},
+      ]},
+    ],
+  },
 ];
 
 /* A conversation is directed, not randomly animated. Each authored beat has
@@ -7084,6 +7492,38 @@ const PRACTICE_STAGE_DIRECTIONS = {
     confirm_price:['consider','agree'], anything_else:['offer','agree'], bag_breaks:['surprise','concern'],
     choose_pickup:['point','agree'], new_bag:['inspect','relief'], close:['offer','farewell'],
   },
+  tom_gate_notebook:{
+    hello:['welcome','agree'], homework:['curious','playful'], missing:['surprise','concern'],
+    found:['inspect','relief'], close:['playful','farewell'],
+  },
+  sam_elevator_stop:{
+    hello:['welcome','agree'], stop:['surprise','concern'], button:['focus','encourage'],
+    voice:['curious','playful'], moving:['celebrate','relief'], close:['warm','farewell'],
+  },
+  maya_ice_cream_truck:{
+    hello:['welcome','agree'], jingle:['curious','present'], truck:['surprise','offer'],
+    order:['offer','agree'], drop:['surprise','concern'], close:['relief','warm'],
+  },
+  nina_lemonade_stand:{
+    hello:['welcome','agree'], price:['present','consider'], no_ice:['surprise','concern'],
+    ice_back:['relief','present'], taste:['offer','agree'], close:['warm','farewell'],
+  },
+  dana_paint_spill:{
+    hello:['welcome','curious'], first_color:['present','agree'], spill:['surprise','apologize'],
+    new_picture:['inspect','celebrate'], sun:['offer','agree'], close:['proud','celebrate'],
+  },
+  tom_street_cat:{
+    hello:['welcome','playful'], whose:['curious','consider'], bowl:['offer','inspect'],
+    girl:['surprise','point'], reunion:['offer','celebrate'], close:['warm','farewell'],
+  },
+  ben_pigeon_sandwich:{
+    hello:['welcome','agree'], steal:['surprise','concern'], no_lunch:['consider','decide'],
+    back:['present','agree'], close:['relief','farewell'],
+  },
+  tom_snow_day:{
+    window:['curious','surprise'], snow:['surprise','celebrate'], clothes:['offer','agree'],
+    snowball:['present','playful'], snowman:['celebrate','warm'], close:['warm','farewell'],
+  },
 };
 
 /* `travel` is where the person stands, not where the camera is. Only the
@@ -7135,6 +7575,7 @@ const STAGE_ACTION_DURATIONS_MS = {
   'replace-bag':2250,
   'start-rain':1900,
   'stop-rain':2050,
+  'start-snow':2050,
   'inspect-found-bag':2050,
   'find-lost-bag':2150,
   'serve-wrong-meal':2050,
@@ -7424,7 +7865,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.60.0';
+const APP_VERSION = '2.61.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -9934,6 +10375,7 @@ function practiceStageModel(session=L){
   const storyVars={
     meal:vars.meal||'',drink:vars.drink||'',finalActivity:vars.final||'',
     dogSize:vars.size||'',dogCollar:vars.collar||'',robotWord:vars.robotWord||'',
+    paintColor:vars.first||'',
   };
   const key=[worldKey,color,...Object.values(storyVars),action?.id||'settled'].join('|');
   return {world:{...world},action,storyId:session?.practiceStoryId||'',shirtColor:color,...storyVars,key};
@@ -10627,6 +11069,7 @@ function stageWorldClasses(model){
     model?.action?.id==='sam-sets-boxes-inside'?' is-sam-cargo-set-down':
     model?.action?.id==='sam-door-closes'?' is-sam-door-closing':'';
   return (model?.storyId==='tom_last_shot'?' has-story-ball':'')+
+    (world.weather==='snow'?' has-story-snow':'')+
     (['bad','message'].includes(world.connection)?' has-story-connection':'')+
     (model?.storyId==='maya_kitchen_blackout'&&world.storyProp==='ready'?' has-kitchen-blackout':'')+
     mirrorLight+mirrorAction+samCargo+samAction;
@@ -10780,7 +11223,7 @@ function stageRobotHtml(state, extra=''){
    floating emoji card. These small SVG props live on the floor/counter beside
    the actor instead: the silhouette, contact shadow and before/after state are
    specific to the event, while one shared transition keeps the DOM light. */
-function physicalStoryPropFace(kind,phase){
+function physicalStoryPropFace(kind,phase,model=null){
   const after=phase==='after';
   if(kind==='camera') return after?`
     <ellipse class="object-shadow" cx="83" cy="133" rx="55" ry="9"/>
@@ -10817,12 +11260,98 @@ function physicalStoryPropFace(kind,phase){
   if(kind==='apples') return after?`
     <ellipse class="object-shadow" cx="80" cy="137" rx="60" ry="8"/><path d="M36 58h89l8 70H28z" fill="#d8b980" stroke="#765536" stroke-width="4"/><path d="M51 60c0-35 59-35 59 0" fill="none" stroke="#8b633d" stroke-width="8"/><g fill="#d94f43" stroke="#79382f" stroke-width="2"><circle cx="58" cy="77" r="14"/><circle cx="83" cy="72" r="15"/><circle cx="107" cy="80" r="14"/></g><path d="M102 106l9 9 18-23" fill="none" stroke="#65dfa1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`:`
     <ellipse class="object-shadow" cx="80" cy="137" rx="62" ry="8"/><path d="M48 48h65l8 65-27-8-18 13-18-12-20 8z" fill="#c8a86f" stroke="#725033" stroke-width="4"/><path d="M58 50c0-28 45-28 45 0" fill="none" stroke="#87603b" stroke-width="7"/><g fill="#d94f43" stroke="#79382f" stroke-width="2"><circle cx="43" cy="124" r="14"/><circle cx="126" cy="116" r="14"/><circle cx="75" cy="72" r="13"/></g><path d="M26 91q-15 7-18 22M138 79q16 2 21 14" fill="none" stroke="#f2d6a0" stroke-width="4" stroke-linecap="round"/>`;
+  /* ---- the second shelf's objects ---- */
+  if(kind==='notebook') return after?`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="52" ry="8"/>
+    <path d="M40 62h80l6 68H34z" fill="#3f6b9e" stroke="#243a5f" stroke-width="4"/><path d="M52 60c0-30 56-30 56 0" fill="none" stroke="#243a5f" stroke-width="7"/>
+    <g class="found-notebook" transform="rotate(-8 80 50)"><rect x="58" y="24" width="44" height="54" rx="4" fill="#fff4d6" stroke="#8a6a3a" stroke-width="3"/><path d="M66 38h28M66 48h22M66 58h26" stroke="#4d7fb0" stroke-width="3" stroke-linecap="round"/><text x="80" y="73" text-anchor="middle" font-size="11" font-weight="900" fill="#d6473a" font-family="Arial, sans-serif">TOM</text></g>
+    <path d="M40 64c12 12 68 12 80 0" fill="#3f6b9e" stroke="#243a5f" stroke-width="4"/><rect x="60" y="92" width="40" height="24" rx="6" fill="#5a86bd" stroke="#243a5f" stroke-width="2"/>`:`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="52" ry="8"/>
+    <path d="M40 62h80l6 68H34z" fill="#3f6b9e" stroke="#243a5f" stroke-width="4"/><path d="M52 60c0-30 56-30 56 0" fill="none" stroke="#243a5f" stroke-width="7"/>
+    <ellipse cx="80" cy="64" rx="40" ry="12" fill="#1c2b45" stroke="#243a5f" stroke-width="4"/><rect x="60" y="92" width="40" height="24" rx="6" fill="#5a86bd" stroke="#243a5f" stroke-width="2"/>
+    <text x="80" y="111" text-anchor="middle" font-size="20" font-weight="900" fill="#ffe9a8" font-family="Arial, sans-serif">?</text>`;
+  if(kind==='ice-cream') return after?`
+    <ellipse class="object-shadow" cx="84" cy="134" rx="54" ry="8"/>
+    <ellipse cx="86" cy="124" rx="28" ry="9" fill="#ffe1ec" stroke="#e39bbb" stroke-width="2"/><circle cx="96" cy="116" r="6" fill="#ffe1ec" stroke="#e39bbb" stroke-width="1.5"/>
+    <g class="dropped-cone" transform="rotate(38 68 104)"><path d="M68 124l10-40H58z" fill="#d9a066" stroke="#8a5a2c" stroke-width="2"/><path d="M61 100l14-3M63 110l10-2" stroke="#b8834a" stroke-width="1.5"/></g>
+    <g class="shared-cone"><path d="M122 100l11-40h-22z" fill="#d9a066" stroke="#8a5a2c" stroke-width="2"/><path d="M114 74l16-3M116 84l12-2" stroke="#b8834a" stroke-width="1.5"/><circle cx="122" cy="56" r="13" fill="#c96b9c"/><circle cx="122" cy="46" r="8" fill="#ffe1ec"/><circle cx="126" cy="41" r="2.5" fill="#e14f56"/></g>`:`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="60" ry="8"/>
+    <rect x="22" y="38" width="116" height="84" rx="12" fill="#f3a5c8" stroke="#a24d78" stroke-width="4"/><path d="M22 60h116" stroke="#a24d78" stroke-width="3"/>
+    <rect x="46" y="66" width="68" height="44" rx="8" fill="#fff7fb" stroke="#a24d78" stroke-width="3"/>
+    <g class="window-cones"><path d="M62 104l8-24H54z" fill="#d9a066"/><circle cx="62" cy="78" r="9" fill="#ffe1ec"/><path d="M98 104l8-24H90z" fill="#d9a066"/><circle cx="98" cy="78" r="9" fill="#c96b9c"/></g>
+    <circle cx="48" cy="126" r="9" fill="#2a2f3a"/><circle cx="112" cy="126" r="9" fill="#2a2f3a"/><circle cx="48" cy="126" r="3" fill="#8d98a8"/><circle cx="112" cy="126" r="3" fill="#8d98a8"/>`;
+  if(kind==='elevator-panel') return after?`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="40" ry="7"/>
+    <rect x="46" y="22" width="68" height="106" rx="10" fill="#3a4a63" stroke="#1f2b40" stroke-width="4"/><rect x="56" y="32" width="48" height="22" rx="4" fill="#1f3a2a"/>
+    <text x="80" y="49" text-anchor="middle" font-size="15" font-weight="900" fill="#7ee0a3" font-family="Arial, sans-serif">▲ 4</text>
+    <circle class="panel-lamp" cx="80" cy="74" r="8" fill="#7ee0a3"/><circle class="panel-lamp" cx="80" cy="94" r="8" fill="#7ee0a3"/><circle class="alarm-button" cx="80" cy="114" r="9" fill="#7a3a3d" stroke="#4a1d20" stroke-width="3"/>`:`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="40" ry="7"/>
+    <rect x="46" y="22" width="68" height="106" rx="10" fill="#3a4a63" stroke="#1f2b40" stroke-width="4"/><rect x="56" y="32" width="48" height="22" rx="4" fill="#111a2a"/>
+    <circle class="panel-lamp" cx="80" cy="74" r="8" fill="#556682"/><circle class="panel-lamp" cx="80" cy="94" r="8" fill="#556682"/><circle class="alarm-button" cx="80" cy="114" r="9" fill="#e14f56" stroke="#7a2126" stroke-width="3"/>`;
+  if(kind==='lemonade') return after?`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="62" ry="8"/>
+    <rect x="20" y="72" width="60" height="52" rx="6" fill="#6ca4ad" stroke="#315a63" stroke-width="4"/><path d="M20 72l10-16h60l-10 16z" fill="#8cc1c9" stroke="#315a63" stroke-width="4"/><rect x="28" y="80" width="44" height="36" fill="#274b52"/>
+    <g class="ice-cubes"><rect x="31" y="90" width="14" height="14" rx="3" fill="#dff6ff" stroke="#8fc7dc"/><rect x="50" y="94" width="14" height="14" rx="3" fill="#dff6ff" stroke="#8fc7dc"/><rect x="41" y="80" width="14" height="14" rx="3" fill="#dff6ff" stroke="#8fc7dc"/></g>
+    <path d="M96 60h40l-6 64h-28z" fill="#f2d06b" stroke="#8a6a1e" stroke-width="4"/><path d="M136 70c14 2 14 24 0 26" fill="none" stroke="#8a6a1e" stroke-width="5"/>
+    <circle cx="116" cy="92" r="9" fill="#ffe97a" stroke="#c9a227" stroke-width="2"/><rect class="ice-cube" x="104" y="70" width="12" height="12" rx="3" fill="#e8fbff" stroke="#9fd3e6"/><rect class="ice-cube" x="120" y="104" width="12" height="12" rx="3" fill="#e8fbff" stroke="#9fd3e6"/>
+    <path d="M126 40l-10 34" stroke="#e14f56" stroke-width="4" stroke-linecap="round"/><g class="cold-sparkle"><path d="M88 44l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="#e8fbff"/></g>`:`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="62" ry="8"/>
+    <rect x="20" y="72" width="60" height="52" rx="6" fill="#6ca4ad" stroke="#315a63" stroke-width="4"/><path d="M20 72l10-16h60l-10 16z" fill="#8cc1c9" stroke="#315a63" stroke-width="4"/><rect x="28" y="80" width="44" height="36" fill="#274b52"/>
+    <path d="M96 60h40l-6 64h-28z" fill="#f2d06b" stroke="#8a6a1e" stroke-width="4"/><path d="M136 70c14 2 14 24 0 26" fill="none" stroke="#8a6a1e" stroke-width="5"/><circle cx="116" cy="92" r="9" fill="#ffe97a" stroke="#c9a227" stroke-width="2"/>`;
+  if(kind==='paint-jar'){
+    const paint=model?.paintColor==='green'?'#4caf6b':'#3b7dd8', paintDark=model?.paintColor==='green'?'#2c6b43':'#25406b';
+    /* before: the jar has just gone over and the colour is spreading on the
+       paper; after: the paper IS the colour now, with a cloud, and the jar
+       stands upright again with its lid on */
+    return after?`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="62" ry="8"/>
+    <rect x="16" y="66" width="96" height="60" rx="4" fill="${paint}" stroke="#c7b58e" stroke-width="3"/>
+    <ellipse cx="50" cy="88" rx="15" ry="7" fill="#ffffff" opacity=".92"/><ellipse cx="62" cy="84" rx="11" ry="6" fill="#ffffff" opacity=".92"/><ellipse cx="82" cy="108" rx="9" ry="4" fill="#ffffff" opacity=".6"/>
+    <g class="paint-jar"><rect x="112" y="70" width="32" height="46" rx="6" fill="${paint}" stroke="${paintDark}" stroke-width="4"/><rect x="108" y="62" width="40" height="12" rx="4" fill="${paintDark}"/><rect x="119" y="80" width="7" height="24" rx="3" fill="#ffffff" opacity=".35"/></g>
+    <path d="M118 44l26-22" stroke="#8a5a2c" stroke-width="5" stroke-linecap="round"/><path d="M144 22l8-6" stroke="${paint}" stroke-width="8" stroke-linecap="round"/>`:`
+    <ellipse class="object-shadow" cx="76" cy="134" rx="62" ry="8"/>
+    <rect x="16" y="66" width="96" height="60" rx="4" fill="#fff8e6" stroke="#c7b58e" stroke-width="3"/>
+    <path class="paint-puddle" d="M26 100c8-20 62-24 82-10 14 10 8 26-12 28-28 3-64 6-74-6-6-6-2-10 4-12z" fill="${paint}" opacity=".94"/>
+    <g class="tipped-jar"><rect x="108" y="56" width="36" height="52" rx="6" fill="${paint}" stroke="${paintDark}" stroke-width="4"/><rect x="104" y="48" width="44" height="12" rx="4" fill="${paintDark}"/></g>
+    <path d="M48 44l36-28" stroke="#8a5a2c" stroke-width="5" stroke-linecap="round"/><path d="M84 16l9-7" stroke="${paint}" stroke-width="8" stroke-linecap="round"/>`;
+  }
+  if(kind==='cat') return after?`
+    <ellipse class="object-shadow" cx="90" cy="134" rx="56" ry="8"/>
+    <ellipse cx="40" cy="120" rx="20" ry="7" fill="#d9c7a3" stroke="#8a6a3a" stroke-width="3"/>
+    <g class="street-cat"><path class="cat-tail" d="M74 110c-14 4-18 18-6 24" fill="none" stroke="#e0a45c" stroke-width="7" stroke-linecap="round"/><ellipse cx="100" cy="106" rx="26" ry="20" fill="#e0a45c"/><path d="M84 96q14-8 28 0M86 106q12-6 24 0" stroke="#b8763a" stroke-width="3" fill="none"/>
+      <circle cx="116" cy="82" r="16" fill="#e0a45c"/><path d="M104 74l2-16 10 10zM122 68l10-10 2 16z" fill="#e0a45c"/><circle cx="111" cy="81" r="2.6" fill="#2b1d12"/><circle cx="121" cy="81" r="2.6" fill="#2b1d12"/><path d="M116 87l-3 3h6z" fill="#e88a8a"/>
+      <path d="M104 94q12 9 24 0" fill="none" stroke="#e14f56" stroke-width="5"/><circle cx="116" cy="100" r="4.5" fill="#ffe08a" stroke="#c9a227" stroke-width="1.5"/></g>
+    <g class="cat-hearts" fill="#f08aa0"><path d="M58 62l4-5c3-3 8 1 5 5l-9 9-9-9c-3-4 2-8 5-5z"/><path d="M82 40l3-4c2-2 6 1 4 4l-7 7-7-7c-2-3 2-6 4-4z"/><path d="M134 50l3-4c2-2 6 1 4 4l-7 7-7-7c-2-3 2-6 4-4z"/></g>`:`
+    <ellipse class="object-shadow" cx="90" cy="134" rx="56" ry="8"/>
+    <ellipse cx="40" cy="120" rx="20" ry="7" fill="#d9c7a3" stroke="#8a6a3a" stroke-width="3"/><ellipse cx="40" cy="119" rx="13" ry="4" fill="#dff1f6"/>
+    <g class="street-cat"><path class="cat-tail" d="M74 110c-14 4-18 18-6 24" fill="none" stroke="#e0a45c" stroke-width="7" stroke-linecap="round"/><ellipse cx="100" cy="106" rx="26" ry="20" fill="#e0a45c"/><path d="M84 96q14-8 28 0M86 106q12-6 24 0" stroke="#b8763a" stroke-width="3" fill="none"/>
+      <circle cx="116" cy="82" r="16" fill="#e0a45c"/><path d="M104 74l2-16 10 10zM122 68l10-10 2 16z" fill="#e0a45c"/><circle cx="111" cy="81" r="2.6" fill="#2b1d12"/><circle cx="121" cy="81" r="2.6" fill="#2b1d12"/><path d="M116 87l-3 3h6z" fill="#e88a8a"/></g>`;
+  if(kind==='pigeon') return after?`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="62" ry="8"/>
+    <path d="M14 118h132v10H14z" fill="#8f9bab" stroke="#4a5563" stroke-width="3"/>
+    <rect x="16" y="84" width="50" height="32" rx="4" fill="#d9a066" stroke="#8a5a2c" stroke-width="3"/><path d="M16 92h50" stroke="#8a5a2c" stroke-width="2"/><circle cx="41" cy="104" r="6" fill="#e8543a" stroke="#8a5a2c" stroke-width="1.5"/>
+    <g class="pigeon"><ellipse cx="96" cy="100" rx="24" ry="15" fill="#8d98a8"/><circle cx="118" cy="104" r="10" fill="#6f7a8b"/><path d="M126 106l9 5-10 2z" fill="#f2b34a"/><circle cx="120" cy="101" r="2.2" fill="#1c222c"/><path d="M76 102c-10-2-16 4-14 10" fill="none" stroke="#6f7a8b" stroke-width="6" stroke-linecap="round"/><path d="M102 113l3 6M92 113l-2 6" stroke="#f2b34a" stroke-width="3"/></g>
+    <circle cx="136" cy="114" r="3" fill="#f2d7a6"/><circle cx="143" cy="116" r="2" fill="#f2d7a6"/>`:`
+    <ellipse class="object-shadow" cx="80" cy="134" rx="62" ry="8"/>
+    <path d="M14 118h132v10H14z" fill="#8f9bab" stroke="#4a5563" stroke-width="3"/>
+    <g class="pigeon"><ellipse cx="80" cy="98" rx="24" ry="16" fill="#8d98a8"/><circle cx="102" cy="86" r="10" fill="#6f7a8b"/><circle cx="104" cy="83" r="2.2" fill="#1c222c"/><path d="M60 100c-10-2-16 4-14 10" fill="none" stroke="#6f7a8b" stroke-width="6" stroke-linecap="round"/><path d="M86 112l3 8M76 112l-2 8" stroke="#f2b34a" stroke-width="3"/>
+      <g class="stolen-sandwich"><path d="M110 78l26-8 4 10-26 10z" fill="#f2d7a6" stroke="#b8894c" stroke-width="2"/><path d="M112 82l24-7" stroke="#6fbf73" stroke-width="3"/></g><path d="M110 86l8 2-8 3z" fill="#f2b34a"/></g>`;
+  if(kind==='snowman') return after?`
+    <ellipse class="object-shadow" cx="80" cy="136" rx="46" ry="7"/>
+    <path d="M8 128h144" stroke="#e6f3fb" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="80" cy="104" r="28" fill="#f4fbff" stroke="#b7d6ea" stroke-width="3"/><circle cx="80" cy="66" r="20" fill="#f4fbff" stroke="#b7d6ea" stroke-width="3"/><circle cx="80" cy="38" r="14" fill="#f4fbff" stroke="#b7d6ea" stroke-width="3"/>
+    <circle cx="75" cy="35" r="2" fill="#222"/><circle cx="85" cy="35" r="2" fill="#222"/><path d="M80 40l12 3-12 3z" fill="#f28c3a"/><circle cx="80" cy="60" r="2.5" fill="#333"/><circle cx="80" cy="70" r="2.5" fill="#333"/>
+    <path d="M60 66l-22-12M100 66l22-12" stroke="#7a5230" stroke-width="4" stroke-linecap="round"/>
+    <g class="snowman-hat"><rect x="66" y="12" width="28" height="14" rx="2" fill="#3973d9"/><rect x="60" y="24" width="40" height="5" rx="2" fill="#2555aa"/></g>`:`
+    <ellipse class="object-shadow" cx="80" cy="136" rx="52" ry="7"/>
+    <path d="M8 128h144" stroke="#e6f3fb" stroke-width="8" stroke-linecap="round"/>
+    <circle class="snowball-big" cx="68" cy="102" r="26" fill="#f4fbff" stroke="#b7d6ea" stroke-width="3"/><circle cx="118" cy="112" r="16" fill="#f4fbff" stroke="#b7d6ea" stroke-width="3"/>`;
   return '';
 }
 function stagePhysicalStoryPropHtml(model,spec,state_,gesture){
   const kind=safeStageClass(spec.kind),changed=state_==='changed';
   const changing=gesture==='story-prop-change',revealing=gesture==='story-prop-reveal';
-  const face=phase=>`<g class="physical-prop-face physical-${phase}">${physicalStoryPropFace(kind,phase)}</g>`;
+  const face=phase=>`<g class="physical-prop-face physical-${phase}">${physicalStoryPropFace(kind,phase,model)}</g>`;
   const content=changing?face('before')+face('after'):face(changed?'after':'before');
   return `<svg class="stage-prop physical-story-prop physical-${kind} story-prop-${changed?'changed':'ready'}${changing?' is-changing':revealing?' is-revealing':''}" viewBox="0 0 160 150" aria-hidden="true">${content}</svg>`;
 }
@@ -10890,10 +11419,14 @@ function stagePropsHtml(model){
 function stageRainDropsHtml(){
   return '<i style="--x:4%;--d:-.3s;--speed:.92s"></i><i style="--x:12%;--d:-1.1s;--speed:1.08s"></i><i style="--x:21%;--d:-.7s;--speed:.83s"></i><i style="--x:29%;--d:-1.5s;--speed:1.16s"></i><i style="--x:38%;--d:-.1s;--speed:.96s"></i><i style="--x:47%;--d:-1.25s;--speed:1.12s"></i><i style="--x:56%;--d:-.55s;--speed:.86s"></i><i style="--x:65%;--d:-1.7s;--speed:1.18s"></i><i style="--x:73%;--d:-.85s;--speed:1.02s"></i><i style="--x:81%;--d:-.2s;--speed:.88s"></i><i style="--x:89%;--d:-1.35s;--speed:1.14s"></i><i style="--x:96%;--d:-.65s;--speed:.94s"></i>';
 }
+function stageSnowFlakesHtml(){
+  return '<i style="--x:3%;--d:-.4s;--speed:5.2s;--s:7px"></i><i style="--x:11%;--d:-2.6s;--speed:6.1s;--s:5px"></i><i style="--x:19%;--d:-1.3s;--speed:4.8s;--s:8px"></i><i style="--x:27%;--d:-3.9s;--speed:6.6s;--s:4px"></i><i style="--x:35%;--d:-.9s;--speed:5.5s;--s:6px"></i><i style="--x:44%;--d:-3.1s;--speed:6.9s;--s:5px"></i><i style="--x:52%;--d:-2.2s;--speed:5s;--s:8px"></i><i style="--x:61%;--d:-4.4s;--speed:6.3s;--s:4px"></i><i style="--x:69%;--d:-1.7s;--speed:5.7s;--s:6px"></i><i style="--x:77%;--d:-.2s;--speed:4.6s;--s:7px"></i><i style="--x:85%;--d:-3.5s;--speed:6.8s;--s:5px"></i><i style="--x:93%;--d:-2.9s;--speed:5.3s;--s:6px"></i><i style="--x:8%;--d:-4.8s;--speed:7.2s;--s:4px"></i><i style="--x:39%;--d:-5.4s;--speed:6s;--s:5px"></i><i style="--x:73%;--d:-5.9s;--speed:7s;--s:4px"></i><i style="--x:97%;--d:-1.1s;--speed:5.9s;--s:6px"></i>';
+}
 function stageWeatherHtml(model){
   const weather=model?.world?.weather,gesture=model?.action?.gesture||'';
   if(gesture==='stop-rain') return `<div class="rain-field is-clearing"><span class="weather-shade"></span>${stageRainDropsHtml()}</div><div class="returning-sun" aria-hidden="true"><span></span></div>`;
   if(weather==='rain') return `<div class="rain-field${gesture==='start-rain'?' is-starting':''}"><span class="weather-shade"></span>${stageRainDropsHtml()}</div>`;
+  if(weather==='snow') return `<div class="snow-field${gesture==='start-snow'?' is-starting':''}"><span class="snow-shade"></span>${stageSnowFlakesHtml()}</div>`;
   return '';
 }
 function syncStageVisualBlock(el, key, html){
@@ -11116,12 +11649,21 @@ function fitStage(){
     stage.style.setProperty('--stage-overlap',v+'px');
     stage.classList.toggle('is-overlapping',v>36);
   };
+  // once a later lever has freed more than the overlap was covering, give
+  // the legs back rather than leave a hole under the words (scrollHeight
+  // never reports slack, so the caption's own bottom edge is measured)
+  const settle=()=>{
+    if(overlap<=0||typeof getComputedStyle!=='function'||!caption.getBoundingClientRect) return;
+    const pad=parseFloat(getComputedStyle(stage).paddingBottom)||0;
+    const slack=Math.floor(stage.getBoundingClientRect().bottom-pad-caption.getBoundingClientRect().bottom);
+    if(slack>0) setOverlap(Math.max(0,overlap-slack));
+  };
   const first=Math.min(over,Math.round(avatar.offsetHeight*STAGE_FIT.overlap));
   if(first>0){ setOverlap(first); over=overflow(); }
   if(over<=0) return;
   stage.classList.add('fit-compact');
   over=overflow();
-  if(over<=0) return;
+  if(over<=0) return settle();
   const modern=avatar.classList.contains('modern-cast');
   const perPx=modern?1.72:1;
   const current=modern?avatar.offsetWidth/1.08:avatar.offsetWidth;
@@ -11131,7 +11673,7 @@ function fitStage(){
     stage.style.setProperty('--avatar',target+'px');
     over=overflow();
   }
-  if(over<=0) return;
+  if(over<=0) return settle();
   const room=Math.round(avatar.offsetHeight*STAGE_FIT.overlapSmall)-overlap;
   if(room>0) setOverlap(overlap+Math.min(over,room));
 }

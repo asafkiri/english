@@ -831,11 +831,15 @@ const EXPECTED_PRACTICE_STORIES = [
   ['phone_in_elevator', 5, 6],
   ['family_photo_wind', 6, 6],
   ['school_activity', 7, 7],
+  ['tom_gate_notebook', 8, 5],
+  ['sam_elevator_stop', 9, 6],
   ['lost_bag', 10, 7],
   ['tom_recess_ball', 10, 7],
   ['maya_kitchen_mixup', 11, 7],
+  ['maya_ice_cream_truck', 11, 6],
   ['restaurant_mixup', 12, 7],
   ['nina_market_gift', 14, 7],
+  ['nina_lemonade_stand', 14, 6],
   ['broken_phone_plan', 17, 8],
   ['maya_courtyard_change', 17, 8],
   ['sam_dropped_key', 18, 8],
@@ -843,9 +847,13 @@ const EXPECTED_PRACTICE_STORIES = [
   ['tom_presentation_card', 20, 9],
   ['maya_kitchen_blackout', 22, 9],
   ['nina_wrong_bag', 23, 8],
+  ['dana_paint_spill', 23, 6],
   ['nina_market_rolling_apples', 25, 9],
   ['maya_lost_dog', 26, 10],
+  ['tom_street_cat', 26, 6],
+  ['ben_pigeon_sandwich', 26, 5],
   ['maya_rainy_beach', 29, 10],
+  ['tom_snow_day', 29, 6],
 ];
 
 const PROFILE_PLACEHOLDERS = new Set(['name', 'age', 'interest', 'food', 'color', 'animal']);
@@ -1172,7 +1180,7 @@ test('free practice catalog only grows and exhausts every story before repeating
   state.completed = 30;
   api.setState(state);
   const activeIds = Array.from(api.availablePracticeStories(), story => story.id);
-  assert.equal(activeIds.length, 24);
+  assert.equal(activeIds.length, api.PRACTICE_STORIES.length, 'a finished course unlocks every authored story');
   const storyIds = [];
   for (let run = 0; run < activeIds.length * 2; run++) {
     const session = api.buildPracticeSession();
@@ -1753,7 +1761,7 @@ test('authored stage actions are narrated, unique and use the supported world co
     'walk-through-door', 'set-down-cargo', 'close-door',
     'place-brushes', 'pick-up-phone', 'hand-over-phone', 'phone-to-desk',
     'move-mirror-light', 'find-mirror', 'place-mirror',
-    'reveal-wrong-bag', 'replace-bag', 'start-rain', 'stop-rain',
+    'reveal-wrong-bag', 'replace-bag', 'start-rain', 'stop-rain', 'start-snow',
     'inspect-found-bag', 'find-lost-bag', 'serve-wrong-meal', 'swap-correct-meal',
     'catch-photo', 'return-photo', 'choose-activity', 'confirm-activity',
     'signal-breaks', 'message-arrives', 'lose-ball', 'recover-ball', 'score-ball',
@@ -1767,7 +1775,7 @@ test('authored stage actions are narrated, unique and use the supported world co
     brushes: new Set(['held', 'placed']),
     phone: new Set(['floor', 'held', 'learner', 'desk']),
     bag: new Set(['none', 'wrong', 'right']),
-    weather: new Set(['sunny', 'rain']),
+    weather: new Set(['sunny', 'rain', 'snow']),
     lostBag: new Set(['missing', 'wrong', 'found']),
     mealTray: new Set(['none', 'wrong', 'correct']),
     photo: new Set(['notebook', 'held', 'learner']),
@@ -2466,11 +2474,12 @@ test('the rendered mirror scene keeps one physical mirror through pickup and pla
     'the same mirror must remain anchored to the window after Maya releases it');
 });
 
-test('all nine authored stageProp kinds render as physical before-and-after objects', () => {
+test('every authored stageProp kind renders as a physical before-and-after object', () => {
   const { api } = runtime();
   const expectedKinds = [
-    'apples', 'audio', 'bike-key', 'blackout-meal', 'camera',
-    'cue-card', 'sale-sign', 'sink', 'watering',
+    'apples', 'audio', 'bike-key', 'blackout-meal', 'camera', 'cat',
+    'cue-card', 'elevator-panel', 'ice-cream', 'lemonade', 'notebook', 'paint-jar', 'pigeon',
+    'sale-sign', 'sink', 'snowman', 'watering',
   ];
   const stories = api.PRACTICE_STORIES.filter(story => story.stageProp?.kind);
   assert.deepEqual(Array.from(stories, story => story.stageProp.kind).sort(), expectedKinds);
