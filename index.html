@@ -16747,6 +16747,11 @@ function samRunSpawnLaneWave(){
 function samRunAskAloud(ob){
   const g=samRun,c=SAM_RUN_COMMANDS[ob&&ob.cmd]; if(!g||!c||!ob) return;
   const word=c.say||String(c.en).toLowerCase();
+  /* The listening prompt itself is this question's single automatic English
+     pronunciation. Mark it immediately so entering the correct lane or later
+     resolving the wave cannot pronounce the same word a second time. Manual
+     replay still calls this function directly from the speaker button. */
+  ob.spokeCorrect=true;
   ob.askedAt=g.time;
   const stand={cmd:ob.cmd,resolved:false,chosenLane:0};
   const heard=played=>{ if(!played&&samRun===g&&!ob.resolved) samRunRevealAsked(ob); };
