@@ -185,6 +185,36 @@ body{
 .home-extra .extra-icon{font-size:26px;line-height:1.05}
 .home-extra .extra-title{font-size:14.5px;font-weight:950;text-align:center;line-height:1.15}
 .home-extra .extra-sub{color:var(--dim);font-size:11px;text-align:center;line-height:1.2}
+/* ---------- drawn portraits ---------- */
+.cast-portrait{--size:44px;--who:#60a5fa;position:relative;display:inline-block;width:var(--size);height:var(--size);border-radius:50%;overflow:hidden;flex-shrink:0;vertical-align:middle;
+  background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--who) 34%,#1a2540),#141d33 74%);border:1.5px solid color-mix(in srgb,var(--who) 60%,transparent);box-shadow:inset 0 -6px 12px rgba(0,0,0,.25)}
+/* the full-body art is 220×410; a 160-unit square around the head fills the frame */
+.cast-portrait-art{position:absolute;left:calc(var(--size)*-.1875);top:calc(var(--size)*-.075);width:calc(var(--size)*1.375);height:calc(var(--size)*2.5625);pointer-events:none}
+.cast-portrait-art .person-art{width:100%;height:100%;display:block}
+.cast-portrait.cast-portrait-emoji{display:inline-flex;align-items:center;justify-content:center;font-size:calc(var(--size)*.55)}
+.conversation-person .portrait.cast-portrait{background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--who) 34%,#1a2540),#141d33 74%)}
+.finish-portrait{display:flex;justify-content:center;animation:pop .5s ease both;margin-bottom:8px}
+/* ---------- choosing a conversation ---------- */
+.practice-surprise{display:grid;justify-items:center;gap:2px;margin:10px 0 16px;padding:14px 16px;font-size:19px}
+.practice-surprise small{font-size:12.5px;font-weight:600;opacity:.85}
+.picker-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:6px 2px 8px;font-size:15px;font-weight:850}
+.picker-title small{font-size:12px;font-weight:600;color:var(--dim)}
+.cast-group{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:10px 10px 4px;margin-bottom:10px}
+.cast-group.locked{opacity:.62}
+.cast-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.cast-copy b{display:block;font-size:16px;font-weight:850;line-height:1.2}
+.cast-copy span{font-size:12.5px;color:var(--dim)}
+.story-card{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 4px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--text);font:inherit;text-align:right;cursor:pointer;border-radius:0}
+.story-card:disabled{cursor:default}
+.story-card:active:not(:disabled){background:rgba(255,255,255,.045)}
+.story-mark{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:14px;font-weight:900;background:rgba(148,163,184,.14)}
+.story-card.fresh .story-mark{background:rgba(251,191,36,.16)}
+.story-card.done .story-mark{background:rgba(52,211,153,.16);color:var(--green)}
+.story-card.locked .story-mark{opacity:.7}
+.story-copy{flex:1;min-width:0}
+.story-copy b{display:block;font-size:14.5px;font-weight:800;line-height:1.25}
+.story-copy span{display:block;font-size:12px;color:var(--dim);margin-top:2px}
+.story-turns{font-size:11.5px;color:var(--dim);white-space:nowrap;flex-shrink:0}
 .home-path-milestone{
   display:grid;grid-template-columns:44px 1fr;gap:4px 11px;align-items:center;margin:13px 0;
   padding:13px;background:linear-gradient(145deg,#33290f,#20190c);border:1px solid rgba(251,191,36,.4);border-radius:17px;
@@ -407,8 +437,11 @@ body{
    The art keeps its proportions on tall phones and anchors the floor when a
    short screen has to crop a little from the top. */
 .stage-bg svg{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible}
-.stage-bg::before{content:'';position:absolute;inset:4% 5% 16%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,var(--moment-light,rgba(255,244,214,.1)) 0 18%,rgba(8,14,25,.02) 42%,rgba(8,14,25,.2) 72%,rgba(8,14,25,.42) 100%)}
-.stage-bg::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(8,14,25,.02) 0%,rgba(8,14,25,.06) 48%,rgba(8,14,25,.44) 82%,rgba(8,14,25,.68) 100%);opacity:var(--moment-shade,1);transition:opacity .9s ease}
+/* The scene is lit for a child, not for a film noir: the vignette and the
+   floor shade stay, but lighter. The caption carries its own solid card, so
+   the words never needed the room this dark. */
+.stage-bg::before{content:'';position:absolute;inset:4% 5% 16%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,var(--moment-light,rgba(255,244,214,.12)) 0 18%,rgba(8,14,25,.02) 42%,rgba(8,14,25,.13) 72%,rgba(8,14,25,.3) 100%)}
+.stage-bg::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(8,14,25,.02) 0%,rgba(8,14,25,.05) 48%,rgba(8,14,25,.3) 82%,rgba(8,14,25,.5) 100%);opacity:var(--moment-shade,1);transition:opacity .9s ease}
 .stage-bg .backdrop-far,.stage-bg .backdrop-mid,.stage-bg .backdrop-near{transform-box:fill-box;transform-origin:center}
 .stage-bg .backdrop-far{animation:sceneParallaxFar 18s ease-in-out infinite}
 .stage-bg .backdrop-mid{animation:sceneParallaxMid 13s ease-in-out infinite}
@@ -605,6 +638,36 @@ body{
 .stage-avatar .person-art.modern-v2 .face-lighting path:nth-child(2){stroke:var(--scene-light,#ffe0c2)}
 .stage-avatar .person-art.modern-v2 .body-lighting path:first-child,
 .stage-avatar .person-art.modern-v2 .body-lighting path:nth-child(3){fill:var(--scene-light,#fff8dd)}
+
+/* When the words need more room than the screen has, the text block climbs
+   over the figure's legs before anything scrolls — the face stays where it
+   is, the way a visual novel keeps its character behind the text box. The
+   overlap, a tighter caption and a smaller figure are applied by fitStage()
+   only as far as the current beat needs them. */
+.stage-screen .stage-avatar{margin-bottom:calc(2px - var(--stage-overlap,0px))}
+.stage-screen .stage-avatar.modern-cast{margin-bottom:calc(-3px - var(--stage-overlap,0px))}
+.stage-screen .stage-name,.stage-screen .stage-status,.stage-screen .stage-caption{position:relative;z-index:2}
+.stage-screen .stage-name{text-shadow:0 1px 2px rgba(8,14,25,.9),0 2px 10px rgba(8,14,25,.7)}
+/* riding over the figure, the name keeps to itself: no role, a quiet pill */
+.stage-screen .stage.is-overlapping .stage-name{background:rgba(20,28,46,.7);padding:2px 12px;border-radius:999px;font-size:17px;line-height:1.35}
+.stage-screen .stage.is-overlapping .stage-name span{display:none}
+.stage-screen .stage.fit-compact{gap:6px;padding-top:6px;padding-bottom:8px}
+.stage-screen .stage.fit-compact .stage-place{font-size:12px}
+.stage-screen .stage.fit-compact .stage-caption{padding:11px 12px}
+.stage-screen .stage.fit-compact .cap-en{font-size:22px;line-height:1.3}
+.stage-screen .stage.fit-compact .cap-aid.auto-translation{margin-top:6px;padding-top:6px;font-size:14.5px;line-height:1.38}
+.stage-screen .stage.fit-compact .cap-actions{margin-top:7px}
+.stage-screen .stage.fit-compact .cap-sequence{gap:7px}
+.stage-screen .stage.fit-compact .cap-previous{padding-bottom:7px}
+.stage-screen .stage.fit-compact .cap-previous-en{font-size:15px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#aab6cc}
+.stage-screen .stage.fit-compact .cap-previous-he{display:none}
+.stage-screen .stage.fit-compact .story-event{font-size:12.5px;padding:6px 9px;margin-bottom:7px;line-height:1.35}
+.stage-screen .stage.fit-compact .cap-intent{font-size:20px}
+.stage-screen .stage.fit-compact .cap-intent-note{display:none}
+/* While the character talks the answer area has nothing to offer yet; a bare
+   status line says so without a whole empty box under the scene. */
+.stage-screen .conversation-composer.slim{background:transparent;border-color:transparent;box-shadow:none;padding:6px 0 0;max-height:none;overflow:visible}
+.stage-screen .conversation-composer.slim .flow-controls{font-size:12.5px;color:#9fadc5}
 
 /* Authored story actions live in their own layer. The figure never changes
    layout position: only a limb and the relevant prop move, then the prop's
@@ -1610,12 +1673,14 @@ body{
 /* whose turn it is, readable at a glance rather than as fine print */
 .stage-status{display:inline-flex;align-items:center;gap:7px;align-self:center;font-size:15px;font-weight:800;line-height:1;
   padding:8px 15px;border-radius:999px;margin-bottom:2px;white-space:nowrap;
-  background:rgba(148,163,184,.14);border:1.5px solid rgba(148,163,184,.3);color:var(--fg);
+  /* the tint sits on a solid base so the pill stays readable when it rides
+     over the figure's legs on a short screen */
+  background:linear-gradient(rgba(148,163,184,.14),rgba(148,163,184,.14)),#141c2e;border:1.5px solid rgba(148,163,184,.3);color:var(--fg);
   transition:background .18s ease,border-color .18s ease,color .18s ease}
 .stage-status .cue-icon{font-size:16px;line-height:1}
-.stage-status.cue-listening{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.65);color:#6ee7b7}
-.stage-status.cue-heard{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.45);color:#6ee7b7}
-.stage-status.cue-speaking{background:color-mix(in srgb, var(--who) 20%, transparent);border-color:color-mix(in srgb, var(--who) 60%, transparent)}
+.stage-status.cue-listening{background:linear-gradient(rgba(52,211,153,.18),rgba(52,211,153,.18)),#141c2e;border-color:rgba(52,211,153,.65);color:#6ee7b7}
+.stage-status.cue-heard{background:linear-gradient(rgba(52,211,153,.14),rgba(52,211,153,.14)),#141c2e;border-color:rgba(52,211,153,.45);color:#6ee7b7}
+.stage-status.cue-speaking{background:linear-gradient(color-mix(in srgb, var(--who) 20%, transparent),color-mix(in srgb, var(--who) 20%, transparent)),#141c2e;border-color:color-mix(in srgb, var(--who) 60%, transparent)}
 .stage-status.cue-thinking,.stage-status.cue-incoming{color:var(--dim)}
 .stage-status.cue-thinking .cue-icon{animation:cuePulse 1.1s ease-in-out infinite}
 @keyframes cuePulse{0%,100%{opacity:.45}50%{opacity:1}}
@@ -1705,7 +1770,8 @@ body{
 }
 .conversation-top{display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0}
 .conversation-top .xbtn{width:44px;height:44px}
-.conversation-top .timer{min-width:40px}
+/* the screen clips at its edge; a hair of padding keeps the last digit whole */
+.conversation-top .timer{min-width:40px;flex-shrink:0;padding-inline-end:3px}
 .conversation-person{
   flex-shrink:0;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#172844,#152139);
   border:1px solid var(--line);border-radius:16px;padding:9px 11px;margin-bottom:8px;
@@ -4439,6 +4505,17 @@ function conversationMeta(idx){
   return {...base,character,bg:LESSON_STAGE_BACKGROUNDS[idx]||'living-room',role:character.role||''};
 }
 function learnerAvatar(){ return state?.profile?.gender==='female'?'👧':'🧒'; }
+/* ---- a face for the cards ----
+   The intro, the finish, the history and the picker used to show an emoji
+   where the conversation itself shows a drawn person. The same figure now
+   looks out of a round frame everywhere: the head of the full-body art,
+   cropped and still. */
+function castPortraitHtml(character, size=44, cls=''){
+  const look=character?.look;
+  const who=character?.color||'#60a5fa';
+  if(!look) return `<span class="cast-portrait cast-portrait-emoji ${cls}" style="--size:${size}px;--who:${who}" aria-hidden="true">${character?.avatar||'🙂'}</span>`;
+  return `<span class="cast-portrait motion-paused ${cls}" style="--size:${size}px;--who:${who}" aria-hidden="true"><span class="cast-portrait-art">${personArt(look,'idle')}</span></span>`;
+}
 
 /* ---------------- free conversation practice ----------------
    A side practice mode with no ties to the curriculum. A session is
@@ -4940,19 +5017,19 @@ const PRACTICE_BACKDROPS = {
     <path d="M79 700c20-127 61-215 121-262 61 48 103 136 122 262z" fill="#caa27a" opacity=".84"/><path d="M121 700c16-99 42-164 79-198 38 35 65 101 80 198" fill="none" stroke="#ead2a5" stroke-opacity=".46" stroke-width="6"/><g fill="#f0ddbd" opacity=".8"><ellipse cx="77" cy="609" rx="9" ry="5" transform="rotate(-18 77 609)"/><ellipse cx="338" cy="628" rx="8" ry="5" transform="rotate(24 338 628)"/></g>`),
 };
 const PRACTICE_CAST = {
-  tom:{name:'טום', avatar:'👦', color:'#60a5fa', role:'חבר מבית הספר',
+  tom:{name:'טום', avatar:'👦', color:'#60a5fa', role:'חבר מבית הספר', voice:{pitch:1.12,rate:1.03},
     look:{variant:'modern-v2',id:'tom',outfit:'hoodie',faceShape:'oval',skin:'#f1c39d',skinShadow:'#d99f78',hairStyle:'short',hairColor:'#4b3022',eyeColor:'#557782',clothes:'#3973d9',accent:'#2555aa',pants:'#263f70',shoes:'#e8eef5',blush:'#e98c7c'}},
-  maya:{f:true, name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה',
+  maya:{f:true, name:'מאיה', avatar:'👧', color:'#f472b6', role:'חברה מהשכונה', voice:{pitch:1.16,rate:1.02},
     look:{variant:'modern-v2',id:'maya',outfit:'sweater',faceShape:'round',skin:'#f6d3ad',skinShadow:'#dca681',hairStyle:'long',hairColor:'#2f2320',eyeColor:'#5c493d',clothes:'#e0559a',accent:'#b83c7b',pants:'#4d4168',shoes:'#f5e7ee',blush:'#ed8c98'}},
-  sam:{name:'סם', avatar:'🧑‍🦱', color:'#34d399', role:'שכן',
+  sam:{name:'סם', avatar:'🧑‍🦱', color:'#34d399', role:'שכן', voice:{pitch:.9,rate:.97},
     look:{variant:'modern-v2',id:'sam',outfit:'jacket',faceShape:'broad',skin:'#d9a878',skinShadow:'#b87852',hairStyle:'curly',hairColor:'#231a15',eyeColor:'#455d4d',clothes:'#2fa87a',accent:'#1f7f5c',pants:'#29483f',shoes:'#6e4f39',blush:'#c87967'}},
-  alex:{name:'אלכס', avatar:'🤵', color:'#fbbf24', role:'מלצר',
+  alex:{name:'אלכס', avatar:'🤵', color:'#fbbf24', role:'מלצר', voice:{pitch:.84,rate:.98},
     look:{variant:'modern-v2',id:'alex',outfit:'waiter',faceShape:'angular',skin:'#f0c39a',skinShadow:'#d09a72',hairStyle:'sidepart',hairColor:'#3a2a1e',eyeColor:'#53647d',clothes:'#f1f4f8',accent:'#34445c',pants:'#252d3b',shoes:'#151b24',blush:'#dc8875'}},
-  nina:{f:true, name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות',
+  nina:{f:true, name:'נינה', avatar:'👩‍💼', color:'#f59e0b', role:'מוכרת בחנות', voice:{pitch:1.02,rate:1.03},
     look:{variant:'modern-v2',id:'nina',outfit:'blazer',faceShape:'soft',skin:'#e8bb8f',skinShadow:'#c98b62',hairStyle:'bob',hairColor:'#5a3320',eyeColor:'#6a5137',clothes:'#e08b2c',accent:'#8f4e18',pants:'#62432f',shoes:'#38251d',blush:'#df826e'}},
-  ben:{name:'בן', avatar:'🧑‍🦰', color:'#a78bfa', role:'תייר מלונדון',
+  ben:{name:'בן', avatar:'🧑‍🦰', color:'#a78bfa', role:'תייר מלונדון', voice:{pitch:.98,rate:.95,accent:'gb'},
     look:{variant:'modern-v2',id:'ben',outfit:'traveler',faceShape:'narrow',skin:'#f5d0b0',skinShadow:'#d9a17a',hairStyle:'cap',hairColor:'#a84b25',eyeColor:'#587381',clothes:'#8b7ae8',accent:'#6a58c9',pants:'#3f4565',shoes:'#d8c8a1',blush:'#e68f7f'}},
-  dana:{f:true, name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג',
+  dana:{f:true, name:'דנה', avatar:'👩‍🏫', color:'#38bdf8', role:'מדריכה בחוג', voice:{pitch:.94,rate:.94},
     look:{variant:'modern-v2',id:'dana',outfit:'teacher',faceShape:'oval',skin:'#e3b58c',skinShadow:'#c48760',hairStyle:'bun-side',hairColor:'#2b2320',eyeColor:'#4b6876',clothes:'#3aa6d8',accent:'#2483ae',pants:'#30475d',shoes:'#23313e',blush:'#d77d70',glasses:true}},
 };
 const LESSON_STAGE_BACKGROUNDS = [
@@ -7347,7 +7424,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.59.1';
+const APP_VERSION = '2.60.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7503,6 +7580,7 @@ function load(){
         ? Math.max(out.streak, out.completed)
         : Math.max(0, Math.floor(Number(out.daysLearned) || 0));
       out.micPrimed = !!out.micPrimed;
+      out.uiSounds = out.uiSounds !== false;
       out.lessonsToday = Math.max(0, Math.floor(Number(out.lessonsToday) || 0));
       out.practiceCount = Math.max(0, Math.floor(Number(out.practiceCount) || 0));
       out.practiceRecent = Array.isArray(out.practiceRecent)
@@ -7513,6 +7591,7 @@ function load(){
         ? out.practiceRecentStories.filter(x=>typeof x === 'string').slice(-8) : [];
       const hadStoryCycle=Array.isArray(s.practiceStorySeen);
       out.practiceStorySeen=normalizePracticeStoryIds(out.practiceStorySeen);
+      out.practiceStoryDone=normalizePracticeStoryIds(out.practiceStoryDone);
       out.practiceStoryEpoch=Math.max(0,Math.floor(Number(out.practiceStoryEpoch)||0));
       out.practiceStoryCatalog=normalizePracticeStoryIds(out.practiceStoryCatalog);
       if(!out.practiceStoryCatalog.length){
@@ -7559,10 +7638,10 @@ function defaults(){
   return {
     schemaVersion:3, name:'', onboarded:false, completed:0, streak:0, daysLearned:0,
     profile:defaultProfile(),
-    lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false,
+    lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false, uiSounds:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
-    practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[],
+    practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[], practiceStoryDone:[],
     missions:{},
     profileUpdatedAt:0, settingsUpdatedAt:0, reviewUpdatedAt:0,
     progressUpdatedAt:0, practiceRecentUpdatedAt:0, sessionUpdatedAt:0, finishedRuns:[],
@@ -7715,6 +7794,7 @@ function reconcileStoredProgress(){
     if(storedSettingsTs>(Number(state.settingsUpdatedAt)||0)){
       state.slowSpeech=stored.slowSpeech!==false;
       state.micEnabled=stored.micEnabled!==false;
+      state.uiSounds=stored.uiSounds!==false;
     }
     state.micPrimed=!!state.micPrimed||!!stored.micPrimed;
     state.settingsUpdatedAt=Math.max(Number(state.settingsUpdatedAt)||0,storedSettingsTs);
@@ -7753,6 +7833,8 @@ function reconcileStoredProgress(){
     state.practiceRecent=mergeRecent(stored.practiceRecent, state.practiceRecent, 6, storedPracticeIsNewer);
     state.practiceRecentChars=mergeRecent(stored.practiceRecentChars, state.practiceRecentChars, 6, storedPracticeIsNewer);
     state.practiceRecentStories=mergeRecent(stored.practiceRecentStories, state.practiceRecentStories, 8, storedPracticeIsNewer);
+    // a conversation finished in any tab stays finished
+    state.practiceStoryDone=normalizePracticeStoryIds([...(Array.isArray(stored.practiceStoryDone)?stored.practiceStoryDone:[]),...(state.practiceStoryDone||[])]);
     const mergedStoryCycle=mergePracticeStoryCycles(state,stored);
     state.practiceStoryEpoch=mergedStoryCycle.epoch;
     state.practiceStorySeen=mergedStoryCycle.seen;
@@ -7886,6 +7968,55 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
   save();
 }
 
+/* ---------------- small sounds ----------------
+   A conversation has a feel as well as words: a soft note when a message
+   lands, a brighter pair when the phone heard you, a lower one when it wants
+   another try, a tick when the microphone opens. All of it is synthesised,
+   quiet, and off with one switch in the settings. The audio context is only
+   created or resumed inside a tap, which is what iPhone requires before a
+   page may make a sound on its own. */
+let uiAudioCtx=null;
+function uiAudioContext(create=false){
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC) return null;
+  if(!uiAudioCtx&&create){ try{ uiAudioCtx=new AC(); }catch(_){ uiAudioCtx=null; } }
+  return uiAudioCtx;
+}
+function unlockUiAudio(){
+  if(state?.uiSounds===false) return;
+  const ctx=uiAudioContext(true);
+  if(ctx&&ctx.state==='suspended'){ try{ const p=ctx.resume(); if(p?.catch) p.catch(()=>{}); }catch(_){} }
+}
+const UI_SOUNDS={
+  arrive:[[523,0,.09,.05,'triangle']],
+  pass:[[659,0,.14,.07],[880,.1,.24,.07]],
+  retry:[[440,0,.17,.05,'triangle']],
+  mic:[[740,0,.07,.04,'triangle']],
+};
+function playUiSound(kind){
+  if(state?.uiSounds===false) return;
+  const ctx=uiAudioContext(false);
+  const notes=UI_SOUNDS[kind];
+  if(!ctx||ctx.state!=='running'||!notes) return;
+  try{
+    const t=ctx.currentTime;
+    for(const [freq,at,len,gain,type] of notes){
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=type||'sine';
+      o.frequency.setValueAtTime(freq,t+at);
+      g.gain.setValueAtTime(.0001,t+at);
+      g.gain.exponentialRampToValueAtTime(gain,t+at+.015);
+      g.gain.exponentialRampToValueAtTime(.0001,t+at+len);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t+at); o.stop(t+at+len+.03);
+    }
+  }catch(_){}
+}
+function setUiSounds(on, btn){
+  state.uiSounds=!!on; touchState('settingsUpdatedAt'); save(); refreshSeg(btn);
+  if(on){ unlockUiAudio(); playUiSound('pass'); }
+}
+
 /* ---------------- speech: text to speech ---------------- */
 let voices = [];
 let autoSpeakTimer = null;
@@ -7917,11 +8048,50 @@ if('speechSynthesis' in window){
   loadVoices();
   speechSynthesis.onvoiceschanged = loadVoices;
 }
-function pickVoice(){
+/* ---- who sounds like whom ----
+   One voice for seven people made Maya sound exactly like Tom. Each character
+   now asks the device for a voice of their gender (and, for Ben from London,
+   accent), by the names the common engines use; where a phone offers only one
+   English voice, the pitch and pace in the character's profile still tell the
+   people apart. */
+const VOICE_PREFS={
+  f:{
+    us:['Google US English','Samantha','Nicky','Ava','Allison','Zoe','Microsoft Zira','Microsoft Aria','Microsoft Jenny','Microsoft Michelle','Karen','Catherine','Moira','Tessa'],
+    gb:['Google UK English Female','Kate','Martha','Serena','Microsoft Hazel','Microsoft Sonia','Microsoft Libby','Microsoft Susan'],
+  },
+  m:{
+    us:['Aaron','Alex','Evan','Nathan','Tom','Reed','Microsoft David','Microsoft Mark','Microsoft Guy','Microsoft Christopher','Microsoft Eric','Fred'],
+    gb:['Google UK English Male','Daniel','Arthur','Oliver','Microsoft Ryan','Microsoft George','Microsoft Thomas','Lee','Gordon','Rishi'],
+  },
+};
+function pickVoice(gender=null, accent='us'){
   if(!voices.length) loadVoices();
+  if(!voices.length) return null;
+  const english=voices.filter(v=>/^en([-_]|$)/i.test(v.lang||''));
+  const pool=english.length?english:voices;
+  const byName=names=>{
+    for(const p of names||[]){ const v=pool.find(v=>String(v.name||'').indexOf(p)>-1); if(v) return v; }
+    return null;
+  };
+  if(gender&&VOICE_PREFS[gender]){
+    const prefs=VOICE_PREFS[gender];
+    for(const names of (accent==='gb'?[prefs.gb,prefs.us]:[prefs.us,prefs.gb])){
+      const v=byName(names); if(v) return v;
+    }
+    // Android names its voices by role, not by person: en-us-x-sfg#female_1
+    const tagged=pool.find(v=>gender==='f'?/female/i.test(v.name||''):/(^|[^e])male/i.test(v.name||''));
+    if(tagged) return tagged;
+  }
   const prefs = ['Google US English','Samantha','Microsoft Zira','Microsoft Aria'];
   for(const p of prefs){ const v = voices.find(v=>v.name.indexOf(p)>-1); if(v) return v; }
   return voices.find(v=>/^en(-|_)US/i.test(v.lang)) || voices.find(v=>/^en/i.test(v.lang)) || null;
+}
+/* the voice a conversation partner speaks with; the learner's own lines and
+   the course phrases keep the plain default voice */
+function characterVoice(character){
+  if(!character) return null;
+  const v=character.voice||{};
+  return {gender:character.f?'f':'m', accent:v.accent||'us', pitch:Number(v.pitch)||(character.f?1.08:.96), rate:Number(v.rate)||1};
 }
 function cancelSpeech(){
   speechToken++;
@@ -7945,7 +8115,7 @@ function stopVoiceAnimation(){
   stopWordSync();
   setVoicing(false);
 }
-function speak(text, cb){
+function speak(text, cb, voice=null){
   if(!('speechSynthesis' in window)){ if(cb) cb(); return; }
   if(typeof L !== 'undefined' && L && L.rec){
     stopRecognition();
@@ -7967,9 +8137,9 @@ function speak(text, cb){
   if(busy&&!directLessonGesture) speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/___/g,''));
   u.lang = 'en-US';
-  const v = pickVoice(); if(v) u.voice = v;
-  u.rate = state.slowSpeech ? 0.8 : 1.0;
-  u.pitch = 1;
+  const v = pickVoice(voice?.gender||null, voice?.accent||'us'); if(v) u.voice = v;
+  u.rate = (state.slowSpeech ? 0.8 : 1.0)*(voice?.rate||1);
+  u.pitch = voice?.pitch||1;
   u.volume = 1;
   let finished=false,watchdog=null;
   const finish=()=>{
@@ -8690,8 +8860,8 @@ function renderHome(){
      locked lessons to find the fun one, so they sit above the path now. */
   const extrasHtml = `
     <div class="home-extras${state.completed > 0 ? '' : ' one'}">
-      ${state.completed > 0 ? `<button type="button" class="home-extra practice" onclick="startPractice()">
-        <span class="extra-icon">🗣️</span><span class="extra-title">תרגול שיחה חופשי</span><span class="extra-sub">עם מה שכבר למדת</span>
+      ${state.completed > 0 ? `<button type="button" class="home-extra practice" onclick="renderPracticePicker()">
+        <span class="extra-icon">🗣️</span><span class="extra-title">תרגול שיחה חופשי</span><span class="extra-sub">בחר עם מי לדבר</span>
       </button>` : ''}
       <button type="button" class="home-extra game" onclick="renderSamRun()">
         <span class="extra-icon">🏃</span><span class="extra-title">המשחק של סם</span><span class="extra-sub">ריצה, חנות ופרסים</span>
@@ -8799,6 +8969,13 @@ function openSettings(){
       <div class="seg">
         <button class="${state.micEnabled?'on':''}" aria-pressed="${state.micEnabled}" onclick="setMic(true,this)">פועל 🎤</button>
         <button class="${!state.micEnabled?'on':''}" aria-pressed="${!state.micEnabled}" onclick="setMic(false,this)">כבוי</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span>צלילים קטנים בשיחה</span>
+      <div class="seg">
+        <button class="${state.uiSounds!==false?'on':''}" aria-pressed="${state.uiSounds!==false}" onclick="setUiSounds(true,this)">פועל 🔔</button>
+        <button class="${state.uiSounds===false?'on':''}" aria-pressed="${state.uiSounds===false}" onclick="setUiSounds(false,this)">כבוי</button>
       </div>
     </div>
     <div class="set-row" style="border:none">
@@ -8939,7 +9116,7 @@ function delayDialogueFlow(extraMs){
 }
 /* A replay holds the automatic advance while the line plays again, then
    re-arms it — across repeated replays too. */
-function replayHoldingFlow(text){
+function replayHoldingFlow(text, voice=null){
   const session=L,stepIndex=L?.i;
   const pending=dialogueTimer?dialogueFlowNext:(session?.replayHeldFlow||null);
   if(dialogueTimer) invalidateDialogueFlow(false);
@@ -8948,7 +9125,7 @@ function replayHoldingFlow(text){
     if(!session||L!==session||L.i!==stepIndex) return;
     session.replayHeldFlow=null;
     if(pending) scheduleDialogueFlow(pending,1600);
-  });
+  },voice);
 }
 function shuffled(arr){
   const out = arr.slice();
@@ -9084,6 +9261,7 @@ function buildChallengeSteps(idx, lesson){
 }
 function startLesson(idx, isReplay, force=false){
   if(!Number.isInteger(idx) || idx<0 || idx>=LESSONS.length) return;
+  unlockUiAudio();
   if(state.session && !force){
     if(state.session.idx === idx && !!state.session.isReplay === !!isReplay) return resumeLesson();
     askConfirm({title:'יש שיעור שעצרת באמצע', text:'להתחיל שיעור אחר ולוותר על המקום השמור?',
@@ -9155,7 +9333,17 @@ function remainingLessonSeconds(session=L){
   if(!session || !Array.isArray(session.steps)) return 0;
   return session.steps.slice(session.i).reduce((sum,step)=>sum+stepSeconds(step),0);
 }
+/* A free conversation is not a lesson with a clock: it is counted in turns,
+   and the corner says which one this is. */
+function practiceTurnLabel(session=L){
+  const total=Math.max(1,Math.floor(Number(session?.practiceRoundCount)||0));
+  const step=session?.steps?.[session.i];
+  let round=Number.isInteger(step?.roundIndex)?step.roundIndex:-1;
+  if(round<0) round=step?.type==='practiceDone'?total-1:0;
+  return 'תור '+Math.min(total,round+1)+' מתוך '+total;
+}
 function lessonEtaLabel(session=L){
+  if(session?.isPractice&&session.practiceRoundCount) return practiceTurnLabel(session);
   const secs = remainingLessonSeconds(session);
   if(secs <= 45) return 'כמעט סיימת';
   return 'עוד כ־' + Math.max(1, Math.ceil(secs/60)) + ' דק׳';
@@ -9196,6 +9384,7 @@ function clearLessonCheckpoint(){
   state.session = null; touchState('sessionUpdatedAt'); save();
 }
 function resumeLesson(){
+  unlockUiAudio();
   const s = state.session;
   if(!validSavedSession(s)){
     rememberFinishedRun(s?.runId); state.session = null; touchState('sessionUpdatedAt'); save(); renderHome(); return;
@@ -9457,7 +9646,7 @@ function startUnitRehearsal(u){
   const idx = Math.max(0, Math.min(state.completed, LESSONS.length) - 1);
   L = {
     idx, lesson:LESSONS[idx], steps, i:0, isReplay:true, isPractice:true,
-    isRehearsal:true, rehearsalUnit:u,
+    isRehearsal:true, rehearsalUnit:u, practiceRoundCount:spec.turns.length,
     practiceMeta:{
       characterId:spec.who, character, placeEmoji:spec.emoji, place:spec.place,
       mission:'שיחה שלמה מכל מה שלמדת ביחידה', role:spec.role,
@@ -9477,12 +9666,12 @@ function renderRehearsalIntro(){
     <div class="step-label">🎬 חזרה גנרלית · יחידה ${u+1}</div>
     <h2>${esc(UNITS[u].title)}</h2>
     <div class="conversation-person" style="margin:12px 0 14px">
-      <div class="portrait" style="border-color:${meta.character.color}88">${meta.character.avatar}</div>
+      ${castPortraitHtml(meta.character,44,'portrait')}
       <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${esc(meta.placeEmoji)} ${esc(meta.place)}</div></div>
     </div>
     ${meta.sceneOpen?`<div class="scene-note">${esc(meta.sceneOpen)}</div>`:''}
     <p class="sub">שיחה אחת ארוכה — ${turns} תורות — מכל מה שלמדת ביחידה הזאת.<br>אין ציון ואין לחץ. זו החזרה לפני הדבר האמיתי.</p>
-    <button class="btn" onclick="next()">מתחילים 🎬</button>
+    <button class="btn" onclick="unlockUiAudio();next()">מתחילים 🎬</button>
   `);
 }
 function renderRehearsalDone(){
@@ -9498,7 +9687,7 @@ function renderRehearsalDone(){
       <div class="emoji">🎬</div>
       ${meta.sceneClose?`<div class="scene-note">${esc(meta.sceneClose)}</div>`:''}
       <h2>ניהלת שיחה שלמה</h2>
-      <p>${said} משפטים באנגלית, אחד אחרי השני, בלי לעצור.<br>זה מה שאתה יודע לעשות עכשיו — ואת זה בדיוק תעשה בחוץ.</p>
+      <p>${said===1?'משפט אחד':said+' משפטים'} באנגלית, אחד אחרי השני, בלי לעצור.<br>זה מה שאתה יודע לעשות עכשיו — ואת זה בדיוק תעשה בחוץ.</p>
       <div class="milestone">🎯 עכשיו תורה של המשימה האמיתית</div>
       ${missionCardHtml(u,false)}
       <button class="btn" onclick="renderHome()">קיבלתי — יוצא לזה 💪</button>
@@ -9894,26 +10083,37 @@ function practiceStoryLengthPool(stories,available,completed=state.completed){
   const quickDue=Math.floor((seen.length+1)*quickIds.size/Math.max(1,active.length))>seenQuick;
   return quickDue?quick:full;
 }
-function buildPracticeSession(){
+/* The surprise draw. Pick the authored story first, so a story with more
+   background variants is not accidentally shown more often. Only then pick a
+   compatible scene. Story, person and place each have their own recency
+   memory. */
+function recentPracticeChars(available){
+  return recentlySeen(state.practiceRecentChars,new Set(available.flatMap(story=>
+    story.sceneIds.map(practiceSceneById).filter(Boolean).map(row=>row.charId))).size);
+}
+function drawPracticeStory(remaining, available){
+  const lengthPool=practiceStoryLengthPool(remaining,available);
+  const recentStories=recentlySeen(state.practiceRecentStories,available.length);
+  let storyPool=lengthPool.filter(story=>!recentStories.has(story.id));
+  if(!storyPool.length) storyPool=lengthPool;
+  const recentChars=recentPracticeChars(available);
+  const freshPersonStories=storyPool.filter(story=>story.sceneIds.map(practiceSceneById).filter(Boolean)
+    .some(row=>!recentChars.has(row.charId)));
+  if(freshPersonStories.length) storyPool=freshPersonStories;
+  return pick(storyPool);
+}
+function buildPracticeSession(storyId=null){
   // Another open tab may have started a conversation since this page last
   // rendered. Pull that recency history in before choosing, not after.
   reconcileStoredProgress();
   const available=availablePracticeStories();
   if(!available.length) return null;
   const remaining=remainingPracticeStories(available);
-  /* Pick the authored story first, so a story with more background variants
-     is not accidentally shown more often. Only then pick a compatible scene.
-     Story, person and place each have their own recency memory. */
-  const lengthPool=practiceStoryLengthPool(remaining,available);
-  const recentStories=recentlySeen(state.practiceRecentStories,available.length);
-  let storyPool=lengthPool.filter(story=>!recentStories.has(story.id));
-  if(!storyPool.length) storyPool=lengthPool;
-  const recentChars=recentlySeen(state.practiceRecentChars,new Set(available.flatMap(story=>
-    story.sceneIds.map(practiceSceneById).filter(Boolean).map(row=>row.charId))).size);
-  const freshPersonStories=storyPool.filter(story=>story.sceneIds.map(practiceSceneById).filter(Boolean)
-    .some(row=>!recentChars.has(row.charId)));
-  if(freshPersonStories.length) storyPool=freshPersonStories;
-  const story=pick(storyPool);
+  // A chosen conversation still counts against the shuffle bag, so the
+  // surprise draw will not deal the same story again this cycle.
+  const story=storyId ? (available.find(s=>s.id===storyId)||null) : drawPracticeStory(remaining,available);
+  if(!story) return null;
+  const recentChars=recentPracticeChars(available);
   let scenes=story.sceneIds.map(practiceSceneById).filter(Boolean);
   const recentScenes=recentlySeen(state.practiceRecent,scenes.length);
   const lastChar=(state.practiceRecentChars||[]).slice(-1)[0];
@@ -10000,15 +10200,17 @@ function rememberPracticeRun(sceneId, charId, storyId){
 }
 function countPracticeRun(){
   state.practiceCount = (state.practiceCount || 0) + 1;
+  if(L?.practiceStoryId) state.practiceStoryDone=normalizePracticeStoryIds([...(state.practiceStoryDone||[]),L.practiceStoryId]);
   touchState('progressUpdatedAt');
   save();
 }
-function beginPracticeSession(){
+function beginPracticeSession(storyId=null){
   // A second tap can wait behind the cross-tab lock. If the first tap already
   // opened a session, do not replace it when the queued callback arrives.
   if(L) return false;
-  const session = buildPracticeSession();
-  if(!session){ toast('צריך לסיים שיעור אחד לפני שנפתח תרגול שיחה 🙂'); return false; }
+  unlockUiAudio();
+  const session = buildPracticeSession(storyId);
+  if(!session){ toast(storyId?'השיחה הזאת עוד לא נפתחה — עוד כמה שיעורים 🙂':'צריך לסיים שיעור אחד לפני שנפתח תרגול שיחה 🙂'); return false; }
   if(!rememberPracticeRun(session.sceneId,session.charId,session.story.id)){
     toast('לא הצלחנו לשמור את מחזור השיחות. כדאי לנסות שוב.');
     return false;
@@ -10038,13 +10240,13 @@ function beginPracticeSession(){
   startLessonClock();
   return true;
 }
-function startPractice(){
+function startPractice(storyId=null){
   if(L){
     return askConfirm({title:'יש שיעור פתוח', text:'לצאת ממנו ולעבור לתרגול שיחה? המקום בשיעור יישמר.',
       ok:'כן, לתרגול שיחה', cancel:'לא, להישאר בשיעור'}).then(ok=>{
       if(!ok || !L) return false;
       stopLessonTimers(true); L=null;
-      return startPractice();
+      return startPractice(storyId);
     });
   }
   // Web Locks makes choosing + recording one critical section across tabs.
@@ -10053,19 +10255,71 @@ function startPractice(){
   if(navigator.locks?.request){
     let enteredLock=false;
     const recoverLockFailure=()=>{
-      if(!enteredLock) return beginPracticeSession();
+      if(!enteredLock) return beginPracticeSession(storyId);
       toast('לא הצלחנו לפתוח את השיחה. כדאי לנסות שוב.');
       return false;
     };
     try{
       const locked=navigator.locks.request('speak-english-practice-story',{mode:'exclusive'},()=>{
         enteredLock=true;
-        return beginPracticeSession();
+        return beginPracticeSession(storyId);
       });
       return Promise.resolve(locked).catch(recoverLockFailure);
     }catch(e){ return recoverLockFailure(); }
   }
-  return beginPracticeSession();
+  return beginPracticeSession(storyId);
+}
+/* ================= choosing a conversation =================
+   The learner who likes the conversations most wants to choose them. Free
+   practice used to draw a story and nothing else; the draw is still there,
+   as one big button, and under it stand the people he can talk to, each with
+   the stories they have — new, already done, or waiting on a lesson. */
+function practiceStoryCards(completed=state.completed){
+  const done=new Set(normalizePracticeStoryIds(state.practiceStoryDone));
+  const groups=new Map();
+  PRACTICE_STORIES.forEach(story=>{
+    const row=(story.sceneIds||[]).map(practiceSceneById).find(Boolean);
+    if(!row||!Array.isArray(story.beats)||!story.beats.length) return;
+    if(!groups.has(row.charId)) groups.set(row.charId,[]);
+    groups.get(row.charId).push({story,scene:row.scene,sceneId:row.sceneId,available:completed>=story.min,done:done.has(story.id)});
+  });
+  const order=Object.keys(PRACTICE_CAST);
+  return [...groups.entries()]
+    .map(([charId,stories])=>({charId,character:PRACTICE_CAST[charId]||CHARACTERS[charId],
+      stories:stories.sort((a,b)=>a.story.min-b.story.min)}))
+    .sort((a,b)=>{
+      const openA=a.stories.some(s=>s.available)?0:1, openB=b.stories.some(s=>s.available)?0:1;
+      return openA-openB||order.indexOf(a.charId)-order.indexOf(b.charId);
+    });
+}
+function practiceStoryCardHtml(card){
+  const {story,scene,available,done}=card;
+  const goal=fillProfileText(story.goal,'he');
+  const mark=!available?'🔒':done?'✓':'✨';
+  const status=!available?'נפתח אחרי שיעור '+story.min:done?'כבר דיברתם · אפשר שוב':'שיחה חדשה';
+  return `<button type="button" class="story-card ${!available?'locked':done?'done':'fresh'}" ${available?`onclick="startPractice('${story.id}')"`:'disabled'} aria-label="${esc(goal)} · ${esc(status)}">
+    <span class="story-mark" aria-hidden="true">${mark}</span>
+    <span class="story-copy"><b>${esc(goal)}</b><span>${esc(scene.emoji)} ${esc(scene.place)} · ${esc(status)}</span></span>
+    <span class="story-turns">${story.beats.length} תורות</span>
+  </button>`;
+}
+function renderPracticePicker(){
+  if(state.completed<1){ toast('צריך לסיים שיעור אחד לפני שנפתח תרגול שיחה 🙂'); return; }
+  const groups=practiceStoryCards();
+  const open=groups.flatMap(g=>g.stories).filter(s=>s.available);
+  const fresh=open.filter(s=>!s.done).length;
+  hx(`<div class="screen">
+    <div class="top">
+      <div class="brand">תרגול שיחה חופשי<small>${open.length===1?'שיחה אחת פתוחה':open.length+' שיחות פתוחות'}${fresh?' · '+(fresh===1?'אחת שעוד לא היתה':fresh+' שעוד לא היו'):''}</small></div>
+      <button class="xbtn" onclick="renderHome()" aria-label="חזרה הביתה">✕</button>
+    </div>
+    <button type="button" class="btn practice-surprise" onclick="startPractice()">🎲 הפתע אותי<small>${fresh?'שיחה שעוד לא היתה':'שיחה אקראית'}</small></button>
+    <div class="picker-title"><span>🗣️ או תבחר עם מי לדבר</span><small>לוחצים על שיחה ומתחילים</small></div>
+    ${groups.map(g=>`<section class="cast-group${g.stories.some(s=>s.available)?'':' locked'}">
+      <div class="cast-head">${castPortraitHtml(g.character,54)}<div class="cast-copy"><b>${esc(g.character.name)}</b><span>${esc(g.character.role||'')}</span></div></div>
+      <div class="cast-stories">${g.stories.map(practiceStoryCardHtml).join('')}</div>
+    </section>`).join('')}
+  </div>`);
 }
 function renderPracticeIntro(){
   if(L.isRehearsal) return renderRehearsalIntro();
@@ -10075,13 +10329,13 @@ function renderPracticeIntro(){
     <div class="step-label">🗣️ תרגול שיחה חופשי</div>
     <h2>${esc(meta.placeEmoji)} ${esc(meta.place)}</h2>
     <div class="conversation-person" style="margin:12px 0 14px">
-      <div class="portrait" style="border-color:${meta.character.color}88">${meta.character.avatar}</div>
+      ${castPortraitHtml(meta.character,44,'portrait')}
       <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${esc(meta.role||'')}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
     ${meta.sceneOpen?`<div class="scene-note">${esc(fillProfileText(meta.sceneOpen,'he'))}</div>`:''}
     <p class="sub">${turns} תורות, רק ממה שכבר למדת. אין ציון ואין לחץ — פשוט שיחה.<br>הסיטואציות מתחלפות לפי מה שכבר למדת 🔀</p>
-    <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
+    <button class="btn" onclick="unlockUiAudio();next()">מתחילים לדבר 💬</button>
   `);
 }
 function renderPracticeDone(){
@@ -10090,20 +10344,28 @@ function renderPracticeDone(){
   pauseLessonClock();
   stopLessonTimers(false);
   countPracticeRun();
-  const said = (L.chat||[]).filter(x=>x.who==='you').length;
+  const saidLines = (L.chat||[]).filter(x=>x.who==='you'&&x.line);
+  const said = saidLines.length;
   const mins = Math.max(1, Math.round(durationMs/60000));
   const meta = L.practiceMeta || {};
+  // what he actually said, each line one tap from being heard again
+  const recap = said ? `<div class="can-say"><div class="can-say-title">🗣️ מה אמרת בשיחה:</div>${saidLines.map(item=>{
+    const shown=ptext(item.line,'en'), spoken=ptext(item.line,'en',true), he=ptext(item.line,'he');
+    return `<button class="can-say-line" onclick="speak('${jsEsc(spoken)}')" aria-label="השמעת ${esc(shown)}"><span class="en" dir="ltr" lang="en">${esc(shown)}</span><span class="he">${esc(he)}</span><span class="spk" aria-hidden="true">🔊</span></button>`;
+  }).join('')}</div>` : '';
   confetti();
   playerShell(`
     <div class="finish">
-      <div class="emoji">${meta.character?.avatar || '🗣️'}</div>
+      <div class="finish-portrait">${castPortraitHtml(meta.character,96)}</div>
       ${meta.sceneClose?`<div class="scene-note">${esc(fillProfileText(meta.sceneClose,'he'))}</div>`:''}
       <h2>שיחה מעולה!</h2>
-      <p>אמרת ${said} משפטים באנגלית ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} — בלי שיעור, בלי לחץ.</p>
-      <div class="chip" style="display:inline-flex;margin-top:4px">🗣️ ${state.practiceCount} שיחות שניהלת</div>
+      <p>אמרת ${said===1?'משפט אחד':said+' משפטים'} באנגלית ${mins===1?'בדקה אחת':'ב־'+mins+' דקות'} — בלי שיעור, בלי לחץ.</p>
+      <div class="chip" style="display:inline-flex;margin-top:4px">🗣️ ${state.practiceCount===1?'שיחה אחת ניהלת':state.practiceCount+' שיחות שניהלת'}</div>
+      ${recap}
       <div class="quote">💬 ${esc(pick(FINISH_QUOTES))}</div>
       <button class="btn" onclick="startPractice()">עוד שיחה 🔄</button>
-      <button class="btn secondary" style="margin-top:8px" onclick="renderHome()">חזרה הביתה</button>
+      <button class="btn secondary" style="margin-top:8px" onclick="renderPracticePicker()">לבחור עם מי לדבר 🎭</button>
+      <button class="btn ghost" style="margin-top:6px" onclick="renderHome()">חזרה הביתה</button>
     </div>
   `);
   L = null;
@@ -10188,7 +10450,7 @@ function chatBubbleHtml(item,source,index,extraClass=''){
   const autoTranslate=!!L?.isPractice;
   const sourceArg=`'${source}'`;
   return `${storyEventHtml(item.event,'in-log')}<div class="dlg-line ${who==='you'?'me':''} ${extraClass}" id="chat-bubble-${source}-${index}">
-    <div class="dlg-avatar" aria-hidden="true">${who==='you'?learnerAvatar():meta.character.avatar}</div>
+    ${who==='you'?`<div class="dlg-avatar" aria-hidden="true">${learnerAvatar()}</div>`:castPortraitHtml(meta.character,34,'dlg-avatar')}
     <div class="dlg-bubble" style="${who==='app'?'border-color:'+meta.character.color+'55':''}">
       <div class="bubble-top">
         <span class="bubble-speaker">${who==='you'?'אני':esc(meta.character.name)}</span>
@@ -10215,7 +10477,7 @@ function chatMessagesHtml(currentItem=null,currentClass=''){
     ? `<div class="scene-note in-log">${esc(fillProfileText(L.practiceMeta.sceneOpen,'he'))}</div>` : '';
   return `<div class="chat-thread">
     ${sceneOpen}
-    ${older?`<button class="history-toggle" id="historyToggle" onclick="toggleChatHistory()">${L.chatExpanded?'הסתר הודעות קודמות':'הצג '+split+' הודעות קודמות'}</button><div id="olderMessages" ${L.chatExpanded?'':'hidden'}>${older}</div>`:''}
+    ${older?`<button class="history-toggle" id="historyToggle" onclick="toggleChatHistory()">${L.chatExpanded?'הסתר הודעות קודמות':split===1?'הצג הודעה קודמת אחת':'הצג '+split+' הודעות קודמות'}</button><div id="olderMessages" ${L.chatExpanded?'':'hidden'}>${older}</div>`:''}
     ${recent}${current}
   </div>`;
 }
@@ -10651,7 +10913,7 @@ function swapStageBlock(el, html){
   void el.offsetWidth;
   el.classList.add('stage-swap');
 }
-function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta, history,directionCue){
+function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta, history,directionCue,opts={}){
   const screen=document.querySelector('#app > .conversation-screen.stage-screen');
   if(!screen||screen.dataset.scene!==sceneKey) return false;
   // the side effects a full render would have had
@@ -10661,7 +10923,7 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   const bar=screen.querySelector('.pbar');
   if(bar){ bar.setAttribute('aria-valuenow',String(pct)); const fill=bar.querySelector('i'); if(fill) fill.style.width=pct+'%'; }
   const timer=screen.querySelector('#timer');
-  if(timer) timer.textContent=elapsed();
+  if(timer) timer.textContent=lessonEtaLabel();
   const avatar=screen.querySelector('.stage-avatar');
   const modern=meta.character?.look?.variant==='modern-v2';
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS['living-room'];
@@ -10692,17 +10954,20 @@ function updateStageInPlace(sceneKey, state_, cue, caption, composer, pct, meta,
   if(status){ status.className='stage-status cue-'+cue; status.innerHTML=stageCueHtml(cue,meta.character); }
   setStageGaze(STAGE_GAZE_FOR_CUE[cue]||'idle');
   swapStageBlock(screen.querySelector('#stageCaption'),caption);
-  swapStageBlock(screen.querySelector('.conversation-composer'),composer);
+  const composerEl=screen.querySelector('.conversation-composer');
+  swapStageBlock(composerEl,composer);
+  if(composerEl?.classList) composerEl.classList.toggle('slim',!!opts.slim);
+  fitStage();
   requestAnimationFrame(keepStageCaptionVisible);
   return true;
 }
-function stageShell(state_, caption, composer, cue,directionCue=null){
+function stageShell(state_, caption, composer, cue,directionCue=null,opts={}){
   const pct=Math.round(L.i/(L.steps.length-1)*100);
   const meta=conversationMeta(L.idx);
   const history=(L.chat||[]).length;
   const modern=meta.character?.look?.variant==='modern-v2';
   const sceneKey=(meta.characterId||'')+'|'+(meta.bg||'');
-  if(updateStageInPlace(sceneKey, state_, cue||state_, caption, composer, pct, meta, history,directionCue)) return;
+  if(updateStageInPlace(sceneKey, state_, cue||state_, caption, composer, pct, meta, history,directionCue,opts)) return;
   const bd=PRACTICE_BACKDROPS[meta.bg]||PRACTICE_BACKDROPS['living-room'];
   const stageVisual=practiceStageModel(L);
   const direction=stageDirectionModel(directionCue);
@@ -10732,9 +10997,9 @@ function stageShell(state_, caption, composer, cue,directionCue=null){
       <div class="stage-status cue-${cue||state_}" id="stageStatus">${stageCueHtml(cue||state_, meta.character)}</div>
       <div class="stage-caption" id="stageCaption">${caption}</div>
     </div>
-    <div class="conversation-composer">${composer}</div>
+    <div class="conversation-composer${opts.slim?' slim':''}">${composer}</div>
   </div>`);
-  afterRender(()=>{ keepStageCaptionVisible(); setStageGaze(STAGE_GAZE_FOR_CUE[cue]||'idle'); });
+  afterRender(()=>{ fitStage(); keepStageCaptionVisible(); setStageGaze(STAGE_GAZE_FOR_CUE[cue]||'idle'); });
 }
 function captionHtml(line, step, opts={}){
   const en=ptext(line,'en'), he=ptext(line,'he'), tl=ptext(line,'tl');
@@ -10808,6 +11073,7 @@ function toggleCaptionAid(kind, button){
   const panel=document.getElementById(kind==='tl'?'capTl':'capHe');
   if(panel) panel.hidden=!step[field];
   if(button) button.setAttribute('aria-pressed',String(!!step[field]));
+  fitStage();
   // reading takes time — give the conversation a longer beat, on its own
   delayDialogueFlow(4000);
 }
@@ -10822,6 +11088,55 @@ function stageCaptionLine(){
     : [...(L.chat||[])].reverse().find(x=>x.who==='app')?.line || null;
   return step.p || null;
 }
+/* ---- fitting the beat to the screen ----
+   A tall caption or a tall answer area used to push the figure up and out of
+   the scroll box: the child lost the face, or the sentence he was meant to
+   say slid under the microphone. Nothing scrolls now until three quieter
+   levers are spent, in this order: the text block climbs over the figure's
+   legs (the face stays put), the context around the current sentence
+   tightens, and only then does the figure itself get smaller — kept for the
+   rest of the conversation, so it never pulses between beats. */
+const STAGE_FIT={overlap:.4,overlapSmall:.52,minAvatar:92};
+function fitStage(){
+  const stage=document.querySelector('#app > .conversation-screen.stage-screen .stage');
+  if(!stage||!stage.querySelector||!stage.style) return;
+  const avatar=stage.querySelector('.stage-avatar');
+  const caption=stage.querySelector('#stageCaption');
+  if(!avatar||!caption||typeof avatar.offsetHeight!=='number') return;
+  stage.classList.remove('fit-compact','is-overlapping');
+  stage.style.removeProperty('--stage-overlap');
+  const held=Number(L?.stageFitAvatar)||0;
+  if(held) stage.style.setProperty('--avatar',held+'px'); else stage.style.removeProperty('--avatar');
+  const overflow=()=>stage.scrollHeight-stage.clientHeight;
+  let over=overflow();
+  if(over<=0) return;
+  let overlap=0;
+  const setOverlap=v=>{
+    overlap=v;
+    stage.style.setProperty('--stage-overlap',v+'px');
+    stage.classList.toggle('is-overlapping',v>36);
+  };
+  const first=Math.min(over,Math.round(avatar.offsetHeight*STAGE_FIT.overlap));
+  if(first>0){ setOverlap(first); over=overflow(); }
+  if(over<=0) return;
+  stage.classList.add('fit-compact');
+  over=overflow();
+  if(over<=0) return;
+  const modern=avatar.classList.contains('modern-cast');
+  const perPx=modern?1.72:1;
+  const current=modern?avatar.offsetWidth/1.08:avatar.offsetWidth;
+  const target=Math.max(STAGE_FIT.minAvatar,Math.floor(current-over/perPx));
+  if(target<current-1){
+    if(L) L.stageFitAvatar=target;
+    stage.style.setProperty('--avatar',target+'px');
+    over=overflow();
+  }
+  if(over<=0) return;
+  const room=Math.round(avatar.offsetHeight*STAGE_FIT.overlapSmall)-overlap;
+  if(room>0) setOverlap(overlap+Math.min(over,room));
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function')
+  window.addEventListener('resize',()=>requestAnimationFrame(fitStage));
 function keepStageCaptionVisible(force=false){
   const action=L?.pendingStageAction;
   // requestAnimationFrame passes a numeric timestamp; only an explicit true
@@ -10859,7 +11174,7 @@ function replayStageLine(which='current'){
   const sequence=stageCaptionSequence();
   const line=which==='previous'&&sequence.length>1?sequence[0].line:stageCaptionLine();
   if(!line) return;
-  replayHoldingFlow(ptext(line,'en',true));
+  replayHoldingFlow(ptext(line,'en',true),characterVoice(conversationMeta(L.idx).character));
 }
 function openChatHistory(){
   if(!L) return;
@@ -10889,7 +11204,7 @@ function dialogueShell(messages,composer){
       <div class="timer" id="timer" aria-label="זמן משוער שנותר">${lessonEtaLabel()}</div>
     </div>
     <div class="conversation-person">
-      <div class="portrait" style="border-color:${meta.character.color}88" aria-hidden="true">${meta.character.avatar}</div>
+      ${castPortraitHtml(meta.character,44,'portrait')}
       <div class="person-copy"><div class="person-name">${esc(meta.character.name)}${meta.role?` <span class="person-role">· ${esc(meta.role)}</span>`:''}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
@@ -10904,7 +11219,10 @@ function scrollConversationToEnd(){
 }
 function scrollComposerToEnd(){
   const composer=document.querySelector('.conversation-composer');
-  if(composer) composer.scrollTop=composer.scrollHeight;
+  if(!composer) return;
+  // the answer area just grew — the figure and caption above it refit first
+  fitStage();
+  composer.scrollTop=composer.scrollHeight;
 }
 function scrollChatItemIntoView(source,index){
   const item=document.getElementById(`chat-bubble-${source}-${index}`);
@@ -10942,7 +11260,7 @@ function replayChatMessage(source,index){
   if(!item) return;
   // Always use the speech-safe form. A Hebrew learner name remains visible
   // in the bubble, but is omitted from the English TTS voice.
-  replayHoldingFlow(ptext(item.line,'en',true));
+  replayHoldingFlow(ptext(item.line,'en',true),item.who==='app'?characterVoice(conversationMeta(L.idx).character):null);
 }
 function noteHint(step){
   if(!step || !step.hid) return;
@@ -11190,6 +11508,7 @@ function markMicPrimed(){
 /* one tap starts listening; a tap while listening ends the recording early,
    so background noise can't keep an attempt hanging open */
 function micTap(target){
+  unlockUiAudio();
   if(L && L.rec){
     const hint=document.getElementById('micHint');
     if(hint) hint.textContent='רגע, בודק מה שמעתי...';
@@ -11353,7 +11672,7 @@ function startListening(target){
     } else if(bestDetails.score>=.40) showResult('retry',pick(ALMOST));
     else showResult('retry','הטלפון לא הבין הפעם. נסה שוב לאט וקרוב לטלפון — יש לך את זה');
   };
-  try{rec.start(); markMicPrimed();}
+  try{rec.start(); markMicPrimed(); playUiSound('mic');}
   catch(e){
     if(L&&L===session&&L.rec===rec) L.rec=null;
     restoreMicButton();
@@ -11385,6 +11704,8 @@ function showResult(kind, msg){
     if(kind==='pass') pulseCharacter('happy');
     else if(kind==='retry') pulseCharacter('retry-tilt');
   });
+  if(kind==='pass') playUiSound('pass');
+  else if(kind==='retry') playUiSound('retry');
   if(kind === 'pass' && navigator.vibrate) navigator.vibrate(40);
 }
 function requeueAndNext(){
@@ -11604,12 +11925,12 @@ function renderDlgIntro(){
     <div class="step-label">${unitChallenge?'🏆 אתגר שיחה לסיום היחידה':'💬 תרגול שיחה'}</div>
     <h2>${unitChallenge?'שיחת הסיום שלך':'עכשיו — שיחה עם '+esc(meta.character.name)+'!'}</h2>
     <div class="conversation-person" style="margin:12px 0 16px">
-      <div class="portrait" style="border-color:${meta.character.color}88">${meta.character.avatar}</div>
+      ${castPortraitHtml(meta.character,44,'portrait')}
       <div class="person-copy"><div class="person-name">${esc(meta.character.name)}</div><div class="person-scene">${meta.placeEmoji} ${esc(meta.place)}</div></div>
       <div class="mission">🎯 ${esc(meta.mission)}</div>
     </div>
     <p class="sub">${esc(fillProfileText('בכל תור [[אתה בוחר|את בוחרת]] מה באמת מתאים לך, [[אומר|אומרת]] את התשובה באנגלית והשיחה ממשיכה בהתאם.','he'))}<br>אפשר לפתוח תרגום, לשמוע שוב או להשהות בכל רגע.</p>
-    <button class="btn" onclick="next()">מתחילים לדבר 💬</button>
+    <button class="btn" onclick="unlockUiAudio();next()">מתחילים לדבר 💬</button>
   `);
 }
 function renderListen(step){
@@ -11652,12 +11973,14 @@ function renderListen(step){
         : `<div class="cap-typing">${esc(meta.character.name)} עומד לדבר<span class="vdots"><i></i><i></i><i></i></span></div>`,
       composer,
       step.arrived?'speaking':'incoming',
-      step.arrived?step.stageCue:null);
+      step.arrived?step.stageCue:null,
+      {slim:true});
     if(stageActionStarted){
       requestAnimationFrame(keepStageActionVisible);
       schedulePracticeStageActionSettle(L);
     }
     announceStageEvent(step.arrived?step.event:null);
+    if(step.arrived&&!continuing) playUiSound('arrive');
   } else {
     dialogueShell(chatMessagesHtml(current,step.arrived?'conversation-current':'' )+(step.arrived?'':typing),composer);
   }
@@ -11709,13 +12032,13 @@ function renderListen(step){
     afterSpeech();
   };
   scheduleDialogueFlow(watchdog,Math.max(5500,spokenEn.length*160));
-  speak(spokenEn,afterSpeech);
+  speak(spokenEn,afterSpeech,characterVoice(meta.character));
 }
 function renderBranchChoice(step){
   invalidateDialogueFlow(false);
   const one=step.options.length===1;
   const composer=`
-    <div class="composer-head"><span class="composer-label">${one?'💬 המשפט שמתאים עכשיו':'💡 רעיונות למה אפשר לענות'}</span><span style="font-size:12px;color:var(--dim)">${one?'אומרים אותו באנגלית':'בחר אחד — ואומרים אותו באנגלית'}</span></div>
+    <div class="composer-head"><span class="composer-label">${one?'💬 המשפט שמתאים עכשיו':'💬 מה תענה?'}</span><span style="font-size:12px;color:var(--dim)">${one?'אומרים אותו באנגלית':'בחר, ואז תגיד באנגלית'}</span></div>
     <div class="conversation-options">
       ${step.options.map((o,i)=>`<button class="conversation-option" onclick="chooseBranchAndSpeak(${i})" aria-label="${esc(fillProfileText(o.label,'he'))} — בחירה והתחלת דיבור"><span class="choice-copy">${esc(fillProfileText(o.label,'he'))}</span><span class="choice-mic-icon" aria-hidden="true">🎤</span></button>`).join('')}
     </div>`;
@@ -11731,6 +12054,7 @@ function chooseBranchAndSpeak(optionIndex){ chooseBranch(optionIndex,true); }
 function chooseBranch(optionIndex,startSpeaking=false){
   const step=L?.steps[L.i];
   if(!step||step.type!=='branchChoice'||!step.options[optionIndex]) return;
+  unlockUiAudio();
   invalidateDialogueFlow(true);
   const option=step.options[optionIndex];
   step.selectedIndex=optionIndex;

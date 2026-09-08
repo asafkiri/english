@@ -94,6 +94,8 @@ function runtime(seed = new Map(), options = {}) {
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
       speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
+      pickVoice, characterVoice, VOICE_PREFS, playUiSound, unlockUiAudio, setUiSounds, fitStage, practiceTurnLabel,
+      renderPracticePicker, practiceStoryCards, practiceStoryCardHtml, castPortraitHtml, drawPracticeStory,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
       setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline,
@@ -3112,7 +3114,8 @@ test('home puts the active course path first and collapses completed and future 
   /* Free practice and the game are things to do, not steps on the path, and
      both now sit above it — the game had been below the stats at the bottom of
      a long scroll, past thirty locked lessons. */
-  assert.match(html, /class="home-extra practice"[^>]*onclick="startPractice\(\)"/);
+  // free practice now opens the picker, where the surprise draw is one tap away
+  assert.match(html, /class="home-extra practice"[^>]*onclick="renderPracticePicker\(\)"/);
   assert.match(html, /class="home-extra game"[^>]*onclick="renderSamRun\(\)"/);
   assert.ok(html.indexOf('home-extras') < html.indexOf('המסלול שלך'),
     'both sit above the lesson list rather than inside or below it');
@@ -5828,3 +5831,164 @@ test('the figure answers the learner\'s voice, and waits for them when they go q
   assert.equal(api.getMicLevel(), 0);
 });
 
+
+test('each conversation partner asks for a voice of their own', () => {
+  const calls = [];
+  const voices = [
+    { name: 'Samantha', lang: 'en-US' }, { name: 'Daniel', lang: 'en-GB' },
+    { name: 'Aaron', lang: 'en-US' }, { name: 'Carmit', lang: 'he-IL' },
+  ];
+  const speechSynthesis = {
+    speaking: false, pending: false, getVoices: () => voices, cancel() {}, resume() {},
+    speak(utterance) { calls.push(utterance); utterance.onstart?.(); utterance.onend?.(); },
+  };
+  class Utterance { constructor(text) { this.text = text; this.rate = 1; this.pitch = 1; this.volume = 1; } }
+  const { api } = runtime(new Map(), { speechSynthesis, SpeechSynthesisUtterance: Utterance });
+  const state = api.defaults();
+  state.onboarded = true;
+  state.slowSpeech = false;
+  api.setState(state);
+  assert.equal(api.pickVoice('f').name, 'Samantha');
+  assert.equal(api.pickVoice('m').name, 'Aaron');
+  assert.equal(api.pickVoice('m', 'gb').name, 'Daniel', 'Ben from London asks for a British voice first');
+  assert.equal(api.pickVoice().name, 'Samantha', 'the plain default is unchanged');
+  const maya = api.characterVoice(api.PRACTICE_CAST.maya);
+  const sam = api.characterVoice(api.PRACTICE_CAST.sam);
+  const ben = api.characterVoice(api.PRACTICE_CAST.ben);
+  assert.equal(maya.gender, 'f');
+  assert.equal(sam.gender, 'm');
+  assert.equal(ben.accent, 'gb');
+  assert.ok(maya.pitch > sam.pitch, 'a girl and a grown neighbour do not share a pitch');
+  api.speak('Hello', null, maya);
+  api.speak('Hello', null, sam);
+  api.speak('Hello', null, ben);
+  api.speak('Hello');
+  assert.equal(calls[0].voice.name, 'Samantha');
+  assert.equal(calls[0].pitch, maya.pitch);
+  assert.equal(calls[1].voice.name, 'Aaron');
+  assert.equal(calls[1].pitch, sam.pitch);
+  assert.equal(calls[2].voice.name, 'Daniel');
+  assert.equal(calls[3].pitch, 1, 'the learner\'s own lines keep the plain voice');
+  assert.equal(calls[3].rate, 1);
+  const profiles = Object.values(api.PRACTICE_CAST).map(c => JSON.stringify(api.characterVoice(c)));
+  assert.equal(new Set(profiles).size, profiles.length, 'no two people sound identical');
+  for (const gender of ['f', 'm']) for (const accent of ['us', 'gb']) {
+    assert.ok(api.VOICE_PREFS[gender][accent].length > 3, `${gender}/${accent} needs a real preference list`);
+  }
+  // an engine that only names its voices by role still finds a match
+  voices.splice(0, voices.length, { name: 'en-us-x-sfg#male_1-local', lang: 'en-US' }, { name: 'en-us-x-sfg#female_2-local', lang: 'en-US' });
+  assert.equal(api.pickVoice('f').name, 'en-us-x-sfg#female_2-local');
+  assert.equal(api.pickVoice('m').name, 'en-us-x-sfg#male_1-local');
+  api.stopLessonTimers(false);
+});
+
+test('a free conversation counts turns instead of minutes', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 12;
+  api.setState(state);
+  api.startPractice();
+  const lesson = api.getLesson();
+  try {
+    const total = lesson.practiceRoundCount;
+    assert.ok(total >= 4);
+    assert.equal(api.lessonEtaLabel(), `תור 1 מתוך ${total}`);
+    assert.match(app.innerHTML, new RegExp(`id="timer"[^>]*>תור 1 מתוך ${total}<`));
+    api.next();
+    lesson.stepTransitioning = false;
+    lesson.steps[lesson.i].arrived = true;
+    api.renderStep();
+    assert.equal(api.practiceTurnLabel(), `תור 1 מתוך ${total}`);
+    assert.match(app.innerHTML, /class="conversation-composer slim"/, 'while the character talks the answer area steps aside');
+    api.next();
+    lesson.stepTransitioning = false;
+    assert.equal(lesson.steps[lesson.i].type, 'branchChoice');
+    assert.doesNotMatch(app.innerHTML, /conversation-composer slim/, 'the choices get the full answer area back');
+    assert.match(app.innerHTML, /מה תענה\?/);
+    lesson.i = lesson.steps.length - 1;
+    assert.equal(api.practiceTurnLabel(), `תור ${total} מתוך ${total}`);
+  } finally {
+    api.stopLessonTimers(false);
+  }
+});
+
+test('small sounds are on by default and off with one switch, and never crash without audio', () => {
+  const { api } = runtime();
+  assert.equal(api.defaults().uiSounds, true);
+  const muted = runtime(new Map([['speakEnglishV1', JSON.stringify({ onboarded: true, completed: 3, uiSounds: false })]]));
+  assert.equal(muted.api.getState().uiSounds, false);
+  const old = runtime(new Map([['speakEnglishV1', JSON.stringify({ onboarded: true, completed: 3 })]]));
+  assert.equal(old.api.getState().uiSounds, true, 'an older install gets the sounds without being asked');
+  // no AudioContext in this runtime: every call is a quiet no-op
+  api.unlockUiAudio();
+  api.playUiSound('pass');
+  api.playUiSound('arrive');
+  api.fitStage();
+});
+
+test('the learner can choose a conversation, and the surprise draw respects the choice', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = 12;
+  api.setState(state);
+  const groups = api.practiceStoryCards();
+  const cards = groups.flatMap(g => g.stories);
+  assert.equal(cards.length, api.PRACTICE_STORIES.length, 'every story appears exactly once');
+  assert.equal(new Set(cards.map(c => c.story.id)).size, api.PRACTICE_STORIES.length);
+  const open = cards.filter(c => c.available).map(c => c.story.id).sort();
+  assert.deepEqual(open, api.availablePracticeStories(12).map(s => s.id).sort());
+  assert.ok(groups[0].stories.some(s => s.available), 'people with open stories come first');
+  assert.ok(groups.every(g => g.character && g.character.look), 'every group is a drawn person');
+  api.renderHome();
+  assert.match(app.innerHTML, /onclick="renderPracticePicker\(\)"/, 'the home button opens the picker');
+  api.renderPracticePicker();
+  assert.match(app.innerHTML, /onclick="startPractice\(\)"/, 'the surprise draw is still one tap away');
+  assert.match(app.innerHTML, /onclick="startPractice\('lost_bag'\)"/);
+  assert.match(app.innerHTML, /נפתח אחרי שיעור 29/, 'a locked story says which lesson opens it');
+  assert.match(app.innerHTML, /class="cast-portrait motion-paused/, 'a drawn face, not an emoji');
+  assert.equal(api.startPractice('maya_rainy_beach'), false, 'a locked story does not open');
+  assert.equal(api.getLesson(), null);
+  assert.equal(api.startPractice('lost_bag'), true);
+  const lesson = api.getLesson();
+  try {
+    assert.equal(lesson.practiceStoryId, 'lost_bag');
+    assert.ok(api.getState().practiceStorySeen.includes('lost_bag'), 'a chosen story is dealt out of the shuffle bag');
+    assert.match(app.innerHTML, /class="cast-portrait motion-paused portrait/, 'the intro shows the drawn person');
+    lesson.chat = [
+      { who: 'app', line: { en: 'Hi', he: 'היי', tl: 'הַיי' } },
+      { who: 'you', line: { en: 'Yes, no problem', he: 'כן, אין בעיה', tl: 'יֶס, נוֹ פְּרוֹבְּלֶם' } },
+    ];
+    lesson.i = lesson.steps.length - 1;
+    api.renderStep();
+    assert.ok(api.getState().practiceStoryDone.includes('lost_bag'), 'a finished story is remembered as done');
+    assert.match(app.innerHTML, /מה אמרת בשיחה/);
+    assert.match(app.innerHTML, /Yes, no problem/);
+    assert.match(app.innerHTML, /אמרת משפט אחד/);
+    assert.match(app.innerHTML, /onclick="renderPracticePicker\(\)"/);
+    assert.match(app.innerHTML, /class="finish-portrait"/);
+  } finally {
+    if (api.getLesson()) api.stopLessonTimers(false);
+  }
+  assert.equal(api.getLesson(), null, 'the finish screen closes the session');
+  const after = api.practiceStoryCards().flatMap(g => g.stories);
+  assert.ok(after.find(c => c.story.id === 'lost_bag').done);
+  assert.equal(after.filter(c => c.done).length, 1);
+  // the done list survives a save and load, and an old install starts empty
+  const reloaded = runtime(new Map([['speakEnglishV1', JSON.stringify({ ...api.getState(), session: null })]]));
+  assert.deepEqual([...reloaded.api.getState().practiceStoryDone], ['lost_bag']);
+  assert.equal(api.defaults().practiceStoryDone.length, 0);
+});
+
+test('portraits crop the drawn head and fall back to the emoji for a look-less character', () => {
+  const { api } = runtime();
+  const html = api.castPortraitHtml(api.PRACTICE_CAST.ben, 54);
+  assert.match(html, /class="cast-portrait motion-paused /);
+  assert.match(html, /--size:54px/);
+  assert.match(html, /class="person-art modern-v2/);
+  assert.doesNotMatch(html, /voicing/, 'a still portrait never mouths words');
+  const emoji = api.castPortraitHtml({ name: 'x', avatar: '🙂', color: '#fff' }, 40);
+  assert.match(emoji, /cast-portrait-emoji/);
+  assert.ok(emoji.includes('🙂'));
+});
