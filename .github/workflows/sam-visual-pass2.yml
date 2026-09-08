@@ -25,10 +25,14 @@ jobs:
           await p.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
           await p.evaluate(()=>{ try{ localStorage.setItem('speakEnglishSamRun',JSON.stringify({coins:0,best:2213,stage:2,owned:[],equipped:{},mastery:{},stageStars:{}})); }catch(e){} });
           await p.evaluate(()=>{ if(typeof renderSamRunHub==='function') renderSamRunHub(); });
-          await p.waitForTimeout(1800); await p.screenshot({path:'sam-hub.png',fullPage:true});
-          await p.evaluate(()=>{ if(typeof renderSamRun==='function') renderSamRun(); });
-          await p.waitForTimeout(1000); await p.evaluate(()=>{ if(typeof samRunStart==='function') samRunStart(); });
-          await p.waitForTimeout(4500); await p.screenshot({path:'sam-run.png',fullPage:true});
+          await p.waitForTimeout(1600); await p.screenshot({path:'sam-hub.png',fullPage:true});
+          const runButton=p.getByText('יוצאים לריצה').first();
+          if(await runButton.count()) await runButton.click();
+          await p.waitForTimeout(1200);
+          const startButton=p.getByText(/מתחילים|קדימה|GO|צאו לדרך/).first();
+          if(await startButton.count()) await startButton.click().catch(()=>{});
+          await p.waitForTimeout(5000);
+          await p.screenshot({path:'sam-run.png',fullPage:true});
           await b.close();
           JS
           node shot.mjs
