@@ -17070,9 +17070,10 @@ function samRunTeach(ob){
       : `<small>המילה שחיפשנו</small><b class="correction-en" dir="ltr">${esc(c.en)}</b><span class="correction-he">${esc(c.he)}</span>`;
     samRunPromptPop(prompt);
   }
-  /* Heard again, always — for a listening question the sound IS the answer. */
-  if(ob.listen) samRunAskAloud(ob);
-  else if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);
+  /* Listening questions speak automatically once when the question appears.
+     Corrections do not replay English automatically; the speaker button remains
+     the explicit way to hear the word again. */
+  if(!ob.listen&&!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);
   /* Asked again twice, a few waves apart. Once is a coincidence; twice is what
      turns a missed word into one he keeps. */
   if(c){
