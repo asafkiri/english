@@ -18,7 +18,7 @@ jobs:
       - name: Capture actual rendered screens
         run: |
           python3 -m http.server 4173 >/tmp/server.log 2>&1 &
-          cat > /tmp/shot.mjs <<'JS'
+          cat > shot.mjs <<'JS'
           import { chromium } from 'playwright';
           const b=await chromium.launch({headless:true});
           const p=await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
@@ -31,7 +31,7 @@ jobs:
           await p.waitForTimeout(4500); await p.screenshot({path:'sam-run.png',fullPage:true});
           await b.close();
           JS
-          node /tmp/shot.mjs
+          node shot.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: sam-visual-screenshots
