@@ -16656,6 +16656,9 @@ function samRunPromptPop(prompt){
 }
 function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){
   if(!ob||!ob.options||!ob.options.length||(arrival&&(ob.arrivalSpoken||ob.arrivalPending))) return;
+  /* Automatic lane speech is one-shot per question. Leaving the correct lane
+     and coming back must not pronounce the same word again. */
+  if(ob.spokeCorrect) return;
   lane=Math.max(0,Math.min(2,Number(lane)||0));
   if(ob.correctLane!=null&&lane!==ob.correctLane) return;
   ob.spokeCorrect=true;
