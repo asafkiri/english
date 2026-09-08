@@ -3918,6 +3918,14 @@ test("Sam's runs start directly without microphone friction", () => {
     'lesson speech keeps the trusted click alive for the real sentence');
 });
 
+test('returning to the correct lane does not repeat the word', () => {
+  const start=html.indexOf('function samRunSpeakLane(ob,lane,arrival=false,afterResolve=false){');
+  const end=html.indexOf('\nfunction ',start+1);
+  const fn=html.slice(start,end);
+  assert.match(fn, /if\(ob\.spokeCorrect\) return;/,
+    'once the correct word has been spoken for this wave, later lane changes cannot replay it');
+});
+
 test("Sam's lane vocabulary has offline recorded pronunciation", async () => {
   const { api, context } = runtime();
   assert.match(html, /<script src="\.\/runner-voice\.js"><\/script>/,
