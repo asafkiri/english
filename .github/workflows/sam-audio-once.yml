@@ -9,46 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: {ref: ai/sam-audio-once}
-      - name: Patch one-time listening audio
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text()
-          old="""  /* Heard again, always — for a listening question the sound IS the answer. */
-  if(ob.listen) samRunAskAloud(ob);
-  else if(!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);"""
-          new="""  /* Listening questions speak automatically once when the question appears.
-     A correction must not replay the English again; the on-screen speaker button
-     remains the explicit way to hear it again. */
-  if(!ob.listen&&!ob.spokeCorrect) samRunSpeakLane(ob,ob.correctLane,false,true);"""
-          if old not in s:
-            raise SystemExit('target audio block not found')
-          s=s.replace(old,new,1)
-          p.write_text(s)
-
-          t=Path('tests/app.test.mjs')
-          x=t.read_text()
-          anchor="""test('a listening question falls back to writing when the device will not speak', () => {"""
-          i=x.find(anchor)
-          if i<0:
-            raise SystemExit('test anchor not found')
-          insert="""test('a listening question speaks automatically only once', () => {\n  assert.match(html, /if\\(listen\\)\\{ samRunAskAloud\\(ob\\); samRunCoach\\('listen'\\); \\}/,\n    'the English word is spoken when the listening question first appears');\n  const teachStart=html.indexOf('function samRunTeach(ob){');\n  const teachEnd=html.indexOf('\\nfunction ',teachStart+1);\n  const teach=html.slice(teachStart,teachEnd);\n  assert.doesNotMatch(teach, /if\\(ob\\.listen\\) samRunAskAloud\\(ob\\)/,\n    'correction never automatically repeats the listening word');\n  assert.match(html, /onclick=\\\"samRunAskAgain\\(\\)\\\"/,\n    'the speaker button still lets the learner replay it manually');\n});\n\n"""
-          x=x[:i]+insert+x[i:]
-          t.write_text(x)
-
-          sw=Path('service-worker.js')
-          w=sw.read_text()
-          import re
-          w2,n=re.subn(r'speak-english-v(\\d+)',lambda m:'speak-english-v'+str(int(m.group(1))+1),w,count=1)
-          if not n: raise SystemExit('cache version not found')
-          sw.write_text(w2)
-          PY
-      - name: Run tests
-        run: node --test tests/app.test.mjs
-      - name: Commit change
-        run: |
+        with:
+          ref: ai/sam-audio-once
+      - run: node tools/sam-audio-once.mjs
+      - run: node --test tests/app.test.mjs
+      - run: |
           git config user.name 'Sam audio fix'
           git config user.email 'actions@users.noreply.github.com'
           git add index.html tests/app.test.mjs service-worker.js
