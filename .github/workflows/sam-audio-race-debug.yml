@@ -11,47 +11,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ai/sam-audio-race-debug
-      - name: Patch listening-wave dedupe
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text()
-          old="""function samRunAskAloud(ob){
-  const g=samRun,c=SAM_RUN_COMMANDS[ob&&ob.cmd]; if(!g||!c||!ob) return;
-  const word=c.say||String(c.en).toLowerCase();
-  ob.askedAt=g.time;"""
-          new="""function samRunAskAloud(ob){
-  const g=samRun,c=SAM_RUN_COMMANDS[ob&&ob.cmd]; if(!g||!c||!ob) return;
-  const word=c.say||String(c.en).toLowerCase();
-  /* The listening prompt itself is this question's single automatic English
-     pronunciation. Mark it immediately so entering the correct lane or later
-     resolving the wave cannot pronounce the same word a second time. Manual
-     replay still calls this function directly from the speaker button. */
-  ob.spokeCorrect=true;
-  ob.askedAt=g.time;"""
-          if old not in s: raise SystemExit('samRunAskAloud target not found')
-          p.write_text(s.replace(old,new,1))
-
-          t=Path('tests/app.test.mjs')
-          x=t.read_text()
-          anchor="test('a listening question speaks automatically only once', () => {"
-          if anchor not in x: raise SystemExit('existing one-time test not found')
-          test="""test('a listening prompt cannot replay when the runner enters the correct lane', () => {\n  const start=html.indexOf('function samRunAskAloud(ob){');\n  const end=html.indexOf('\\nfunction ',start+1);\n  const fn=html.slice(start,end);\n  assert.match(fn, /ob\\.spokeCorrect=true;/,\n    'asking by ear marks the wave as already automatically spoken');\n  assert.match(html, /if\\(!ob\\.spokeCorrect\\) samRunSpeakLane\\(ob,ob\\.correctLane,false,true\\);/,\n    'the normal resolve path therefore cannot replay a listening prompt');\n});\n\n"""
-          if "test('a listening prompt cannot replay when the runner enters the correct lane'" not in x:
-            t.write_text(x.replace(anchor,test+anchor,1))
-
-          sw=Path('service-worker.js')
-          w=sw.read_text()
-          import re
-          w2,n=re.subn(r'speak-english-v(\d+)',lambda m:'speak-english-v'+str(int(m.group(1))+1),w,count=1)
-          if not n: raise SystemExit('cache version not found')
-          sw.write_text(w2)
-          PY
-      - name: Run full tests
-        run: node --test tests/app.test.mjs
-      - name: Commit fix
-        run: |
+      - run: node tools/sam-audio-race-fix.mjs
+      - run: node --test tests/app.test.mjs
+      - run: |
           git config user.name 'Sam audio fix'
           git config user.email 'actions@users.noreply.github.com'
           git add index.html tests/app.test.mjs service-worker.js
