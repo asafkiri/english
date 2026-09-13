@@ -88,7 +88,7 @@ function runtime(seed = new Map(), options = {}) {
       askConfirm, resolveDialog, exitLesson, unitCallToActionHtml, snoozeMission, missionSnoozed,
       completeMission, estimateLessonMinutes, lessonEtaLabel, canSayHtml, streakLabel, daysBetween,
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
-      h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt,
+      h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt, personArt,
       speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
       pickVoice, characterVoice, VOICE_PREFS, playUiSound, unlockUiAudio, setUiSounds, fitStage, practiceTurnLabel,
       renderPracticePicker, practiceStoryCards, practiceStoryCardHtml, castPortraitHtml, drawPracticeStory,
@@ -3986,4 +3986,266 @@ test('portraits crop the drawn head and fall back to the emoji for a look-less c
   const emoji = api.castPortraitHtml({ name: 'x', avatar: '🙂', color: '#fff' }, 40);
   assert.match(emoji, /cast-portrait-emoji/);
   assert.ok(emoji.includes('🙂'));
+});
+
+/* ---- the cast and the places they stand in ----
+   These six came from a second, stale copy of this suite that sat in the repo
+   root, last touched long before the tests moved here. Everything else in that
+   file was already covered here; these were not, and they still pass, so they
+   were carried over before it was deleted. They are contract tests: every
+   character in every stage state, and every backdrop, checked as a set rather
+   than one at a time. */
+test('all seven conversation characters keep the modern layered SVG contract', () => {
+  const { api } = runtime();
+  const castIds = ['tom', 'maya', 'sam', 'alex', 'nina', 'ben', 'dana'];
+  const stageStates = ['idle', 'waiting', 'speaking', 'listening', 'reacting', 'thinking'];
+  const singleHooks = ['figure', 'head', 'eyes', 'pupils', 'brows', 'eyelids', 'cheeks', 'arm-l', 'arm-r'];
+  const mouthShapes = ['mouth-rest', 'mouth-a', 'mouth-e', 'mouth-o', 'mouth-u', 'mouth-m', 'mouth-f', 'mouth-smile'];
+
+  assert.deepEqual(Object.keys(api.PRACTICE_CAST), castIds);
+  for (const id of castIds) {
+    const look = api.PRACTICE_CAST[id].look;
+    const before = JSON.stringify(look);
+    assert.equal(look.variant, 'modern-v2', `${id} must use the modern renderer`);
+    assert.equal(look.id, id, `${id} must route to its own illustration`);
+
+    for (const stageState of stageStates) {
+      const svg = api.personArt(look, stageState);
+      const root = svg.match(/^<svg\b[^>]*>/)?.[0] || '';
+      for (const token of ['person-art', 'modern-v2', `${id}-v2`, 'layered-mouth', stageState])
+        assert.equal(classCount(root, token), 1, `${id}/${stageState} is missing root class ${token}`);
+      assert.match(root, new RegExp(`data-art="${id}-v2"`));
+      assert.match(root, new RegExp(`data-character="${id}"`));
+      assert.match(root, new RegExp(`data-palette="${id}"`));
+      assert.match(root, /data-viseme="rest"/);
+      assert.match(root, /viewBox="0 0 220 410"/);
+
+      for (const hook of singleHooks)
+        assert.equal(classCount(svg, hook), 1, `${id}/${stageState} needs one ${hook} hook`);
+      assert.equal(classCount(svg, 'arm'), 2, `${id}/${stageState} needs two animated arms`);
+      assert.equal(classCount(svg, 'mouth'), 1, `${id}/${stageState} needs one lip-sync target`);
+      assert.equal(classCount(svg, 'mouth-shapes'), 1, `${id}/${stageState} needs one mouth-shape group`);
+      assert.equal(classCount(svg, 'mouth-shape'), mouthShapes.length, `${id}/${stageState} needs five vowel visemes, the m/b/p and f/v consonants, and a smile`);
+      for (const shape of mouthShapes)
+        assert.equal(classCount(svg, shape), 1, `${id}/${stageState} needs one ${shape} viseme`);
+      assert.doesNotMatch(svg, /<(?:image|script|foreignObject|animate|animateTransform)\b/i);
+    }
+    assert.equal(JSON.stringify(look), before, `${id} rendering must not mutate its cast config`);
+  }
+});
+
+test('the modern cast stays visually distinct and every member remains in conversation flow', () => {
+  const { api } = runtime();
+  const castIds = ['tom', 'maya', 'sam', 'alex', 'nina', 'ben', 'dana'];
+  const visualMarkers = {
+    tom: 'backpack',
+    maya: 'maya-headphones',
+    sam: 'hair-curly-front',
+    alex: 'alex-waiter-vest',
+    nina: 'shop-apron',
+    ben: 'travel-pouch',
+    dana: 'round-glasses',
+  };
+  const paletteKeys = ['skin', 'skinShadow', 'hairColor', 'eyeColor', 'clothes', 'accent', 'blush'];
+  const artIds = new Set();
+  const characterIds = new Set();
+  const paletteIds = new Set();
+  const paletteSignatures = new Set();
+  const visualBodies = new Set();
+
+  for (const id of castIds) {
+    const look = api.PRACTICE_CAST[id].look;
+    const svg = api.personArt(look, 'idle');
+    const root = svg.match(/^<svg\b[^>]*>/)?.[0] || '';
+    artIds.add(root.match(/data-art="([^"]+)"/)?.[1]);
+    characterIds.add(root.match(/data-character="([^"]+)"/)?.[1]);
+    paletteIds.add(root.match(/data-palette="([^"]+)"/)?.[1]);
+
+    const palette = paletteKeys.map(key => look[key]);
+    assert.ok(palette.every(Boolean), `${id} needs a complete character palette`);
+    palette.forEach((color, index) => {
+      assert.ok(svg.includes(color), `${id} does not render its ${paletteKeys[index]} color`);
+    });
+    paletteSignatures.add(palette.join('|'));
+    assert.equal(classCount(svg, visualMarkers[id]), 1, `${id} needs its ${visualMarkers[id]} visual marker`);
+
+    // Compare the illustration body rather than its data attributes, so seven
+    // different IDs cannot mask seven otherwise identical drawings.
+    const body = svg.replace(/^<svg\b[^>]*>/, '');
+    visualBodies.add(crypto.createHash('sha256').update(body).digest('hex'));
+  }
+
+  assert.equal(artIds.size, castIds.length, 'each character needs a unique art ID');
+  assert.deepEqual([...characterIds].sort(), [...castIds].sort());
+  assert.deepEqual([...paletteIds].sort(), [...castIds].sort());
+  assert.equal(paletteSignatures.size, castIds.length, 'each character needs a distinct palette');
+  assert.equal(visualBodies.size, castIds.length, 'each character needs distinct rendered artwork');
+
+  const sceneCharacters = new Set(Object.values(api.PRACTICE_SCENES).flat().map(scene => scene.who));
+  assert.deepEqual([...sceneCharacters].sort(), [...castIds].sort(),
+    'every redesigned character must remain reachable in free conversation');
+});
+
+test('all free-conversation routes use the intended 22 layered backdrops', () => {
+  const { api } = runtime();
+  const expectedRoutes = {
+    greet: ['street-school', 'elevator', 'city-square'],
+    meet: ['park-bench', 'art-studio'],
+    feelings: ['school-steps', 'living-room'],
+    likes: ['music-room', 'basketball-court'],
+    afterschool: ['school-gate', 'park-bench'],
+    food: ['restaurant', 'home-kitchen'],
+    plans: ['phone-room', 'courtyard-garden'],
+    shopping: ['clothing-store', 'market-stall'],
+    help: ['bus-stop', 'parking-lot'],
+    animals: ['dog-park', 'home-street'],
+    weather: ['weather-window', 'beach-path'],
+  };
+  const expectedIds = [
+    'street-school', 'elevator', 'city-square', 'park-bench', 'art-studio',
+    'school-steps', 'living-room', 'music-room', 'basketball-court', 'school-gate',
+    'restaurant', 'home-kitchen', 'phone-room', 'courtyard-garden',
+    'clothing-store', 'market-stall', 'bus-stop', 'parking-lot', 'dog-park',
+    'home-street', 'weather-window', 'beach-path',
+  ];
+  const actualRoutes = Object.fromEntries(Object.entries(api.PRACTICE_SCENES)
+    .map(([topic, scenes]) => [topic, [...scenes].map(scene => scene.bg)]));
+
+  assert.deepEqual(actualRoutes, expectedRoutes);
+  assert.equal(Object.values(actualRoutes).flat().length, 23,
+    'free conversation must retain all 23 scene choices');
+  assert.deepEqual(Object.keys(api.PRACTICE_BACKDROPS), expectedIds);
+  for (const id of Object.values(actualRoutes).flat())
+    assert.ok(api.PRACTICE_BACKDROPS[id], `scene references missing backdrop ${id}`);
+  assert.equal(Object.values(actualRoutes).flat().filter(id => id === 'park-bench').length, 2,
+    'the neighbourhood bench is the one intentionally shared illustration');
+});
+
+test('every conversation backdrop keeps a safe, distinct, bounded depth-layer contract', () => {
+  const { api } = runtime();
+  const semanticMarkers = {
+    'street-school': 'street-crossing',
+    elevator: 'elevator-panel',
+    'city-square': 'square-fountain',
+    'park-bench': 'park-bench',
+    'art-studio': 'art-easel',
+    'school-steps': 'school-steps',
+    'living-room': 'living-sofa',
+    'music-room': 'music-speaker',
+    'basketball-court': 'basketball-hoop',
+    'school-gate': 'school-gates',
+    restaurant: 'restaurant-table',
+    'home-kitchen': 'kitchen-counter',
+    'phone-room': 'phone-signal',
+    'courtyard-garden': 'courtyard-slide',
+    'clothing-store': 'clothes-rack',
+    'market-stall': 'market-produce',
+    'bus-stop': 'bus-shelter',
+    'parking-lot': 'garage-pillar',
+    'dog-park': 'dog-agility',
+    'home-street': 'home-cat',
+    'weather-window': 'weather-window-frame',
+    'beach-path': 'beach-ocean',
+  };
+  const hashes = new Set();
+  let totalBytes = 0;
+  let totalTags = 0;
+
+  for (const [id, backdrop] of Object.entries(api.PRACTICE_BACKDROPS)) {
+    assert.equal(backdrop.id, id);
+    assert.equal(backdrop.variant, 'layered-v4');
+    assert.match(backdrop.sky, /^#[0-9a-f]{6}$/i);
+    assert.match(backdrop.ground, /^#[0-9a-f]{6}$/i);
+    assert.equal(classCount(backdrop.art, 'backdrop-far'), 1, `${id} needs one far layer`);
+    assert.equal(classCount(backdrop.art, 'backdrop-mid'), 1, `${id} needs one middle layer`);
+    assert.equal(classCount(backdrop.art, 'backdrop-near'), 1, `${id} needs one near layer`);
+    assert.equal(classCount(backdrop.art, 'scene-base'), 1, `${id} needs one sky canvas`);
+    assert.equal(classCount(backdrop.art, 'scene-floor'), 1, `${id} needs one ground plane`);
+    assert.equal(classCount(backdrop.art, semanticMarkers[id]), 1,
+      `${id} needs its ${semanticMarkers[id]} semantic landmark`);
+    assert.match(backdrop.art, new RegExp(`id="${id}-sky"`));
+    assert.match(backdrop.art, new RegExp(`url\\(#${id}-sky\\)`));
+
+    // Artwork is inline and local: no executable SVG, remote resources or event handlers.
+    assert.doesNotMatch(backdrop.art,
+      /<(?:image|script|foreignObject|iframe|object|embed|animate|animateTransform)\b|\bon[a-z]+\s*=|\b(?:href|xlink:href)\s*=|url\(\s*['"]?(?:https?:|data:|javascript:)/i);
+
+    const byteSize = Buffer.byteLength(backdrop.art, 'utf8');
+    const tagCount = (backdrop.art.match(/<[a-z][\w:-]*\b/gi) || []).length;
+    assert.ok(byteSize >= 1_000 && byteSize <= 12_000,
+      `${id} SVG should stay detailed but lightweight; got ${byteSize} bytes`);
+    assert.ok(tagCount >= 15 && tagCount <= 160,
+      `${id} SVG tag count should stay phone-friendly; got ${tagCount}`);
+    totalBytes += byteSize;
+    totalTags += tagCount;
+    hashes.add(crypto.createHash('sha256').update(backdrop.art).digest('hex'));
+  }
+
+  assert.equal(hashes.size, Object.keys(semanticMarkers).length,
+    'all 22 backdrops need genuinely distinct artwork');
+  assert.ok(totalBytes <= 160_000, `backdrop payload is too large: ${totalBytes} bytes`);
+  assert.ok(totalTags <= 2_500, `backdrop DOM is too large: ${totalTags} SVG tags`);
+});
+
+test('the stage mounts full-height backdrop SVGs and respects reduced motion', () => {
+  assert.match(html,
+    /<div class="stage-bg scene-motion-[^"]*" data-backdrop="\$\{esc\(bd\.id\)\}"[^>]*>/);
+  assert.match(html,
+    /<svg class="backdrop-art backdrop-\$\{esc\(bd\.id\)\}" data-art="\$\{esc\(bd\.id\)\}" viewBox="0 0 400 700" preserveAspectRatio="xMidYMax slice">/);
+
+  const svgRule = html.match(/\.stage-bg svg\{([^}]*)\}/)?.[1] || '';
+  assert.match(svgRule, /position:absolute/);
+  assert.match(svgRule, /inset:0/);
+  assert.match(svgRule, /width:100%/);
+  assert.match(svgRule, /height:100%/);
+  const reduced = html.match(/@media \(prefers-reduced-motion:reduce\)\{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.match(reduced, /\.stage-bg \.ambient/);
+  assert.match(reduced, /animation:none!important/);
+  assert.match(reduced, /transition:none!important/);
+  assert.doesNotMatch(reduced, /\.stage-bg \.ambient[^\{]*\{[^\}]*transform:none!important/,
+    'reduced motion must keep the backdrop at its authored static position');
+});
+
+test('a free practice conversation keeps a natural arc', () => {
+  const { api } = runtime();
+  const variantsOf = beat => Array.isArray(beat.variants) ? beat.variants : [beat];
+
+  // A farewell line belongs only to a closing turn — anywhere else the
+  // character says goodbye and then keeps talking, which is exactly the
+  // 'Have a nice day!' followed by 'How are you?' bug this guards against.
+  for (const story of api.PRACTICE_STORIES) {
+    story.beats.forEach((beat, beatIndex) => {
+      for (const variant of variantsOf(beat)) {
+        const role = variant.role || beat.role || 'mid';
+        const expected = beatIndex === 0 ? 'open' :
+          beatIndex === story.beats.length - 1 ? 'close' : 'mid';
+        assert.equal(role, expected,
+          `${story.id}/${beat.id}: ${role} turn appears where ${expected} belongs`);
+        if (role === 'close') continue;
+        for (const option of variant.options) {
+          assert.doesNotMatch(option.reply.en, /\b(goodbye|bye|have a nice day)\b/i,
+            `${story.id}/${beat.id}: "${option.reply.en}" says goodbye mid-conversation`);
+        }
+      }
+    });
+  }
+
+  for (const completed of [1, 2, 5, 9, 14, 20, 30]) {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const state = api.defaults();
+      state.onboarded = true;
+      state.completed = completed;
+      api.setState(state);
+      const session = api.buildPracticeSession();
+      if (!session) continue;
+      assert.ok(session.story.beats.length >= 1);
+      assert.equal(session.turns, session.story.beats,
+        'a story must keep its own authored turns instead of mixing in filler');
+      assert.equal(new Set(session.turns).size, session.turns.length);
+      assert.ok(completed >= session.story.min,
+        `${session.story.id} unlocked before lesson ${session.story.min}`);
+      assert.ok(session.story.sceneIds.includes(session.sceneId),
+        `${session.story.id} drifted into an unrelated scene`);
+    }
+  }
 });
