@@ -103,7 +103,8 @@ function runtime(seed = new Map(), options = {}) {
       REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_LEVEL,
       REVIEW_MAX_LEVEL, REVIEW_MISS_DROP,
       REVIEW_PAUSE_PASS,
-      startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
+      startSelfTest, TEST_WORDS, TEST_LENGTH, wordGloss, reviewWordChips,
+      pickMissingWord, finishReviewPick, getPicking:()=>R&&R.picking,
       SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
       getSounds:()=>S, advanceSound, playSoundPair, soundRow, mouthArt, MOUTH_SHAPES, soundExplainHtml, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
       wordsMatch,
@@ -4594,17 +4595,18 @@ test('coming back after a long gap shows the count climbing again', () => {
    say is followed by the one word in it most likely to have been what was
    missing. Seeing that is the whole point of the mode. */
 
-// drive a self-test to its end; `decide(n, isWord)` answers each question
-function runSelfTest(api, decide) {
-  let sentences = 0, words = 0;
+/* Drive a self-test to its end. `decide(n)` answers question n; a miss then
+   opens the which-word question, and `chip` says which word to point at. */
+function runSelfTest(api, decide, chip = 0) {
+  let sentences = 0, picks = 0;
   while (api.getReview() && api.getReview().i < api.getReview().questions.length) {
-    assert.ok(sentences + words < 60, 'the run has to terminate');
-    const q = api.getReview().questions[api.getReview().i];
+    assert.ok(sentences < 60, 'the run has to terminate');
     api.revealReviewSay();
-    if (q.shape === 'word') { words++; api.answerReviewSay(decide(sentences, true)); }
-    else { api.answerReviewSay(decide(sentences, false)); sentences++; }
+    api.answerReviewSay(decide(sentences));
+    sentences++;
+    if (api.getPicking()) { picks++; api.pickMissingWord(chip); api.finishReviewPick(); }
   }
-  return { sentences, words };
+  return { sentences, picks };
 }
 
 test('the self-test asks for production only, never recognition', () => {
@@ -4620,72 +4622,15 @@ test('the self-test asks for production only, never recognition', () => {
   assert.equal(new Set(run.questions.map(q => q.id)).size, api.TEST_LENGTH, 'no repeats');
 });
 
-test('the word a missed sentence is diagnosed with is its least common one', () => {
-  const { api } = runtime();
-  learnerAt(api, api.LESSONS.length);
 
-  const keyWordOf = en => api.keyWordFor({ en, he: '' })?.en ?? null;
 
-  /* Rarity across the course, not position: "Good morning" contains both
-     good and morning, and good turns up all over the place. */
-  assert.equal(keyWordOf('Good morning'), 'morning');
-  assert.equal(keyWordOf('I have a dog'), 'dog');
-  assert.equal(keyWordOf('Me too!'), null, 'a chunk with no one hard word in it gets no follow-up');
-  assert.equal(keyWordOf('Take care'), null,
-    'and neither does one whose only candidate means something different in the next sentence');
-
-  const brother = api.keyWordFor({ en: 'This is my brother', he: 'זה אח שלי' });
-  assert.equal(brother.en, 'brother');
-  assert.ok(brother.he && brother.ic, 'a word carries the Hebrew and the picture the course gave it');
-});
-
-test('missing a sentence adds the word question, knowing it does not', () => {
-  const { api } = runtime();
-  learnerAt(api, 20);
-  api.startSelfTest();
-
-  // knowing them all asks nothing extra
-  const clean = runSelfTest(api, () => true);
-  assert.equal(clean.sentences, api.TEST_LENGTH);
-  assert.equal(clean.words, 0, 'there is nothing to diagnose');
-
-  // missing them all asks about words, but only up to the cap
-  api.startSelfTest();
-  const bad = runSelfTest(api, () => false);
-  assert.equal(bad.sentences, api.TEST_LENGTH, 'still exactly twelve sentences');
-  assert.ok(bad.words > 0, 'and it did explain some of them');
-  assert.ok(bad.words <= api.TEST_MAX_WORDS,
-    `a bad run must not double in length (${bad.words} follow-ups, cap ${api.TEST_MAX_WORDS})`);
-});
-
-test('a word follow-up explains the failure rather than scoring a second one', () => {
-  const { api } = runtime();
-  learnerAt(api, 20);
-  api.startSelfTest();
-
-  const first = api.getReview().questions[0];
-  api.revealReviewSay();
-  api.answerReviewSay(false);
-  const lapsesAfterSentence = api.getState().reviewMeta[first.id].lapses;
-
-  const followUp = api.getReview().questions[api.getReview().i];
-  if (followUp.shape !== 'word') return;               // that phrase had no catalogued word
-  api.revealReviewSay();
-  api.answerReviewSay(false);
-
-  /* The sentence was already recorded as missed. Charging the word against it
-     too would punish one gap twice and drag the phrase's schedule around for
-     a question the learner was never set. */
-  assert.equal(api.getState().reviewMeta[first.id].lapses, lapsesAfterSentence,
-    'the follow-up records nothing of its own against the phrase');
-});
 
 test('the self-test ends on what he could not say, not on a score', () => {
   const { api, app } = runtime();
   learnerAt(api, 20);
   api.startSelfTest();
   const asked = api.getReview().questions.map(q => q.item);
-  runSelfTest(api, (n, isWord) => (isWord ? false : n >= 3));   // miss the first three
+  runSelfTest(api, n => n >= 3);   // miss the first three
 
   const html = app.innerHTML;
   assert.match(html, /3 משפטים שעוד לא יצאו לך/, 'the headline counts the gaps, not the passes');
@@ -4872,11 +4817,13 @@ test('the added words mean the same thing everywhere the course uses them', () =
     .filter(p => tokens(p.en).some(t => api.TEST_WORDS.some(w => w[0] === t))).length;
   assert.ok(covered >= 120, `most of the course can now be diagnosed (${covered} of 150)`);
 
-  const keyWordOf = en => api.keyWordFor({ en, he: '' })?.en ?? null;
-  assert.equal(keyWordOf('Do you like cats?'), 'cats');
-  assert.equal(keyWordOf('I don\'t understand'), 'understand');
-  assert.equal(keyWordOf('Red, blue, green'), 'green');
-  assert.equal(keyWordOf('I believe in you'), 'believe');
+  /* The bank is no longer used to guess which word was missed — the learner
+     says which — but it still supplies the Hebrew when the word he points at
+     happens to be one the course teaches. */
+  assert.equal(api.wordGloss('cats')?.he, 'חתולים');
+  assert.equal(api.wordGloss('understand')?.he, 'להבין');
+  assert.equal(api.wordGloss('burger?')?.he, 'המבורגר', 'punctuation does not stop the lookup');
+  assert.equal(api.wordGloss('I'), null, 'a word the course never taught simply has no gloss');
 
   /* A word is only worth adding if its Hebrew holds across every phrase it
      turns up in — the follow-up shows that Hebrew and asks for the English,
@@ -5111,4 +5058,98 @@ test('the explanation is drawn, split per sound, and namespaced away from the re
   const classes = new Set([...html.matchAll(/class="([^"]+)"/g)].flatMap(m => m[1].split(/\s+/)).filter(Boolean));
   for (const cls of classes)
     assert.match(cls, /^(sound-|mouth-dia$|m-)/, `${cls} is namespaced to this feature`);
+});
+
+/* ---- which word was missing is his answer, not the app's guess ----
+   Reported from real use: "Can I have a burger?" came out as "can have a
+   burger", so the word that failed was I — and the app announced burger,
+   because it picked the rarest word the course teaches in the sentence. It
+   had no evidence for that and could not have: the self-test is self-rated,
+   so nothing is recorded but "no". */
+
+test('a missed sentence asks which word rather than deciding for him', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+
+  const q = api.getReview().questions[0];
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+
+  assert.ok(api.getPicking(), 'a miss opens the question instead of moving on');
+  assert.equal(api.getReview().i, 0, 'and it is still the same question');
+
+  // every word of the sentence is offered, so any of them can be the answer
+  const chips = api.reviewWordChips(q);
+  assert.ok(chips.length > 1);
+  for (const w of chips) assert.ok(app.innerHTML.includes(w), `${w} can be pointed at`);
+  assert.match(app.innerHTML, /pick-chip/);
+});
+
+test('the word he points at is the one recorded, whatever the app would have picked', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+
+  const q = api.getReview().questions[0];
+  const chips = api.reviewWordChips(q);
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+
+  /* The first word of a sentence is exactly the sort the old guess would never
+     have chosen — it is the commonest thing there. */
+  api.pickMissingWord(0);
+  assert.match(app.innerHTML, /is-gap/, 'the sentence is shown with his word marked');
+  api.finishReviewPick();
+  assert.equal(api.getReview().i, 1);
+
+  runSelfTest(api, () => true);
+  assert.ok(app.innerHTML.includes(chips[0]), `${chips[0]} is on the closing list because he said so`);
+});
+
+test('a word the course never taught is still a valid answer', () => {
+  const { api } = runtime();
+  /* "I" is not in the vocabulary bank and never will be, but it is a perfectly
+     good answer to what would not come out, so it must not be swallowed. */
+  assert.equal(api.wordGloss('I'), null);
+  assert.ok(api.wordGloss('burger?'), 'while a taught word still resolves through its punctuation');
+
+  learnerAt(api, 20);
+  api.startSelfTest();
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+  api.pickMissingWord(0);
+  api.finishReviewPick();
+  assert.equal(api.getReview().i, 1, 'the run carries on either way');
+});
+
+test('he can say no single word was the problem', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+
+  for (const escape of [-2, -3]) {          // "only the order" and "nothing came"
+    api.startSelfTest();
+    api.revealReviewSay();
+    api.answerReviewSay(false);
+    assert.ok(api.getPicking());
+    api.pickMissingWord(escape);
+    assert.ok(!api.getPicking(), 'the question closes');
+    assert.equal(api.getReview().i, 1, 'and the run moves on');
+    runSelfTest(api, () => true);
+    assert.doesNotMatch(app.innerHTML, /class="test-words"/,
+      'with no word invented for the closing list');
+  }
+});
+
+test('the closing list names each word once, and only what he chose', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+  // miss everything and always point at the first word, which repeats a lot
+  runSelfTest(api, () => false, 0);
+
+  const row = app.innerHTML.match(/<div class="test-words-row">([\s\S]*?)<\/div>/)?.[1] ?? '';
+  const listed = [...row.matchAll(/<b dir="ltr" lang="en">([^<]+)<\/b>/g)].map(m => m[1]);
+  assert.ok(listed.length, 'the words he pointed at are listed');
+  assert.equal(new Set(listed.map(w => w.toLowerCase())).size, listed.length, 'each one once');
 });
