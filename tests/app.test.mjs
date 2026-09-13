@@ -106,10 +106,7 @@ function runtime(seed = new Map(), options = {}) {
       startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
       SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
       getSounds:()=>S, advanceSound, soundRow, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
-      renderListenHub, startListenSession, listenScript, listenableLessons, listenHeard, listenSummary,
-      toggleListenPlaying, toggleListenSubs, toggleListenHe, exitListenSession, getListen:()=>I,
-      playListenLine, wordsMatch,
-      conversationRounds, conversationMeta,
+      wordsMatch,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -5002,106 +4999,18 @@ test('the home card names the weakest sound rather than an average', () => {
   assert.doesNotMatch(api.soundsSummary(), /th/);
 });
 
-/* ---- listening, with nothing to answer ---- */
-
-test('a conversation replays end to end as one script of taught lines', () => {
-  const { api } = runtime();
-  learnerAt(api, 6);
-  assert.equal(api.listenableLessons().join(','), '0,1,2,3,4,5');
-
-  const script = api.listenScript(2);
-  assert.ok(script.length >= 8, `a real conversation, not a fragment (${script.length} lines)`);
-  assert.ok(script.every(s => s.line?.en && s.line?.he), 'every line has English and its Hebrew');
-  assert.ok(script.some(s => s.who === 'them') && script.some(s => s.who === 'you'),
-    'and it is two voices, not a monologue');
-
-  /* The material is the lesson conversations precisely because they are built
-     only from what that lesson taught — comprehensible is the whole point. */
-  const rounds = api.conversationRounds(2);
-  assert.equal(script[0].line.en, rounds[0].ask.en, 'it opens where the conversation opens');
-});
-
-test('listening plays every line in order, hands free, and asks nothing', () => {
-  const { said, synth, Utterance } = speaker();
-  const { api, app } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
-  learnerAt(api, 6);
-
-  api.startListenSession(0);
-  const script = api.getListen().script;
-  for (let guard = 0; api.getListen() && guard < 80; guard++) runListenTick(api);
-
-  assert.equal(said.length, script.length, 'every line was actually spoken');
-  script.forEach((step, i) => assert.ok(said[i]?.includes(step.line.en.replace(/,?\s*\{name\}/, '').trim().slice(0, 12)),
-    `line ${i + 1} was the one in the script`));
-  assert.doesNotMatch(app.innerHTML, /onclick="answer/, 'nothing on the end screen asks for an answer');
-  assert.ok(api.listenHeard(0), 'and the conversation is marked as heard');
-  assert.equal(api.getState().listenCount, 1);
-});
-
-test('listening can be paused, and pausing really stops the voice', () => {
-  const { said, synth, Utterance } = speaker();
-  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
-  learnerAt(api, 6);
-
-  api.startListenSession(1);
-  runListenTick(api);
-  const at = api.getListen().i, spokenSoFar = said.length;
-
-  api.toggleListenPlaying();
-  assert.equal(api.getListen().playing, false);
-  runListenTick(api); runListenTick(api);
-  assert.equal(said.length, spokenSoFar, 'nothing is spoken while paused');
-  assert.equal(api.getListen().i, at, 'and it does not creep forward');
-
-  api.toggleListenPlaying();
-  assert.equal(api.getListen().playing, true);
-  for (let guard = 0; api.getListen() && guard < 80; guard++) runListenTick(api);
-  assert.ok(api.listenHeard(1), 'resuming carries it to the end');
-});
-
-test('the subtitles can be turned off, and the choice is remembered', () => {
-  const { synth, Utterance } = speaker();
-  const seed = new Map();
-  const { api, app } = runtime(seed, { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
-  learnerAt(api, 6);
-
-  api.startListenSession(2);
-  runListenTick(api); runListenTick(api);
-  assert.match(app.innerHTML, /<b dir="ltr"/, 'English is shown by default — input has to be understandable');
-
-  api.toggleListenSubs();
-  assert.match(app.innerHTML, /listen-hidden/, 'earlier lines are covered for the ear to work alone');
-  assert.match(app.innerHTML, /listen-line [a-z]+ now[\s\S]{0,240}<b dir="ltr"/,
-    'but the line being spoken stays readable, so it never becomes a guessing game');
-  assert.equal(api.getState().listenSubs, false, 'and the preference is kept for next time');
-
-  api.toggleListenHe();
-  assert.match(app.innerHTML, /listen-text[\s\S]{0,300}<small>/, 'Hebrew appears only when asked for');
-});
-
-test('both quiet extras appear once there is anything behind them', () => {
+test('the sounds row appears once there is anything behind it', () => {
   const { api, app } = runtime();
 
   learnerAt(api, 0);
   api.renderHome();
-  assert.doesNotMatch(app.innerHTML, /renderListenHub|renderSoundsHub/);
+  assert.doesNotMatch(app.innerHTML, /renderSoundsHub/, 'nothing to train before the first lesson');
 
   learnerAt(api, 3);
   api.renderHome();
-  assert.match(app.innerHTML, /class="home-extra2s"/);
-  assert.match(app.innerHTML, /onclick="renderListenHub\(\)"/);
+  assert.match(app.innerHTML, /class="home-extra2s one"/, 'and it stands alone, in the single-column row');
   assert.match(app.innerHTML, /onclick="renderSoundsHub\(\)"/);
-  /* A second, quieter row: these two are not the daily habit and should not
+  /* A second, quieter row: the ear is not the daily habit and should not
      compete with the drill and the self-test for the same tap. */
   assert.ok(app.innerHTML.indexOf('home-extras three') < app.innerHTML.indexOf('home-extra2s'));
 });
-
-// drive one line of a listening session, standing in for the speech callback
-// and the beat between turns
-function runListenTick(api) {
-  const session = api.getListen();
-  if (!session) return;
-  clearTimeout(session.gapTimer);
-  if (!session.playing) return;
-  api.playListenLine?.();
-}

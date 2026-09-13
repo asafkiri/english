@@ -239,7 +239,10 @@ body{
 .test-word b{font-weight:900}
 .test-word span{color:var(--dim);font-size:11.5px}
 /* ---------- the sounds trainer ---------- */
+/* One card in the quiet row today; the two-column default is what it takes
+   when something earns a place beside the ear. */
 .home-extra2s{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 6px}
+.home-extra2s.one{grid-template-columns:1fr}
 .home-extra2{display:flex;align-items:center;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:15px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
 .home-extra2:active{transform:scale(.98)}
 .home-extra2.sounds{border-color:rgba(244,114,182,.4);background:linear-gradient(160deg,rgba(131,42,90,.3),rgba(70,20,50,.18))}
@@ -277,31 +280,7 @@ body{
 .sound-word{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
 .sound-word b{font-weight:900}
 .sound-word span{color:var(--dim);font-size:11px}
-/* ---------- listening, with nothing to answer ---------- */
-.home-extra2.listen{border-color:rgba(56,189,248,.4);background:linear-gradient(160deg,rgba(12,74,110,.34),rgba(8,47,73,.2))}
-.listen-grid{display:grid;gap:7px}
-.listen-card{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:15px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer}
-.listen-card:active{transform:scale(.985)}
-.listen-card.heard{border-color:rgba(52,211,153,.4);opacity:.82}
-.listen-num{width:26px;height:26px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:12.5px;font-weight:900;flex-shrink:0}
-.listen-copy{flex:1;min-width:0;display:grid;gap:1px}
-.listen-copy b{font-size:14px;font-weight:900}
-.listen-copy small{color:var(--dim);font-size:11.5px}
-.listen-mark{color:var(--dim);font-size:14px;flex-shrink:0}
-.listen-scene{color:var(--dim);font-size:13px;text-align:center;margin-bottom:10px}
-.listen-controls{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px}
-.listen-btn{padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:var(--card2);color:var(--text);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
-.listen-btn.on{border-color:rgba(56,189,248,.55);background:rgba(12,74,110,.35)}
-.listen-transcript{display:grid;gap:8px;text-align:right}
-.listen-line{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:start;padding:9px 11px;border:1px solid transparent;border-radius:13px;background:var(--card2);opacity:.6;transition:opacity .2s ease}
-.listen-line.now{opacity:1;border-color:rgba(56,189,248,.5);background:rgba(12,74,110,.24)}
-.listen-line.you{background:rgba(101,86,216,.16)}
-.listen-line.you.now{border-color:rgba(167,139,250,.55);background:rgba(101,86,216,.3)}
-.listen-who{color:var(--dim);font-size:11px;font-weight:800;padding-top:3px;white-space:nowrap}
-.listen-text{min-width:0;display:grid;gap:2px}
-.listen-text b{font-size:16px;font-weight:800;line-height:1.35}
-.listen-text small{color:var(--dim);font-size:12px}
-.listen-hidden{color:var(--dim);letter-spacing:3px}
+
 .review-back b{font-size:14.5px;font-weight:900}
 /* ---------- drawn portraits ---------- */
 .cast-portrait{--size:44px;--who:#60a5fa;position:relative;display:inline-block;width:var(--size);height:var(--size);border-radius:50%;overflow:hidden;flex-shrink:0;vertical-align:middle;
@@ -7216,7 +7195,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.67.0';
+const APP_VERSION = '2.68.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7459,11 +7438,8 @@ function load(){
       out.testDate = typeof out.testDate === 'string' ? out.testDate : '';
       out.testCount = Math.max(0, Math.floor(Number(out.testCount) || 0));
       out.sounds = normalizeSounds(out.sounds);
-      out.listenHeard = Array.isArray(out.listenHeard)
-        ? [...new Set(out.listenHeard.filter(x=>Number.isInteger(x)&&x>=0&&x<LESSONS.length))] : [];
-      out.listenDate = typeof out.listenDate === 'string' ? out.listenDate : '';
-      out.listenCount = Math.max(0, Math.floor(Number(out.listenCount) || 0));
-      out.listenSubs = out.listenSubs !== false;
+      // the listening mode was removed; its record has no reader left
+      for(const gone of ['listenHeard','listenDate','listenCount','listenSubs']) delete out[gone];
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -7504,7 +7480,7 @@ function defaults(){
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false, uiSounds:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     checks:normalizeChecks(null), drillDate:'', drillCount:0, testDate:'', testCount:0,
-    sounds:normalizeSounds(null), listenHeard:[], listenDate:'', listenCount:0, listenSubs:true,
+    sounds:normalizeSounds(null),
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
     practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[], practiceStoryDone:[],
     missions:{},
@@ -7714,11 +7690,6 @@ function reconcileStoredProgress(){
     state.missions=mergeMissions(stored.missions, state.missions);
     state.checks=mergeChecks(stored.checks, state.checks);
     state.sounds=mergeSounds(stored.sounds, state.sounds);
-    // a conversation heard in any tab has been heard
-    state.listenHeard=[...new Set([...(Array.isArray(stored.listenHeard)?stored.listenHeard:[]),
-      ...(Array.isArray(state.listenHeard)?state.listenHeard:[])])].filter(x=>Number.isInteger(x));
-    state.listenCount=Math.max(Number(state.listenCount)||0,Math.floor(Number(stored.listenCount)||0));
-    if(dateValue(stored.listenDate)>dateValue(state.listenDate)) state.listenDate=stored.listenDate;
     state.drillCount=Math.max(Number(state.drillCount)||0,Math.floor(Number(stored.drillCount)||0));
     state.testCount=Math.max(Number(state.testCount)||0,Math.floor(Number(stored.testCount)||0));
     // the later day wins: work done in any tab counts for that day
@@ -8893,11 +8864,7 @@ function renderHome(){
           ear rather than the vocabulary, the other is listening rather than
           being asked — so they are here rather than competing with the three
           above for the same tap. */''}
-    <div class="home-extra2s">
-      <button type="button" class="home-extra2 listen" onclick="renderListenHub()">
-        <span class="e2-icon">🎧</span>
-        <span class="e2-copy"><b>להקשיב</b><small>${listenSummary()}</small></span>
-      </button>
+    <div class="home-extra2s one">
       <button type="button" class="home-extra2 sounds" onclick="renderSoundsHub()">
         <span class="e2-icon">👂</span>
         <span class="e2-copy"><b>הצלילים של אנגלית</b><small>${soundsSummary()}</small></span>
@@ -9586,196 +9553,6 @@ function renderSoundDone(){
     <div class="btn-row">
       <button class="btn" onclick="startSoundRun('${esc(setId)}')">עוד סבב 🔁</button>
       <button class="btn secondary" onclick="renderSoundsHub()">לצלילים אחרים</button>
-    </div>
-  </div></div></div>`);
-}
-
-/* ================= listening, with nothing to answer =================
-   Every other screen in this app asks the learner for something. That is most
-   of what it is for, and it is also the one thing it does to the exclusion of
-   everything else: there has never been a way to simply take English in.
-   Volume of understood input is about as well supported as anything in
-   learning a language, and a child who is only ever tested learns to pass
-   tests.
-
-   The material is already written and needs no new content: each lesson's
-   conversation is a dozen lines of nothing but what that lesson taught, with
-   a character, a place and a Hebrew line for every turn. Played end to end it
-   is exactly what is missing — connected speech, at pace, that the learner
-   already has the vocabulary to follow.
-
-   Nothing here is scored and nothing is asked. The English is on screen by
-   default because input has to be comprehensible to be worth anything, and
-   there is a switch for anyone who wants to work with the ear alone. */
-let I = null;
-function listenScript(idx){
-  const rounds=conversationRounds(idx);
-  const script=[];
-  for(const round of rounds){
-    if(round?.ask) script.push({who:'them',line:round.ask});
-    // one path through a branching conversation; a different draw next time
-    const option=pick((round?.options||[]).filter(o=>o&&o.answer));
-    if(option){
-      script.push({who:'you',line:option.answer});
-      if(option.reply) script.push({who:'them',line:option.reply});
-    }
-  }
-  return script;
-}
-function listenableLessons(){
-  const done=Math.max(0,Math.min(state.completed,LESSONS.length));
-  const out=[];
-  for(let i=0;i<done;i++) if(listenScript(i).length>=4) out.push(i);
-  return out;
-}
-function listenHeard(idx){ return (state.listenHeard||[]).includes(idx); }
-function listenSummary(){
-  const all=listenableLessons();
-  if(!all.length) return 'ייפתח אחרי השיעור הראשון';
-  const left=all.filter(i=>!listenHeard(i)).length;
-  return left?`${left} שיחות שלא שמעת`:'שמעת את כולן — אפשר שוב';
-}
-function renderListenHub(){
-  I=null;
-  const lessons=listenableLessons();
-  if(!lessons.length){ toast('אחרי השיעור הראשון יהיה כאן מה לשמוע 🎧'); return renderHome(); }
-  const cards=lessons.map(idx=>{
-    const meta=conversationMeta(idx), heard=listenHeard(idx);
-    return `<button type="button" class="listen-card${heard?' heard':''}" onclick="startListenSession(${idx})">
-      <span class="listen-num">${idx+1}</span>
-      <span class="listen-copy"><b>${esc(meta.placeEmoji)} ${esc(meta.place)}</b><small>עם ${esc(meta.character.name)} · ${listenScript(idx).length} משפטים</small></span>
-      <span class="listen-mark" aria-hidden="true">${heard?'✓':'▶'}</span>
-    </button>`;
-  }).join('');
-  hx(`
-  <div class="screen">
-    <div class="player-top">
-      <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
-      <h2 style="font-size:20px">להקשיב 🎧</h2>
-    </div>
-    <p class="sound-intro">כאן לא שואלים אותך כלום. פשוט שיחה שלמה באנגלית, מכל מה שכבר למדת, רצה מעצמה.<br>אפשר להסתיר את הכתוביות ולעבוד רק עם האוזן.</p>
-    <div class="listen-grid">${cards}</div>
-  </div>`);
-}
-function startListenSession(idx){
-  if(L){
-    askConfirm({title:'יש שיעור פתוח', text:'לצאת ממנו? המקום בשיעור יישמר.',
-      ok:'כן, לצאת', cancel:'לא, להישאר בשיעור'}).then(ok=>{
-      if(!ok||!L) return;
-      stopLessonTimers(true); L=null; startListenSession(idx);
-    });
-    return;
-  }
-  unlockUiAudio();
-  const script=listenScript(idx);
-  if(!script.length) return;
-  I={ idx, script, i:0, playing:true, showEn:state.listenSubs!==false, showHe:false, meta:conversationMeta(idx) };
-  renderListenPlayer();
-  playListenLine();
-}
-function exitListenSession(){
-  I=null;
-  cancelSpeech();
-  renderListenHub();
-}
-/* Each line hands off to the next through speak()'s callback, which always
-   fires — on end, on error, and on a watchdog if the engine goes quiet — so
-   the chain cannot stall halfway through a conversation. */
-function playListenLine(){
-  if(!I||!I.playing) return;
-  const session=I, step=I.script[I.i];
-  if(!step) return finishListenSession();
-  const voice=step.who==='them'?characterVoice(I.meta.character):null;
-  speak(ptext(step.line,'en',true),()=>{
-    if(I!==session||!I.playing) return;
-    I.i++;
-    if(I.i>=I.script.length) return finishListenSession();
-    renderListenPlayer();
-    // a beat between turns, so it reads as a conversation rather than a list
-    I.gapTimer=setTimeout(()=>{ if(I===session&&I.playing) playListenLine(); }, 520);
-  },voice);
-}
-function toggleListenPlaying(){
-  if(!I) return;
-  I.playing=!I.playing;
-  clearTimeout(I.gapTimer);
-  if(I.playing) playListenLine(); else cancelSpeech();
-  renderListenPlayer();
-}
-function replayListenLine(){
-  if(!I) return;
-  clearTimeout(I.gapTimer);
-  I.playing=true;
-  cancelSpeech();
-  renderListenPlayer();
-  playListenLine();
-}
-function toggleListenSubs(){
-  if(!I) return;
-  I.showEn=!I.showEn;
-  state.listenSubs=I.showEn;
-  touchState('settingsUpdatedAt');
-  save();
-  renderListenPlayer();
-}
-function toggleListenHe(){
-  if(!I) return;
-  I.showHe=!I.showHe;
-  renderListenPlayer();
-}
-function renderListenPlayer(){
-  if(!I) return;
-  const meta=I.meta, pct=Math.round(I.i/Math.max(1,I.script.length)*100);
-  const rows=I.script.slice(0,I.i+1).map((step,n)=>{
-    const current=n===I.i;
-    const who=step.who==='them'?esc(meta.character.name):'אתה';
-    return `<div class="listen-line ${step.who}${current?' now':''}">
-      <span class="listen-who">${who}</span>
-      <span class="listen-text">
-        ${I.showEn||current?`<b dir="ltr" lang="en">${esc(ptext(step.line,'en'))}</b>`:'<b class="listen-hidden">• • •</b>'}
-        ${I.showHe?`<small>${esc(ptext(step.line,'he'))}</small>`:''}
-      </span>
-    </div>`;
-  }).reverse().join('');
-  hx(`
-  <div class="screen">
-    <div class="player-top">
-      <button class="xbtn" onclick="exitListenSession()" aria-label="יציאה">✕</button>
-      <div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-      <div class="timer">${I.i+1}/${I.script.length}</div>
-    </div>
-    <div class="step">
-      <div class="listen-scene">${esc(meta.placeEmoji)} ${esc(meta.place)} · עם ${esc(meta.character.name)}</div>
-      <div class="listen-controls">
-        <button type="button" class="listen-btn" onclick="toggleListenPlaying()">${I.playing?'⏸ עצור':'▶ להמשיך'}</button>
-        <button type="button" class="listen-btn" onclick="replayListenLine()">🔊 שוב</button>
-        <button type="button" class="listen-btn${I.showEn?' on':''}" onclick="toggleListenSubs()">${I.showEn?'כתוביות':'בלי כתוביות'}</button>
-        <button type="button" class="listen-btn${I.showHe?' on':''}" onclick="toggleListenHe()">עברית</button>
-      </div>
-      <div class="listen-transcript">${rows}</div>
-    </div>
-  </div>`);
-}
-function finishListenSession(){
-  const idx=I?.idx;
-  const meta=I?.meta;
-  I=null;
-  if(!Number.isInteger(idx)) return renderListenHub();
-  state.listenHeard=[...new Set([...(state.listenHeard||[]),idx])];
-  state.listenDate=todayStr();
-  state.listenCount=Math.max(0,Math.floor(Number(state.listenCount)||0))+1;
-  touchState('progressUpdatedAt');
-  save();
-  const left=listenableLessons().filter(i=>!listenHeard(i));
-  hx(`
-  <div class="screen"><div class="step"><div class="finish">
-    <div class="emoji">🎧</div>
-    <h2>שמעת שיחה שלמה</h2>
-    <p>בלי לענות על כלום, בלי לתרגם מילה־מילה.<br>ככה האוזן מתרגלת לאנגלית רצופה.</p>
-    ${left.length?`<div class="milestone">🎧 עוד ${left.length} שיחות מחכות</div>`:'<div class="milestone">🎧 שמעת את כל השיחות שנפתחו לך</div>'}
-    <div class="btn-row">
-      ${left.length?`<button class="btn" onclick="startListenSession(${left[0]})">השיחה הבאה 🎧</button>`:''}
-      <button class="btn secondary" onclick="renderListenHub()">לרשימה</button>
     </div>
   </div></div></div>`);
 }
