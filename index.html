@@ -329,6 +329,11 @@ body{
 .pick-outs .btn{margin:0;font-size:14px;padding:11px}
 .pick-sentence{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;font-size:20px;font-weight:800;margin:6px 0 14px;line-height:1.5}
 .pick-sentence .is-gap{color:#fbbf24;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px}
+.order-parts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0 14px}
+.order-part{position:relative;padding:14px 16px 12px;border:1.5px solid rgba(56,189,248,.45);border-radius:14px;background:rgba(12,74,110,.28);color:var(--text);font:inherit;font-size:19px;font-weight:850;cursor:pointer}
+.order-part:active{transform:scale(.96)}
+.order-part small{position:absolute;top:3px;inset-inline-start:7px;font-size:10px;font-weight:900;color:#7dd3fc;opacity:.9}
+.test-order{margin:10px 0 2px;padding:10px 13px;border:1px solid rgba(56,189,248,.32);border-radius:13px;background:rgba(12,74,110,.2);font-size:13.5px;line-height:1.45}
 .pick-found{display:grid;gap:8px;margin-bottom:14px}
 .pick-found .btn{margin:0}
 .pick-word{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;padding:14px;border:1px solid rgba(251,191,36,.5);border-radius:14px;background:rgba(69,48,6,.4);color:var(--text);font:inherit;cursor:pointer}
@@ -7256,7 +7261,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.71.0';
+const APP_VERSION = '2.72.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -9133,6 +9138,10 @@ function testWordTokens(en){
 let R = null;
 const DRILL_LENGTH = 8, CHECK_LENGTH = 10, CHECK_PASS = 8;
 const TEST_LENGTH = 12;
+/* pickedChip: NONE until he answers, then a word index, or one of these two.
+   NONE has to be tested for exactly — it used to be `< 0`, which swallowed the
+   ORDER answer into the same branch and re-rendered the question. */
+const REVIEW_PICK_NONE = -1, REVIEW_PICK_ORDER = -2, REVIEW_PICK_BLANK = -3;
 const REVIEW_PAUSE_PASS = 900;   // a right answer is the only one that moves on by itself
 const REVIEW_SHAPES = ['pick','hear','say'];
 
@@ -9176,7 +9185,7 @@ function startReviewRun(mode, unit=null){
   const count=Math.min(REVIEW_LENGTHS[mode]||DRILL_LENGTH,pool.length);
   const items=reviewSelect(pool,count);
   R={ mode, unit, pool, questions:buildReviewQuestions(items,pool,mode), i:0,
-      right:0, missed:[], missedWords:[], picking:null, pickedChip:-1, orderMisses:0,
+      right:0, missed:[], missedWords:[], picking:null, pickedChip:REVIEW_PICK_NONE, orderMisses:0,
       answered:false, revealed:false, startedAt:Date.now(),
       // what he was holding on the way in, so the end can show the difference
       secureBefore:pool.filter(x=>reviewSecure((state.reviewMeta||{})[x.id])).length };
@@ -9356,7 +9365,7 @@ function answerReviewSay(knew){
   // only the self-test digs into a miss, and only when there is more than one
   // word it could have been
   if(!knew&&R.mode==='test'&&reviewWordChips(q).length>1){
-    R.picking=q; R.pickedChip=-1;
+    R.picking=q; R.pickedChip=REVIEW_PICK_NONE;
     return renderReviewPick();
   }
   advanceReview();
@@ -9366,7 +9375,7 @@ function renderReviewPick(){
   const q=R.picking, chips=reviewWordChips(q), n=`שאלה ${R.i+1} מתוך ${R.questions.length}`;
   const picked=R.pickedChip;
   const en=ptext(q.item.p,'en');
-  if(picked<0){
+  if(picked===REVIEW_PICK_NONE){
     reviewShell(`
       <div class="step-label">🔍 איזו מילה לא יצאה לך?</div>
       <div class="review-count">${esc(n)}</div>
@@ -9376,10 +9385,29 @@ function renderReviewPick(){
       </div>
       <p class="review-honest">תלחץ על המילה שלא הצלחת להוציא. אם היו כמה — תבחר את הקשה מביניהן.</p>
       <div class="pick-outs">
-        <button type="button" class="btn secondary" onclick="pickMissingWord(-2)">ידעתי את המילים — רק הסדר</button>
-        <button type="button" class="btn secondary" onclick="pickMissingWord(-3)">לא זכרתי כלום</button>
+        <button type="button" class="btn secondary" onclick="pickMissingWord(${REVIEW_PICK_ORDER})">ידעתי את המילים — רק הסדר</button>
+        <button type="button" class="btn secondary" onclick="pickMissingWord(${REVIEW_PICK_BLANK})">לא זכרתי כלום</button>
       </div>
     `);
+    return;
+  }
+  if(picked===REVIEW_PICK_ORDER){
+    const chunks=splitPhraseChunks(en);
+    reviewShell(`
+      <div class="step-label">🧩 זה הסדר</div>
+      <div class="review-count">${esc(n)}</div>
+      <div class="review-prompt small">${esc(ptext(q.item.p,'he'))}</div>
+      <div class="order-parts" dir="ltr" lang="en">
+        ${chunks.map((c,i)=>`<button type="button" class="order-part" onclick="speak('${jsEsc(c)}')"><small>${i+1}</small>${esc(c)}</button>`).join('')}
+      </div>
+      <div class="pick-found">
+        <button type="button" class="btn secondary" onclick="playOrderChunks(true)">🔊 חלק אחרי חלק, ואז הכול</button>
+        <button type="button" class="btn secondary" onclick="speak('${jsEsc(en)}')">🔊 המשפט כולו</button>
+      </div>
+      <p class="review-honest">המילים היו אצלך — רק הסדר. תקרא אותו מהתמונה ותגיד אותו שוב בקול.</p>
+      <button class="btn" onclick="finishReviewPick()">ממשיכים ⬅</button>
+    `);
+    playOrderChunks(true);
     return;
   }
   const chip=chips[picked], gloss=wordGloss(chip);
@@ -9401,26 +9429,61 @@ function renderReviewPick(){
 }
 function pickMissingWord(index){
   if(!R||!R.picking) return;
-  if(index<0){                       // no single word was the problem
-    if(index===-2) R.orderMisses=(R.orderMisses||0)+1;
-    return finishReviewPick();
+  /* "I knew the words, only the order" used to record a number nothing read
+     and move straight on, which made it the one answer the app did nothing
+     with — and word order is a real and separate way to miss a sentence, not
+     a way of declining to answer. It now gets its own reply: the sentence
+     laid out in the order it goes in, and played a part at a time so the
+     shape of it can be heard and not only read. */
+  if(index===REVIEW_PICK_ORDER){
+    R.orderMisses=(R.orderMisses||0)+1;
+    R.pickedChip=REVIEW_PICK_ORDER;
+    return renderReviewPick();
   }
+  if(index<0) return finishReviewPick();   // nothing came at all
   R.pickedChip=index;
   const chip=reviewWordChips(R.picking)[index];
   if(chip) R.missedWords.push({en:chip, ...(wordGloss(chip)||{})});
   renderReviewPick();
 }
+/* The parts of the sentence, one at a time with a beat between them, then a
+   pause, then the whole thing at speed — the order heard rather than stated.
+   Chained through speak()'s callback and abandoned if the learner moves on. */
+function playOrderChunks(whole){
+  if(!R||!R.picking) return;
+  const run=R, q=R.picking, chunks=splitPhraseChunks(ptext(q.item.p,'en'));
+  clearTimeout(run.chunkTimer);
+  cancelSpeech();
+  let i=0;
+  const step=()=>{
+    if(R!==run||R.picking!==q) return;
+    if(i>=chunks.length){
+      if(!whole) return;
+      run.chunkTimer=setTimeout(()=>{
+        if(R===run&&R.picking===q) speak(ptext(q.item.p,'en'));
+      },520);
+      return;
+    }
+    const chunk=chunks[i++];
+    speak(chunk,()=>{
+      if(R!==run||R.picking!==q) return;
+      run.chunkTimer=setTimeout(step,340);
+    });
+  };
+  step();
+}
 function finishReviewPick(){
   if(!R) return;
-  R.picking=null; R.pickedChip=-1;
+  clearTimeout(R.chunkTimer);
+  R.picking=null; R.pickedChip=REVIEW_PICK_NONE;
   advanceReview();
 }
 
 function renderReviewDone(){
-  const {mode,unit,right,missed,missedWords,secureBefore}=R;
+  const {mode,unit,right,missed,missedWords,orderMisses,secureBefore}=R;
   const total=R.questions.length;
   R=null;
-  if(mode==='test') return renderTestDone({right,total,missed,missedWords,secureBefore});
+  if(mode==='test') return renderTestDone({right,total,missed,missedWords,orderMisses});
   /* The headline number is the one the learner asked for: how much of this
      scope he can be sure of, counted the same way every time — not this run's
      score, which is only a sample. */
@@ -9460,7 +9523,7 @@ function renderReviewDone(){
    the entire reason to sit through twelve questions with no options to pick
    from, so that list is the screen and the tally is a line under it. Nothing
    here passes or fails: there is no mark to earn and none to lose. */
-function renderTestDone({right,total,missed,missedWords}){
+function renderTestDone({right,total,missed,missedWords,orderMisses}){
   noteTestDone();
   const clean=!missed.length;
   if(clean) confetti();
@@ -9496,6 +9559,11 @@ function renderTestDone({right,total,missed,missedWords}){
          <p>ידעת ${right} מתוך ${total}. אלה שלא — הנה הם, וזה בדיוק מה שגורם לך לזכור אותם בפעם הבאה.</p>`}
     ${listHtml?`<div class="test-list">${listHtml}</div>`:''}
     ${wordsHtml}
+    ${/* Its own finding, because it is a different problem with a different
+          fix: the vocabulary is there and the sentence is not. */''}
+    ${orderMisses?`<div class="test-order">🧩 ${orderMisses===1
+      ? 'במשפט אחד ידעת את כל המילים — רק הסדר לא יצא'
+      : `ב־${orderMisses} משפטים ידעת את כל המילים — רק הסדר לא יצא`}</div>`:''}
     ${/* No "in command" tally here on purpose. That number is the drill's
           currency — a live reading of what is being maintained — and this
           screen has one job, which is to show him what would not come out.

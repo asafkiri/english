@@ -104,7 +104,9 @@ function runtime(seed = new Map(), options = {}) {
       REVIEW_MAX_LEVEL, REVIEW_MISS_DROP,
       REVIEW_PAUSE_PASS,
       startSelfTest, TEST_WORDS, TEST_LENGTH, wordGloss, reviewWordChips,
-      pickMissingWord, finishReviewPick, getPicking:()=>R&&R.picking,
+      pickMissingWord, finishReviewPick, playOrderChunks, splitPhraseChunks,
+      getPicking:()=>R&&R.picking, getPicked:()=>R&&R.pickedChip,
+      REVIEW_PICK_ORDER, REVIEW_PICK_BLANK,
       SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
       getSounds:()=>S, advanceSound, playSoundPair, soundRow, mouthArt, MOUTH_SHAPES, soundExplainHtml, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
       wordsMatch,
@@ -5139,24 +5141,76 @@ test('a word the course never taught is still a valid answer', () => {
   assert.equal(api.getReview().i, at + 1, 'the run carries on either way');
 });
 
-test('he can say no single word was the problem', () => {
+test('nothing came at all closes without inventing a word', () => {
   const { api, app } = runtime();
   learnerAt(api, 20);
+  api.startSelfTest();
+  toMultiWord(api);
+  const at = api.getReview().i;
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+  assert.ok(api.getPicking());
 
-  for (const escape of [-2, -3]) {          // "only the order" and "nothing came"
-    api.startSelfTest();
-    toMultiWord(api);
-    const at = api.getReview().i;
+  api.pickMissingWord(api.REVIEW_PICK_BLANK);
+  assert.ok(!api.getPicking(), 'the question closes');
+  assert.equal(api.getReview().i, at + 1, 'and the run moves on');
+  runSelfTest(api, () => true);
+  assert.doesNotMatch(app.innerHTML, /class="test-words"/, 'with no word put on the closing list');
+});
+
+/* ---- getting only the order wrong is its own answer ----
+   Raised from real use: sometimes the words were all there and the sentence
+   still would not come. That used to record a number nothing read and move
+   straight on, which made it the one answer the app did nothing with. */
+
+test('saying it was only the order shows the order', () => {
+  const { said, synth, Utterance } = speaker();
+  const { api, app } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 20);
+  api.startSelfTest();
+  const q = toMultiWord(api);
+  const at = api.getReview().i;
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+  said.length = 0;
+
+  api.pickMissingWord(api.REVIEW_PICK_ORDER);
+  assert.ok(api.getPicking(), 'it does not just move on');
+  assert.equal(api.getReview().i, at, 'the run is still on the same sentence');
+
+  // the sentence is laid out in its parts, each one playable
+  const chunks = api.splitPhraseChunks(q.item.p.en);
+  assert.match(app.innerHTML, /class="order-parts"/);
+  for (const c of chunks) assert.ok(app.innerHTML.includes(c), `the part "${c}" is shown in place`);
+
+  // and heard a part at a time, in order, because order is a thing you hear
+  assert.equal(said[0], chunks[0], 'the parts play from the beginning');
+  assert.ok(!app.innerHTML.includes('class="pick-word"'), 'no single word is blamed');
+
+  api.finishReviewPick();
+  assert.equal(api.getReview().i, at + 1);
+});
+
+test('order misses are counted and reported as their own finding', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+
+  let ordered = 0;
+  while (api.getReview() && api.getReview().i < api.getReview().questions.length) {
+    const many = api.reviewWordChips(api.getReview().questions[api.getReview().i]).length > 1;
     api.revealReviewSay();
     api.answerReviewSay(false);
-    assert.ok(api.getPicking());
-    api.pickMissingWord(escape);
-    assert.ok(!api.getPicking(), 'the question closes');
-    assert.equal(api.getReview().i, at + 1, 'and the run moves on');
-    runSelfTest(api, () => true);
-    assert.doesNotMatch(app.innerHTML, /class="test-words"/,
-      'with no word invented for the closing list');
+    if (api.getPicking()) { api.pickMissingWord(api.REVIEW_PICK_ORDER); ordered++; api.finishReviewPick(); }
+    else assert.ok(!many, 'only a one-word phrase skips the question');
   }
+
+  assert.ok(ordered > 0);
+  /* A different problem from a missing word, with a different fix: the
+     vocabulary is there and the sentence is not, so it is said separately. */
+  assert.match(app.innerHTML, /class="test-order"/);
+  assert.match(app.innerHTML, new RegExp(`${ordered} משפטים|משפט אחד`));
+  assert.doesNotMatch(app.innerHTML, /class="test-words"/, 'and no words are listed, because none were named');
 });
 
 test('the closing list names each word once, and only what he chose', () => {
