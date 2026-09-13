@@ -104,6 +104,12 @@ function runtime(seed = new Map(), options = {}) {
       REVIEW_MAX_LEVEL, REVIEW_MISS_DROP,
       REVIEW_PAUSE_PASS, REVIEW_PAUSE_MISS,
       startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
+      SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
+      getSounds:()=>S, advanceSound, soundRow, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
+      renderListenHub, startListenSession, listenScript, listenableLessons, listenHeard, listenSummary,
+      toggleListenPlaying, toggleListenSubs, toggleListenHe, exitListenSession, getListen:()=>I,
+      playListenLine, wordsMatch,
+      conversationRounds, conversationMeta,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -4687,8 +4693,11 @@ test('the self-test ends on what he could not say, not on a score', () => {
   const html = app.innerHTML;
   assert.match(html, /3 משפטים שעוד לא יצאו לך/, 'the headline counts the gaps, not the passes');
   assert.match(html, /class="test-list"/);
-  for (const item of asked.slice(0, 3))
-    assert.ok(html.includes(item.p.en), `${item.p.en} is named on the list`);
+  for (const item of asked.slice(0, 3)) {
+    // the rendered line has {name} and friends filled in, so match the fixed part
+    const literal = item.p.en.split('{')[0].trim();
+    assert.ok(literal && html.includes(literal), `${item.p.en} is named on the list`);
+  }
   assert.match(html, /class="test-words"/, 'and the words missing from them are named too');
 
   /* No "in command" tally here: that is the drill's maintenance number, and
@@ -4879,3 +4888,220 @@ test('the added words mean the same thing everywhere the course uses them', () =
     assert.ok(!api.TEST_WORDS.some(w => w[0] === drifting),
       `${drifting} means different things in different phrases and is deliberately absent`);
 });
+
+/* ---- the sounds Hebrew does not have ----
+   The matcher elsewhere compares text with a one-character edit allowance, so
+   it cannot tell a Hebrew speaker's substitutions from the real thing. These
+   fix what the trainer is for, and the honest limit on what it claims. */
+
+// a speech engine that reports what it was asked to say and always completes
+function speaker() {
+  const said = [];
+  class Utterance {
+    constructor(text) { this.text = text; this.volume = 1; }
+  }
+  return {
+    said,
+    Utterance,
+    synth: {
+      speaking: false, pending: false, getVoices: () => [], resume() {},
+      cancel() { this.speaking = false; },
+      speak(u) { said.push(u.text); u.onstart?.(); u.onend?.(); },
+    },
+  };
+}
+
+test('the matcher cannot hear an accent, which is what the trainer is for', () => {
+  const { api } = runtime();
+  /* Not a criticism of wordsMatch — it compares text, and the text is all the
+     recogniser returns. It is the reason a separate, listening-only exercise
+     has to exist rather than a pronunciation score bolted onto the mic. */
+  const slips = [['water', 'vater'], ['very', 'wery'], ['three', 'tree'], ['work', 'vork']];
+  const missed = slips.filter(([target, said]) => api.wordsMatch(target, said));
+  assert.equal(missed.length, slips.length,
+    'every one of these passes as correct, so nothing else in the app will ever flag them');
+
+  // and the four contrasts the trainer covers are the ones Hebrew lacks
+  assert.equal(api.SOUND_SETS.map(s => s.id).join(','), 'th,wv,ii,ae');
+});
+
+test('every minimal pair really is minimal, and every word carries its Hebrew', () => {
+  const { api } = runtime();
+  const seen = new Set();
+  for (const set of api.SOUND_SETS) {
+    assert.ok(set.pairs.length >= 4, `${set.id} has enough pairs to draw on`);
+    assert.ok(set.tip && set.tip.trim(), `${set.id} says what to do with the mouth`);
+    for (const pair of set.pairs) {
+      assert.equal(pair.length, 2);
+      const [a, b] = pair;
+      assert.notEqual(a[0], b[0], 'the two words differ');
+      assert.ok(a[1]?.trim() && b[1]?.trim(), `${a[0]}/${b[0]} both have Hebrew`);
+      assert.ok(!seen.has(`${a[0]}/${b[0]}`), `${a[0]}/${b[0]} appears once`);
+      seen.add(`${a[0]}/${b[0]}`);
+      /* A pair only trains a contrast if the words are otherwise the same
+         length-ish; "think/sink" works, "think/elephant" would just be two
+         different words and could be told apart without hearing the sound. */
+      assert.ok(Math.abs(a[0].length - b[0].length) <= 2, `${a[0]}/${b[0]} are a near pair`);
+    }
+  }
+});
+
+test('a listening round scores what it can judge and records it per sound', async () => {
+  const { said, synth, Utterance } = speaker();
+  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 10);
+  assert.ok(api.canHearSounds(), 'the exercise needs a voice, and has one here');
+
+  api.startSoundRun('th');
+  const run = api.getSounds();
+  assert.equal(run.rounds.length, api.SOUND_ROUNDS);
+  assert.ok(run.rounds.every(r => r.set.id === 'th'), 'one contrast at a time');
+
+  /* The word arrives as sound and only as sound — the two spellings are the
+     answer, so writing it would be the answer too. */
+  await new Promise(r => setTimeout(r, 600));
+  assert.ok(said.length >= 1, 'the word to identify is played, not written');
+  assert.ok(run.rounds[0].pair.some(w => w[0] === said[0]), 'and it is one of the two on offer');
+
+  // answer seven of ten correctly
+  for (let n = 0; api.getSounds() && n < api.SOUND_ROUNDS; n++) {
+    const r = api.getSounds().rounds[api.getSounds().i];
+    api.answerSound(n < 7 ? r.target : 1 - r.target);
+    // the right answer stays up for a beat; drive that on rather than wait it out
+    if (api.getSounds()) api.advanceSound();
+  }
+  const row = api.soundRow('th');
+  assert.equal(row.heard, 10, 'every answer is on the record');
+  assert.equal(row.right, 7);
+  assert.equal(api.soundAccuracy('th'), 70);
+  assert.equal(api.soundRow('wv').heard, 0, 'and it is kept per contrast, not pooled');
+});
+
+test('the trainer refuses rather than pretends when the device has no voice', () => {
+  const { api } = runtime();                       // no speechSynthesis
+  learnerAt(api, 10);
+  assert.equal(api.canHearSounds(), false);
+  api.startSoundRun('th');
+  assert.equal(api.getSounds(), null, 'an exercise that is entirely listening does not start silent');
+});
+
+test('the home card names the weakest sound rather than an average', () => {
+  const { api } = runtime();
+  const state = learnerAt(api, 10);
+  assert.match(api.soundsSummary(), /th/, 'before any attempt it just names them');
+
+  state.sounds = api.normalizeSounds({
+    th: { heard: 20, right: 11 }, wv: { heard: 20, right: 19 },
+    ii: { heard: 0, right: 0 }, ae: { heard: 0, right: 0 },
+  });
+  assert.match(api.soundsSummary(), /th/, 'the one at 55% is the one worth naming');
+  assert.doesNotMatch(api.soundsSummary(), /w מול v/, 'not the one already at 95%');
+
+  // a contrast barely sampled is not called the weakest on two answers
+  state.sounds = api.normalizeSounds({ th: { heard: 2, right: 0 }, wv: { heard: 30, right: 20 } });
+  assert.doesNotMatch(api.soundsSummary(), /th/);
+});
+
+/* ---- listening, with nothing to answer ---- */
+
+test('a conversation replays end to end as one script of taught lines', () => {
+  const { api } = runtime();
+  learnerAt(api, 6);
+  assert.equal(api.listenableLessons().join(','), '0,1,2,3,4,5');
+
+  const script = api.listenScript(2);
+  assert.ok(script.length >= 8, `a real conversation, not a fragment (${script.length} lines)`);
+  assert.ok(script.every(s => s.line?.en && s.line?.he), 'every line has English and its Hebrew');
+  assert.ok(script.some(s => s.who === 'them') && script.some(s => s.who === 'you'),
+    'and it is two voices, not a monologue');
+
+  /* The material is the lesson conversations precisely because they are built
+     only from what that lesson taught — comprehensible is the whole point. */
+  const rounds = api.conversationRounds(2);
+  assert.equal(script[0].line.en, rounds[0].ask.en, 'it opens where the conversation opens');
+});
+
+test('listening plays every line in order, hands free, and asks nothing', () => {
+  const { said, synth, Utterance } = speaker();
+  const { api, app } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 6);
+
+  api.startListenSession(0);
+  const script = api.getListen().script;
+  for (let guard = 0; api.getListen() && guard < 80; guard++) runListenTick(api);
+
+  assert.equal(said.length, script.length, 'every line was actually spoken');
+  script.forEach((step, i) => assert.ok(said[i]?.includes(step.line.en.replace(/,?\s*\{name\}/, '').trim().slice(0, 12)),
+    `line ${i + 1} was the one in the script`));
+  assert.doesNotMatch(app.innerHTML, /onclick="answer/, 'nothing on the end screen asks for an answer');
+  assert.ok(api.listenHeard(0), 'and the conversation is marked as heard');
+  assert.equal(api.getState().listenCount, 1);
+});
+
+test('listening can be paused, and pausing really stops the voice', () => {
+  const { said, synth, Utterance } = speaker();
+  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 6);
+
+  api.startListenSession(1);
+  runListenTick(api);
+  const at = api.getListen().i, spokenSoFar = said.length;
+
+  api.toggleListenPlaying();
+  assert.equal(api.getListen().playing, false);
+  runListenTick(api); runListenTick(api);
+  assert.equal(said.length, spokenSoFar, 'nothing is spoken while paused');
+  assert.equal(api.getListen().i, at, 'and it does not creep forward');
+
+  api.toggleListenPlaying();
+  assert.equal(api.getListen().playing, true);
+  for (let guard = 0; api.getListen() && guard < 80; guard++) runListenTick(api);
+  assert.ok(api.listenHeard(1), 'resuming carries it to the end');
+});
+
+test('the subtitles can be turned off, and the choice is remembered', () => {
+  const { synth, Utterance } = speaker();
+  const seed = new Map();
+  const { api, app } = runtime(seed, { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 6);
+
+  api.startListenSession(2);
+  runListenTick(api); runListenTick(api);
+  assert.match(app.innerHTML, /<b dir="ltr"/, 'English is shown by default — input has to be understandable');
+
+  api.toggleListenSubs();
+  assert.match(app.innerHTML, /listen-hidden/, 'earlier lines are covered for the ear to work alone');
+  assert.match(app.innerHTML, /listen-line [a-z]+ now[\s\S]{0,240}<b dir="ltr"/,
+    'but the line being spoken stays readable, so it never becomes a guessing game');
+  assert.equal(api.getState().listenSubs, false, 'and the preference is kept for next time');
+
+  api.toggleListenHe();
+  assert.match(app.innerHTML, /listen-text[\s\S]{0,300}<small>/, 'Hebrew appears only when asked for');
+});
+
+test('both quiet extras appear once there is anything behind them', () => {
+  const { api, app } = runtime();
+
+  learnerAt(api, 0);
+  api.renderHome();
+  assert.doesNotMatch(app.innerHTML, /renderListenHub|renderSoundsHub/);
+
+  learnerAt(api, 3);
+  api.renderHome();
+  assert.match(app.innerHTML, /class="home-extra2s"/);
+  assert.match(app.innerHTML, /onclick="renderListenHub\(\)"/);
+  assert.match(app.innerHTML, /onclick="renderSoundsHub\(\)"/);
+  /* A second, quieter row: these two are not the daily habit and should not
+     compete with the drill and the self-test for the same tap. */
+  assert.ok(app.innerHTML.indexOf('home-extras three') < app.innerHTML.indexOf('home-extra2s'));
+});
+
+// drive one line of a listening session, standing in for the speech callback
+// and the beat between turns
+function runListenTick(api) {
+  const session = api.getListen();
+  if (!session) return;
+  clearTimeout(session.gapTimer);
+  if (!session.playing) return;
+  api.playListenLine?.();
+}

@@ -238,6 +238,70 @@ body{
 .test-word{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid rgba(251,191,36,.4);border-radius:999px;background:rgba(146,101,10,.2);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
 .test-word b{font-weight:900}
 .test-word span{color:var(--dim);font-size:11.5px}
+/* ---------- the sounds trainer ---------- */
+.home-extra2s{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 6px}
+.home-extra2{display:flex;align-items:center;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:15px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
+.home-extra2:active{transform:scale(.98)}
+.home-extra2.sounds{border-color:rgba(244,114,182,.4);background:linear-gradient(160deg,rgba(131,42,90,.3),rgba(70,20,50,.18))}
+.home-extra2 .e2-icon{font-size:19px;line-height:1;flex-shrink:0}
+.home-extra2 .e2-copy{flex:1;min-width:0;display:grid;gap:1px}
+.home-extra2 .e2-copy b{font-size:13px;font-weight:900}
+.home-extra2 .e2-copy small{color:var(--dim);font-size:10.5px;line-height:1.2}
+.sound-intro{color:var(--dim);font-size:14px;line-height:1.5;margin-bottom:14px}
+.sound-warn{padding:10px 12px;border:1px solid rgba(248,113,113,.4);border-radius:13px;background:rgba(127,29,29,.22);font-size:13px;margin-bottom:12px}
+.sound-grid{display:grid;gap:8px}
+.sound-card{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:16px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer}
+.sound-card:active{transform:scale(.985)}
+.sound-card.strong{border-color:rgba(52,211,153,.45)}
+.sound-card.fair{border-color:rgba(251,191,36,.4)}
+.sound-card.weak{border-color:rgba(248,113,113,.4)}
+.sound-icon{font-size:24px;line-height:1;flex-shrink:0}
+.sound-copy{flex:1;min-width:0;display:grid;gap:1px}
+.sound-copy b{font-size:15px;font-weight:900}
+.sound-copy small{color:var(--dim);font-size:11.5px}
+.sound-score{display:grid;justify-items:center;gap:1px;font-size:15px;font-weight:950;flex-shrink:0}
+.sound-score small{color:var(--dim);font-size:10px;font-weight:600}
+.sound-choices{display:grid;gap:9px;margin-top:4px}
+.sound-opt{display:grid;gap:2px;padding:14px 12px;border:1.5px solid var(--line);border-radius:16px;background:var(--card2);color:var(--text);font:inherit;cursor:pointer}
+.sound-opt b{font-size:22px;font-weight:950;letter-spacing:.4px}
+.sound-opt small{color:var(--dim);font-size:12px}
+.sound-opt.right{border-color:rgba(52,211,153,.75);background:rgba(16,185,129,.22)}
+.sound-opt.wrong{border-color:rgba(248,113,113,.7);background:rgba(127,29,29,.25)}
+.sound-opt:disabled{opacity:.85}
+.sound-models{margin:14px 0 4px;text-align:right}
+.sound-models-head{font-size:15px;font-weight:900;text-align:center;margin-bottom:4px}
+.sound-model{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
+.sound-model-head{font-size:14px;font-weight:900;margin-bottom:3px}
+.sound-model p{color:var(--dim);font-size:12px;line-height:1.4;margin:0 0 8px}
+.sound-model-row{display:flex;flex-wrap:wrap;gap:7px}
+.sound-word{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.sound-word b{font-weight:900}
+.sound-word span{color:var(--dim);font-size:11px}
+/* ---------- listening, with nothing to answer ---------- */
+.home-extra2.listen{border-color:rgba(56,189,248,.4);background:linear-gradient(160deg,rgba(12,74,110,.34),rgba(8,47,73,.2))}
+.listen-grid{display:grid;gap:7px}
+.listen-card{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:15px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer}
+.listen-card:active{transform:scale(.985)}
+.listen-card.heard{border-color:rgba(52,211,153,.4);opacity:.82}
+.listen-num{width:26px;height:26px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:12.5px;font-weight:900;flex-shrink:0}
+.listen-copy{flex:1;min-width:0;display:grid;gap:1px}
+.listen-copy b{font-size:14px;font-weight:900}
+.listen-copy small{color:var(--dim);font-size:11.5px}
+.listen-mark{color:var(--dim);font-size:14px;flex-shrink:0}
+.listen-scene{color:var(--dim);font-size:13px;text-align:center;margin-bottom:10px}
+.listen-controls{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px}
+.listen-btn{padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:var(--card2);color:var(--text);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.listen-btn.on{border-color:rgba(56,189,248,.55);background:rgba(12,74,110,.35)}
+.listen-transcript{display:grid;gap:8px;text-align:right}
+.listen-line{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:start;padding:9px 11px;border:1px solid transparent;border-radius:13px;background:var(--card2);opacity:.6;transition:opacity .2s ease}
+.listen-line.now{opacity:1;border-color:rgba(56,189,248,.5);background:rgba(12,74,110,.24)}
+.listen-line.you{background:rgba(101,86,216,.16)}
+.listen-line.you.now{border-color:rgba(167,139,250,.55);background:rgba(101,86,216,.3)}
+.listen-who{color:var(--dim);font-size:11px;font-weight:800;padding-top:3px;white-space:nowrap}
+.listen-text{min-width:0;display:grid;gap:2px}
+.listen-text b{font-size:16px;font-weight:800;line-height:1.35}
+.listen-text small{color:var(--dim);font-size:12px}
+.listen-hidden{color:var(--dim);letter-spacing:3px}
 .review-back b{font-size:14.5px;font-weight:900}
 /* ---------- drawn portraits ---------- */
 .cast-portrait{--size:44px;--who:#60a5fa;position:relative;display:inline-block;width:var(--size);height:var(--size);border-radius:50%;overflow:hidden;flex-shrink:0;vertical-align:middle;
@@ -7152,7 +7216,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.66.0';
+const APP_VERSION = '2.67.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7291,6 +7355,51 @@ const PRACTICE_CYCLE_KEY = 'speakEnglishPracticeCycleV1';
    game leaves the course untouched — and why its save would otherwise sit in
    the learner's storage forever, since nothing reads it any more. */
 try{ localStorage.removeItem('english.samRun'); }catch(e){}
+/* Up here for the same reason as the rest intervals just below: defaults()
+   seeds a sounds record from this list while the very first state is being
+   read, and a const declared further down is still in its dead zone then. */
+const SOUND_SETS = [
+  { id:'th', icon:'👅', title:'th', sub:'הצליל שאין בעברית',
+    tip:'הלשון יוצאת קצת בין השיניים. זה לא s ולא t — זה צליל שלישי.',
+    pairs:[
+      [['think','לחשוב'],['sink','כיור']],
+      [['three','שלוש'],['tree','עץ']],
+      [['thick','עבה'],['sick','חולה']],
+      [['mouth','פה'],['mouse','עכבר']],
+      [['path','שביל'],['pass','לעבור']],
+      [['thanks','תודה'],['tanks','טנקים']],
+    ]},
+  { id:'wv', icon:'👄', title:'w מול v', sub:'שתי שפתיים או שן ושפה',
+    tip:'ל־w מעגלים את השפתיים כמו לשריקה, בלי שיניים. ל־v השן העליונה נוגעת בשפה התחתונה.',
+    pairs:[
+      [['west','מערב'],['vest','אפודה']],
+      [['wet','רטוב'],['vet','וטרינר']],
+      [['wine','יין'],['vine','גפן']],
+      [['worse','גרוע יותר'],['verse','בית בשיר']],
+    ]},
+  { id:'ii', icon:'📏', title:'i קצרה מול ארוכה', sub:'ship מול sheep',
+    tip:'ה־i הארוכה נמשכת והחיוך רחב יותר. הקצרה נחתכת מהר.',
+    pairs:[
+      [['ship','ספינה'],['sheep','כבשה']],
+      [['sit','לשבת'],['seat','מושב']],
+      [['fill','למלא'],['feel','להרגיש']],
+      [['live','לחיות'],['leave','לעזוב']],
+      [['this','זה'],['these','אלה']],
+      [['it','זה'],['eat','לאכול']],
+    ]},
+  { id:'ae', icon:'😮', title:'a מול e', sub:'bad מול bed',
+    tip:'ל־a הפה נפתח רחב יותר והצליל שטוח. ל־e הפה כמעט סגור.',
+    pairs:[
+      [['bad','רע'],['bed','מיטה']],
+      [['man','איש'],['men','אנשים']],
+      [['pan','מחבת'],['pen','עט']],
+      [['sad','עצוב'],['said','אמר']],
+      [['bat','עטלף'],['bet','הימור']],
+      [['sat','ישב'],['set','להניח']],
+    ]},
+];
+const SOUND_ROUNDS = 10;
+
 /* How long a phrase may rest, and what moves it. Declared up here rather than
    beside the rest of the review code because normalizeReviewMeta() seeds a
    level while the very first state is being loaded, a few lines below — a
@@ -7349,6 +7458,12 @@ function load(){
       out.drillCount = Math.max(0, Math.floor(Number(out.drillCount) || 0));
       out.testDate = typeof out.testDate === 'string' ? out.testDate : '';
       out.testCount = Math.max(0, Math.floor(Number(out.testCount) || 0));
+      out.sounds = normalizeSounds(out.sounds);
+      out.listenHeard = Array.isArray(out.listenHeard)
+        ? [...new Set(out.listenHeard.filter(x=>Number.isInteger(x)&&x>=0&&x<LESSONS.length))] : [];
+      out.listenDate = typeof out.listenDate === 'string' ? out.listenDate : '';
+      out.listenCount = Math.max(0, Math.floor(Number(out.listenCount) || 0));
+      out.listenSubs = out.listenSubs !== false;
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -7389,6 +7504,7 @@ function defaults(){
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false, uiSounds:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
     checks:normalizeChecks(null), drillDate:'', drillCount:0, testDate:'', testCount:0,
+    sounds:normalizeSounds(null), listenHeard:[], listenDate:'', listenCount:0, listenSubs:true,
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
     practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[], practiceStoryDone:[],
     missions:{},
@@ -7597,6 +7713,12 @@ function reconcileStoredProgress(){
     state.practiceRecentUpdatedAt=Math.max(localPracticeTs,storedPracticeTs);
     state.missions=mergeMissions(stored.missions, state.missions);
     state.checks=mergeChecks(stored.checks, state.checks);
+    state.sounds=mergeSounds(stored.sounds, state.sounds);
+    // a conversation heard in any tab has been heard
+    state.listenHeard=[...new Set([...(Array.isArray(stored.listenHeard)?stored.listenHeard:[]),
+      ...(Array.isArray(state.listenHeard)?state.listenHeard:[])])].filter(x=>Number.isInteger(x));
+    state.listenCount=Math.max(Number(state.listenCount)||0,Math.floor(Number(stored.listenCount)||0));
+    if(dateValue(stored.listenDate)>dateValue(state.listenDate)) state.listenDate=stored.listenDate;
     state.drillCount=Math.max(Number(state.drillCount)||0,Math.floor(Number(stored.drillCount)||0));
     state.testCount=Math.max(Number(state.testCount)||0,Math.floor(Number(stored.testCount)||0));
     // the later day wins: work done in any tab counts for that day
@@ -8766,6 +8888,20 @@ function renderHome(){
       <button type="button" class="home-extra practice" onclick="renderPracticePicker()">
         <span class="extra-icon">🗣️</span><span class="extra-title">שיחה חופשית</span><span class="extra-sub">בחר עם מי לדבר</span>
       </button>
+    </div>
+    ${/* A second, quieter row. These two are not the daily habit — one is the
+          ear rather than the vocabulary, the other is listening rather than
+          being asked — so they are here rather than competing with the three
+          above for the same tap. */''}
+    <div class="home-extra2s">
+      <button type="button" class="home-extra2 listen" onclick="renderListenHub()">
+        <span class="e2-icon">🎧</span>
+        <span class="e2-copy"><b>להקשיב</b><small>${listenSummary()}</small></span>
+      </button>
+      <button type="button" class="home-extra2 sounds" onclick="renderSoundsHub()">
+        <span class="e2-icon">👂</span>
+        <span class="e2-copy"><b>הצלילים של אנגלית</b><small>${soundsSummary()}</small></span>
+      </button>
     </div>` : '';
 
   hx(`
@@ -9220,6 +9356,428 @@ function noteTestDone(){
   state.testCount=Math.max(0,Math.floor(Number(state.testCount)||0))+1;
   touchState('progressUpdatedAt');
   save();
+}
+
+/* ================= the sounds Hebrew does not have =================
+   Everything else in the app checks which words the learner said. Nothing
+   checks how, and the matcher cannot: it compares text with a one-character
+   edit allowance, so "vater" passes as water, "wery" as very, "tree" as three
+   and "sink" as think. A learner can finish the whole course saying all of
+   those and never be told.
+
+   Four contrasts do most of the damage for a Hebrew speaker, because Hebrew
+   has no sound for the first two and does not distinguish the last two at all:
+   θ (think, not sink), w (water, not vater), ɪ against iː (ship, sheep), and
+   æ against e (bad, bed).
+
+   This trains hearing them, not saying them, and that is a deliberate limit
+   rather than a missing half. Browser speech recognition is built to be
+   forgiving of accents — it will quietly return the word you meant — so any
+   pronunciation score built on it would be theatre. Hearing the difference is
+   also the part that has to come first: a contrast you cannot hear is not one
+   you can aim for. So the app scores what it can actually judge, and for
+   producing it gives a model to copy and says plainly that it is not marking. */
+
+function soundSet(id){ return SOUND_SETS.find(s=>s.id===id)||null; }
+function soundAllPairs(){
+  return SOUND_SETS.flatMap(set=>set.pairs.map(pair=>({set,pair})));
+}
+/* Per-contrast, so the learner can see which sound is the weak one rather
+   than one score for "pronunciation". */
+function normalizeSounds(raw){
+  const src=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+  const out={};
+  for(const set of SOUND_SETS){
+    const row=src[set.id]&&typeof src[set.id]==='object'&&!Array.isArray(src[set.id])?src[set.id]:{};
+    out[set.id]={ heard:Math.max(0,Math.floor(Number(row.heard)||0)),
+      right:Math.max(0,Math.floor(Number(row.right)||0)), at:Math.max(0,Number(row.at)||0) };
+  }
+  return out;
+}
+function mergeSounds(stored, local){
+  const a=normalizeSounds(stored), b=normalizeSounds(local), out={};
+  // both tabs were listening; the totals add up rather than one winning
+  for(const set of SOUND_SETS) out[set.id]={
+    heard:Math.max(a[set.id].heard,b[set.id].heard),
+    right:Math.max(a[set.id].right,b[set.id].right),
+    at:Math.max(a[set.id].at,b[set.id].at) };
+  return out;
+}
+function soundRow(id){
+  if(!state.sounds||typeof state.sounds!=='object') state.sounds=normalizeSounds(null);
+  if(!state.sounds[id]) state.sounds[id]={heard:0,right:0,at:0};
+  return state.sounds[id];
+}
+function soundAccuracy(id){
+  const row=soundRow(id);
+  return row.heard?Math.round(100*row.right/row.heard):null;
+}
+/* The home card says which sound is worst rather than an average, because an
+   average of four contrasts is not something anyone can act on. */
+function soundsSummary(){
+  const tried=SOUND_SETS.filter(set=>soundRow(set.id).heard>=4);
+  if(!tried.length) return 'th · w · ship/sheep · bad/bed';
+  const worst=tried.reduce((a,b)=>soundAccuracy(a.id)<=soundAccuracy(b.id)?a:b);
+  const acc=soundAccuracy(worst.id);
+  return acc>=85 ? 'האוזן תופסת את כולם 👂' : `הכי כדאי לתרגל: ${worst.title} · ${acc}%`;
+}
+function canHearSounds(){
+  try{ return typeof speechSynthesis!=='undefined' && 'speechSynthesis' in window; }catch(e){ return false; }
+}
+
+let S = null;
+function renderSoundsHub(){
+  S=null;
+  const cards=SOUND_SETS.map(set=>{
+    const acc=soundAccuracy(set.id), row=soundRow(set.id);
+    const state_=acc===null?'עוד לא ניסית':`${acc}% נכון · ${row.heard} האזנות`;
+    const grade=acc===null?'':acc>=85?' strong':acc>=60?' fair':' weak';
+    return `<button type="button" class="sound-card${grade}" onclick="startSoundRun('${set.id}')">
+      <span class="sound-icon" aria-hidden="true">${set.icon}</span>
+      <span class="sound-copy"><b>${esc(set.title)}</b><small>${esc(set.sub)}</small></span>
+      <span class="sound-score">${acc===null?'—':acc+'%'}<small>${esc(state_.split(' · ')[1]||'')}</small></span>
+    </button>`;
+  }).join('');
+  hx(`
+  <div class="screen">
+    <div class="player-top">
+      <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
+      <h2 style="font-size:20px">הצלילים של אנגלית 👂</h2>
+    </div>
+    ${canHearSounds()?'':'<div class="sound-warn">אין קול במכשיר הזה — התרגול הזה כולו האזנה, אז הוא לא יעבוד כאן.</div>'}
+    <p class="sound-intro">בעברית אין את הצלילים האלה, אז האוזן לא רגילה אליהם — ואי אפשר לומר הבדל ששומעים אותו.<br>כאן <b>רק מקשיבים ובוחרים</b>. אחרי זה יש דוגמה לחזור אחריה.</p>
+    <div class="sound-grid">${cards}</div>
+    <button class="btn secondary" style="margin-top:12px" onclick="startSoundRun('all')">הכול מעורבב 🎲</button>
+  </div>`);
+}
+function startSoundRun(setId){
+  if(!canHearSounds()){ toast('אין קול במכשיר הזה — התרגול הזה כולו האזנה.'); return; }
+  unlockUiAudio();
+  const source=setId==='all'?soundAllPairs():(soundSet(setId)?.pairs||[]).map(pair=>({set:soundSet(setId),pair}));
+  if(!source.length) return;
+  const rounds=[];
+  // draw with replacement once the set is exhausted; four pairs must still
+  // fill ten rounds, and hearing the same contrast again is the exercise
+  let bag=shuffled(source);
+  for(let i=0;i<SOUND_ROUNDS;i++){
+    if(!bag.length) bag=shuffled(source);
+    const {set,pair}=bag.shift();
+    const target=Math.random()<.5?0:1;
+    rounds.push({set,pair,target,shown:Math.random()<.5?[0,1]:[1,0]});
+  }
+  S={ setId, rounds, i:0, right:0, answered:false, missed:[] };
+  renderSoundStep();
+}
+function exitSoundRun(){
+  if(S) clearTimeout(S.advanceTimer);
+  S=null;
+  cancelSpeech();
+  renderSoundsHub();
+}
+function renderSoundStep(){
+  if(!S) return;
+  if(S.i>=S.rounds.length) return renderSoundDone();
+  S.answered=false;
+  const r=S.rounds[S.i], pct=Math.round(S.i/S.rounds.length*100);
+  hx(`
+  <div class="screen">
+    <div class="player-top">
+      <button class="xbtn" onclick="exitSoundRun()" aria-label="יציאה">✕</button>
+      <div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="timer">${esc(r.set.title)}</div>
+    </div>
+    <div class="step">
+      <div class="step-label">👂 איזו מילה שמעת?</div>
+      <div class="review-count">${S.i+1} מתוך ${S.rounds.length}</div>
+      <div class="recall-card">
+        <button class="play-big" onclick="playSoundWord()" aria-label="להשמיע שוב">🔊</button>
+        <div class="audio-only">אפשר לשמוע שוב כמה פעמים שצריך</div>
+      </div>
+      <div class="sound-choices" id="soundChoices">
+        ${r.shown.map(idx=>`<button type="button" class="sound-opt" onclick="answerSound(${idx})">
+          <b dir="ltr" lang="en">${esc(r.pair[idx][0])}</b><small>${esc(r.pair[idx][1])}</small>
+        </button>`).join('')}
+      </div>
+      <div id="soundResult" role="status" aria-live="polite"></div>
+    </div>
+  </div>`);
+  scheduleSpeak(r.pair[r.target][0], 420);
+}
+function playSoundWord(){
+  if(!S) return;
+  const r=S.rounds[S.i];
+  if(r) speak(r.pair[r.target][0]);
+}
+function answerSound(index){
+  if(!S||S.answered) return;
+  const r=S.rounds[S.i], pass=index===r.target;
+  S.answered=true;
+  if(pass) S.right++; else S.missed.push(r);
+  const row=soundRow(r.set.id);
+  row.heard++; if(pass) row.right++;
+  row.at=Date.now();
+  touchState('progressUpdatedAt');
+  save();
+  playUiSound(pass?'pass':'retry');
+  const box=document.getElementById('soundChoices');
+  if(box) [...box.children].forEach((b,slot)=>{
+    b.disabled=true;
+    const idx=r.shown[slot];
+    if(idx===r.target) b.classList.add('right');
+    else if(idx===index) b.classList.add('wrong');
+  });
+  const out=document.getElementById('soundResult');
+  if(out) out.innerHTML=pass
+    ? `<div class="result-msg good">${esc(pick(PRAISE))}</div>`
+    : `<div class="result-msg almost">שמעת <b dir="ltr" lang="en">${esc(r.pair[r.target][0])}</b> — ${esc(r.pair[r.target][1])}<br><small>${esc(r.set.tip)}</small></div>`;
+  // a miss holds the right word and the mouth tip on screen for longer
+  scheduleSoundAdvance(pass?950:2600);
+}
+/* Same rule as the review runs: the pending advance belongs to its run, is
+   cleared when the run ends, and checks on the way in that it is still the
+   run it was scheduled for. Otherwise leaving mid-pause and starting another
+   round inside two seconds steps the new one forward a question. */
+function scheduleSoundAdvance(ms){
+  if(!S) return;
+  const run=S;
+  clearTimeout(run.advanceTimer);
+  run.advanceTimer=setTimeout(()=>{ if(S===run) advanceSound(); }, ms);
+}
+function advanceSound(){
+  if(!S) return;
+  clearTimeout(S.advanceTimer);
+  S.advanceTimer=null;
+  S.i++;
+  renderSoundStep();
+}
+function renderSoundDone(){
+  const {setId,right,rounds,missed}=S;
+  const total=rounds.length;
+  S=null;
+  const share=Math.round(100*right/total);
+  const head=share>=85?'👂':share>=60?'💪':'🎧';
+  /* The model to copy comes last and is deliberately unmarked. Saying so is
+     more useful than a score the phone is in no position to give. */
+  const setsTouched=[...new Set(rounds.map(r=>r.set.id))].map(soundSet);
+  const modelHtml=setsTouched.map(set=>{
+    const sample=set.pairs[0];
+    return `<div class="sound-model">
+      <div class="sound-model-head">${set.icon} ${esc(set.title)}</div>
+      <p>${esc(set.tip)}</p>
+      <div class="sound-model-row">${sample.map(([en,he])=>
+        `<button type="button" class="sound-word" onclick="speak('${jsEsc(en)}')">🔊 <b dir="ltr" lang="en">${esc(en)}</b><span>${esc(he)}</span></button>`).join('')}</div>
+    </div>`;
+  }).join('');
+  hx(`
+  <div class="screen"><div class="step"><div class="finish">
+    <div class="emoji">${head}</div>
+    <h2>${right} מתוך ${total}</h2>
+    <p>${share>=85?'האוזן שלך תופסת את ההבדל. זה בדיוק מה שצריך כדי גם להגיד אותו.'
+      :share>=60?'משתפר. ככל שהאוזן תופסת יותר, הפה עוקב אחריה.'
+      :'זה נורמלי — הצלילים האלה לא קיימים בעברית. כמה סבבים והאוזן מתחילה לתפוס.'}</p>
+    ${missed.length?`<div class="review-back"><small>אלה שהתבלבלו</small>${
+      [...new Set(missed.map(r=>r.pair[r.target][0]))].slice(0,5)
+        .map(w=>`<b dir="ltr" lang="en">${esc(w)}</b>`).join('')}</div>`:''}
+    <div class="sound-models">
+      <div class="sound-models-head">עכשיו נסה להגיד — אין כאן ציון</div>
+      <p class="review-honest">הטלפון לא באמת יודע לשפוט הגייה: זיהוי הדיבור בנוי לסלוח על מבטא ויחזיר לך את המילה שהתכוונת אליה בכל מקרה. אז הנה הדוגמה — תשמע, תגיד אחריה, ותשווה בעצמך.</p>
+      ${modelHtml}
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="startSoundRun('${esc(setId)}')">עוד סבב 🔁</button>
+      <button class="btn secondary" onclick="renderSoundsHub()">לצלילים אחרים</button>
+    </div>
+  </div></div></div>`);
+}
+
+/* ================= listening, with nothing to answer =================
+   Every other screen in this app asks the learner for something. That is most
+   of what it is for, and it is also the one thing it does to the exclusion of
+   everything else: there has never been a way to simply take English in.
+   Volume of understood input is about as well supported as anything in
+   learning a language, and a child who is only ever tested learns to pass
+   tests.
+
+   The material is already written and needs no new content: each lesson's
+   conversation is a dozen lines of nothing but what that lesson taught, with
+   a character, a place and a Hebrew line for every turn. Played end to end it
+   is exactly what is missing — connected speech, at pace, that the learner
+   already has the vocabulary to follow.
+
+   Nothing here is scored and nothing is asked. The English is on screen by
+   default because input has to be comprehensible to be worth anything, and
+   there is a switch for anyone who wants to work with the ear alone. */
+let I = null;
+function listenScript(idx){
+  const rounds=conversationRounds(idx);
+  const script=[];
+  for(const round of rounds){
+    if(round?.ask) script.push({who:'them',line:round.ask});
+    // one path through a branching conversation; a different draw next time
+    const option=pick((round?.options||[]).filter(o=>o&&o.answer));
+    if(option){
+      script.push({who:'you',line:option.answer});
+      if(option.reply) script.push({who:'them',line:option.reply});
+    }
+  }
+  return script;
+}
+function listenableLessons(){
+  const done=Math.max(0,Math.min(state.completed,LESSONS.length));
+  const out=[];
+  for(let i=0;i<done;i++) if(listenScript(i).length>=4) out.push(i);
+  return out;
+}
+function listenHeard(idx){ return (state.listenHeard||[]).includes(idx); }
+function listenSummary(){
+  const all=listenableLessons();
+  if(!all.length) return 'ייפתח אחרי השיעור הראשון';
+  const left=all.filter(i=>!listenHeard(i)).length;
+  return left?`${left} שיחות שלא שמעת`:'שמעת את כולן — אפשר שוב';
+}
+function renderListenHub(){
+  I=null;
+  const lessons=listenableLessons();
+  if(!lessons.length){ toast('אחרי השיעור הראשון יהיה כאן מה לשמוע 🎧'); return renderHome(); }
+  const cards=lessons.map(idx=>{
+    const meta=conversationMeta(idx), heard=listenHeard(idx);
+    return `<button type="button" class="listen-card${heard?' heard':''}" onclick="startListenSession(${idx})">
+      <span class="listen-num">${idx+1}</span>
+      <span class="listen-copy"><b>${esc(meta.placeEmoji)} ${esc(meta.place)}</b><small>עם ${esc(meta.character.name)} · ${listenScript(idx).length} משפטים</small></span>
+      <span class="listen-mark" aria-hidden="true">${heard?'✓':'▶'}</span>
+    </button>`;
+  }).join('');
+  hx(`
+  <div class="screen">
+    <div class="player-top">
+      <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
+      <h2 style="font-size:20px">להקשיב 🎧</h2>
+    </div>
+    <p class="sound-intro">כאן לא שואלים אותך כלום. פשוט שיחה שלמה באנגלית, מכל מה שכבר למדת, רצה מעצמה.<br>אפשר להסתיר את הכתוביות ולעבוד רק עם האוזן.</p>
+    <div class="listen-grid">${cards}</div>
+  </div>`);
+}
+function startListenSession(idx){
+  if(L){
+    askConfirm({title:'יש שיעור פתוח', text:'לצאת ממנו? המקום בשיעור יישמר.',
+      ok:'כן, לצאת', cancel:'לא, להישאר בשיעור'}).then(ok=>{
+      if(!ok||!L) return;
+      stopLessonTimers(true); L=null; startListenSession(idx);
+    });
+    return;
+  }
+  unlockUiAudio();
+  const script=listenScript(idx);
+  if(!script.length) return;
+  I={ idx, script, i:0, playing:true, showEn:state.listenSubs!==false, showHe:false, meta:conversationMeta(idx) };
+  renderListenPlayer();
+  playListenLine();
+}
+function exitListenSession(){
+  I=null;
+  cancelSpeech();
+  renderListenHub();
+}
+/* Each line hands off to the next through speak()'s callback, which always
+   fires — on end, on error, and on a watchdog if the engine goes quiet — so
+   the chain cannot stall halfway through a conversation. */
+function playListenLine(){
+  if(!I||!I.playing) return;
+  const session=I, step=I.script[I.i];
+  if(!step) return finishListenSession();
+  const voice=step.who==='them'?characterVoice(I.meta.character):null;
+  speak(ptext(step.line,'en',true),()=>{
+    if(I!==session||!I.playing) return;
+    I.i++;
+    if(I.i>=I.script.length) return finishListenSession();
+    renderListenPlayer();
+    // a beat between turns, so it reads as a conversation rather than a list
+    I.gapTimer=setTimeout(()=>{ if(I===session&&I.playing) playListenLine(); }, 520);
+  },voice);
+}
+function toggleListenPlaying(){
+  if(!I) return;
+  I.playing=!I.playing;
+  clearTimeout(I.gapTimer);
+  if(I.playing) playListenLine(); else cancelSpeech();
+  renderListenPlayer();
+}
+function replayListenLine(){
+  if(!I) return;
+  clearTimeout(I.gapTimer);
+  I.playing=true;
+  cancelSpeech();
+  renderListenPlayer();
+  playListenLine();
+}
+function toggleListenSubs(){
+  if(!I) return;
+  I.showEn=!I.showEn;
+  state.listenSubs=I.showEn;
+  touchState('settingsUpdatedAt');
+  save();
+  renderListenPlayer();
+}
+function toggleListenHe(){
+  if(!I) return;
+  I.showHe=!I.showHe;
+  renderListenPlayer();
+}
+function renderListenPlayer(){
+  if(!I) return;
+  const meta=I.meta, pct=Math.round(I.i/Math.max(1,I.script.length)*100);
+  const rows=I.script.slice(0,I.i+1).map((step,n)=>{
+    const current=n===I.i;
+    const who=step.who==='them'?esc(meta.character.name):'אתה';
+    return `<div class="listen-line ${step.who}${current?' now':''}">
+      <span class="listen-who">${who}</span>
+      <span class="listen-text">
+        ${I.showEn||current?`<b dir="ltr" lang="en">${esc(ptext(step.line,'en'))}</b>`:'<b class="listen-hidden">• • •</b>'}
+        ${I.showHe?`<small>${esc(ptext(step.line,'he'))}</small>`:''}
+      </span>
+    </div>`;
+  }).reverse().join('');
+  hx(`
+  <div class="screen">
+    <div class="player-top">
+      <button class="xbtn" onclick="exitListenSession()" aria-label="יציאה">✕</button>
+      <div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="timer">${I.i+1}/${I.script.length}</div>
+    </div>
+    <div class="step">
+      <div class="listen-scene">${esc(meta.placeEmoji)} ${esc(meta.place)} · עם ${esc(meta.character.name)}</div>
+      <div class="listen-controls">
+        <button type="button" class="listen-btn" onclick="toggleListenPlaying()">${I.playing?'⏸ עצור':'▶ להמשיך'}</button>
+        <button type="button" class="listen-btn" onclick="replayListenLine()">🔊 שוב</button>
+        <button type="button" class="listen-btn${I.showEn?' on':''}" onclick="toggleListenSubs()">${I.showEn?'כתוביות':'בלי כתוביות'}</button>
+        <button type="button" class="listen-btn${I.showHe?' on':''}" onclick="toggleListenHe()">עברית</button>
+      </div>
+      <div class="listen-transcript">${rows}</div>
+    </div>
+  </div>`);
+}
+function finishListenSession(){
+  const idx=I?.idx;
+  const meta=I?.meta;
+  I=null;
+  if(!Number.isInteger(idx)) return renderListenHub();
+  state.listenHeard=[...new Set([...(state.listenHeard||[]),idx])];
+  state.listenDate=todayStr();
+  state.listenCount=Math.max(0,Math.floor(Number(state.listenCount)||0))+1;
+  touchState('progressUpdatedAt');
+  save();
+  const left=listenableLessons().filter(i=>!listenHeard(i));
+  hx(`
+  <div class="screen"><div class="step"><div class="finish">
+    <div class="emoji">🎧</div>
+    <h2>שמעת שיחה שלמה</h2>
+    <p>בלי לענות על כלום, בלי לתרגם מילה־מילה.<br>ככה האוזן מתרגלת לאנגלית רצופה.</p>
+    ${left.length?`<div class="milestone">🎧 עוד ${left.length} שיחות מחכות</div>`:'<div class="milestone">🎧 שמעת את כל השיחות שנפתחו לך</div>'}
+    <div class="btn-row">
+      ${left.length?`<button class="btn" onclick="startListenSession(${left[0]})">השיחה הבאה 🎧</button>`:''}
+      <button class="btn secondary" onclick="renderListenHub()">לרשימה</button>
+    </div>
+  </div></div></div>`);
 }
 
 /* ---- the mark on the unit ----
