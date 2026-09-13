@@ -51,7 +51,7 @@ function runtime(seed = new Map(), options = {}) {
     setTimeout, clearTimeout, setInterval, clearInterval,
     requestAnimationFrame: fn => setTimeout(fn, 0),
     cancelAnimationFrame: id => clearTimeout(id),
-    Date, Math, JSON, Map, Set, String, Number, Array, Object, Promise, atob,
+    Date: options.Date || Date, Math, JSON, Map, Set, String, Number, Array, Object, Promise, atob,
     ...(options.speechSynthesis ? {
       speechSynthesis: options.speechSynthesis,
       SpeechSynthesisUtterance: options.SpeechSynthesisUtterance,
@@ -101,7 +101,7 @@ function runtime(seed = new Map(), options = {}) {
       answerReviewChoice, answerReviewSay, revealReviewSay, notePractice,
       unitChecked, checkRow, normalizeChecks, mergeChecks, drilledToday, todayStr, advanceReview,
       REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_LEVEL,
-      REVIEW_MAX_LEVEL, REVIEW_MISS_DROP,
+      REVIEW_MAX_LEVEL, REVIEW_MISS_DROP, REVIEW_REST_MS, recordStepResult, revealSpeakHint,
       REVIEW_PAUSE_PASS,
       startSelfTest, TEST_WORDS, TEST_LENGTH, wordGloss, reviewWordChips,
       pickMissingWord, finishReviewPick, playOrderChunks, splitPhraseChunks,
@@ -119,6 +119,15 @@ function runtime(seed = new Map(), options = {}) {
     dispatchDocument(type) { for (const listener of documentListeners.get(type) || []) listener(); },
     dispatchWindow(type) { for (const listener of windowListeners.get(type) || []) listener(); },
   };
+}
+
+function memoryRuntime(seed = new Map(), at = Date.now()) {
+  class MemoryDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [at])); }
+    static now() { return at; }
+  }
+  return { ...runtime(seed, { Date: MemoryDate }),
+    advance(ms) { at += ms; }, now: () => at, Date: MemoryDate };
 }
 
 function classCount(markup, token) {
@@ -553,13 +562,21 @@ test('the learner\'s own name never blocks a passing sentence', () => {
   assert.deepEqual([...api.softWordsFor({ p: { en: 'My name is {name}' } })], []);
 });
 
-test('warm-up grows to 20 and keeps hard, recent and older material', () => {
-  const { api } = runtime();
+test('warm-up keeps its length and mixes due hard, recent and older material', () => {
+  const { api, now } = memoryRuntime();
   const state = api.defaults();
   state.onboarded = true;
   state.completed = 19;
-  state.hard = Array.from({ length: 12 }, (_, i) => `${Math.floor(i / 5)}:${i % 5}`);
-  state.lastWarmupIds = state.hard.slice(0, 2);
+  for (let li = 0; li < 19; li++) for (let pi = 0; pi < 5; pi++)
+    state.reviewMeta[`${li}:${pi}`] = { level: 5, lastPracticedAt: now(), hard: false };
+  state.hard = Array.from({ length: 10 }, (_, i) => `${Math.floor(i / 5)}:${i % 5}`);
+  const dueIds = [...state.hard,
+    ...Array.from({ length: 5 }, (_, i) => `18:${i}`),
+    ...Array.from({ length: 5 }, (_, i) => `10:${i}`)];
+  for (const id of dueIds) state.reviewMeta[id] = {
+    level: 0, lastPracticedAt: now() - 3 * 864e5, hard: state.hard.includes(id),
+  };
+  state.lastWarmupIds = ['4:0', '4:1'];
   api.setState(state);
 
   assert.equal(api.selectWarmup(1, 3).length, 3);
@@ -3219,16 +3236,17 @@ test('a stale tab checkpoint cannot erase newer adaptive-review data', () => {
 
 test('concurrent review edits merge per phrase and newer same-phrase result wins', async () => {
   const seed = new Map();
-  const initial = runtime(seed);
+  const initial = memoryRuntime(seed);
   const base = initial.api.defaults();
   base.onboarded = true;
   base.completed = 2;
   seed.set('speakEnglishV1', JSON.stringify(base));
-  const first = runtime(seed);
-  const second = runtime(seed);
+  const first = runtime(seed, { Date: initial.Date });
+  const second = runtime(seed, { Date: initial.Date });
 
   first.api.notePractice('0:0', 'fail', false, true);
   await new Promise(resolve => setTimeout(resolve, 2));
+  initial.advance(1);
   second.api.notePractice('1:0', 'fail', false, true);
   let persisted = JSON.parse(seed.get('speakEnglishV1'));
   assert.ok(persisted.hard.includes('0:0'));
@@ -3239,6 +3257,7 @@ test('concurrent review edits merge per phrase and newer same-phrase result wins
   assert.ok(persisted.lastWarmupIds.includes('1:0'));
 
   await new Promise(resolve => setTimeout(resolve, 2));
+  initial.advance(24 * 36e5);
   first.api.notePractice('0:0', 'pass', false, true);
   persisted = JSON.parse(seed.get('speakEnglishV1'));
   assert.equal(persisted.reviewMeta['0:0'].hard, false);
@@ -4501,16 +4520,13 @@ test('the secure count means "could say it right now", so it moves', () => {
 });
 
 test('the secure count is neither always nothing nor always everything', () => {
-  const { api } = runtime();
+  const { api, advance, now } = memoryRuntime();
   const state = learnerAt(api, 10);
-  const now = Date.now();
 
   // nothing practised yet: the app cannot claim he holds any of it
-  assert.equal(api.reviewPool(null).filter(x => api.reviewSecure(state.reviewMeta[x.id], now)).length, 0);
+  assert.equal(api.reviewPool(null).filter(x => api.reviewSecure(state.reviewMeta[x.id], now())).length, 0);
 
-  /* What ten lessons actually leave behind — a speak step for every phrase, a
-     challenge for some, warm-ups for the older ones. This is the case that
-     matters: a count that read 50 of 50 here would be decoration. */
+  // Repetition in one sitting is practice, however many times it succeeds.
   for (let li = 0; li < 10; li++) {
     for (let pi = 0; pi < 5; pi++) {
       const id = `${li}:${pi}`;
@@ -4519,13 +4535,20 @@ test('the secure count is neither always nothing nor always everything', () => {
       for (let w = 0; w < Math.max(0, Math.min(3, 9 - li)); w++) api.notePractice(id, 'pass');
     }
   }
+  assert.equal(api.reviewPool(null).filter(x => api.reviewSecure(api.getState().reviewMeta[x.id], now())).length, 0);
+  // Forty phrases then succeed on separate days; ten still need that evidence.
+  for (let round = 0; round < 5; round++) {
+    advance(24 * 36e5);
+    for (let li = 0; li < 8; li++) for (let pi = 0; pi < 5; pi++)
+      if (round < 2 || li < 4) api.notePractice(`${li}:${pi}`, 'pass');
+  }
   const meta = api.getState().reviewMeta;
   const pool = api.reviewPool(null);
-  const justPractised = pool.filter(x => api.reviewSecure(meta[x.id], now)).length;
-  assert.ok(justPractised > pool.length * 0.8, 'straight after the lessons he does hold nearly all of it');
+  const justPractised = pool.filter(x => api.reviewSecure(meta[x.id], now())).length;
+  assert.equal(justPractised, 40, 'only the phrases recalled on separate days count');
 
   // three weeks later, without opening the app, he plainly does not
-  const later = now + 21 * 864e5;
+  const later = now() + 21 * 864e5;
   const lapsed = pool.filter(x => api.reviewSecure(meta[x.id], later)).length;
   assert.ok(lapsed < justPractised, `the count falls away on its own (${justPractised} to ${lapsed})`);
   assert.ok(lapsed > 0, 'but the best-known phrases are still there');
@@ -4561,7 +4584,7 @@ test('the pause after an answer advances the run it belongs to, and no other', a
 });
 
 test('coming back after a long gap shows the count climbing again', () => {
-  const { api, app } = runtime();
+  const { api, app, advance } = memoryRuntime();
   const lessonCount = api.LESSONS.length;
   learnerAt(api, lessonCount);
   // the whole course played through, then forty days of nothing
@@ -4571,8 +4594,7 @@ test('coming back after a long gap shows the count climbing again', () => {
       if (pi < 3) api.notePractice(`${li}:${pi}`, 'pass');
     }
   }
-  const meta = api.getState().reviewMeta;
-  for (const id of Object.keys(meta)) meta[id].lastPracticedAt = Date.now() - 40 * 864e5;
+  advance(40 * 864e5);
 
   const pool = api.reviewPool(null);
   const secure = () => pool.filter(x => api.reviewSecure(api.getState().reviewMeta[x.id])).length;
@@ -4580,13 +4602,14 @@ test('coming back after a long gap shows the count climbing again', () => {
   assert.ok(before < pool.length * 0.2, 'forty days away really has cost him most of it');
 
   api.startDailyDrill();
-  runReview(api, () => true);
-  assert.equal(secure(), before + api.DRILL_LENGTH, 'and ninety seconds of drilling buys it straight back');
+  const { asked } = runReview(api, () => true);
+  const recalled = asked.filter(q => q.shape === 'say').length;
+  assert.equal(secure(), before + recalled, 'only delayed recall restores the memory count');
 
   /* The number moving is the whole reward for opening the app on a day with
      no lesson in it, so the run has to end by showing that it moved. */
   assert.match(app.innerHTML, /milestone-gain/, 'the gain is on the screen');
-  assert.match(app.innerHTML, new RegExp(`\\+${api.DRILL_LENGTH}`), 'and it says how much');
+  assert.match(app.innerHTML, new RegExp(`\\+${recalled}`), 'and it says how much');
 });
 
 /* ---- the self-test ----
@@ -4708,7 +4731,7 @@ test('every catalogued word is one the course actually teaches', () => {
    number of correct answers could lift it. */
 
 test('a phrase with a bad history still climbs the moment he starts knowing it', () => {
-  const { api } = runtime();
+  const { api, advance } = memoryRuntime();
   learnerAt(api, 10);
   const id = '3:2';
   for (let i = 0; i < 3; i++) api.notePractice(id, 'fail');
@@ -4719,7 +4742,11 @@ test('a phrase with a bad history still climbs the moment he starts knowing it',
 
   const bottom = rest();
   api.notePractice(id, 'pass');
+  assert.equal(rest(), bottom, 'an immediate correction remains due for review');
+  advance(24 * 36e5);
+  api.notePractice(id, 'pass');
   assert.equal(rest(), bottom * 2, 'the very first "I knew it" doubles the rest');
+  advance(24 * 36e5);
   api.notePractice(id, 'pass');
   assert.equal(rest(), bottom * 4, 'and the next doubles it again');
 
@@ -4729,17 +4756,17 @@ test('a phrase with a bad history still climbs the moment he starts knowing it',
   assert.equal(api.reviewLevel(meta()), 2);
 });
 
-test('one clear answer is one rung, from wherever the phrase happens to be', () => {
-  const { api } = runtime();
+test('one spaced recall is one rung, from wherever the phrase happens to be', () => {
+  const { api, advance } = memoryRuntime();
   learnerAt(api, 10);
   const level = id => api.reviewLevel(api.getState().reviewMeta[id]);
 
   api.notePractice('0:0', 'pass');
   assert.equal(level('0:0'), 1, 'a phrase met for the first time goes to one, not two');
 
-  for (let i = 0; i < 5; i++) api.notePractice('0:1', 'pass');
+  for (let i = 0; i < 5; i++) { advance(24 * 36e5); api.notePractice('0:1', 'pass'); }
   assert.equal(level('0:1'), 5);
-  for (let i = 0; i < 6; i++) api.notePractice('0:1', 'pass');
+  for (let i = 0; i < 6; i++) { advance(24 * 36e5); api.notePractice('0:1', 'pass'); }
   assert.equal(level('0:1'), api.REVIEW_MAX_LEVEL, 'the ladder has a top');
 
   // a miss costs two rungs, so one bad day does not undo a month
@@ -5336,4 +5363,152 @@ test('the phrase list carries the other form where there is one', () => {
   }
   assert.equal((app.innerHTML.match(/class="rev-variant"/g) || []).length,
     Object.keys(api.PHRASE_VARIANTS).length, 'one note per phrase that has one, and no more');
+});
+
+test('guided repetition and same-day recall do not postpone the next memory review', () => {
+  const r = memoryRuntime();
+  const { api } = r;
+  learnerAt(api, 1);
+  const id = '0:0';
+  api.recordStepResult({ type: 'speak', newPhrase: true, hid: id }, 'pass');
+  const firstAt = r.now();
+  let meta = () => api.getState().reviewMeta[id];
+  assert.equal(meta().successes, 1, 'the guided success is still recorded');
+  assert.equal(meta().level, 0, 'reading the answer is not independent recall');
+  assert.equal(meta().lastReviewAt, firstAt);
+
+  for (let i = 0; i < 4; i++) {
+    r.advance(60_000);
+    api.recordStepResult({ type: 'speak', challenge: true, hid: id }, 'pass');
+  }
+  assert.equal(meta().level, 0, 'immediate challenges cannot inflate the level');
+  assert.equal(meta().lastReviewAt, firstAt, 'they cannot move the due date either');
+  assert.equal(api.reviewSecure(meta(), r.now()), false);
+
+  r.advance(api.REVIEW_REST_MS - 1);
+  api.notePractice(id, 'pass');
+  assert.equal(meta().level, 0, 'the minimum gap applies since the last practice');
+  r.advance(api.REVIEW_REST_MS);
+  api.recordStepResult({ type: 'speak', warmup: true, hid: id }, 'pass');
+  assert.equal(meta().level, 1, 'a later unaided warm-up counts');
+  assert.equal(meta().recallSuccesses, 1);
+  assert.equal(meta().lastRecallAt, r.now());
+
+  const reloaded = memoryRuntime(r.seed, r.now());
+  reloaded.api.notePractice(id, 'pass');
+  meta = () => reloaded.api.getState().reviewMeta[id];
+  assert.equal(meta().level, 1, 'reopening cannot bypass the gap');
+  reloaded.advance(api.REVIEW_REST_MS);
+  reloaded.api.notePractice(id, 'pass');
+  assert.equal(meta().level, 2);
+  assert.equal(meta().recallSuccesses, 2);
+  assert.equal(reloaded.api.reviewSecure(meta(), reloaded.now()), true);
+});
+
+test('only recall in a mixed review lengthens the schedule, even when every answer is right', () => {
+  const { api, now } = memoryRuntime();
+  const state = learnerAt(api, 5);
+  for (const item of api.reviewPool()) state.reviewMeta[item.id] = {
+    level: 1, lastPracticedAt: now() - 10 * 864e5, hard: false,
+  };
+  const oldAt = now() - 10 * 864e5;
+  api.startDailyDrill();
+  const { asked } = runReview(api, () => true);
+  for (const q of asked) {
+    const meta = api.getState().reviewMeta[q.id];
+    assert.equal(meta.successes, 1);
+    assert.equal(meta.lastPracticedAt, now());
+    assert.equal(meta.level, q.shape === 'say' ? 2 : 1, `${q.shape}: strength reflects the task`);
+    assert.equal(meta.lastReviewAt, q.shape === 'say' ? now() : oldAt);
+  }
+});
+
+test('hints, manual continuation and corrected speech cannot masquerade as delayed recall', () => {
+  const { api, now } = memoryRuntime();
+  const state = learnerAt(api, 2);
+  for (const id of ['0:0', '0:1', '0:2', '0:3']) state.reviewMeta[id] = {
+    level: 2, lastPracticedAt: now() - 10 * 864e5, hard: false,
+  };
+  api.recordStepResult({ type: 'speak', warmup: true, hid: '0:0', usedHint: true }, 'pass');
+  api.recordStepResult({ type: 'speak', warmup: true, hid: '0:1', tries: 2 }, 'pass');
+  api.notePractice('0:2', 'manual', false, true);
+  // Resumed guided steps from older versions need not have newPhrase set.
+  api.recordStepResult({ type: 'speak', hid: '0:3' }, 'pass');
+  for (const id of ['0:0', '0:1', '0:2', '0:3']) {
+    const meta = api.getState().reviewMeta[id];
+    assert.equal(meta.recallSuccesses || 0, 0);
+    assert.ok(meta.level <= 2);
+  }
+  assert.ok(api.getState().hard.includes('0:0'));
+  assert.ok(api.getState().hard.includes('0:1'));
+  assert.equal(api.getState().reviewMeta['0:2'].lastReviewAt, now() - 10 * 864e5);
+  assert.equal(api.getState().reviewMeta['0:3'].lastReviewAt, now() - 10 * 864e5);
+});
+
+test('overdue phrases lead the existing warm-up even when they were in the last one', () => {
+  const { api, now } = memoryRuntime();
+  const state = learnerAt(api, 10);
+  for (const item of api.reviewPool()) state.reviewMeta[item.id] = {
+    level: 6, lastPracticedAt: now() - 2 * 864e5, hard: false,
+  };
+  const due = ['0:0', '5:1', '9:2'];
+  for (const id of due) state.reviewMeta[id] = {
+    level: 1, lastPracticedAt: now() - 8 * 864e5, hard: false,
+  };
+  state.hard = ['2:0'];
+  state.reviewMeta['2:0'] = { level: 5, lastPracticedAt: now(), hard: true };
+  state.lastWarmupIds = due;
+  assert.deepEqual([...api.selectWarmup(10, 3)].map(x => x.id).sort(), due.slice().sort());
+  const selected = api.selectWarmup(10, 6);
+  assert.equal(selected.length, 6);
+  assert.equal(new Set(selected.map(x => x.id)).size, 6);
+  assert.ok(due.every(id => selected.some(x => x.id === id)));
+  assert.ok(selected.every(x => x.li < 10), 'no unlearned material enters the warm-up');
+});
+
+test('a difficult phrase returns soon even if its older level was high', () => {
+  const { api, advance, now } = memoryRuntime();
+  const state = learnerAt(api, 4);
+  for (const item of api.reviewPool()) state.reviewMeta[item.id] = {
+    level: 6, lastPracticedAt: now(), hard: false,
+  };
+  api.notePractice('0:0', 'fail');
+  api.notePractice('0:0', 'pass', false, false, 'recognition');
+  assert.equal(api.getState().reviewMeta['0:0'].level, 4, 'its previous progress is not erased');
+  assert.equal(api.getState().reviewMeta['0:0'].hard, true, 'a choice answer cannot clear the difficulty');
+  advance(21 * 36e5);
+  assert.equal(api.selectWarmup(4, 1)[0].id, '0:0');
+  api.notePractice('0:0', 'pass');
+  assert.equal(api.getState().reviewMeta['0:0'].hard, false);
+  assert.equal(api.getState().reviewMeta['0:0'].level, 5);
+});
+
+test('recognition-only practice does not crowd untouched due phrases out of later drills', () => {
+  const r = memoryRuntime();
+  const { api } = r;
+  const state = learnerAt(api, 10);
+  for (const item of api.reviewPool()) state.reviewMeta[item.id] = {
+    level: 1, lastPracticedAt: r.now() - 10 * 864e5, hard: false,
+  };
+  const first = api.reviewSelect(api.reviewPool(), 8);
+  for (const item of first) api.notePractice(item.id, 'pass', false, false, 'recognition');
+  const next = api.reviewSelect(api.reviewPool(), 8);
+  assert.ok(next.every(x => !first.some(y => x.id === y.id)));
+  assert.ok(first.every(x => api.reviewDueness(api.getState().reviewMeta[x.id], r.now()) >= 1),
+    'the practiced phrases are still due; their timestamps were not falsely renewed');
+});
+
+test('two open tabs cannot award two recall levels for the same practice period', () => {
+  const r = memoryRuntime();
+  learnerAt(r.api, 1);
+  r.api.notePractice('0:0', 'pass', false, false, 'guided');
+  r.advance(24 * 36e5);
+  const other = runtime(r.seed, { Date: r.Date });
+  r.api.notePractice('0:0', 'pass', false, true);
+  r.advance(1);
+  other.api.notePractice('0:0', 'pass', false, true);
+  const meta = JSON.parse(r.seed.get('speakEnglishV1')).reviewMeta['0:0'];
+  assert.equal(meta.level, 1);
+  assert.equal(meta.recallSuccesses, 1);
+  assert.equal(meta.successes, 3, 'both attempts remain in the practice history');
 });
