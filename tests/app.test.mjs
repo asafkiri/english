@@ -109,7 +109,7 @@ function runtime(seed = new Map(), options = {}) {
       REVIEW_PICK_ORDER, REVIEW_PICK_BLANK,
       SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
       getSounds:()=>S, advanceSound, playSoundPair, soundRow, mouthArt, MOUTH_SHAPES, soundExplainHtml, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
-      wordsMatch,
+      wordsMatch, PHRASE_VARIANTS, phraseVariant, renderReview,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -5270,4 +5270,70 @@ test('the British word for the restaurant tab is not a mistake', () => {
   for (const line of spoken)
     if (/\bcheck\b/i.test(line))
       assert.match(line, /\bthe check\b/i, `"${line}" uses check as the noun, not the verb`);
+});
+
+/* ---- the same thing said another way ----
+   Six phrases have a second form the learner will really meet. Being
+   surprised by one mid-conversation is worse than being told once, in the
+   lesson that teaches the phrase. */
+
+test('every variant names a phrase the course actually teaches', () => {
+  const { api } = runtime();
+  const taught = new Map();
+  for (const lesson of api.LESSONS) for (const p of lesson.phrases) taught.set(p.en.trim(), p);
+
+  const keys = Object.keys(api.PHRASE_VARIANTS);
+  assert.ok(keys.length >= 5, 'there are enough of these to be worth the feature');
+  for (const [en, v] of Object.entries(api.PHRASE_VARIANTS)) {
+    assert.ok(taught.has(en), `"${en}" is a phrase in the course`);
+    assert.ok(v.en?.trim() && v.note?.trim(), `"${en}" has both a form and a reason`);
+    assert.notEqual(v.en.trim(), en, 'and the other form really is another form');
+    assert.equal(api.phraseVariant(taught.get(en)).en, v.en, 'and it is found by the phrase itself');
+  }
+});
+
+test('saying the other form is never counted as a mistake', () => {
+  const { api } = runtime();
+  /* The whole point: if the app tells him "the British say X" and then marks
+     him wrong for saying X, the note is worse than useless. */
+  for (const [en, v] of Object.entries(api.PHRASE_VARIANTS))
+    assert.ok(api.matchScore(en, v.en) >= 0.7,
+      `"${v.en}" passes for "${en}" (scored ${api.matchScore(en, v.en).toFixed(2)})`);
+});
+
+test('sorry and excuse me are kept apart, and must stay apart', () => {
+  const { api } = runtime();
+  /* Both are סליחה and the course teaches them in one lesson on purpose: one
+     is an apology, the other is how you get someone's attention. They are the
+     obvious-looking pair to group and the one pair that would teach something
+     false, so neither may become a variant of the other. */
+  assert.ok(!api.PHRASE_VARIANTS['Sorry'], 'Sorry has no variant');
+  assert.ok(!api.PHRASE_VARIANTS['Excuse me'], 'Excuse me has no variant');
+  assert.ok(!api.wordsMatch('sorry', 'excuse'), 'and the matcher still separates them');
+  assert.ok(api.matchScore('Excuse me', 'sorry') < 0.7, 'saying one for the other is not a pass');
+  assert.ok(api.matchScore('Sorry', 'excuse me') < 0.7);
+
+  // both really are in the course, both really are סליחה
+  const all = api.LESSONS.flatMap(l => l.phrases);
+  const sorry = all.find(p => p.en === 'Sorry');
+  const excuse = all.find(p => p.en === 'Excuse me');
+  assert.ok(sorry && excuse, 'the pair this test guards is still there to guard');
+  assert.ok(sorry.he.startsWith('סליחה') && excuse.he.startsWith('סליחה'),
+    'sharing the Hebrew is exactly why grouping by Hebrew would be wrong');
+});
+
+test('the phrase list carries the other form where there is one', () => {
+  const { api, app } = runtime();
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = api.LESSONS.length;
+  api.setState(state);
+  api.renderReview();
+
+  for (const [en, v] of Object.entries(api.PHRASE_VARIANTS)) {
+    assert.ok(app.innerHTML.includes(v.en), `${v.en} is offered next to ${en}`);
+    assert.ok(app.innerHTML.includes(v.note), `and says why`);
+  }
+  assert.equal((app.innerHTML.match(/class="rev-variant"/g) || []).length,
+    Object.keys(api.PHRASE_VARIANTS).length, 'one note per phrase that has one, and no more');
 });

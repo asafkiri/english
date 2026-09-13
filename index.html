@@ -321,6 +321,12 @@ body{
 .sound-compare{margin:0}
 .sound-miss .btn{margin:0}
 /* ---------- which word would not come out ---------- */
+.variant-note{margin-top:12px;padding:9px 11px;border-top:1px dashed var(--line);display:grid;gap:2px;text-align:center}
+.variant-note b{font-size:15px;font-weight:850}
+.variant-note small{color:var(--dim);font-size:11.5px;line-height:1.4}
+.rev-variant{margin-top:5px;padding-top:5px;border-top:1px dashed var(--line);display:grid;gap:1px}
+.rev-variant b{font-size:13.5px;font-weight:800}
+.rev-variant small{color:var(--dim);font-size:11px;line-height:1.35}
 .review-prompt.small{font-size:20px;margin-bottom:14px}
 .pick-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:4px 0 12px}
 .pick-chip{padding:11px 15px;border:1.5px solid var(--line);border-radius:13px;background:var(--card2);color:var(--text);font:inherit;font-size:18px;font-weight:850;cursor:pointer}
@@ -7261,7 +7267,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.72.1';
+const APP_VERSION = '2.73.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8530,6 +8536,35 @@ function normalize(s){
    - a canonical form absorbs classic Hebrew-accent confusions (th→t, w↔v)
    - a small edit distance forgives one mangled letter in longer words
    Critical words (not/no/never) always require an exact match. */
+/* ---- the same thing said another way ----
+   Six phrases in the course have a second form the learner will genuinely
+   meet, and being surprised by one of them mid-conversation is worse than
+   being told about it once, in the lesson that teaches the phrase.
+
+   Chosen one at a time, in the sentence each word actually appears in, and
+   kept short deliberately. Plain synonyms are left out — nobody is thrown by
+   "large" for "big", and a list of those would bury the four below that can
+   really cause a misunderstanding. Sorry/Excuse me is left out too and must
+   stay out: both are סליחה, the course teaches them in one lesson on purpose,
+   and they are not interchangeable. */
+const PHRASE_VARIANTS = {
+  'The check, please': {en:'The bill, please',
+    note:'🇬🇧 בבריטניה אומרים The bill, please — שניהם נכונים לגמרי'},
+  'A shirt and pants': {en:'A shirt and trousers',
+    note:'🇬🇧 בבריטניה מכנסיים זה trousers — ושם pants דווקא אומר תחתונים'},
+  'My mom': {en:'My mum',
+    note:'🇬🇧 בבריטניה אומרים My mum'},
+  'I love football': {en:'I love soccer',
+    note:'🇺🇸 באמריקה כדורגל הוא soccer. אצלם football הוא משחק אחר לגמרי'},
+  'No problem': {en:'No worries',
+    note:'אפשר גם No worries — בדיוק אותו דבר'},
+  "It's tasty!": {en:"It's delicious!",
+    note:'אפשר גם It\'s delicious! — מחמאה קצת יותר חזקה'},
+};
+function phraseVariant(p){
+  return PHRASE_VARIANTS[String(p?.en||'').trim()]||null;
+}
+
 const WORD_EQUIVALENTS = [
   ['good','fine','great','ok'],
   ['hi','hello','hey'],
@@ -8545,6 +8580,10 @@ const WORD_EQUIVALENTS = [
      the name, check the ball — only ever appears in lines the app speaks,
      never in one the learner is asked to produce. */
   ['check','bill'],
+  /* The rest of PHRASE_VARIANTS already passes on the matcher's own tolerance;
+     these two were short enough that one swapped word failed the .70 bar. */
+  ['problem','worries'],
+  ['tasty','delicious'],
   ['four','for'],
   ['two','to','too'],
   ['one','won'],
@@ -9938,6 +9977,7 @@ function renderReview(){
         <div class="txt">
           <div class="en" dir="ltr" lang="en">${esc(ptext(p,'en'))}</div>
           <div class="he">${esc(ptext(p,'tl'))} · ${esc(ptext(p,'he'))}</div>
+          ${phraseVariant(p)?`<div class="rev-variant"><b dir="ltr" lang="en">${esc(phraseVariant(p).en)}</b><small>${esc(phraseVariant(p).note)}</small></div>`:''}
         </div>
       </div>`;
     });
@@ -12642,6 +12682,12 @@ function renderSpeak(step){
         <div class="hint-tl">${esc(tl)}</div>
       </div>
       <button class="play-big" id="hintAudio" ${hintLevel<2?'hidden':''} ${waitingForIntroduction?'disabled':''} onclick="speak('${jsEsc(en)}')" aria-label="השמעת המשפט">🔊</button>
+      ${/* Only while the phrase is being taught, and only once the English is
+            on screen — during a challenge it would be handing over the answer. */''}
+      ${guided&&hintLevel>=2&&phraseVariant(p)?`<div class="variant-note">
+        <b dir="ltr" lang="en">${esc(phraseVariant(p).en)}</b>
+        <small>${esc(phraseVariant(p).note)}</small>
+      </div>`:''}
     </div>
     <button class="btn secondary" id="hintBtn" ${terminalResult||hintLevel>=2?'hidden':''} onclick="revealSpeakHint()">${hintLevel===0?'צריך רמז? הצג באנגלית':'עוד עזרה — תעתיק ושמיעה 🔊'}</button>
     ${waitingForIntroduction?`<div class="listen-first" id="listenFirst">👂 קודם מקשיבים למשפט…</div>`:''}
