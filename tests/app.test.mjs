@@ -105,7 +105,7 @@ function runtime(seed = new Map(), options = {}) {
       REVIEW_PAUSE_PASS,
       startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
       SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
-      getSounds:()=>S, advanceSound, playSoundPair, soundRow, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
+      getSounds:()=>S, advanceSound, playSoundPair, soundRow, mouthArt, MOUTH_SHAPES, soundExplainHtml, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
       wordsMatch,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -4927,7 +4927,19 @@ test('every minimal pair really is minimal, and every word carries its Hebrew', 
   const seen = new Set();
   for (const set of api.SOUND_SETS) {
     assert.ok(set.pairs.length >= 4, `${set.id} has enough pairs to draw on`);
-    assert.ok(set.tip && set.tip.trim(), `${set.id} says what to do with the mouth`);
+    /* Each side is explained on its own — one sentence covering both was
+       reported as impossible to follow — and each says what to do and what it
+       should feel like, since "a third sound" is not something you can check. */
+    for (const side of ['a', 'b']) {
+      const sound = set[side];
+      assert.ok(sound?.label?.trim(), `${set.id}.${side} is named`);
+      assert.ok(sound?.how?.trim(), `${set.id}.${side} says what to do with the mouth`);
+      assert.ok(sound?.feel?.trim(), `${set.id}.${side} says how to tell you did it`);
+      assert.ok(api.MOUTH_SHAPES[sound.art], `${set.id}.${side} has a mouth to copy (${sound.art})`);
+      assert.match(api.mouthArt(sound.art), /^<svg[\s\S]*<\/svg>$/, `${sound.art} really draws`);
+    }
+    assert.ok(set.from?.trim(), `${set.id} has a way in from a sound Hebrew already has`);
+    assert.notEqual(set.a.art, set.b.art, `${set.id} draws its two sounds differently`);
     for (const pair of set.pairs) {
       assert.equal(pair.length, 2);
       const [a, b] = pair;
@@ -5076,4 +5088,27 @@ test('a missed drill question waits too, with the answer to hear', async () => {
   assert.equal(api.getReview().i, 0, 'and the screen is still his after two and a half seconds');
   api.advanceReview();
   assert.equal(api.getReview().i, 1);
+});
+
+test('the explanation is drawn, split per sound, and namespaced away from the rest of the app', () => {
+  const { api } = runtime();
+  const set = api.SOUND_SETS.find(s => s.id === 'th');
+  const html = api.soundExplainHtml(set, 'a');
+
+  // both sounds get their own card, and the one that was played is marked
+  assert.equal((html.match(/class="sound-side /g) || []).length, 2, 'one card per sound, never one blob for both');
+  assert.match(html, /sound-side sound-said/);
+  assert.match(html, /sound-side sound-picked/);
+  assert.ok(html.includes(set.a.how) && html.includes(set.b.how), 'each says what to do');
+  assert.ok(html.includes(set.a.feel) && html.includes(set.b.feel), 'and how to tell you did it');
+  assert.ok(html.includes(set.from), 'with a way in from a sound Hebrew already has');
+  assert.equal((html.match(/<svg/g) || []).length, 2, 'and a mouth to copy for each');
+
+  /* Every class here has to be namespaced. A bare `.mouth` is already the
+     character lip-sync element and a bare `.heard` is already the lesson's
+     speech-recognition line — the first draft used both, and inherited
+     `margin-top:12px` and `direction:ltr` from a rule nine hundred lines away. */
+  const classes = new Set([...html.matchAll(/class="([^"]+)"/g)].flatMap(m => m[1].split(/\s+/)).filter(Boolean));
+  for (const cls of classes)
+    assert.match(cls, /^(sound-|mouth-dia$|m-)/, `${cls} is namespaced to this feature`);
 });

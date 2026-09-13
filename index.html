@@ -253,8 +253,11 @@ body{
 .sound-intro{color:var(--dim);font-size:14px;line-height:1.5;margin-bottom:14px}
 .sound-warn{padding:10px 12px;border:1px solid rgba(248,113,113,.4);border-radius:13px;background:rgba(127,29,29,.22);font-size:13px;margin-bottom:12px}
 .sound-grid{display:grid;gap:8px}
-.sound-card{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:16px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer}
-.sound-card:active{transform:scale(.985)}
+.sound-card{border:1px solid var(--line);border-radius:16px;background:var(--card2);overflow:hidden}
+.sound-card-head{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;border:0;background:none;color:var(--text);font:inherit;text-align:right;cursor:pointer}
+.sound-card-head:active{transform:scale(.985)}
+.sound-learn{width:100%;padding:9px 13px;border:0;border-top:1px dashed var(--line);background:rgba(255,255,255,.03);color:var(--dim);font:inherit;font-size:12.5px;font-weight:800;text-align:right;cursor:pointer}
+.sound-learn-body{padding:2px 11px 12px}
 .sound-card.strong{border-color:rgba(52,211,153,.45)}
 .sound-card.fair{border-color:rgba(251,191,36,.4)}
 .sound-card.weak{border-color:rgba(248,113,113,.4)}
@@ -281,6 +284,33 @@ body{
 .sound-word b{font-weight:900}
 .sound-word span{color:var(--dim);font-size:11px}
 /* ---------- the pause after a miss, which is the lesson ---------- */
+/* ---------- the mouth, drawn ---------- */
+/* namespaced: a bare .mouth is already the character lip-sync element, and a
+   bare .heard is already the lesson's speech-recognition line */
+.mouth-dia{width:auto;height:74px;max-width:100%;display:block;margin:0 auto 6px}
+.m-lip{fill:#c2708a}
+.m-lip.pout{fill:#d0839c}
+.m-hole{fill:#2a1119}
+.m-teeth{fill:#f4f7fb}
+.m-tongue{fill:#e8899f}
+.m-tongue-out{fill:#f2a2b6;stroke:#8d3f56;stroke-width:2.5}
+.m-lipline{fill:none;stroke:#e5a8bb;stroke-width:3.5;stroke-linecap:round}
+.sound-sides{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;align-items:stretch}
+.sound-side{display:flex;flex-direction:column;padding:10px 9px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035);text-align:center}
+/* the two sides are read against each other, so the mouths sit on one
+   baseline and the words underneath start at the same line in both */
+.sound-side-feel{margin-top:auto}
+.sound-side.sound-said{border-color:rgba(52,211,153,.6);background:rgba(16,185,129,.14)}
+.sound-side.sound-picked{border-color:rgba(248,113,113,.5);background:rgba(127,29,29,.18)}
+.sound-side-tag{font-size:10.5px;font-weight:900;color:var(--dim);margin-bottom:4px}
+.sound-side.sound-said .sound-side-tag{color:#6ee7b7}
+.sound-side.sound-picked .sound-side-tag{color:#fca5a5}
+.sound-side-name{font-size:19px;font-weight:950;letter-spacing:.5px;margin-bottom:4px}
+.sound-side-how{font-size:12.5px;line-height:1.45;margin:0 0 5px}
+.sound-side-feel{font-size:11.5px;line-height:1.4;color:var(--dim);margin:8px 0 0}
+.sound-from{padding:10px 12px;border-radius:13px;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.32);font-size:13px;line-height:1.55;text-align:right}
+.sound-from b{display:block;font-size:12px;font-weight:900;color:#7dd3fc;margin-bottom:3px}
+@media(max-width:360px){.sound-sides{grid-template-columns:1fr}}
 .sound-miss{display:grid;gap:10px;margin-top:12px;padding:13px;border:1px solid rgba(251,191,36,.42);border-radius:16px;background:rgba(69,48,6,.36);text-align:center}
 .sound-miss-head{font-size:15px;font-weight:900;line-height:1.35}
 .sound-miss-head b{font-size:17px}
@@ -289,7 +319,6 @@ body{
 .sound-miss-pair .sound-word.is-heard{border-color:rgba(52,211,153,.6);background:rgba(16,185,129,.16)}
 .sound-miss-pair .sound-word b{font-size:16px}
 .sound-compare{margin:0}
-.sound-miss-tip{color:var(--dim);font-size:13px;line-height:1.45;margin:0}
 .sound-miss .btn{margin:0}
 .review-miss{display:grid;gap:9px;margin-top:12px;padding:13px;border:1px solid rgba(251,191,36,.42);border-radius:16px;background:rgba(69,48,6,.36);text-align:center}
 .review-miss-head{font-size:16px;font-weight:900;line-height:1.35}
@@ -7213,7 +7242,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.69.0';
+const APP_VERSION = '2.70.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7356,46 +7385,128 @@ try{ localStorage.removeItem('english.samRun'); }catch(e){}
    seeds a sounds record from this list while the very first state is being
    read, and a const declared further down is still in its dead zone then. */
 const SOUND_SETS = [
+  /* One explanation per sound, never one sentence covering both: reading "the
+     tongue comes out a bit, it is not s and not t" means holding two mouth
+     positions at once and working out which is which, and it was reported as
+     simply not understandable.
+
+     Each side now says what to DO and what you should FEEL if you did it,
+     because that is checkable and "a third sound" is not. `from` is the way
+     in: start from a sound Hebrew already has, change one thing, and you are
+     there. `art` names the drawing — mouth position is a picture, and no
+     amount of prose about tongues substitutes for one. */
   { id:'th', icon:'👅', title:'th', sub:'הצליל שאין בעברית',
-    tip:'הלשון יוצאת קצת בין השיניים. זה לא s ולא t — זה צליל שלישי.',
-    pairs:[
-      [['think','לחשוב'],['sink','כיור']],
-      [['three','שלוש'],['tree','עץ']],
-      [['thick','עבה'],['sick','חולה']],
-      [['mouth','פה'],['mouse','עכבר']],
-      [['path','שביל'],['pass','לעבור']],
-      [['thanks','תודה'],['tanks','טנקים']],
-    ]},
+    a:{ art:'th', label:'th',
+        how:'הלשון יוצאת קצת החוצה, בין השיניים. נושפים אוויר מעליה.',
+        feel:'תשים אצבע מול הפה — אתה אמור להרגיש אוויר יוצא, ולראות את קצה הלשון.' },
+    b:{ art:'s', label:'s',
+        how:'הלשון נשארת בפנים, מאחורי השיניים. בדיוק כמו ס׳ בעברית.',
+        feel:'הלשון לא נוגעת בשיניים בכלל.' },
+    from:'תגיד «סססס» ארוך. עכשיו, בלי להפסיק לנשוף, תדחוף את קצה הלשון החוצה בין השיניים. הצליל שהשתנה — זה th.' },
   { id:'wv', icon:'👄', title:'w מול v', sub:'שתי שפתיים או שן ושפה',
-    tip:'ל־w מעגלים את השפתיים כמו לשריקה, בלי שיניים. ל־v השן העליונה נוגעת בשפה התחתונה.',
-    pairs:[
-      [['west','מערב'],['vest','אפודה']],
-      [['wet','רטוב'],['vet','וטרינר']],
-      [['wine','יין'],['vine','גפן']],
-      [['worse','גרוע יותר'],['verse','בית בשיר']],
-    ]},
+    a:{ art:'w', label:'w',
+        how:'השפתיים מתעגלות קדימה, כמו לפני שריקה או נשיקה. שיניים לא נוגעות בכלום.',
+        feel:'אם השיניים נגעו בשפה — זה כבר לא w.' },
+    b:{ art:'v', label:'v',
+        how:'השן העליונה מונחת על השפה התחתונה. בדיוק כמו ו׳ בעברית.',
+        feel:'תרגיש רטט בשפה התחתונה.' },
+    from:'תגיד «ווו» של וילון — זה v. עכשיו תוריד את השיניים מהשפה ותעגל את השפתיים כמו לשריקה. זה w.' },
   { id:'ii', icon:'📏', title:'i קצרה מול ארוכה', sub:'ship מול sheep',
-    tip:'ה־i הארוכה נמשכת והחיוך רחב יותר. הקצרה נחתכת מהר.',
-    pairs:[
-      [['ship','ספינה'],['sheep','כבשה']],
-      [['sit','לשבת'],['seat','מושב']],
-      [['fill','למלא'],['feel','להרגיש']],
-      [['live','לחיות'],['leave','לעזוב']],
-      [['this','זה'],['these','אלה']],
-      [['it','זה'],['eat','לאכול']],
-    ]},
+    a:{ art:'ih', label:'i קצרה',
+        how:'קצרה וחטופה, הפה רפוי. כמעט כמו א׳ קטנה.',
+        feel:'נגמר מהר — אין זמן למשוך אותה.' },
+    b:{ art:'ee', label:'i ארוכה',
+        how:'נמשכת, והשפתיים נפרשות לצדדים כמו בחיוך.',
+        feel:'תרגיש את הלחיים נמתחות לצדדים.' },
+    from:'תגיד «אִי» של חיוך ותמשוך אותה — זו הארוכה. עכשיו תגיד אותה קצר וחטוף, בלי חיוך — זו הקצרה.' },
   { id:'ae', icon:'😮', title:'a מול e', sub:'bad מול bed',
-    tip:'ל־a הפה נפתח רחב יותר והצליל שטוח. ל־e הפה כמעט סגור.',
-    pairs:[
-      [['bad','רע'],['bed','מיטה']],
-      [['man','איש'],['men','אנשים']],
-      [['pan','מחבת'],['pen','עט']],
-      [['sad','עצוב'],['said','אמר']],
-      [['bat','עטלף'],['bet','הימור']],
-      [['sat','ישב'],['set','להניח']],
-    ]},
+    a:{ art:'ae', label:'a',
+        how:'הלסת יורדת והפה נפתח רחב, כמו אצל הרופא.',
+        feel:'תשים אצבע על הסנטר — הוא יורד למטה.' },
+    b:{ art:'eh', label:'e',
+        how:'הפה פתוח רק חצי. בדיוק כמו סֶגול בעברית.',
+        feel:'הסנטר כמעט לא זז.' },
+    from:'תגיד «אֶ» של סֶגול — זו e. עכשיו תפיל את הלסת ותפתח את הפה רחב יותר, בלי לשנות כלום אחר. זו a.' },
 ];
+/* pair[0] is always the `a` sound and pair[1] the `b` sound, which is what
+   lets a missed round point at the right side of the explanation. */
+const SOUND_PAIRS = {
+  th:[[['think','לחשוב'],['sink','כיור']],[['three','שלוש'],['tree','עץ']],
+      [['thick','עבה'],['sick','חולה']],[['mouth','פה'],['mouse','עכבר']],
+      [['path','שביל'],['pass','לעבור']],[['thanks','תודה'],['tanks','טנקים']]],
+  wv:[[['west','מערב'],['vest','אפודה']],[['wet','רטוב'],['vet','וטרינר']],
+      [['wine','יין'],['vine','גפן']],[['worse','גרוע יותר'],['verse','בית בשיר']]],
+  ii:[[['ship','ספינה'],['sheep','כבשה']],[['sit','לשבת'],['seat','מושב']],
+      [['fill','למלא'],['feel','להרגיש']],[['live','לחיות'],['leave','לעזוב']],
+      [['this','זה'],['these','אלה']],[['it','זה'],['eat','לאכול']]],
+  ae:[[['bad','רע'],['bed','מיטה']],[['man','איש'],['men','אנשים']],
+      [['pan','מחבת'],['pen','עט']],[['sad','עצוב'],['said','אמר']],
+      [['bat','עטלף'],['bet','הימור']],[['sat','ישב'],['set','להניח']]],
+};
+for(const set of SOUND_SETS) set.pairs=SOUND_PAIRS[set.id];
+
 const SOUND_ROUNDS = 10;
+/* A mouth, seen from the front, because that is where the difference actually
+   shows: the tongue poking out for th, the teeth resting on the lip for v,
+   the lips rounded for w, the jaw dropped for a. Drawn rather than described,
+   since a child can copy a picture of a mouth and cannot copy a sentence
+   about one. Deliberately schematic — this is a diagram, not a face. */
+const MOUTH_SHAPES = {
+  th: {w:54,h:32, teeth:'both', tongue:'out'},
+  s:  {w:46,h:14, teeth:'both', tongue:'none'},
+  w:  {w:22,h:22, teeth:'none', tongue:'none', pout:true},
+  v:  {w:50,h:16, teeth:'onlip', tongue:'none'},
+  ih: {w:42,h:20, teeth:'none', tongue:'none'},
+  ee: {w:64,h:13, teeth:'both', tongue:'none'},
+  ae: {w:46,h:38, teeth:'both', tongue:'low'},
+  eh: {w:40,h:24, teeth:'none', tongue:'none'},
+};
+function mouthArt(name){
+  const m=MOUTH_SHAPES[name];
+  if(!m) return '';
+  const cx=50, cy=40, rx=m.w/2, ry=m.h/2;
+  const lipW=m.pout?13:9;
+  const parts=[
+    `<ellipse class="m-lip${m.pout?' pout':''}" cx="${cx}" cy="${cy}" rx="${rx+lipW}" ry="${ry+lipW}"/>`,
+    `<ellipse class="m-hole" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`,
+  ];
+  const tw=m.w*0.74, th=Math.min(7,m.h*0.34);
+  if(m.teeth==='both'||m.teeth==='onlip')
+    parts.push(`<rect class="m-teeth" x="${cx-tw/2}" y="${cy-ry}" width="${tw}" height="${th}" rx="2"/>`);
+  if(m.teeth==='both')
+    parts.push(`<rect class="m-teeth" x="${cx-tw/2}" y="${cy+ry-th}" width="${tw}" height="${th}" rx="2"/>`);
+  // v: the upper teeth come down onto the lower lip, so the lip rides up to them
+  if(m.teeth==='onlip')
+    parts.push(`<path class="m-lipline" d="M${cx-rx-6} ${cy+ry+2} Q ${cx} ${cy+ry-7} ${cx+rx+6} ${cy+ry+2}"/>`);
+  /* Drawn last and wider than the teeth, overlapping both rows, so it reads as
+     the tongue sitting in front of them rather than a third stripe between
+     them. That overlap is the whole point of the picture. */
+  if(m.tongue==='out')
+    parts.push(`<ellipse class="m-tongue-out" cx="${cx}" cy="${cy+1}" rx="${tw*0.58}" ry="8.5"/>`);
+  if(m.tongue==='low')
+    parts.push(`<path class="m-tongue" d="M${cx-tw/2.2} ${cy+ry-3} Q ${cx} ${cy+ry-13} ${cx+tw/2.2} ${cy+ry-3} Z"/>`);
+  return `<svg class="mouth-dia" viewBox="0 0 100 80" aria-hidden="true">${parts.join('')}</svg>`;
+}
+/* One side of a contrast, drawn and explained on its own. `role` marks which
+   of the two was actually played, so a miss points somewhere specific. */
+function soundSideHtml(set, side, role){
+  const sound=set[side], word=null;
+  return `<div class="sound-side ${role}">
+    ${role?`<div class="sound-side-tag">${role==='sound-said'?'זה מה ששמעת':'זה מה שבחרת'}</div>`:''}
+    ${mouthArt(sound.art)}
+    <div class="sound-side-name" dir="ltr">${esc(sound.label)}</div>
+    <p class="sound-side-how">${esc(sound.how)}</p>
+    <p class="sound-side-feel">${esc(sound.feel)}</p>
+  </div>`;
+}
+function soundExplainHtml(set, heardSide){
+  return `
+    <div class="sound-sides">
+      ${soundSideHtml(set,'a',heardSide==='a'?'sound-said':heardSide?'sound-picked':'')}
+      ${soundSideHtml(set,'b',heardSide==='b'?'sound-said':heardSide?'sound-picked':'')}
+    </div>
+    <div class="sound-from"><b>נסה עכשיו</b>${esc(set.from)}</div>`;
+}
 
 /* How long a phrase may rest, and what moves it. Declared up here rather than
    beside the rest of the review code because normalizeReviewMeta() seeds a
@@ -9433,11 +9544,18 @@ function renderSoundsHub(){
     const acc=soundAccuracy(set.id), row=soundRow(set.id);
     const state_=acc===null?'עוד לא ניסית':`${acc}% נכון · ${row.heard} האזנות`;
     const grade=acc===null?'':acc>=85?' strong':acc>=60?' fair':' weak';
-    return `<button type="button" class="sound-card${grade}" onclick="startSoundRun('${set.id}')">
-      <span class="sound-icon" aria-hidden="true">${set.icon}</span>
-      <span class="sound-copy"><b>${esc(set.title)}</b><small>${esc(set.sub)}</small></span>
-      <span class="sound-score">${acc===null?'—':acc+'%'}<small>${esc(state_.split(' · ')[1]||'')}</small></span>
-    </button>`;
+    /* The explanation is reachable before the first mistake, not only after
+       one. Being told what a sound is while failing at it is the worst moment
+       to be told. */
+    return `<div class="sound-card${grade}">
+      <button type="button" class="sound-card-head" onclick="startSoundRun('${set.id}')">
+        <span class="sound-icon" aria-hidden="true">${set.icon}</span>
+        <span class="sound-copy"><b>${esc(set.title)}</b><small>${esc(set.sub)}</small></span>
+        <span class="sound-score">${acc===null?'—':acc+'%'}<small>${esc(state_.split(' · ')[1]||'')}</small></span>
+      </button>
+      <button type="button" class="sound-learn" onclick="toggleSoundLearn('${set.id}',this)" aria-expanded="false">איך עושים את שני הצלילים? ⌄</button>
+      <div class="sound-learn-body" id="soundLearn${set.id}" hidden>${soundExplainHtml(set,'')}</div>
+    </div>`;
   }).join('');
   hx(`
   <div class="screen">
@@ -9450,6 +9568,14 @@ function renderSoundsHub(){
     <div class="sound-grid">${cards}</div>
     <button class="btn secondary" style="margin-top:12px" onclick="startSoundRun('all')">הכול מעורבב 🎲</button>
   </div>`);
+}
+function toggleSoundLearn(id, btn){
+  const body=document.getElementById('soundLearn'+id);
+  if(!body) return;
+  const open=body.hidden;
+  body.hidden=!open;
+  btn.setAttribute('aria-expanded',String(open));
+  btn.textContent=open?'לסגור את ההסבר ⌃':'איך עושים את שני הצלילים? ⌄';
 }
 function startSoundRun(setId){
   if(!canHearSounds()){ toast('אין קול במכשיר הזה — התרגול הזה כולו האזנה.'); return; }
@@ -9541,13 +9667,13 @@ function answerSound(index){
     const heard=r.pair[r.target], picked=r.pair[1-r.target];
     if(out) out.innerHTML=`
       <div class="sound-miss">
-        <div class="sound-miss-head">לא, זה היה <b dir="ltr" lang="en">${esc(heard[0])}</b> — ${esc(heard[1])}</div>
+        <div class="sound-miss-head">לא — נאמר <b dir="ltr" lang="en">${esc(heard[0])}</b> (${esc(heard[1])})</div>
         <div class="sound-miss-pair">
           <button type="button" class="sound-word is-heard" onclick="speak('${jsEsc(heard[0])}')">🔊 <b dir="ltr" lang="en">${esc(heard[0])}</b><span>${esc(heard[1])}</span></button>
           <button type="button" class="sound-word" onclick="speak('${jsEsc(picked[0])}')">🔊 <b dir="ltr" lang="en">${esc(picked[0])}</b><span>${esc(picked[1])}</span></button>
         </div>
-        <button type="button" class="btn secondary sound-compare" onclick="playSoundPair()">🎧 להשמיע את שתיהן</button>
-        <p class="sound-miss-tip">${esc(r.set.tip)}</p>
+        <button type="button" class="btn secondary sound-compare" onclick="playSoundPair()">🎧 להשמיע את שתיהן ברצף</button>
+        ${soundExplainHtml(r.set, r.target===0?'a':'b')}
         <button type="button" class="btn" onclick="advanceSound()">הבנתי — ממשיכים ⬅</button>
       </div>`;
     playSoundPair();
@@ -9607,7 +9733,7 @@ function renderSoundDone(){
     const sample=set.pairs[0];
     return `<div class="sound-model">
       <div class="sound-model-head">${set.icon} ${esc(set.title)}</div>
-      <p>${esc(set.tip)}</p>
+      ${soundExplainHtml(set,'')}
       <div class="sound-model-row">${sample.map(([en,he])=>
         `<button type="button" class="sound-word" onclick="speak('${jsEsc(en)}')">🔊 <b dir="ltr" lang="en">${esc(en)}</b><span>${esc(he)}</span></button>`).join('')}</div>
     </div>`;
