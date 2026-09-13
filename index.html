@@ -178,14 +178,37 @@ body{
    thirty locked lessons, which is nowhere. */
 .home-extras{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0 6px}
 .home-extras.one{grid-template-columns:1fr}
-/* Only free practice lives here now, so the row is always the single-column
-   variant. The two-column default stays for whatever earns a place beside it. */
 .home-extra{display:grid;justify-items:center;align-content:start;gap:2px;padding:13px 10px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(160deg,var(--card2),var(--card));color:var(--text);font:inherit;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
 .home-extra:active{transform:scale(.975)}
 .home-extra.practice{border-color:rgba(167,139,250,.5);background:linear-gradient(160deg,rgba(101,86,216,.42),rgba(60,44,140,.24))}
+.home-extra.drill{border-color:rgba(56,189,248,.5);background:linear-gradient(160deg,rgba(14,116,164,.4),rgba(8,60,90,.24))}
+/* Done today reads as finished, not as disabled: another round is still one tap away. */
+.home-extra.drill.done{border-color:rgba(52,211,153,.45);background:linear-gradient(160deg,rgba(16,120,90,.34),rgba(6,60,45,.2))}
 .home-extra .extra-icon{font-size:26px;line-height:1.05}
 .home-extra .extra-title{font-size:14.5px;font-weight:950;text-align:center;line-height:1.15}
 .home-extra .extra-sub{color:var(--dim);font-size:11px;text-align:center;line-height:1.2}
+/* ---------- the check on a finished unit ---------- */
+.unit-check{display:flex;align-items:center;gap:10px;width:100%;margin:8px 0 2px;padding:11px 13px;border:1px dashed rgba(56,189,248,.45);border-radius:15px;background:rgba(14,116,164,.16);color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
+.unit-check:active{transform:scale(.985)}
+.unit-check.sealed{border-style:solid;border-color:rgba(52,211,153,.5);background:rgba(16,120,90,.18)}
+.unit-check-icon{font-size:21px;line-height:1;flex-shrink:0}
+.unit-check-copy{flex:1;min-width:0;display:grid;gap:2px}
+.unit-check-copy b{font-size:14px;font-weight:900}
+.unit-check-copy small{color:var(--dim);font-size:11.5px;line-height:1.25}
+.unit-check-go{color:var(--dim);font-size:16px;flex-shrink:0}
+.home-unit-emoji{position:relative}
+.unit-seal{position:absolute;bottom:-3px;left:-5px;width:16px;height:16px;border-radius:50%;background:#10b981;color:#04231a;font-size:10px;font-weight:950;display:grid;place-items:center;box-shadow:0 0 0 2px var(--card)}
+/* ---------- the check and drill screens ---------- */
+.review-count{color:var(--dim);font-size:12.5px;margin-bottom:10px}
+.review-prompt{font-size:25px;font-weight:950;line-height:1.25;margin:6px 0 16px}
+.review-honest{color:var(--dim);font-size:12.5px;line-height:1.35;margin:2px 0 10px}
+.review-rate{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.review-rate .btn{margin:0}
+.quiz-opt.right{border-color:rgba(52,211,153,.75);background:rgba(16,185,129,.22)}
+.review-back{display:grid;gap:5px;justify-items:center;margin:12px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
+.review-back small{color:var(--dim);font-size:11.5px}
+.milestone-gain{display:inline-block;margin-inline-start:7px;padding:1px 7px;border-radius:999px;background:rgba(52,211,153,.24);color:#6ee7b7;font-size:12.5px;font-weight:950}
+.review-back b{font-size:14.5px;font-weight:900}
 /* ---------- drawn portraits ---------- */
 .cast-portrait{--size:44px;--who:#60a5fa;position:relative;display:inline-block;width:var(--size);height:var(--size);border-radius:50%;overflow:hidden;flex-shrink:0;vertical-align:middle;
   background:radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--who) 34%,#1a2540),#141d33 74%);border:1.5px solid color-mix(in srgb,var(--who) 60%,transparent);box-shadow:inset 0 -6px 12px rgba(0,0,0,.25)}
@@ -7099,7 +7122,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.63.0';
+const APP_VERSION = '2.64.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7281,6 +7304,9 @@ function load(){
       // from the conversations already seen, not be handed one of them again.
       if(!hadStoryCycle) out.practiceStorySeen=normalizePracticeStoryIds(out.practiceRecentStories);
       out.missions = normalizeMissions(out.missions);
+      out.checks = normalizeChecks(out.checks);
+      out.drillDate = typeof out.drillDate === 'string' ? out.drillDate : '';
+      out.drillCount = Math.max(0, Math.floor(Number(out.drillCount) || 0));
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -7320,6 +7346,7 @@ function defaults(){
     profile:defaultProfile(),
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false, uiSounds:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
+    checks:normalizeChecks(null), drillDate:'', drillCount:0,
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
     practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[], practiceStoryDone:[],
     missions:{},
@@ -7521,6 +7548,10 @@ function reconcileStoredProgress(){
     state.practiceStoryCatalog=mergedStoryCycle.catalog;
     state.practiceRecentUpdatedAt=Math.max(localPracticeTs,storedPracticeTs);
     state.missions=mergeMissions(stored.missions, state.missions);
+    state.checks=mergeChecks(stored.checks, state.checks);
+    state.drillCount=Math.max(Number(state.drillCount)||0,Math.floor(Number(stored.drillCount)||0));
+    // the later day wins: a drill done in any tab counts for that day
+    if(dateValue(stored.drillDate)>dateValue(state.drillDate)) state.drillDate=stored.drillDate;
     state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
     state.replays=Math.max(Number(state.replays)||0,Number(stored.replays)||0);
     state.daysLearned=Math.max(Number(state.daysLearned)||0,Number(stored.daysLearned)||0);
@@ -7646,6 +7677,83 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
   meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
   touchState('reviewUpdatedAt');
   save();
+}
+
+/* ---------------- what is about to be forgotten ----------------
+   Every attempt at every phrase has always been recorded above: successes,
+   lapses, hints and when it was last practised. For a long time exactly one
+   function read any of it, to order the six warm-up cards that open a new
+   lesson — so the measurement stopped being used on the day the course ran
+   out of new lessons, which is the day it starts to matter most.
+
+   These four functions are the whole scheduler, and they are deliberately
+   plain. Strength is how many more times a phrase has been right than wrong;
+   each point of strength doubles how long it may rest, up to about six weeks.
+   Dueness is how far past that rest it is, so 1 means due now and 3 means
+   three times overdue. A phrase never practised at all is the most overdue
+   thing there is. Sorting by that number is the entire selection rule. */
+const REVIEW_REST_MS = 20*36e5;          // a day, minus enough to clear "tomorrow"
+const REVIEW_MAX_DOUBLINGS = 6;          // 20h → ~7 weeks, then it stops growing
+const REVIEW_SECURE_STRENGTH = 2;        // right twice more often than wrong
+/* What a phrase with no record at all is worth. It has to outrank everything
+   in normal rotation — an untested phrase is genuinely unknown — but it must
+   stay finite, for two reasons. A phrase failed repeatedly and then not seen
+   for weeks is not merely unknown, it is known to be broken, and should be
+   asked first. And Infinity would make the comparator below return NaN on
+   every pair of untested phrases, which leaves their order to chance. */
+const REVIEW_UNSEEN_DUENESS = 6;
+function reviewStrength(meta){
+  return Math.max(0,(Number(meta?.successes)||0)-(Number(meta?.lapses)||0)-(Number(meta?.hints)||0));
+}
+function reviewRestMs(meta){
+  return REVIEW_REST_MS*Math.pow(2,Math.min(REVIEW_MAX_DOUBLINGS,reviewStrength(meta)));
+}
+function reviewDueness(meta, now=Date.now()){
+  const last=Number(meta?.lastPracticedAt)||0;
+  if(!last) return REVIEW_UNSEEN_DUENESS;
+  return Math.max(0,now-last)/reviewRestMs(meta);
+}
+/* The count the learner is shown, so it has to mean what he would take it to
+   mean: phrases he could say right now. Strength alone cannot say that —
+   it only ever grows, so after a normal run of lessons every phrase qualifies
+   and the number sits at the maximum forever, saying nothing. A phrase is
+   secure when it is known well AND is not already past its rest: everything
+   decays out of this count on its own, and a drill puts it back.
+
+   That is deliberately a different thing from the seal a check earns. The
+   seal is a fact about something he did and it is permanent; this is a live
+   reading of what he is holding today, and it is meant to move. */
+function reviewSecure(meta, now=Date.now()){
+  return !meta?.hard
+    && reviewStrength(meta)>=REVIEW_SECURE_STRENGTH
+    && reviewDueness(meta,now)<1;
+}
+
+/* The phrases a check or a drill may draw from. `unit` limits it to one
+   unit's five lessons; without it the pool is everything learned so far. */
+function reviewPool(unit=null){
+  const learned=allLearnedPhrases(Math.max(0,Math.min(state.completed,LESSONS.length)));
+  const scoped=unit===null ? learned
+    : learned.filter(x=>x.li>=unit*LESSONS_PER_UNIT&&x.li<(unit+1)*LESSONS_PER_UNIT);
+  return scoped.map(x=>({...x,meta:(state.reviewMeta||{})[x.id]||{}}));
+}
+/* Weakest first, but never the same lesson twice in a row while another
+   lesson still has something to offer: ten questions from one lesson is a
+   test of that lesson, not of the unit. Shuffling first keeps ties — and a
+   brand-new pool, where every phrase is equally unpractised — from always
+   producing the same order. */
+function reviewSelect(pool, count, now=Date.now()){
+  const ranked=shuffled(pool).sort((a,b)=>reviewDueness(b.meta,now)-reviewDueness(a.meta,now));
+  const out=[];
+  while(out.length<count&&ranked.length){
+    const lastLi=out.length?out[out.length-1].li:-1;
+    // the most overdue phrase that is not from the lesson just asked about;
+    // one skipped here keeps its place in the ranking for the next pick
+    let i=ranked.findIndex(x=>x.li!==lastLi);
+    if(i<0) i=0;                          // nothing left but that lesson
+    out.push(ranked.splice(i,1)[0]);
+  }
+  return out;
 }
 
 /* ---------------- small sounds ----------------
@@ -8498,10 +8606,12 @@ function renderHome(){
     const expanded=ui === currentUnit;
     const unitState=complete ? 'complete' : future ? 'future' : 'active';
     const summary=complete ? `${unitDone}/${last-first} הושלמו` : future ? 'ייפתח בהמשך' : `${unitDone}/${last-first} הושלמו`;
-    listHtml += `<section class="home-unit ${unitState}${expanded?' active':''}" style="--i:${ui}">
+    // the mark the check earns, readable without opening the unit
+    const sealedHead=complete&&unitChecked(ui);
+    listHtml += `<section class="home-unit ${unitState}${expanded?' active':''}${sealedHead?' sealed':''}" style="--i:${ui}">
       <button id="homeUnitHead${ui}" class="home-unit-head" onclick="toggleHomeUnit(${ui})" aria-expanded="${expanded}" aria-controls="homeUnitBody${ui}">
-        <span class="home-unit-emoji">${u.emoji}</span>
-        <span class="home-unit-copy"><b>יחידה ${ui+1} · ${esc(u.title)}</b><span>${complete?'היחידה הושלמה':future?'עוד נגיע לשם':'היחידה הנוכחית'}</span></span>
+        <span class="home-unit-emoji">${u.emoji}${sealedHead?'<span class="unit-seal" aria-hidden="true">✓</span>':''}</span>
+        <span class="home-unit-copy"><b>יחידה ${ui+1} · ${esc(u.title)}</b><span>${sealedHead?'בדקת את עצמך — אתה יודע אותה':complete?'היחידה הושלמה':future?'עוד נגיע לשם':'היחידה הנוכחית'}</span></span>
         <span class="home-unit-progress">${complete?'✓ ':future?'🔒 ':''}${summary}</span>
         <span class="home-unit-chevron" aria-hidden="true">⌄</span>
       </button>
@@ -8532,14 +8642,41 @@ function renderHome(){
         <span class="mark" aria-hidden="true">${mark}</span>
       </button>`;
     }
-    listHtml += '</div></div></div></section>';
+    listHtml += '</div>';
+    /* A finished unit gets one more thing to do with it: prove to yourself
+       that you still have it. The questions come from whatever in this unit
+       is closest to being forgotten, so the mark is worth something — and it
+       stays on the unit once earned, which is the whole point of taking it. */
+    if(complete){
+      const row=checkRow(ui), sealed=!!row.passed;
+      const scope=reviewPool(ui);
+      const secure=scope.filter(x=>reviewSecure((state.reviewMeta||{})[x.id])).length;
+      listHtml += `
+      <button type="button" class="unit-check${sealed?' sealed':''}" onclick="startUnitCheck(${ui})">
+        <span class="unit-check-icon" aria-hidden="true">${sealed?'✅':'🎯'}</span>
+        <span class="unit-check-copy">
+          <b>${sealed?'היחידה מסומנת':'בדיקה קטנה'}</b>
+          <small>${sealed
+            ? `${row.best} מתוך ${row.total} · ${secure}/${scope.length} בשליטה עכשיו · אפשר לבדוק שוב`
+            : `${CHECK_LENGTH} שאלות, פחות משתי דקות · ${secure}/${scope.length} בשליטה עכשיו`}</small>
+        </span>
+        <span class="unit-check-go" aria-hidden="true">←</span>
+      </button>`;
+    }
+    listHtml += '</div></div></section>';
   });
-  /* Free practice used to be wedged between two units, at the bottom of a long
-     scroll. It is a thing to do rather than a step on the path, and a child
-     will not scroll past thirty locked lessons to find it, so it sits above
-     the path. Nothing to show until the first lesson is behind him. */
+  /* Things to do rather than steps on the path, so they sit above it: a child
+     will not scroll past thirty locked lessons to find them. The drill is
+     first because it is the one with an answer on a day the lesson is already
+     done — and after lesson thirty it is the one that is still there at all. */
+  const drilled = drilledToday();
   const extrasHtml = state.completed > 0 ? `
-    <div class="home-extras one">
+    <div class="home-extras">
+      <button type="button" class="home-extra drill${drilled?' done':''}" onclick="startDailyDrill()">
+        <span class="extra-icon">${drilled?'✅':'🧠'}</span>
+        <span class="extra-title">תרגול יומי</span>
+        <span class="extra-sub">${drilled?'עשית היום — אפשר עוד':`${DRILL_LENGTH} משפטים · דקה וחצי`}</span>
+      </button>
       <button type="button" class="home-extra practice" onclick="renderPracticePicker()">
         <span class="extra-icon">🗣️</span><span class="extra-title">תרגול שיחה חופשי</span><span class="extra-sub">בחר עם מי לדבר</span>
       </button>
@@ -8581,6 +8718,288 @@ function renderHome(){
   afterRender(()=>revealCurrentHomeLesson(currentUnit));
   // an update that waited through a lesson applies now, on the home screen
   if(typeof pendingServiceWorker !== 'undefined') tryAutoUpdate();
+}
+
+/* ================= the check and the daily drill =================
+   Two doors onto one engine. The drill is a habit: eight phrases, ninety
+   seconds, no score, and it is the only thing in the app that still has
+   something to do on a day with no lesson left in it — including every day
+   after lesson thirty. The check is a claim: ten phrases from one finished
+   unit, and passing puts a mark on that unit that stays there.
+
+   Both draw from reviewSelect(), so both ask about whatever is closest to
+   being forgotten rather than whatever is nearest to hand. That is what makes
+   passing the check mean something: it is not ten easy ones.
+
+   Three question shapes, rotated. Two are recognition and are honest about
+   it; the third shows the Hebrew, asks for the English out loud, and then
+   asks the learner whether they had it. Nothing can be eliminated down to on
+   that one, which is the only reason it can tell him something the other two
+   cannot. All three feed notePractice(), the same record the lessons write. */
+let R = null;
+const DRILL_LENGTH = 8, CHECK_LENGTH = 10, CHECK_PASS = 8;
+const REVIEW_PAUSE_PASS = 900, REVIEW_PAUSE_MISS = 2100;
+const REVIEW_SHAPES = ['pick','hear','say'];
+
+// Rotation is by position, so no shape is ever asked twice running.
+function reviewShapeFor(index){ return REVIEW_SHAPES[index%REVIEW_SHAPES.length]; }
+function reviewDistractors(item, pool, field){
+  const others=pool.filter(x=>x.id!==item.id&&ptext(x.p,field)!==ptext(item.p,field));
+  const near=shuffled(others.filter(x=>x.li===item.li));
+  const far=shuffled(others.filter(x=>x.li!==item.li));
+  return [...near,...far].slice(0,2).map(x=>ptext(x.p,field));
+}
+function buildReviewQuestions(items, pool){
+  return items.map((item,i)=>{
+    const shape=reviewShapeFor(i);
+    if(shape==='say') return {shape,item,id:item.id};
+    const field=shape==='pick'?'en':'he';
+    const correct=ptext(item.p,field);
+    const options=shuffled([correct,...reviewDistractors(item,pool,field)]);
+    return {shape,item,id:item.id,correct,options};
+  });
+}
+
+function startReviewRun(mode, unit=null){
+  if(L){
+    askConfirm({title:'יש שיעור פתוח', text:'לצאת ממנו? המקום בשיעור יישמר.',
+      ok:'כן, לצאת', cancel:'לא, להישאר בשיעור'}).then(ok=>{
+      if(!ok||!L) return;
+      stopLessonTimers(true); L=null; startReviewRun(mode,unit);
+    });
+    return;
+  }
+  unlockUiAudio();
+  const pool=reviewPool(unit);
+  if(!pool.length){ toast('עוד אין מה לבדוק — תסיים שיעור ראשון 💪'); return; }
+  const count=Math.min(mode==='check'?CHECK_LENGTH:DRILL_LENGTH,pool.length);
+  const items=reviewSelect(pool,count);
+  R={ mode, unit, pool, questions:buildReviewQuestions(items,pool), i:0,
+      right:0, missed:[], answered:false, revealed:false, startedAt:Date.now(),
+      // what he was holding on the way in, so the end can show the difference
+      secureBefore:pool.filter(x=>reviewSecure((state.reviewMeta||{})[x.id])).length };
+  renderReviewStep();
+}
+/* A wrong answer holds the right one on screen for a moment before moving on.
+   That pause owns a timer, and a timer that outlives its run is a bug waiting
+   to happen: leave mid-pause, start another drill inside two seconds, and the
+   old one would step the new run forward a question. So the pending advance
+   belongs to the run, is cleared when the run ends, and checks on the way in
+   that it is still the run it was scheduled for. */
+function scheduleReviewAdvance(ms){
+  if(!R) return;
+  const run=R;
+  clearTimeout(run.advanceTimer);
+  run.advanceTimer=setTimeout(()=>{ if(R===run) advanceReview(); }, ms);
+}
+function advanceReview(){
+  if(!R) return;
+  clearTimeout(R.advanceTimer);
+  R.advanceTimer=null;
+  R.i++;
+  renderReviewStep();
+}
+/* Every answer is already written to reviewMeta as it happens, so leaving
+   early costs nothing that was earned — only the run's own tally. */
+function exitReviewRun(){
+  if(!R) return;
+  const run=R;
+  cancelSpeech();
+  askConfirm({title:'לצאת מהתרגול?', text:'מה שכבר ענית כבר נשמר.', ok:'כן, לצאת', cancel:'להמשיך'})
+    .then(ok=>{
+      if(!ok||R!==run) return;
+      clearTimeout(run.advanceTimer);
+      R=null;
+      renderHome();
+    });
+}
+function reviewShell(inner){
+  const total=R.questions.length, pct=Math.round(R.i/total*100);
+  const label=R.mode==='check'?`בדיקה · יחידה ${R.unit+1}`:'תרגול יומי';
+  hx(`
+  <div class="screen">
+    <div class="player-top">
+      <button class="xbtn" onclick="exitReviewRun()" aria-label="יציאה">✕</button>
+      <div class="pbar" role="progressbar" aria-label="התקדמות" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+      <div class="timer">${esc(label)}</div>
+    </div>
+    <div class="step">${inner}</div>
+  </div>`);
+}
+function renderReviewStep(){
+  if(!R) return;
+  if(R.i>=R.questions.length) return renderReviewDone();
+  R.answered=false; R.revealed=false;
+  const q=R.questions[R.i];
+  const n=`שאלה ${R.i+1} מתוך ${R.questions.length}`;
+  if(q.shape==='say') return renderReviewSay(q,n);
+  return renderReviewChoice(q,n);
+}
+function renderReviewChoice(q,n){
+  const hear=q.shape==='hear', en=ptext(q.item.p,'en');
+  reviewShell(`
+    <div class="step-label">${hear?'🎧 מה שמעת?':'🗣️ איך אומרים באנגלית?'}</div>
+    <div class="review-count">${esc(n)}</div>
+    ${hear?`
+      <div class="recall-card">
+        <button class="play-big" onclick="speak('${jsEsc(en)}')" aria-label="השמעה שוב">🔊</button>
+        <div class="audio-only">מקשיבים ובוחרים את המשמעות</div>
+      </div>`:`
+      <div class="review-prompt">${esc(ptext(q.item.p,'he'))}</div>`}
+    <div id="reviewOptions">
+      ${q.options.map((o,i)=>`<button class="quiz-opt" ${hear?'':'dir="ltr" lang="en"'} onclick="answerReviewChoice(${i})">${esc(o)}</button>`).join('')}
+    </div>
+    <div id="reviewResult" role="status" aria-live="polite"></div>
+  `);
+  if(hear) scheduleSpeak(en);
+}
+function renderReviewSay(q,n){
+  const en=ptext(q.item.p,'en');
+  reviewShell(`
+    <div class="step-label">💭 תגיד את זה בקול</div>
+    <div class="review-count">${esc(n)}</div>
+    <div class="review-prompt">${esc(ptext(q.item.p,'he'))}</div>
+    ${R.revealed?`
+      <div class="phrase-card">
+        <div class="phrase-en" dir="ltr" lang="en">${esc(en)}</div>
+        <div class="phrase-tl">${esc(ptext(q.item.p,'tl'))}</div>
+      </div>
+      <button class="btn secondary" style="margin-bottom:10px" onclick="speak('${jsEsc(en)}')">🔊 לשמוע שוב</button>
+      <p class="review-honest">רק אתה יודע. תסמן את האמת — זה מה שקובע מה יחזור מחר.</p>
+      <div class="review-rate">
+        <button class="btn" onclick="answerReviewSay(true)">ידעתי ✓</button>
+        <button class="btn secondary" onclick="answerReviewSay(false)">עוד לא</button>
+      </div>
+    `:`
+      <p class="challenge-help">תגיד את המשפט באנגלית בקול — ואז תגלה ותבדוק את עצמך.</p>
+      <button class="btn" onclick="revealReviewSay()">גיליתי — בוא נראה 👀</button>
+    `}
+  `);
+}
+function revealReviewSay(){
+  if(!R||R.revealed) return;
+  R.revealed=true;
+  const q=R.questions[R.i];
+  renderReviewSay(q,`שאלה ${R.i+1} מתוך ${R.questions.length}`);
+  speak(ptext(q.item.p,'en'));
+}
+/* Both answer paths record the attempt exactly the way a lesson does, so a
+   phrase missed here is in tomorrow's warm-up and a phrase known here rests
+   longer. That shared record is the whole point of the feature. */
+function reviewRecord(q, pass){
+  R.answered=true;
+  if(pass) R.right++; else R.missed.push(q);
+  notePractice(q.id, pass?'pass':'fail');
+  playUiSound(pass?'pass':'retry');
+}
+function answerReviewChoice(index){
+  if(!R||R.answered) return;
+  const q=R.questions[R.i], chosen=q.options[index], pass=chosen===q.correct;
+  reviewRecord(q,pass);
+  const box=document.getElementById('reviewOptions');
+  if(box) [...box.children].forEach((b,i)=>{
+    b.disabled=true;
+    if(q.options[i]===q.correct) b.classList.add('right');
+    else if(i===index) b.classList.add('wrong');
+  });
+  const out=document.getElementById('reviewResult');
+  if(out) out.innerHTML=pass
+    ? `<div class="result-msg good">${esc(pick(PRAISE))}</div>`
+    : `<div class="result-msg almost">${esc(ptext(q.item.p,'he'))} — <b dir="ltr" lang="en">${esc(ptext(q.item.p,'en'))}</b><br><small>יחזור אליך בחימום הבא</small></div>`;
+  if(q.shape==='pick') speak(ptext(q.item.p,'en'));
+  // long enough to read the right answer when it was missed, brief when it was not
+  scheduleReviewAdvance(pass?REVIEW_PAUSE_PASS:REVIEW_PAUSE_MISS);
+}
+/* Nothing to read back on a self-rated one — he has just been shown the
+   answer and told the app what he knew — so it moves on the tap. */
+function answerReviewSay(knew){
+  if(!R||R.answered) return;
+  reviewRecord(R.questions[R.i],knew);
+  advanceReview();
+}
+
+function renderReviewDone(){
+  const {mode,unit,right,missed,secureBefore}=R, total=R.questions.length;
+  R=null;
+  /* The headline number is the one the learner asked for: how much of this
+     scope he can be sure of, counted the same way every time — not this run's
+     score, which is only a sample. */
+  const scope=reviewPool(mode==='check'?unit:null);
+  const secure=scope.filter(x=>reviewSecure((state.reviewMeta||{})[x.id])).length;
+  let head, sub;
+  if(mode==='check'){
+    const passed=right>=Math.min(CHECK_PASS,total);
+    if(passed){ markUnitChecked(unit,right,total); confetti(); }
+    head=passed?'✅':'💪';
+    sub=passed
+      ? `<h2>יחידה ${unit+1} — אתה יודע אותה</h2><p>${right} מתוך ${total}, והשאלות היו דווקא על מה שהיה הכי קרוב להישכח.<br>החותמת נשארת לך במסלול.</p>`
+      : `<h2>${right} מתוך ${total}</h2><p>עוד לא חותמת — אבל עכשיו אתה יודע בדיוק על מה לחזור.<br>אפשר לנסות שוב מתי שתרצה.</p>`;
+  } else {
+    noteDrillDone();
+    head='🧠';
+    sub=`<h2>${right} מתוך ${total}</h2><p>תרגול קצר, בדיוק על מה שהתחיל להישכח.<br>זה מה ששומר על מה שכבר למדת.</p>`;
+  }
+  const scopeLabel=mode==='check'?`ביחידה ${unit+1}`:'מכל מה שלמדת';
+  const backHtml=missed.length
+    ? `<div class="review-back"><small>חוזרים אליך בחימום ובתרגול הבא</small>${missed.slice(0,4)
+        .map(q=>`<b dir="ltr" lang="en">${esc(ptext(q.item.p,'en'))}</b>`).join('')}</div>`
+    : '';
+  hx(`
+  <div class="screen"><div class="step"><div class="finish">
+    <div class="emoji">${head}</div>
+    ${sub}
+    <div class="milestone">🔒 ${secure} מתוך ${scope.length} משפטים בשליטה ${esc(scopeLabel)}${
+      secure>secureBefore?`<span class="milestone-gain">+${secure-secureBefore}</span>`:''}</div>
+    ${backHtml}
+    <button class="btn" onclick="renderHome()">חזרה למסך הבית</button>
+  </div></div></div>`);
+}
+
+/* ---- the mark on the unit ----
+   A pass is a fact about the learner, not about the tab it happened in, so
+   like a mission it survives any merge: passed stays passed and the best
+   score only ever climbs. */
+function normalizeChecks(raw){
+  const src=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+  const out={};
+  for(let u=0;u<UNITS.length;u++){
+    const row=src[u]&&typeof src[u]==='object'&&!Array.isArray(src[u])?src[u]:{};
+    out[u]={ passed:!!row.passed, best:Math.max(0,Math.floor(Number(row.best)||0)),
+      total:Math.max(0,Math.floor(Number(row.total)||0)), at:Math.max(0,Number(row.at)||0) };
+  }
+  return out;
+}
+function mergeChecks(stored, local){
+  const a=normalizeChecks(stored), b=normalizeChecks(local), out={};
+  for(let u=0;u<UNITS.length;u++){
+    const best=Math.max(a[u].best,b[u].best);
+    out[u]={ passed:a[u].passed||b[u].passed, best,
+      total:Math.max(a[u].best>=b[u].best?a[u].total:b[u].total,0), at:Math.max(a[u].at,b[u].at) };
+  }
+  return out;
+}
+function checkRow(u){
+  if(!state.checks||typeof state.checks!=='object') state.checks=normalizeChecks(null);
+  if(!state.checks[u]) state.checks[u]={passed:false,best:0,total:0,at:0};
+  return state.checks[u];
+}
+function markUnitChecked(u, right, total){
+  const row=checkRow(u);
+  row.passed=true;
+  if(right>=(Number(row.best)||0)){ row.best=right; row.total=total; }
+  row.at=Date.now();
+  touchState('progressUpdatedAt');
+  save();
+}
+function unitChecked(u){ return !!checkRow(u).passed; }
+function startUnitCheck(u){ startReviewRun('check',u); }
+function startDailyDrill(){ startReviewRun('drill',null); }
+function drilledToday(){ return state.drillDate===todayStr(); }
+function noteDrillDone(){
+  state.drillDate=todayStr();
+  state.drillCount=Math.max(0,Math.floor(Number(state.drillCount)||0))+1;
+  touchState('progressUpdatedAt');
+  save();
 }
 
 /* ================= review ================= */

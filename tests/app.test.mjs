@@ -96,6 +96,12 @@ function runtime(seed = new Map(), options = {}) {
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
       setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline, STORE_KEY,
+      reviewStrength, reviewRestMs, reviewDueness, reviewSecure, reviewPool, reviewSelect,
+      buildReviewQuestions, startDailyDrill, startUnitCheck, exitReviewRun, getReview:()=>R,
+      answerReviewChoice, answerReviewSay, revealReviewSay, notePractice,
+      unitChecked, checkRow, normalizeChecks, mergeChecks, drilledToday, todayStr, advanceReview,
+      REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_STRENGTH,
+      REVIEW_PAUSE_PASS, REVIEW_PAUSE_MISS,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -3098,17 +3104,16 @@ test('home puts the active course path first and collapses completed and future 
   assert.match(html, /id="homeUnitBody1" class="home-unit-body" aria-hidden="false"/);
   assert.match(html, /id="homeUnitBody2" class="home-unit-body collapsed" aria-hidden="true" inert/);
   assert.match(html, /class="lesson-row current"[^>]*data-home-current="true"/);
-  /* Free practice is a thing to do, not a step on the path, so it sits above
-     it rather than below the stats at the foot of a long scroll, past thirty
-     locked lessons. It is the only such thing left: the runner that used to
-     stand beside it is gone. */
+  /* Things to do, not steps on the path, so they sit above it rather than
+     below the stats at the foot of a long scroll, past thirty locked lessons. */
   // free practice now opens the picker, where the surprise draw is one tap away
   assert.match(html, /class="home-extra practice"[^>]*onclick="renderPracticePicker\(\)"/);
-  assert.match(html, /class="home-extras one"/, 'and it stands alone, in the single-column row');
+  assert.match(html, /class="home-extra drill[^"]*"[^>]*onclick="startDailyDrill\(\)"/,
+    'and the daily drill sits beside it, in the two-column row');
   assert.ok(html.indexOf('home-extras') < html.indexOf('המסלול שלך'),
-    'it sits above the lesson list rather than inside or below it');
+    'they sit above the lesson list rather than inside or below it');
   assert.doesNotMatch(html, /home-path-special|home-side-game/,
-    'and is not left wedged between two units or stranded at the foot of the page');
+    'and neither is wedged between two units or stranded at the foot of the page');
   assert.doesNotMatch(html, /class="btn practice-cta"/);
   assert.doesNotMatch(html, />⭐</);
 });
@@ -4248,4 +4253,336 @@ test('a free practice conversation keeps a natural arc', () => {
         `${session.story.id} drifted into an unrelated scene`);
     }
   }
+});
+
+/* ---- the check and the daily drill ----
+   The app had always recorded how well every phrase was going and then read
+   that record in one place: the six warm-up cards at the head of a new
+   lesson. So it stopped being used on the day the lessons ran out. These lock
+   down the scheduler that now spends it, and the two doors onto it. */
+
+// answer the question the run is currently on; `right` decides correctly or not
+function answerReview(api, right) {
+  const run = api.getReview();
+  const q = run.questions[run.i];
+  if (q.shape === 'say') {
+    api.revealReviewSay();
+    api.answerReviewSay(right);
+    return q;
+  }
+  const i = right ? q.options.indexOf(q.correct) : q.options.findIndex(o => o !== q.correct);
+  api.answerReviewChoice(i);
+  return q;
+}
+/* Run a whole check or drill to its end; `decide(n)` answers question n. A
+   choice question schedules its advance on a real timer, so rather than make
+   every test wait out eight readable pauses, this drives the same advance the
+   timer would. One test below waits for the real timer instead. */
+function runReview(api, decide) {
+  const shapes = [], asked = [];
+  for (let n = 0; api.getReview() && api.getReview().i < api.getReview().questions.length; n++) {
+    assert.ok(n < 40, 'the run has to terminate');
+    const before = api.getReview().i;
+    shapes.push(api.getReview().questions[before].shape);
+    asked.push(answerReview(api, decide(n)));
+    if (api.getReview() && api.getReview().i === before) api.advanceReview();
+  }
+  return { shapes, asked };
+}
+function learnerAt(api, completed, extra = {}) {
+  const state = api.defaults();
+  state.onboarded = true;
+  state.completed = completed;
+  Object.assign(state, extra);
+  api.setState(state);
+  return state;
+}
+
+test('a phrase rests longer the better it is known, and an untested one is asked first', () => {
+  const { api } = runtime();
+  const hours = n => n * 36e5;
+
+  // strength is how many more times it was right than wrong or hinted
+  assert.equal(api.reviewStrength({ successes: 5, lapses: 1, hints: 1 }), 3);
+  assert.equal(api.reviewStrength({ successes: 1, lapses: 4 }), 0, 'and never goes negative');
+
+  // each point of strength doubles the rest, and the doubling stops
+  const rest = s => api.reviewRestMs({ successes: s });
+  assert.equal(rest(1), rest(0) * 2);
+  assert.equal(rest(3), rest(0) * 8);
+  assert.equal(rest(9), rest(6), 'a very strong phrase still comes back eventually');
+
+  // dueness is "how far past its rest", so 1 is due now
+  const now = Date.now();
+  assert.equal(api.reviewDueness({ successes: 0, lastPracticedAt: now - rest(0) }, now), 1);
+  assert.ok(api.reviewDueness({ successes: 0, lastPracticedAt: now }, now) < 0.01, 'just practised is not due');
+
+  /* An untested phrase outranks anything in normal rotation but stays finite,
+     so a phrase the learner keeps getting wrong and has not seen for weeks —
+     known to be broken, not merely unknown — is still asked before it. */
+  const unseen = api.reviewDueness({}, now);
+  assert.equal(unseen, api.REVIEW_UNSEEN_DUENESS);
+  assert.ok(Number.isFinite(unseen), 'Infinity here would make the sort comparator NaN');
+  assert.ok(api.reviewDueness({ successes: 4, lastPracticedAt: now - hours(24 * 7) }, now) < unseen,
+    'a strong phrase a week old is not more urgent than one never tested');
+  assert.ok(api.reviewDueness({ successes: 1, lapses: 4, lastPracticedAt: now - hours(24 * 30) }, now) > unseen,
+    'but one failed four times and unseen for a month is');
+});
+
+test('the questions come from what is closest to being forgotten, not from what is handy', () => {
+  const { api } = runtime();
+  const state = learnerAt(api, 12);
+  const now = Date.now();
+  // three phrases known cold and practised just now, one going badly for weeks
+  for (const id of ['0:0', '0:1', '0:2'])
+    state.reviewMeta[id] = { successes: 6, lapses: 0, hints: 0, lastPracticedAt: now, hard: false };
+  state.reviewMeta['3:3'] = { successes: 1, lapses: 4, hints: 2, lastPracticedAt: now - 30 * 864e5, hard: true };
+
+  const picked = api.reviewSelect(api.reviewPool(null), 8);
+  const ids = picked.map(x => x.id);
+  assert.equal(ids[0], '3:3', 'the phrase in real trouble is asked first');
+  assert.ok(!ids.some(id => ['0:0', '0:1', '0:2'].includes(id)),
+    'and the three he plainly knows are left out of an eight-question run');
+  assert.equal(new Set(ids).size, ids.length, 'no phrase is asked twice in one run');
+
+  /* Ten questions from one lesson would be a test of that lesson, not of the
+     unit, so the same lesson never comes up twice running while another has
+     anything left to offer. */
+  assert.ok(ids.every((id, i) => i === 0 || id.split(':')[0] !== ids[i - 1].split(':')[0]),
+    'consecutive questions come from different lessons');
+});
+
+test('a drill asks eight, rotates its three shapes, and records every answer', () => {
+  const seed = new Map();
+  const { api } = runtime(seed);
+  learnerAt(api, 10);
+  api.startDailyDrill();
+  assert.equal(api.getReview().questions.length, api.DRILL_LENGTH);
+
+  const { shapes, asked } = runReview(api, () => true);
+  assert.equal(shapes.length, api.DRILL_LENGTH);
+  assert.deepEqual(shapes.slice(0, 3), ['pick', 'hear', 'say'],
+    'recognising, hearing and saying — no shape twice running');
+
+  /* The point of the drill is that it writes to the same record the lessons
+     write to, so a phrase drilled today rests longer tomorrow. */
+  const meta = api.getState().reviewMeta;
+  for (const q of asked) assert.ok((meta[q.id].successes || 0) >= 1, `${q.id} recorded a success`);
+  assert.ok(api.drilledToday(), 'and the day is marked, so the home card can say so');
+  assert.equal(api.getState().drillCount, 1);
+});
+
+test('a phrase missed in a drill goes back on the hard list for the next warm-up', () => {
+  const { api } = runtime();
+  learnerAt(api, 10);
+  api.startDailyDrill();
+  const { asked } = runReview(api, () => false);
+
+  const state = api.getState();
+  for (const q of asked) {
+    assert.ok(state.hard.includes(q.id), `${q.id} is marked hard`);
+    assert.ok((state.reviewMeta[q.id].lapses || 0) >= 1, `${q.id} recorded the lapse`);
+    assert.ok(!api.reviewSecure(state.reviewMeta[q.id]), 'and is certainly not counted as secure');
+  }
+});
+
+test('the check draws only from its own unit, and passing marks that unit for good', () => {
+  const seed = new Map();
+  const { api } = runtime(seed);
+  learnerAt(api, 10);
+
+  api.startUnitCheck(1);
+  const run = api.getReview();
+  assert.equal(run.questions.length, api.CHECK_LENGTH);
+  assert.ok(run.questions.every(q => q.item.li >= 5 && q.item.li < 10),
+    'every question belongs to unit 2, whose lessons are 6 to 10');
+
+  // one short of the pass mark is not a pass
+  runReview(api, n => n < api.CHECK_PASS - 1);
+  assert.equal(api.unitChecked(1), false, 'seven out of ten leaves the unit unmarked');
+
+  // the retry stands on its own, and the mark it earns is permanent
+  api.startUnitCheck(1);
+  runReview(api, () => true);
+  assert.equal(api.unitChecked(1), true);
+  assert.equal(api.checkRow(1).best, api.CHECK_LENGTH);
+
+  // a worse later attempt cannot take the mark away
+  api.startUnitCheck(1);
+  runReview(api, () => false);
+  assert.equal(api.unitChecked(1), true, 'a bad day does not unmark a unit');
+  assert.equal(api.checkRow(1).best, api.CHECK_LENGTH, 'and the best score stands');
+});
+
+test('the mark and the drill survive a reload, a merge, and an install that never had them', () => {
+  // an install saved before either feature existed
+  const old = new Map([['speakEnglishV1', JSON.stringify({
+    onboarded: true, completed: 12, streak: 5,
+    hard: ['1:2'], reviewMeta: { '1:2': { successes: 1, lapses: 2, lastPracticedAt: 1, hard: true } },
+  })]]);
+  const { api } = runtime(old);
+  const state = api.getState();
+  assert.equal(state.completed, 12, 'course progress is untouched');
+  assert.ok(state.hard.includes('1:2'), 'and so is everything already measured');
+  assert.equal(Object.keys(state.checks).length, 6, 'a row appears for every unit');
+  assert.ok(Object.values(state.checks).every(c => !c.passed), 'none of them claiming a pass');
+  assert.equal(api.drilledToday(), false);
+
+  // nonsense in either field must not take the app down with it
+  const junk = runtime(new Map([['speakEnglishV1', JSON.stringify({
+    onboarded: true, completed: 10, checks: 'not an object', drillDate: 42, drillCount: 'x',
+  })]]));
+  assert.equal(Object.keys(junk.api.getState().checks).length, 6);
+  assert.equal(junk.api.getState().drillDate, '');
+  assert.equal(junk.api.getState().drillCount, 0);
+
+  /* Two tabs: a pass earned in either is a fact about the learner, so it
+     survives the merge from both directions and the best score only climbs. */
+  const merged = api.mergeChecks(
+    { 0: { passed: true, best: 9, total: 10, at: 100 }, 1: { passed: false, best: 3, total: 10, at: 50 } },
+    { 0: { passed: false, best: 0, total: 0, at: 0 }, 1: { passed: true, best: 8, total: 10, at: 200 } },
+  );
+  assert.equal(merged[0].passed, true, 'the pass only the stored copy knew about');
+  assert.equal(merged[1].passed, true, 'and the one only this tab knew about');
+  assert.equal(merged[0].best, 9);
+
+  // and a check taken now is still there on the next load of the same storage
+  const seed = new Map();
+  const a = runtime(seed);
+  learnerAt(a.api, 10);
+  a.api.startUnitCheck(0);
+  runReview(a.api, () => true);
+  assert.equal(a.api.unitChecked(0), true);
+  assert.equal(runtime(seed).api.unitChecked(0), true, 'reopening the app keeps the mark');
+});
+
+test('after the last lesson there is still something to open the app for', () => {
+  const { api, app } = runtime();
+  learnerAt(api, api.LESSONS.length);
+  api.renderHome();
+  const html = app.innerHTML;
+
+  /* This is the case the warm-up could never cover: it only ever ran at the
+     head of a NEW lesson, and after the last one every lesson is a replay. */
+  assert.match(html, /onclick="startDailyDrill\(\)"/, 'the drill is still offered');
+  assert.equal((html.match(/class="unit-check[ "]/g) || []).length, 6,
+    'and every one of the six finished units can still be checked');
+
+  const drill = api.reviewPool(null);
+  assert.equal(drill.length, 150, 'with the whole course to draw on');
+  assert.equal(api.reviewSelect(drill, api.DRILL_LENGTH).length, api.DRILL_LENGTH);
+});
+
+test('the secure count means "could say it right now", so it moves', () => {
+  const { api } = runtime();
+  const now = Date.now();
+  const fresh = extra => ({ successes: 5, lapses: 0, hard: false, lastPracticedAt: now, ...extra });
+
+  assert.equal(api.reviewSecure(fresh(), now), true);
+  assert.equal(api.reviewSecure(fresh({ hard: true }), now), false,
+    'a phrase still marked hard is not secure, however often it has been right');
+  assert.equal(api.reviewSecure(fresh({ successes: 1 }), now), false,
+    'one correct answer is not knowing it');
+  assert.equal(api.reviewSecure(fresh({ successes: 4, lapses: 3 }), now), false,
+    'nor is being right slightly more often than wrong');
+  assert.equal(api.reviewSecure({}, now), false);
+  assert.equal(api.reviewSecure(fresh({ successes: api.REVIEW_SECURE_STRENGTH }), now), true);
+
+  /* The part strength alone could never express. A phrase answered right five
+     times and then left for three months is not one he can say today, and a
+     count that claimed otherwise would sit at its maximum forever and tell
+     him nothing. It has to decay on its own — and come back when he drills. */
+  const stale = fresh({ lastPracticedAt: now - 200 * 864e5 });
+  assert.equal(api.reviewSecure(stale, now), false, 'known once, but long overdue');
+  assert.equal(api.reviewSecure({ ...stale, lastPracticedAt: now }, now), true,
+    'and practising it is what puts it back');
+});
+
+test('the secure count is neither always nothing nor always everything', () => {
+  const { api } = runtime();
+  const state = learnerAt(api, 10);
+  const now = Date.now();
+
+  // nothing practised yet: the app cannot claim he holds any of it
+  assert.equal(api.reviewPool(null).filter(x => api.reviewSecure(state.reviewMeta[x.id], now)).length, 0);
+
+  /* What ten lessons actually leave behind — a speak step for every phrase, a
+     challenge for some, warm-ups for the older ones. This is the case that
+     matters: a count that read 50 of 50 here would be decoration. */
+  for (let li = 0; li < 10; li++) {
+    for (let pi = 0; pi < 5; pi++) {
+      const id = `${li}:${pi}`;
+      api.notePractice(id, 'pass');
+      if (pi < 3) api.notePractice(id, 'pass');
+      for (let w = 0; w < Math.max(0, Math.min(3, 9 - li)); w++) api.notePractice(id, 'pass');
+    }
+  }
+  const meta = api.getState().reviewMeta;
+  const pool = api.reviewPool(null);
+  const justPractised = pool.filter(x => api.reviewSecure(meta[x.id], now)).length;
+  assert.ok(justPractised > pool.length * 0.8, 'straight after the lessons he does hold nearly all of it');
+
+  // three weeks later, without opening the app, he plainly does not
+  const later = now + 21 * 864e5;
+  const lapsed = pool.filter(x => api.reviewSecure(meta[x.id], later)).length;
+  assert.ok(lapsed < justPractised, `the count falls away on its own (${justPractised} to ${lapsed})`);
+  assert.ok(lapsed > 0, 'but the best-known phrases are still there');
+});
+
+
+test('the pause after an answer advances the run it belongs to, and no other', async () => {
+  const { api } = runtime();
+  learnerAt(api, 10);
+
+  // the ordinary path: answering really does move on by itself
+  api.startDailyDrill();
+  const first = api.getReview();
+  const q = first.questions[0];
+  api.answerReviewChoice(q.options.indexOf(q.correct));
+  assert.equal(api.getReview().i, 0, 'the right answer stays up for a beat');
+  await new Promise(r => setTimeout(r, api.REVIEW_PAUSE_PASS + 250));
+  assert.equal(api.getReview().i, 1, 'and then the run advances on its own');
+
+  /* Leaving during that pause and immediately starting another drill used to
+     hand the new run the old run's timer, which stepped it forward a question
+     the learner never answered. */
+  const missed = api.getReview().questions[1];
+  api.answerReviewChoice(missed.options.findIndex(o => o !== missed.correct));
+  api.exitReviewRun();
+  await Promise.resolve();                       // let the confirm sheet resolve
+  api.startDailyDrill();
+  const second = api.getReview();
+  assert.notEqual(second, first, 'a genuinely new run');
+  await new Promise(r => setTimeout(r, api.REVIEW_PAUSE_MISS + 250));
+  assert.equal(api.getReview(), second, 'still on the new run');
+  assert.equal(api.getReview().i, 0, 'which is untouched by the abandoned run\'s pending advance');
+});
+
+test('coming back after a long gap shows the count climbing again', () => {
+  const { api, app } = runtime();
+  const lessonCount = api.LESSONS.length;
+  learnerAt(api, lessonCount);
+  // the whole course played through, then forty days of nothing
+  for (let li = 0; li < lessonCount; li++) {
+    for (let pi = 0; pi < 5; pi++) {
+      api.notePractice(`${li}:${pi}`, 'pass');
+      if (pi < 3) api.notePractice(`${li}:${pi}`, 'pass');
+    }
+  }
+  const meta = api.getState().reviewMeta;
+  for (const id of Object.keys(meta)) meta[id].lastPracticedAt = Date.now() - 40 * 864e5;
+
+  const pool = api.reviewPool(null);
+  const secure = () => pool.filter(x => api.reviewSecure(api.getState().reviewMeta[x.id])).length;
+  const before = secure();
+  assert.ok(before < pool.length * 0.2, 'forty days away really has cost him most of it');
+
+  api.startDailyDrill();
+  runReview(api, () => true);
+  assert.equal(secure(), before + api.DRILL_LENGTH, 'and ninety seconds of drilling buys it straight back');
+
+  /* The number moving is the whole reward for opening the app on a day with
+     no lesson in it, so the run has to end by showing that it moved. */
+  assert.match(app.innerHTML, /milestone-gain/, 'the gain is on the screen');
+  assert.match(app.innerHTML, new RegExp(`\\+${api.DRILL_LENGTH}`), 'and it says how much');
 });
