@@ -7261,7 +7261,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.72.0';
+const APP_VERSION = '2.72.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8538,6 +8538,13 @@ const WORD_EQUIVALENTS = [
   ['dad','father'],
   ['yes','yeah','yep'],
   ['football','soccer'],
+  /* The restaurant tab is "check" in America and "bill" nearly everywhere
+     else, the same kind of split as mom/mum above, and a learner who says the
+     British one was being marked wrong: "the bill, please" scored .67 against
+     a .70 pass. Safe as a global equivalence because the verb "check" — check
+     the name, check the ball — only ever appears in lines the app speaks,
+     never in one the learner is asked to produce. */
+  ['check','bill'],
   ['four','for'],
   ['two','to','too'],
   ['one','won'],

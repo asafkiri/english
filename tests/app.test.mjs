@@ -5244,3 +5244,30 @@ test('a one-word phrase has nothing to point at, so it is not asked about', () =
   assert.ok(!api.getPicking(), 'it simply moves on');
   assert.equal(api.getReview().i, 1);
 });
+
+test('the British word for the restaurant tab is not a mistake', () => {
+  const { api } = runtime();
+  /* "Check" is American and "bill" is British and most of everywhere else.
+     The course teaches the American one, to match the voice it speaks with,
+     but a learner who says the other was scoring .67 against a .70 pass —
+     marked wrong for saying the word most of the English-speaking world uses. */
+  assert.ok(api.wordsMatch('check', 'bill'));
+  assert.ok(api.matchScore('The check, please', 'the bill please') >= 0.7);
+  assert.ok(api.matchScore('The check, please', 'the check please') >= 0.7);
+
+  // the same allowance the course already makes for the other regional splits
+  for (const [a, b] of [['mom', 'mum'], ['football', 'soccer'], ['goodbye', 'bye']])
+    assert.ok(api.wordsMatch(a, b), `${a}/${b} was already accepted`);
+
+  /* Safe only because the verb never has to be produced: "let me check the
+     ball" and friends are all lines the app speaks, never ones it listens for.
+     If that stops being true, this equivalence has to become phrase-scoped. */
+  const spoken = new Set();
+  for (const lesson of api.LESSONS) {
+    for (const p of lesson.phrases) spoken.add(p.en);
+    for (const d of lesson.dialogue || []) if (d.who === 'you') spoken.add(d.en);
+  }
+  for (const line of spoken)
+    if (/\bcheck\b/i.test(line))
+      assert.match(line, /\bthe check\b/i, `"${line}" uses check as the noun, not the verb`);
+});
