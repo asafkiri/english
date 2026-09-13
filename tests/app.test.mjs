@@ -5067,17 +5067,30 @@ test('the explanation is drawn, split per sound, and namespaced away from the re
    had no evidence for that and could not have: the self-test is self-rated,
    so nothing is recorded but "no". */
 
+/* Walk a run to a question whose sentence has more than one word. Eight of the
+   course's phrases are single words — Please, Yes, Sorry — and those skip the
+   which-word question on purpose, since there is nothing to point at. */
+function toMultiWord(api) {
+  while (api.getReview() && api.reviewWordChips(api.getReview().questions[api.getReview().i]).length < 2) {
+    api.revealReviewSay();
+    api.answerReviewSay(true);
+  }
+  assert.ok(api.getReview(), 'the run reached a sentence worth asking about');
+  return api.getReview().questions[api.getReview().i];
+}
+
 test('a missed sentence asks which word rather than deciding for him', () => {
   const { api, app } = runtime();
   learnerAt(api, 20);
   api.startSelfTest();
 
-  const q = api.getReview().questions[0];
+  const q = toMultiWord(api);
+  const at = api.getReview().i;
   api.revealReviewSay();
   api.answerReviewSay(false);
 
   assert.ok(api.getPicking(), 'a miss opens the question instead of moving on');
-  assert.equal(api.getReview().i, 0, 'and it is still the same question');
+  assert.equal(api.getReview().i, at, 'and it is still the same question');
 
   // every word of the sentence is offered, so any of them can be the answer
   const chips = api.reviewWordChips(q);
@@ -5091,8 +5104,9 @@ test('the word he points at is the one recorded, whatever the app would have pic
   learnerAt(api, 20);
   api.startSelfTest();
 
-  const q = api.getReview().questions[0];
+  const q = toMultiWord(api);
   const chips = api.reviewWordChips(q);
+  const at = api.getReview().i;
   api.revealReviewSay();
   api.answerReviewSay(false);
 
@@ -5101,7 +5115,7 @@ test('the word he points at is the one recorded, whatever the app would have pic
   api.pickMissingWord(0);
   assert.match(app.innerHTML, /is-gap/, 'the sentence is shown with his word marked');
   api.finishReviewPick();
-  assert.equal(api.getReview().i, 1);
+  assert.equal(api.getReview().i, at + 1);
 
   runSelfTest(api, () => true);
   assert.ok(app.innerHTML.includes(chips[0]), `${chips[0]} is on the closing list because he said so`);
@@ -5116,11 +5130,13 @@ test('a word the course never taught is still a valid answer', () => {
 
   learnerAt(api, 20);
   api.startSelfTest();
+  toMultiWord(api);
+  const at = api.getReview().i;
   api.revealReviewSay();
   api.answerReviewSay(false);
   api.pickMissingWord(0);
   api.finishReviewPick();
-  assert.equal(api.getReview().i, 1, 'the run carries on either way');
+  assert.equal(api.getReview().i, at + 1, 'the run carries on either way');
 });
 
 test('he can say no single word was the problem', () => {
@@ -5129,12 +5145,14 @@ test('he can say no single word was the problem', () => {
 
   for (const escape of [-2, -3]) {          // "only the order" and "nothing came"
     api.startSelfTest();
+    toMultiWord(api);
+    const at = api.getReview().i;
     api.revealReviewSay();
     api.answerReviewSay(false);
     assert.ok(api.getPicking());
     api.pickMissingWord(escape);
     assert.ok(!api.getPicking(), 'the question closes');
-    assert.equal(api.getReview().i, 1, 'and the run moves on');
+    assert.equal(api.getReview().i, at + 1, 'and the run moves on');
     runSelfTest(api, () => true);
     assert.doesNotMatch(app.innerHTML, /class="test-words"/,
       'with no word invented for the closing list');
@@ -5152,4 +5170,23 @@ test('the closing list names each word once, and only what he chose', () => {
   const listed = [...row.matchAll(/<b dir="ltr" lang="en">([^<]+)<\/b>/g)].map(m => m[1]);
   assert.ok(listed.length, 'the words he pointed at are listed');
   assert.equal(new Set(listed.map(w => w.toLowerCase())).size, listed.length, 'each one once');
+});
+
+test('a one-word phrase has nothing to point at, so it is not asked about', () => {
+  const { api } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+
+  /* Please, Yes, Sorry and the rest are one word each. Opening a which-word
+     question over a single chip would be asking him to confirm the only
+     answer there is. */
+  const single = { shape: 'say', item: { p: { en: 'Please', he: 'בבקשה', tl: 'פְּלִיז' }, li: 0, pi: 0 }, id: '0:0' };
+  assert.equal(api.reviewWordChips(single).length, 1);
+
+  const run = api.getReview();
+  run.questions[run.i] = single;
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+  assert.ok(!api.getPicking(), 'it simply moves on');
+  assert.equal(api.getReview().i, 1);
 });
