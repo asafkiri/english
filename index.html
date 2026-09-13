@@ -7267,7 +7267,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.73.0';
+const APP_VERSION = '2.74.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7540,7 +7540,7 @@ function soundExplainHtml(set, heardSide){
    and every stored profile would come back empty. */
 const REVIEW_REST_MS = 20*36e5;          // a day, minus enough to clear "tomorrow"
 const REVIEW_MAX_LEVEL = 6;              // 20h → ~7 weeks, then it stops growing
-const REVIEW_SECURE_LEVEL = 2;           // two clear answers above any recent trouble
+const REVIEW_SECURE_LEVEL = 2;           // independent recalls separated by time
 const REVIEW_MISS_DROP = 2;              // a miss costs two rungs, not the ladder
 
 const SESSION_STEP_TYPES = new Set([
@@ -7670,8 +7670,11 @@ function normalizeReviewMeta(raw, hardIds=[]){
     if(typeof id!=='string') continue;
     const value=source[id]&&typeof source[id]==='object'&&!Array.isArray(source[id])?source[id]:{};
     const meta={...value};
-    for(const field of ['successes','lapses','hints','lastPracticedAt','lastWarmupAt','updatedAt','hardUpdatedAt'])
+    for(const field of ['successes','lapses','hints','recallSuccesses','lastRecallAt','lastPracticedAt','lastWarmupAt','updatedAt','hardUpdatedAt'])
       meta[field]=Math.max(0,Number(meta[field])||0);
+    // Preserve the old schedule on upgrade. Later assisted practice must not
+    // overwrite this clock just because lastPracticedAt changed.
+    meta.lastReviewAt=reviewReferenceAt(value);
     meta.hard=typeof value.hard==='boolean'?value.hard:hardSet.has(id);
     /* The scheduling level, once, on the way in — see reviewLevel(). Records
        saved before it existed are seeded from their lifetime tally so nobody
@@ -7685,7 +7688,8 @@ function normalizeReviewMeta(raw, hardIds=[]){
 }
 function reviewEntryStamp(meta){
   return Math.max(Number(meta?.updatedAt)||0,Number(meta?.hardUpdatedAt)||0,
-    Number(meta?.lastPracticedAt)||0,Number(meta?.lastWarmupAt)||0);
+    Number(meta?.lastPracticedAt)||0,Number(meta?.lastWarmupAt)||0,
+    Number(meta?.lastReviewAt)||0,Number(meta?.lastRecallAt)||0);
 }
 function reviewHardIds(meta, preferredOrder=[]){
   const order=new Map((Array.isArray(preferredOrder)?preferredOrder:[]).map((id,i)=>[id,i]));
@@ -7925,6 +7929,7 @@ function reviewMetaFor(id){
   if(!state.reviewMeta[id]) state.reviewMeta[id]={
     successes:0,lapses:0,hints:0,lastPracticedAt:0,lastWarmupAt:0,
     updatedAt:0,hard:false,hardUpdatedAt:0,level:0,
+    recallSuccesses:0,lastRecallAt:0,lastReviewAt:0,
   };
   return state.reviewMeta[id];
 }
@@ -7952,10 +7957,17 @@ function removeHard(id, persist=true, at=Date.now()){
   setReviewHard(id,false,at);
   if(persist){ touchState('reviewUpdatedAt'); save(); }
 }
-function notePractice(id, result, usedHint=false, wasWarmup=false){
+function notePractice(id, result, usedHint=false, wasWarmup=false, kind='recall'){
   if(!id) return;
+  // Read newer attempts before applying this one: another open tab may have
+  // just shown the answer, which also rules out a delayed recall here.
+  reconcileStoredProgress();
   const at=Date.now();
   const meta=reviewMetaFor(id);
+  const previousPractice=Number(meta.lastPracticedAt)||0;
+  const reference=reviewReferenceAt(meta);
+  const delayed=!previousPractice || at-previousPractice>=REVIEW_REST_MS;
+  meta.lastReviewAt=reference||at;
   meta.lastPracticedAt=at;
   if(wasWarmup){
     meta.lastWarmupAt=at;
@@ -7963,26 +7975,28 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
     state.lastWarmupIds.push(id);
     state.lastWarmupIds = state.lastWarmupIds.slice(-20);
   }
-  /* The tallies are kept because they are an honest history of the phrase,
-     but the level is what the schedule reads. A clear answer always moves it
-     up a rung — that is the app keeping its side of the bargain when it asks
-     "did you know it?" — and a hinted one is not a clear answer. */
-  /* Read the rung before touching the tallies: for a record old enough to
-     have no level of its own, reviewLevel() derives one from those very
-     tallies, and incrementing first would count this answer twice. */
+  // Keep all successes as practice history. Only unaided recall after a gap
+  // strengthens memory; reading, recognition and immediate retries do not.
+  // Read the legacy level before incrementing its source tallies.
   const level = reviewLevel(meta);
+  meta.level=level;
   if(result === 'pass'){
     meta.successes = (meta.successes || 0) + 1;
-    if(!usedHint){
-      meta.level = Math.min(REVIEW_MAX_LEVEL, level + 1);
-      removeHard(id,false,at);
-    } else {
+    if(usedHint){
       meta.level = Math.max(0, level - 1);
+      meta.lastReviewAt=at;
       addHard(id,false,at);
+    } else if(kind==='recall'&&delayed){
+      meta.level = Math.min(REVIEW_MAX_LEVEL, level + 1);
+      meta.recallSuccesses=(meta.recallSuccesses||0)+1;
+      meta.lastRecallAt=at;
+      meta.lastReviewAt=at;
+      removeHard(id,false,at);
     }
   } else if(result === 'fail'){
     meta.lapses = (meta.lapses || 0) + 1;
     meta.level = Math.max(0, level - REVIEW_MISS_DROP);
+    meta.lastReviewAt=at;
     addHard(id,false,at);
   }
   meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
@@ -7991,18 +8005,10 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
 }
 
 /* ---------------- what is about to be forgotten ----------------
-   Every attempt at every phrase has always been recorded above: successes,
-   lapses, hints and when it was last practised. For a long time exactly one
-   function read any of it, to order the six warm-up cards that open a new
-   lesson — so the measurement stopped being used on the day the course ran
-   out of new lessons, which is the day it starts to matter most.
-
-   These four functions are the whole scheduler, and they are deliberately
-   plain. Strength is how many more times a phrase has been right than wrong;
-   each point of strength doubles how long it may rest, up to about six weeks.
-   Dueness is how far past that rest it is, so 1 means due now and 3 means
-   three times overdue. A phrase never practised at all is the most overdue
-   thing there is. Sorting by that number is the entire selection rule. */
+   The same scheduler serves drills and the existing lesson warm-up. Its
+   clock is the first practice or the last meaningful review result, not
+   every sight of the answer. Dueness 1 means due now, 3 means three times
+   overdue. Keep legacy levels; future gains require spaced recall. */
 /* What a phrase with no record at all is worth. It has to outrank everything
    in normal rotation — an untested phrase is genuinely unknown — but it must
    stay finite, for two reasons. A phrase failed repeatedly and then not seen
@@ -8010,17 +8016,8 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
    asked first. And Infinity would make the comparator below return NaN on
    every pair of untested phrases, which leaves their order to chance. */
 const REVIEW_UNSEEN_DUENESS = 6;
-/* Where a phrase sits on the ladder, and the one number the whole schedule
-   turns on. It is a running position, not a lifetime score: right moves it up
-   a rung, wrong moves it down two.
-
-   It used to be the lifetime tally below — successes minus lapses and hints,
-   floored at zero — and that quietly broke the promise the app makes when it
-   asks "did you know it?". Old failures were never forgiven, so a phrase that
-   had gone wrong three times sat pinned at the bottom rung: answering it
-   correctly moved nothing, and it came back the next day, and the next, no
-   matter how many times the learner said he knew it. Saying so has to change
-   something the very next day, and now it does. */
+/* A running level, not a lifetime score: a spaced unaided recall moves it
+   up one, a miss down two. Old failures never permanently pin it at zero. */
 function reviewSeedLevel(meta){
   // only for records written before the level existed; the tally is the best
   // evidence available of where they had got to
@@ -8034,10 +8031,14 @@ function reviewLevel(meta){
 }
 // each rung doubles the rest: 20h, 40h, 3.3d, 6.7d, 13d, 27d, 53d
 function reviewRestMs(meta){
-  return REVIEW_REST_MS*Math.pow(2,reviewLevel(meta));
+  return REVIEW_REST_MS*Math.pow(2,meta?.hard?0:reviewLevel(meta));
+}
+function reviewReferenceAt(meta){
+  return Number.isFinite(meta?.lastReviewAt)
+    ? Math.max(0,meta.lastReviewAt) : Math.max(0,Number(meta?.lastPracticedAt)||0);
 }
 function reviewDueness(meta, now=Date.now()){
-  const last=Number(meta?.lastPracticedAt)||0;
+  const last=reviewReferenceAt(meta);
   if(!last) return REVIEW_UNSEEN_DUENESS;
   return Math.max(0,now-last)/reviewRestMs(meta);
 }
@@ -8071,7 +8072,16 @@ function reviewPool(unit=null){
    brand-new pool, where every phrase is equally unpractised — from always
    producing the same order. */
 function reviewSelect(pool, count, now=Date.now()){
-  const ranked=shuffled(pool).sort((a,b)=>reviewDueness(b.meta,now)-reviewDueness(a.meta,now));
+  const ranked=shuffled(pool).sort((a,b)=>{
+    const ap=Number(a.meta?.lastPracticedAt)||0, bp=Number(b.meta?.lastPracticedAt)||0;
+    const ar=!!ap&&now-ap<REVIEW_REST_MS, br=!!bp&&now-bp<REVIEW_REST_MS;
+    // Recognition stays due, but must not monopolize every subsequent drill
+    // merely because its scheduling clock (correctly) did not move.
+    return Number(ar)-Number(br) || (ar&&br?ap-bp:0)
+      || reviewDueness(b.meta,now)-reviewDueness(a.meta,now)
+      || Number(!!b.meta?.hard)-Number(!!a.meta?.hard)
+      || (Number(a.meta?.lastWarmupAt)||0)-(Number(b.meta?.lastWarmupAt)||0);
+  });
   const out=[];
   while(out.length<count&&ranked.length){
     const lastLi=out.length?out[out.length-1].li:-1;
@@ -9365,7 +9375,7 @@ function revealReviewSay(){
 function reviewRecord(q, pass){
   R.answered=true;
   if(pass) R.right++; else R.missed.push(q);
-  notePractice(q.id, pass?'pass':'fail');
+  notePractice(q.id, pass?'pass':'fail',false,false,q.shape==='say'?'recall':'recognition');
   playUiSound(pass?'pass':'retry');
 }
 function answerReviewChoice(index){
@@ -10205,27 +10215,6 @@ function allLearnedPhrases(idx){
   for(let li=0;li<idx;li++) LESSONS[li].phrases.forEach((p,pi)=>out.push({p,id:li+':'+pi,li,pi}));
   return out;
 }
-function warmupOrder(items, hardFirst=false){
-  return shuffled(items).sort((a,b)=>{
-    const am = (state.reviewMeta || {})[a.id] || {};
-    const bm = (state.reviewMeta || {})[b.id] || {};
-    if(hardFirst){
-      const ah = (am.lapses||0) + (am.hints||0) - (am.successes||0);
-      const bh = (bm.lapses||0) + (bm.hints||0) - (bm.successes||0);
-      if(ah !== bh) return bh-ah;
-    }
-    return (am.lastWarmupAt||0) - (bm.lastWarmupAt||0);
-  });
-}
-function takeWarmup(pool, amount, chosen, lastSet, allowRecentRepeat=false){
-  if(amount <= 0) return;
-  const fresh = pool.filter(x=>!chosen.has(x.id) && (allowRecentRepeat || !lastSet.has(x.id)));
-  const repeated = pool.filter(x=>!chosen.has(x.id) && !fresh.includes(x));
-  for(const item of [...fresh,...repeated]){
-    if(amount-- <= 0) break;
-    chosen.set(item.id,item);
-  }
-}
 function arrangeWarmup(items, hardSet, recentStart){
   const hard = shuffled(items.filter(x=>hardSet.has(x.id)));
   const recent = shuffled(items.filter(x=>!hardSet.has(x.id) && x.li>=recentStart));
@@ -10241,30 +10230,23 @@ function arrangeWarmup(items, hardSet, recentStart){
   }
   return ordered;
 }
-function selectWarmup(idx, target){
-  const learned = allLearnedPhrases(idx);
+function selectWarmup(idx, target, now=Date.now()){
+  reconcileStoredProgress();
   const hardSet = new Set(state.hard || []);
+  const learned = allLearnedPhrases(idx).map(x=>({...x,
+    meta:{...(state.reviewMeta||{})[x.id],hard:hardSet.has(x.id)||!!state.reviewMeta?.[x.id]?.hard}}));
   const lastSet = new Set(state.lastWarmupIds || []);
-  const chosen = new Map();
-  const recentStart = Math.max(0,idx-2);
-  const olderExists = learned.some(x=>x.li < recentStart);
-  const recentReserve = Math.min(5,Math.max(1,Math.floor(target/4)));
-  const oldReserve = olderExists ? Math.min(5,Math.max(1,Math.floor(target/4))) : 0;
-  const hardReserve = Math.min(10,Math.max(0,target-recentReserve-oldReserve));
-
-  const hard = warmupOrder(learned.filter(x=>hardSet.has(x.id)), true);
-  takeWarmup(hard,hardReserve,chosen,lastSet);
-
-  const recent = warmupOrder(learned.filter(x=>!hardSet.has(x.id) && x.li>=recentStart));
-  takeWarmup(recent,recentReserve,chosen,lastSet);
-
-  const older = warmupOrder(learned.filter(x=>!hardSet.has(x.id) && x.li<recentStart));
-  takeWarmup(older,oldReserve,chosen,lastSet);
-
-  // Fill a small/uneven bucket without duplicating a phrase.
-  takeWarmup(warmupOrder(learned.filter(x=>!hardSet.has(x.id))),target-chosen.size,chosen,lastSet);
-  takeWarmup(hard,target-chosen.size,chosen,lastSet);
-  return arrangeWarmup([...chosen.values()].slice(0,target),hardSet,recentStart);
+  // Due phrases take priority across the whole course, even if one appeared
+  // in the last warm-up. Fixed recent/old quotas must not hide overdue work.
+  const due=learned.filter(x=>reviewDueness(x.meta,now)>=1);
+  const chosen=reviewSelect(due,target,now);
+  const chosenIds=new Set(chosen.map(x=>x.id));
+  const remaining=learned.filter(x=>!chosenIds.has(x.id));
+  // Keep the familiar length when fewer are due, using varied material that
+  // is nearest its next review and avoiding the last warm-up when possible.
+  for(const pool of [remaining.filter(x=>!lastSet.has(x.id)),remaining.filter(x=>lastSet.has(x.id))])
+    chosen.push(...reviewSelect(pool,Math.max(0,target-chosen.length),now));
+  return arrangeWarmup(chosen,hardSet,Math.max(0,idx-2));
 }
 /* {name} tokens appear only in bot (listen) lines. The display shows the
    learner's name as typed; speech drops it unless it's written in Latin
@@ -12550,6 +12532,8 @@ function noteHint(step){
   if(!step || !step.hid) return;
   const at=Date.now();
   const meta=reviewMetaFor(step.hid);
+  meta.lastReviewAt=reviewReferenceAt(meta)||at;
+  meta.lastPracticedAt=at;
   meta.hints=(meta.hints||0)+1;
   meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
   addHard(step.hid,false,at);
@@ -12578,7 +12562,10 @@ function revealSpeakHint(){
 function recordStepResult(step,result){
   if(!step || step.practiceRecorded) return;
   step.practiceRecorded=true;
-  notePractice(step.hid,result,!!step.usedHint,!!step.warmup);
+  const recall=step.type==='speak'&&(step.warmup||step.challenge||step.requeued||step.isDlg);
+  // A retry can display the missing target words even without the hint button.
+  const assisted=!!step.usedHint||(step.tries||0)>1;
+  notePractice(step.hid,result,assisted,!!step.warmup,recall?'recall':'guided');
   saveLessonCheckpoint();
 }
 function speakResultHtml(kind,msg,step=null){
