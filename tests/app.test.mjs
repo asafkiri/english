@@ -102,10 +102,10 @@ function runtime(seed = new Map(), options = {}) {
       unitChecked, checkRow, normalizeChecks, mergeChecks, drilledToday, todayStr, advanceReview,
       REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_LEVEL,
       REVIEW_MAX_LEVEL, REVIEW_MISS_DROP,
-      REVIEW_PAUSE_PASS, REVIEW_PAUSE_MISS,
+      REVIEW_PAUSE_PASS,
       startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
       SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
-      getSounds:()=>S, advanceSound, soundRow, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
+      getSounds:()=>S, advanceSound, playSoundPair, soundRow, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
       wordsMatch,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -4545,14 +4545,14 @@ test('the pause after an answer advances the run it belongs to, and no other', a
   /* Leaving during that pause and immediately starting another drill used to
      hand the new run the old run's timer, which stepped it forward a question
      the learner never answered. */
-  const missed = api.getReview().questions[1];
-  api.answerReviewChoice(missed.options.findIndex(o => o !== missed.correct));
+  const next = api.getReview().questions[1];
+  api.answerReviewChoice(next.options.indexOf(next.correct));
   api.exitReviewRun();
   await Promise.resolve();                       // let the confirm sheet resolve
   api.startDailyDrill();
   const second = api.getReview();
   assert.notEqual(second, first, 'a genuinely new run');
-  await new Promise(r => setTimeout(r, api.REVIEW_PAUSE_MISS + 250));
+  await new Promise(r => setTimeout(r, api.REVIEW_PAUSE_PASS + 250));
   assert.equal(api.getReview(), second, 'still on the new run');
   assert.equal(api.getReview().i, 0, 'which is untouched by the abandoned run\'s pending advance');
 });
@@ -5013,4 +5013,67 @@ test('the sounds row appears once there is anything behind it', () => {
   /* A second, quieter row: the ear is not the daily habit and should not
      compete with the drill and the self-test for the same tap. */
   assert.ok(app.innerHTML.indexOf('home-extras three') < app.innerHTML.indexOf('home-extra2s'));
+});
+
+/* ---- a wrong answer waits ----
+   Reported from real use: the explanation after a miss went by too fast to
+   read, so the round became something to guess your way through. With two
+   options that works half the time. A right answer moves on by itself; a
+   wrong one is the only moment worth stopping on, so it stops. */
+
+test('a missed sound holds the screen and plays the two words against each other', async () => {
+  const { said, synth, Utterance } = speaker();
+  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 10);
+
+  api.startSoundRun('th');
+  const round = api.getSounds().rounds[0];
+  await new Promise(r => setTimeout(r, 600));        // the question plays itself
+  said.length = 0;
+
+  api.answerSound(1 - round.target);                 // wrong
+  assert.equal(api.getSounds().i, 0, 'it does not move');
+
+  /* Hearing them one after the other is the lesson; no amount of text about
+     tongues between teeth replaces it. */
+  await new Promise(r => setTimeout(r, 900));
+  assert.equal(said[0], round.pair[round.target][0], 'the word that was actually played comes first');
+  assert.equal(said[1], round.pair[1 - round.target][0], 'then the one that was picked instead');
+
+  // and no timer takes it away from under the learner
+  await new Promise(r => setTimeout(r, 3200));
+  assert.equal(api.getSounds().i, 0, 'still on the same question after three seconds');
+  api.advanceSound();
+  assert.equal(api.getSounds().i, 1, 'it moves when the learner says so, and not before');
+});
+
+test('a correct sound still moves on by itself', async () => {
+  const { synth, Utterance } = speaker();
+  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 10);
+  api.startSoundRun('ii');
+  const round = api.getSounds().rounds[0];
+  api.answerSound(round.target);
+  assert.equal(api.getSounds().i, 0, 'a beat to register it');
+  await new Promise(r => setTimeout(r, 1300));
+  assert.equal(api.getSounds().i, 1, 'and then on, without a tap — nothing to dwell on here');
+});
+
+test('a missed drill question waits too, with the answer to hear', async () => {
+  const { said, synth, Utterance } = speaker();
+  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+  learnerAt(api, 10);
+
+  api.startDailyDrill();
+  const q = api.getReview().questions[0];
+  await new Promise(r => setTimeout(r, 600));
+  said.length = 0;
+
+  api.answerReviewChoice(q.options.findIndex(o => o !== q.correct));
+  assert.ok(said.some(t => t.includes(q.item.p.en.split('{')[0].trim().slice(0, 10))),
+    'the phrase he missed is spoken, not only printed');
+  await new Promise(r => setTimeout(r, 2600));
+  assert.equal(api.getReview().i, 0, 'and the screen is still his after two and a half seconds');
+  api.advanceReview();
+  assert.equal(api.getReview().i, 1);
 });

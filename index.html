@@ -280,6 +280,24 @@ body{
 .sound-word{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
 .sound-word b{font-weight:900}
 .sound-word span{color:var(--dim);font-size:11px}
+/* ---------- the pause after a miss, which is the lesson ---------- */
+.sound-miss{display:grid;gap:10px;margin-top:12px;padding:13px;border:1px solid rgba(251,191,36,.42);border-radius:16px;background:rgba(69,48,6,.36);text-align:center}
+.sound-miss-head{font-size:15px;font-weight:900;line-height:1.35}
+.sound-miss-head b{font-size:17px}
+.sound-miss-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sound-miss-pair .sound-word{justify-content:center;padding:11px 8px;font-size:15px}
+.sound-miss-pair .sound-word.is-heard{border-color:rgba(52,211,153,.6);background:rgba(16,185,129,.16)}
+.sound-miss-pair .sound-word b{font-size:16px}
+.sound-compare{margin:0}
+.sound-miss-tip{color:var(--dim);font-size:13px;line-height:1.45;margin:0}
+.sound-miss .btn{margin:0}
+.review-miss{display:grid;gap:9px;margin-top:12px;padding:13px;border:1px solid rgba(251,191,36,.42);border-radius:16px;background:rgba(69,48,6,.36);text-align:center}
+.review-miss-head{font-size:16px;font-weight:900;line-height:1.35}
+.review-miss-en{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:11px 13px;border:1px solid rgba(52,211,153,.5);border-radius:13px;background:rgba(16,185,129,.14);color:var(--text);font:inherit;cursor:pointer}
+.review-miss-en b{font-size:18px;font-weight:900}
+.review-miss-en span{color:var(--dim);font-size:12.5px}
+.review-miss>small{color:var(--dim);font-size:11.5px}
+.review-miss .btn{margin:0}
 
 .review-back b{font-size:14.5px;font-weight:900}
 /* ---------- drawn portraits ---------- */
@@ -7195,7 +7213,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.68.0';
+const APP_VERSION = '2.69.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8997,7 +9015,7 @@ function keyWordFor(phrase){
 let R = null;
 const DRILL_LENGTH = 8, CHECK_LENGTH = 10, CHECK_PASS = 8;
 const TEST_LENGTH = 12, TEST_MAX_WORDS = 4;
-const REVIEW_PAUSE_PASS = 900, REVIEW_PAUSE_MISS = 2100;
+const REVIEW_PAUSE_PASS = 900;   // a right answer is the only one that moves on by itself
 const REVIEW_SHAPES = ['pick','hear','say'];
 
 // Rotation is by position, so no shape is ever asked twice running.
@@ -9218,12 +9236,28 @@ function answerReviewChoice(index){
     else if(i===index) b.classList.add('wrong');
   });
   const out=document.getElementById('reviewResult');
-  if(out) out.innerHTML=pass
-    ? `<div class="result-msg good">${esc(pick(PRAISE))}</div>`
-    : `<div class="result-msg almost">${esc(ptext(q.item.p,'he'))} — <b dir="ltr" lang="en">${esc(ptext(q.item.p,'en'))}</b><br><small>יחזור אליך בחימום הבא</small></div>`;
-  if(q.shape==='pick') speak(ptext(q.item.p,'en'));
-  // long enough to read the right answer when it was missed, brief when it was not
-  scheduleReviewAdvance(pass?REVIEW_PAUSE_PASS:REVIEW_PAUSE_MISS);
+  const en=ptext(q.item.p,'en');
+  if(!pass){
+    /* Same rule as the sounds trainer: a right answer moves on by itself, a
+       wrong one waits. A screen that clears itself after two seconds however
+       hard the phrase was is a screen you can guess your way through, and the
+       moment you got it wrong is the only moment worth stopping on. */
+    if(out) out.innerHTML=`
+      <div class="review-miss">
+        <div class="review-miss-head">${esc(ptext(q.item.p,'he'))}</div>
+        <button type="button" class="review-miss-en" onclick="speak('${jsEsc(en)}')">
+          🔊 <b dir="ltr" lang="en">${esc(en)}</b><span>${esc(ptext(q.item.p,'tl'))}</span>
+        </button>
+        <small>יחזור אליך בחימום ובתרגול הבא</small>
+        <button type="button" class="btn" onclick="advanceReview()">ממשיכים ⬅</button>
+      </div>`;
+    cancelAutoSpeak();          // as above: the listening question's own delayed audio
+    speak(en);
+    return;
+  }
+  if(out) out.innerHTML=`<div class="result-msg good">${esc(pick(PRAISE))}</div>`;
+  if(q.shape==='pick') speak(en);
+  scheduleReviewAdvance(REVIEW_PAUSE_PASS);
 }
 /* Nothing to read back on a self-rated one — he has just been shown the
    answer and told the app what he knew — so it moves on the tap. */
@@ -9436,7 +9470,7 @@ function startSoundRun(setId){
   renderSoundStep();
 }
 function exitSoundRun(){
-  if(S) clearTimeout(S.advanceTimer);
+  if(S){ clearTimeout(S.advanceTimer); clearTimeout(S.pairTimer); }
   S=null;
   cancelSpeech();
   renderSoundsHub();
@@ -9494,11 +9528,52 @@ function answerSound(index){
     else if(idx===index) b.classList.add('wrong');
   });
   const out=document.getElementById('soundResult');
-  if(out) out.innerHTML=pass
-    ? `<div class="result-msg good">${esc(pick(PRAISE))}</div>`
-    : `<div class="result-msg almost">שמעת <b dir="ltr" lang="en">${esc(r.pair[r.target][0])}</b> — ${esc(r.pair[r.target][1])}<br><small>${esc(r.set.tip)}</small></div>`;
-  // a miss holds the right word and the mouth tip on screen for longer
-  scheduleSoundAdvance(pass?950:2600);
+  if(!pass){
+    /* A miss is the entire reason to be here, so it does not run on a clock.
+       Two seconds was not enough to read a tip, let alone hear anything, and a
+       round that moves on by itself whatever you press is a round you can pass
+       by guessing — which with two options works half the time.
+
+       So it stops. The two words are played back to back, because hearing them
+       against each other is the lesson and no amount of text replaces it, and
+       both stay on screen to press again. It continues when the learner says
+       so, not when a timer says so. */
+    const heard=r.pair[r.target], picked=r.pair[1-r.target];
+    if(out) out.innerHTML=`
+      <div class="sound-miss">
+        <div class="sound-miss-head">לא, זה היה <b dir="ltr" lang="en">${esc(heard[0])}</b> — ${esc(heard[1])}</div>
+        <div class="sound-miss-pair">
+          <button type="button" class="sound-word is-heard" onclick="speak('${jsEsc(heard[0])}')">🔊 <b dir="ltr" lang="en">${esc(heard[0])}</b><span>${esc(heard[1])}</span></button>
+          <button type="button" class="sound-word" onclick="speak('${jsEsc(picked[0])}')">🔊 <b dir="ltr" lang="en">${esc(picked[0])}</b><span>${esc(picked[1])}</span></button>
+        </div>
+        <button type="button" class="btn secondary sound-compare" onclick="playSoundPair()">🎧 להשמיע את שתיהן</button>
+        <p class="sound-miss-tip">${esc(r.set.tip)}</p>
+        <button type="button" class="btn" onclick="advanceSound()">הבנתי — ממשיכים ⬅</button>
+      </div>`;
+    playSoundPair();
+    return;
+  }
+  if(out) out.innerHTML=`<div class="result-msg good">${esc(pick(PRAISE))}</div>`;
+  scheduleSoundAdvance(950);
+}
+/* The two words of the round, one after the other with a gap, the one that was
+   actually played first. Chained through speak()'s callback, which always
+   fires, and abandoned if the learner has moved on in the meantime. */
+function playSoundPair(){
+  if(!S) return;
+  const run=S, r=S.rounds[S.i];
+  if(!r) return;
+  /* The question plays itself on a short delay after the screen appears.
+     Answer inside that window and it would still be pending, and fire into
+     the middle of the comparison — the one thing this must not do. */
+  cancelAutoSpeak();
+  clearTimeout(run.pairTimer);
+  speak(r.pair[r.target][0],()=>{
+    if(S!==run||S.rounds[S.i]!==r) return;
+    run.pairTimer=setTimeout(()=>{
+      if(S===run&&S.rounds[S.i]===r) speak(r.pair[1-r.target][0]);
+    },650);
+  });
 }
 /* Same rule as the review runs: the pending advance belongs to its run, is
    cleared when the run ends, and checks on the way in that it is still the
@@ -9513,7 +9588,9 @@ function scheduleSoundAdvance(ms){
 function advanceSound(){
   if(!S) return;
   clearTimeout(S.advanceTimer);
+  clearTimeout(S.pairTimer);
   S.advanceTimer=null;
+  cancelSpeech();
   S.i++;
   renderSoundStep();
 }
