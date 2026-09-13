@@ -7152,7 +7152,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.65.0';
+const APP_VERSION = '2.66.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7291,6 +7291,16 @@ const PRACTICE_CYCLE_KEY = 'speakEnglishPracticeCycleV1';
    game leaves the course untouched — and why its save would otherwise sit in
    the learner's storage forever, since nothing reads it any more. */
 try{ localStorage.removeItem('english.samRun'); }catch(e){}
+/* How long a phrase may rest, and what moves it. Declared up here rather than
+   beside the rest of the review code because normalizeReviewMeta() seeds a
+   level while the very first state is being loaded, a few lines below — a
+   const declared after that point is still in its dead zone when load() runs,
+   and every stored profile would come back empty. */
+const REVIEW_REST_MS = 20*36e5;          // a day, minus enough to clear "tomorrow"
+const REVIEW_MAX_LEVEL = 6;              // 20h → ~7 weeks, then it stops growing
+const REVIEW_SECURE_LEVEL = 2;           // two clear answers above any recent trouble
+const REVIEW_MISS_DROP = 2;              // a miss costs two rungs, not the ladder
+
 const SESSION_STEP_TYPES = new Set([
   'intro','learn','speak','quiz','listenQuiz','order','dlgIntro','listen',
   'branchChoice','branchPending','done',
@@ -7417,6 +7427,12 @@ function normalizeReviewMeta(raw, hardIds=[]){
     for(const field of ['successes','lapses','hints','lastPracticedAt','lastWarmupAt','updatedAt','hardUpdatedAt'])
       meta[field]=Math.max(0,Number(meta[field])||0);
     meta.hard=typeof value.hard==='boolean'?value.hard:hardSet.has(id);
+    /* The scheduling level, once, on the way in — see reviewLevel(). Records
+       saved before it existed are seeded from their lifetime tally so nobody
+       is put back to the start of the ladder by the upgrade. */
+    meta.level=Number.isFinite(value.level)
+      ? Math.max(0,Math.min(REVIEW_MAX_LEVEL,Math.floor(value.level)))
+      : reviewSeedLevel(meta);
     normalized[id]=meta;
   }
   return normalized;
@@ -7661,7 +7677,7 @@ function reviewMetaFor(id){
   state.reviewMeta=state.reviewMeta||{};
   if(!state.reviewMeta[id]) state.reviewMeta[id]={
     successes:0,lapses:0,hints:0,lastPracticedAt:0,lastWarmupAt:0,
-    updatedAt:0,hard:false,hardUpdatedAt:0,
+    updatedAt:0,hard:false,hardUpdatedAt:0,level:0,
   };
   return state.reviewMeta[id];
 }
@@ -7700,12 +7716,26 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
     state.lastWarmupIds.push(id);
     state.lastWarmupIds = state.lastWarmupIds.slice(-20);
   }
+  /* The tallies are kept because they are an honest history of the phrase,
+     but the level is what the schedule reads. A clear answer always moves it
+     up a rung — that is the app keeping its side of the bargain when it asks
+     "did you know it?" — and a hinted one is not a clear answer. */
+  /* Read the rung before touching the tallies: for a record old enough to
+     have no level of its own, reviewLevel() derives one from those very
+     tallies, and incrementing first would count this answer twice. */
+  const level = reviewLevel(meta);
   if(result === 'pass'){
     meta.successes = (meta.successes || 0) + 1;
-    if(!usedHint) removeHard(id,false,at);
-    else addHard(id,false,at);
+    if(!usedHint){
+      meta.level = Math.min(REVIEW_MAX_LEVEL, level + 1);
+      removeHard(id,false,at);
+    } else {
+      meta.level = Math.max(0, level - 1);
+      addHard(id,false,at);
+    }
   } else if(result === 'fail'){
     meta.lapses = (meta.lapses || 0) + 1;
+    meta.level = Math.max(0, level - REVIEW_MISS_DROP);
     addHard(id,false,at);
   }
   meta.updatedAt=Math.max(Number(meta.updatedAt)||0,at);
@@ -7726,9 +7756,6 @@ function notePractice(id, result, usedHint=false, wasWarmup=false){
    Dueness is how far past that rest it is, so 1 means due now and 3 means
    three times overdue. A phrase never practised at all is the most overdue
    thing there is. Sorting by that number is the entire selection rule. */
-const REVIEW_REST_MS = 20*36e5;          // a day, minus enough to clear "tomorrow"
-const REVIEW_MAX_DOUBLINGS = 6;          // 20h → ~7 weeks, then it stops growing
-const REVIEW_SECURE_STRENGTH = 2;        // right twice more often than wrong
 /* What a phrase with no record at all is worth. It has to outrank everything
    in normal rotation — an untested phrase is genuinely unknown — but it must
    stay finite, for two reasons. A phrase failed repeatedly and then not seen
@@ -7736,11 +7763,31 @@ const REVIEW_SECURE_STRENGTH = 2;        // right twice more often than wrong
    asked first. And Infinity would make the comparator below return NaN on
    every pair of untested phrases, which leaves their order to chance. */
 const REVIEW_UNSEEN_DUENESS = 6;
-function reviewStrength(meta){
-  return Math.max(0,(Number(meta?.successes)||0)-(Number(meta?.lapses)||0)-(Number(meta?.hints)||0));
+/* Where a phrase sits on the ladder, and the one number the whole schedule
+   turns on. It is a running position, not a lifetime score: right moves it up
+   a rung, wrong moves it down two.
+
+   It used to be the lifetime tally below — successes minus lapses and hints,
+   floored at zero — and that quietly broke the promise the app makes when it
+   asks "did you know it?". Old failures were never forgiven, so a phrase that
+   had gone wrong three times sat pinned at the bottom rung: answering it
+   correctly moved nothing, and it came back the next day, and the next, no
+   matter how many times the learner said he knew it. Saying so has to change
+   something the very next day, and now it does. */
+function reviewSeedLevel(meta){
+  // only for records written before the level existed; the tally is the best
+  // evidence available of where they had got to
+  return Math.max(0,Math.min(REVIEW_MAX_LEVEL,
+    (Number(meta?.successes)||0)-(Number(meta?.lapses)||0)-(Number(meta?.hints)||0)));
 }
+function reviewLevel(meta){
+  return Number.isFinite(meta?.level)
+    ? Math.max(0,Math.min(REVIEW_MAX_LEVEL,Math.floor(meta.level)))
+    : reviewSeedLevel(meta);
+}
+// each rung doubles the rest: 20h, 40h, 3.3d, 6.7d, 13d, 27d, 53d
 function reviewRestMs(meta){
-  return REVIEW_REST_MS*Math.pow(2,Math.min(REVIEW_MAX_DOUBLINGS,reviewStrength(meta)));
+  return REVIEW_REST_MS*Math.pow(2,reviewLevel(meta));
 }
 function reviewDueness(meta, now=Date.now()){
   const last=Number(meta?.lastPracticedAt)||0;
@@ -7759,7 +7806,7 @@ function reviewDueness(meta, now=Date.now()){
    reading of what he is holding today, and it is meant to move. */
 function reviewSecure(meta, now=Date.now()){
   return !meta?.hard
-    && reviewStrength(meta)>=REVIEW_SECURE_STRENGTH
+    && reviewLevel(meta)>=REVIEW_SECURE_LEVEL
     && reviewDueness(meta,now)<1;
 }
 
@@ -8808,7 +8855,17 @@ const TEST_WORDS = [
   ['small','קטן','🐜'],['shoes','נעליים','👞'],['pants','מכנסיים','👖'],['hat','כובע','🧢'],['cool','מגניב','😎'],
   ['head','ראש','🧠'],['hands','ידיים','🙌'],['legs','רגליים','🦵'],['eyes','עיניים','👀'],['ears','אוזניים','👂'],
   ['mouth','פה','👄'],['hurts','כואב','🤕'],['hot','חם','🔥'],['cold','קר','🥶'],['raining','גשם','🌧️'],
-  ['sun','שמש','🌞'],['beach','ים','🏖️'],['beautiful','יפה','🌸'],['new','חדש','🆕']
+  ['sun','שמש','🌞'],['beach','ים','🏖️'],['beautiful','יפה','🌸'],['new','חדש','🆕'],
+  /* Added after the self-test shipped, to reach phrases that had no word to
+     diagnose them with. Every one means the same thing in every phrase the
+     course puts it in — "nice" and "take" were candidates too and were left
+     out because they do not: nice is נעים in one sentence and טוב in the
+     next, and take is three different verbs across four. A follow-up that
+     shows the wrong Hebrew teaches the learner something untrue. */
+  ['hello','שלום','👋'],['meet','להכיר','🤝'],['know','לדעת','💡'],['understand','להבין','🧩'],['later','אחר כך','⏳'],
+  ['like','לאהוב','😍'],['watch','לצפות','📺'],['videos','סרטונים','🎬'],['want','לרצות','🙋'],['today','היום','🗓️'],
+  ['cost','לעלות','💰'],['black','שחור','⬛'],['dog','כלב','🐶'],['cats','חתולים','🐱'],['red','אדום','🔴'],
+  ['blue','כחול','🔵'],['green','ירוק','🟢'],['worry','לדאוג','😌'],['believe','להאמין','🌟'],['better','יותר טוב','💚']
 ];
 let testWordIndex = null;
 /* Rarity across the whole course decides which word a phrase is asked about:

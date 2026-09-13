@@ -96,11 +96,12 @@ function runtime(seed = new Map(), options = {}) {
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
       setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline, STORE_KEY,
-      reviewStrength, reviewRestMs, reviewDueness, reviewSecure, reviewPool, reviewSelect,
+      reviewLevel, reviewSeedLevel, reviewRestMs, reviewDueness, reviewSecure, reviewPool, reviewSelect,
       buildReviewQuestions, startDailyDrill, startUnitCheck, exitReviewRun, getReview:()=>R,
       answerReviewChoice, answerReviewSay, revealReviewSay, notePractice,
       unitChecked, checkRow, normalizeChecks, mergeChecks, drilledToday, todayStr, advanceReview,
-      REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_STRENGTH,
+      REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_LEVEL,
+      REVIEW_MAX_LEVEL, REVIEW_MISS_DROP,
       REVIEW_PAUSE_PASS, REVIEW_PAUSE_MISS,
       startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
@@ -4303,20 +4304,16 @@ test('a phrase rests longer the better it is known, and an untested one is asked
   const { api } = runtime();
   const hours = n => n * 36e5;
 
-  // strength is how many more times it was right than wrong or hinted
-  assert.equal(api.reviewStrength({ successes: 5, lapses: 1, hints: 1 }), 3);
-  assert.equal(api.reviewStrength({ successes: 1, lapses: 4 }), 0, 'and never goes negative');
-
-  // each point of strength doubles the rest, and the doubling stops
-  const rest = s => api.reviewRestMs({ successes: s });
+  // each rung of the ladder doubles the rest, and the doubling stops
+  const rest = level => api.reviewRestMs({ level });
   assert.equal(rest(1), rest(0) * 2);
   assert.equal(rest(3), rest(0) * 8);
-  assert.equal(rest(9), rest(6), 'a very strong phrase still comes back eventually');
+  assert.equal(rest(99), rest(api.REVIEW_MAX_LEVEL), 'even the best-known phrase comes back eventually');
 
   // dueness is "how far past its rest", so 1 is due now
   const now = Date.now();
-  assert.equal(api.reviewDueness({ successes: 0, lastPracticedAt: now - rest(0) }, now), 1);
-  assert.ok(api.reviewDueness({ successes: 0, lastPracticedAt: now }, now) < 0.01, 'just practised is not due');
+  assert.equal(api.reviewDueness({ level: 0, lastPracticedAt: now - rest(0) }, now), 1);
+  assert.ok(api.reviewDueness({ level: 0, lastPracticedAt: now }, now) < 0.01, 'just practised is not due');
 
   /* An untested phrase outranks anything in normal rotation but stays finite,
      so a phrase the learner keeps getting wrong and has not seen for weeks —
@@ -4324,10 +4321,10 @@ test('a phrase rests longer the better it is known, and an untested one is asked
   const unseen = api.reviewDueness({}, now);
   assert.equal(unseen, api.REVIEW_UNSEEN_DUENESS);
   assert.ok(Number.isFinite(unseen), 'Infinity here would make the sort comparator NaN');
-  assert.ok(api.reviewDueness({ successes: 4, lastPracticedAt: now - hours(24 * 7) }, now) < unseen,
-    'a strong phrase a week old is not more urgent than one never tested');
-  assert.ok(api.reviewDueness({ successes: 1, lapses: 4, lastPracticedAt: now - hours(24 * 30) }, now) > unseen,
-    'but one failed four times and unseen for a month is');
+  assert.ok(api.reviewDueness({ level: 4, lastPracticedAt: now - hours(24 * 7) }, now) < unseen,
+    'a well-known phrase a week old is not more urgent than one never tested');
+  assert.ok(api.reviewDueness({ level: 0, lastPracticedAt: now - hours(24 * 30) }, now) > unseen,
+    'but one at the bottom of the ladder and unseen for a month is');
 });
 
 test('the questions come from what is closest to being forgotten, not from what is handy', () => {
@@ -4477,17 +4474,15 @@ test('after the last lesson there is still something to open the app for', () =>
 test('the secure count means "could say it right now", so it moves', () => {
   const { api } = runtime();
   const now = Date.now();
-  const fresh = extra => ({ successes: 5, lapses: 0, hard: false, lastPracticedAt: now, ...extra });
+  const fresh = extra => ({ level: 5, hard: false, lastPracticedAt: now, ...extra });
 
   assert.equal(api.reviewSecure(fresh(), now), true);
   assert.equal(api.reviewSecure(fresh({ hard: true }), now), false,
-    'a phrase still marked hard is not secure, however often it has been right');
-  assert.equal(api.reviewSecure(fresh({ successes: 1 }), now), false,
-    'one correct answer is not knowing it');
-  assert.equal(api.reviewSecure(fresh({ successes: 4, lapses: 3 }), now), false,
-    'nor is being right slightly more often than wrong');
+    'a phrase still marked hard is not secure, however high it has climbed');
+  assert.equal(api.reviewSecure(fresh({ level: 1 }), now), false,
+    'one rung up is not knowing it');
   assert.equal(api.reviewSecure({}, now), false);
-  assert.equal(api.reviewSecure(fresh({ successes: api.REVIEW_SECURE_STRENGTH }), now), true);
+  assert.equal(api.reviewSecure(fresh({ level: api.REVIEW_SECURE_LEVEL }), now), true);
 
   /* The part strength alone could never express. A phrase answered right five
      times and then left for three months is not one he can say today, and a
@@ -4631,8 +4626,10 @@ test('the word a missed sentence is diagnosed with is its least common one', () 
   /* Rarity across the course, not position: "Good morning" contains both
      good and morning, and good turns up all over the place. */
   assert.equal(keyWordOf('Good morning'), 'morning');
-  assert.equal(keyWordOf('I have a dog'), null, 'a phrase with no catalogued word gets no follow-up');
-  assert.equal(keyWordOf('Me too!'), null, 'and neither does a chunk with no one hard word in it');
+  assert.equal(keyWordOf('I have a dog'), 'dog');
+  assert.equal(keyWordOf('Me too!'), null, 'a chunk with no one hard word in it gets no follow-up');
+  assert.equal(keyWordOf('Take care'), null,
+    'and neither does one whose only candidate means something different in the next sentence');
 
   const brother = api.keyWordFor({ en: 'This is my brother', he: 'זה אח שלי' });
   assert.equal(brother.en, 'brother');
@@ -4748,4 +4745,137 @@ test('every catalogued word is one the course actually teaches', () => {
     assert.ok(ic && ic.trim(), `${en} has its picture`);
   }
   assert.equal(new Set(api.TEST_WORDS.map(w => w[0])).size, api.TEST_WORDS.length, 'no duplicates');
+});
+
+/* ---- saying "I knew it" has to change something ----
+   Reported from real use: marking a phrase known made no difference, it came
+   back the next day either way. The schedule was reading a lifetime ledger —
+   successes minus lapses and hints, floored at zero — so a phrase that had
+   gone wrong three times early on was pinned at the bottom rung, and no
+   number of correct answers could lift it. */
+
+test('a phrase with a bad history still climbs the moment he starts knowing it', () => {
+  const { api } = runtime();
+  learnerAt(api, 10);
+  const id = '3:2';
+  for (let i = 0; i < 3; i++) api.notePractice(id, 'fail');
+
+  const meta = () => api.getState().reviewMeta[id];
+  const rest = () => api.reviewRestMs(meta());
+  assert.equal(api.reviewLevel(meta()), 0, 'three misses put it at the bottom');
+
+  const bottom = rest();
+  api.notePractice(id, 'pass');
+  assert.equal(rest(), bottom * 2, 'the very first "I knew it" doubles the rest');
+  api.notePractice(id, 'pass');
+  assert.equal(rest(), bottom * 4, 'and the next doubles it again');
+
+  /* The old lifetime ledger is still recorded — it is an honest history — it
+     just no longer decides when the phrase comes back. */
+  assert.equal(meta().lapses, 3, 'the misses are still on the record');
+  assert.equal(api.reviewLevel(meta()), 2);
+});
+
+test('one clear answer is one rung, from wherever the phrase happens to be', () => {
+  const { api } = runtime();
+  learnerAt(api, 10);
+  const level = id => api.reviewLevel(api.getState().reviewMeta[id]);
+
+  api.notePractice('0:0', 'pass');
+  assert.equal(level('0:0'), 1, 'a phrase met for the first time goes to one, not two');
+
+  for (let i = 0; i < 5; i++) api.notePractice('0:1', 'pass');
+  assert.equal(level('0:1'), 5);
+  for (let i = 0; i < 6; i++) api.notePractice('0:1', 'pass');
+  assert.equal(level('0:1'), api.REVIEW_MAX_LEVEL, 'the ladder has a top');
+
+  // a miss costs two rungs, so one bad day does not undo a month
+  api.notePractice('0:1', 'fail');
+  assert.equal(level('0:1'), api.REVIEW_MAX_LEVEL - api.REVIEW_MISS_DROP);
+  for (let i = 0; i < 9; i++) api.notePractice('0:1', 'fail');
+  assert.equal(level('0:1'), 0, 'but enough of them do take it back to the bottom');
+
+  // needing a hint is not a clear answer
+  api.notePractice('0:2', 'pass');
+  api.notePractice('0:2', 'pass');
+  const before = level('0:2');
+  api.notePractice('0:2', 'pass', true);
+  assert.ok(level('0:2') < before, 'a hinted answer moves it down, not up');
+});
+
+test('what he says he knows really does come back far less often', () => {
+  const { api } = runtime();
+  learnerAt(api, api.LESSONS.length);
+  const ids = [];
+  for (let li = 0; li < api.LESSONS.length; li++) for (let pi = 0; pi < 5; pi++) ids.push(`${li}:${pi}`);
+  for (const id of ids) api.notePractice(id, 'pass');
+
+  // half of them answered right three times over, half wrong
+  const known = new Set(ids.slice(0, 75));
+  for (let round = 0; round < 3; round++)
+    for (const id of ids) api.notePractice(id, known.has(id) ? 'pass' : 'fail');
+
+  /* Fourteen days of drilling, the clock walked forward a day at a time. The
+     complaint this answers is not "it never rests them" but "it makes no
+     difference at all", so the bar is a wide margin, not a total absence. */
+  const realNow = Date.now;
+  let askedKnown = 0, askedShaky = 0;
+  try {
+    for (let day = 1; day <= 14; day++) {
+      const at = realNow() + day * 864e5;
+      Date.now = () => at;
+      api.startDailyDrill();
+      for (const q of api.getReview().questions) known.has(q.id) ? askedKnown++ : askedShaky++;
+      runReview(api, () => true);
+    }
+  } finally { Date.now = realNow; }
+
+  assert.equal(askedKnown + askedShaky, 14 * api.DRILL_LENGTH);
+  assert.ok(askedShaky > askedKnown * 5,
+    `the shaky half should dominate the drills by a wide margin (${askedShaky} vs ${askedKnown})`);
+});
+
+test('an install saved before the ladder existed keeps its place on it', () => {
+  /* The level is seeded from the tally the old scheme kept, so a learner who
+     had worked a phrase up to a long rest does not get dropped to daily. */
+  const seed = new Map([['speakEnglishV1', JSON.stringify({
+    onboarded: true, completed: 12, name: 'דן',
+    reviewMeta: {
+      '1:1': { successes: 5, lapses: 0, hints: 0, lastPracticedAt: 1, hard: false },
+      '1:2': { successes: 1, lapses: 4, hints: 0, lastPracticedAt: 1, hard: true },
+      '1:3': { successes: 40, lapses: 0, hints: 0, lastPracticedAt: 1, hard: false },
+    },
+  })]]);
+  const { api } = runtime(seed);
+  const state = api.getState();
+  assert.equal(state.name, 'דן', 'the profile survived the upgrade');
+
+  assert.equal(api.reviewLevel(state.reviewMeta['1:1']), 5, 'a well-known phrase keeps its long rest');
+  assert.equal(api.reviewLevel(state.reviewMeta['1:2']), 0, 'and a troubled one stays at the bottom');
+  assert.equal(api.reviewLevel(state.reviewMeta['1:3']), api.REVIEW_MAX_LEVEL, 'clamped to the top of the ladder');
+
+  // and from there it behaves like any other: the next correct answer lifts it
+  api.notePractice('1:2', 'pass');
+  assert.equal(api.reviewLevel(api.getState().reviewMeta['1:2']), 1);
+});
+
+test('the added words mean the same thing everywhere the course uses them', () => {
+  const { api } = runtime();
+  const tokens = en => String(en).toLowerCase().replace(/[^a-z' ]/g, ' ').split(/\s+/).filter(Boolean);
+  const covered = api.LESSONS.flatMap(l => l.phrases)
+    .filter(p => tokens(p.en).some(t => api.TEST_WORDS.some(w => w[0] === t))).length;
+  assert.ok(covered >= 120, `most of the course can now be diagnosed (${covered} of 150)`);
+
+  const keyWordOf = en => api.keyWordFor({ en, he: '' })?.en ?? null;
+  assert.equal(keyWordOf('Do you like cats?'), 'cats');
+  assert.equal(keyWordOf('I don\'t understand'), 'understand');
+  assert.equal(keyWordOf('Red, blue, green'), 'green');
+  assert.equal(keyWordOf('I believe in you'), 'believe');
+
+  /* A word is only worth adding if its Hebrew holds across every phrase it
+     turns up in — the follow-up shows that Hebrew and asks for the English,
+     so a word with two meanings would teach the learner something untrue. */
+  for (const drifting of ['nice', 'take', 'much'])
+    assert.ok(!api.TEST_WORDS.some(w => w[0] === drifting),
+      `${drifting} means different things in different phrases and is deliberately absent`);
 });
