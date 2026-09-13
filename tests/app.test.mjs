@@ -102,6 +102,7 @@ function runtime(seed = new Map(), options = {}) {
       unitChecked, checkRow, normalizeChecks, mergeChecks, drilledToday, todayStr, advanceReview,
       REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_STRENGTH,
       REVIEW_PAUSE_PASS, REVIEW_PAUSE_MISS,
+      startSelfTest, keyWordFor, TEST_WORDS, TEST_LENGTH, TEST_MAX_WORDS,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
   `;
@@ -4585,4 +4586,166 @@ test('coming back after a long gap shows the count climbing again', () => {
      no lesson in it, so the run has to end by showing that it moved. */
   assert.match(app.innerHTML, /milestone-gain/, 'the gain is on the screen');
   assert.match(app.innerHTML, new RegExp(`\\+${api.DRILL_LENGTH}`), 'and it says how much');
+});
+
+/* ---- the self-test ----
+   Its own button, and deliberately not the drill with the dial turned up: a
+   multiple-choice question puts the answer on the screen, so mixing the two
+   keeps showing the learner what he is about to be asked to produce. Here
+   nothing is shown until he has tried to say it, and a sentence he could not
+   say is followed by the one word in it most likely to have been what was
+   missing. Seeing that is the whole point of the mode. */
+
+// drive a self-test to its end; `decide(n, isWord)` answers each question
+function runSelfTest(api, decide) {
+  let sentences = 0, words = 0;
+  while (api.getReview() && api.getReview().i < api.getReview().questions.length) {
+    assert.ok(sentences + words < 60, 'the run has to terminate');
+    const q = api.getReview().questions[api.getReview().i];
+    api.revealReviewSay();
+    if (q.shape === 'word') { words++; api.answerReviewSay(decide(sentences, true)); }
+    else { api.answerReviewSay(decide(sentences, false)); sentences++; }
+  }
+  return { sentences, words };
+}
+
+test('the self-test asks for production only, never recognition', () => {
+  const { api } = runtime();
+  learnerAt(api, 15);
+  api.startSelfTest();
+  const run = api.getReview();
+  assert.equal(run.questions.length, api.TEST_LENGTH);
+  assert.ok(run.questions.every(q => q.shape === 'say'),
+    'not one question offers a list to pick the answer from');
+  assert.ok(run.questions.every(q => !q.options),
+    'and none of them carries options at all, so nothing can leak the answer');
+  assert.equal(new Set(run.questions.map(q => q.id)).size, api.TEST_LENGTH, 'no repeats');
+});
+
+test('the word a missed sentence is diagnosed with is its least common one', () => {
+  const { api } = runtime();
+  learnerAt(api, api.LESSONS.length);
+
+  const keyWordOf = en => api.keyWordFor({ en, he: '' })?.en ?? null;
+
+  /* Rarity across the course, not position: "Good morning" contains both
+     good and morning, and good turns up all over the place. */
+  assert.equal(keyWordOf('Good morning'), 'morning');
+  assert.equal(keyWordOf('I have a dog'), null, 'a phrase with no catalogued word gets no follow-up');
+  assert.equal(keyWordOf('Me too!'), null, 'and neither does a chunk with no one hard word in it');
+
+  const brother = api.keyWordFor({ en: 'This is my brother', he: 'זה אח שלי' });
+  assert.equal(brother.en, 'brother');
+  assert.ok(brother.he && brother.ic, 'a word carries the Hebrew and the picture the course gave it');
+});
+
+test('missing a sentence adds the word question, knowing it does not', () => {
+  const { api } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+
+  // knowing them all asks nothing extra
+  const clean = runSelfTest(api, () => true);
+  assert.equal(clean.sentences, api.TEST_LENGTH);
+  assert.equal(clean.words, 0, 'there is nothing to diagnose');
+
+  // missing them all asks about words, but only up to the cap
+  api.startSelfTest();
+  const bad = runSelfTest(api, () => false);
+  assert.equal(bad.sentences, api.TEST_LENGTH, 'still exactly twelve sentences');
+  assert.ok(bad.words > 0, 'and it did explain some of them');
+  assert.ok(bad.words <= api.TEST_MAX_WORDS,
+    `a bad run must not double in length (${bad.words} follow-ups, cap ${api.TEST_MAX_WORDS})`);
+});
+
+test('a word follow-up explains the failure rather than scoring a second one', () => {
+  const { api } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+
+  const first = api.getReview().questions[0];
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+  const lapsesAfterSentence = api.getState().reviewMeta[first.id].lapses;
+
+  const followUp = api.getReview().questions[api.getReview().i];
+  if (followUp.shape !== 'word') return;               // that phrase had no catalogued word
+  api.revealReviewSay();
+  api.answerReviewSay(false);
+
+  /* The sentence was already recorded as missed. Charging the word against it
+     too would punish one gap twice and drag the phrase's schedule around for
+     a question the learner was never set. */
+  assert.equal(api.getState().reviewMeta[first.id].lapses, lapsesAfterSentence,
+    'the follow-up records nothing of its own against the phrase');
+});
+
+test('the self-test ends on what he could not say, not on a score', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+  const asked = api.getReview().questions.map(q => q.item);
+  runSelfTest(api, (n, isWord) => (isWord ? false : n >= 3));   // miss the first three
+
+  const html = app.innerHTML;
+  assert.match(html, /3 משפטים שעוד לא יצאו לך/, 'the headline counts the gaps, not the passes');
+  assert.match(html, /class="test-list"/);
+  for (const item of asked.slice(0, 3))
+    assert.ok(html.includes(item.p.en), `${item.p.en} is named on the list`);
+  assert.match(html, /class="test-words"/, 'and the words missing from them are named too');
+
+  /* No "in command" tally here: that is the drill's maintenance number, and
+     under a list of failures it dilutes the list — after a clean run it would
+     even contradict it. */
+  assert.doesNotMatch(html, /בשליטה/);
+  assert.equal(api.getState().testCount, 1);
+});
+
+test('a clean self-test says so without contradicting itself', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 20);
+  api.startSelfTest();
+  runSelfTest(api, () => true);
+  assert.match(app.innerHTML, /ידעת את כולם/);
+  assert.doesNotMatch(app.innerHTML, /בשליטה/, 'nothing on screen argues with that');
+  assert.doesNotMatch(app.innerHTML, /class="test-list"/, 'and there is no empty list of failures');
+});
+
+test('the three buttons appear together, and only once there is anything to test', () => {
+  const { api, app } = runtime();
+
+  learnerAt(api, 0);
+  api.renderHome();
+  assert.doesNotMatch(app.innerHTML, /home-extra/, 'nothing to drill or test before the first lesson');
+
+  learnerAt(api, 1);
+  api.renderHome();
+  assert.match(app.innerHTML, /class="home-extras three"/);
+  for (const call of ['startDailyDrill\\(\\)', 'startSelfTest\\(\\)', 'renderPracticePicker\\(\\)'])
+    assert.match(app.innerHTML, new RegExp(`onclick="${call}"`));
+  /* One lesson in there are only five phrases, so the card must not promise
+     twelve of them. */
+  assert.match(app.innerHTML, /5 משפטים, בלי רמזים/);
+
+  learnerAt(api, 20);
+  api.renderHome();
+  assert.match(app.innerHTML, new RegExp(`${api.TEST_LENGTH} משפטים, בלי רמזים`));
+});
+
+test('every catalogued word is one the course actually teaches', () => {
+  const { api } = runtime();
+  const taught = new Set();
+  for (const lesson of api.LESSONS)
+    for (const phrase of lesson.phrases)
+      for (const token of String(phrase.en).toLowerCase().replace(/[^a-z' ]/g, ' ').split(/\s+/))
+        if (token) taught.add(token);
+
+  assert.ok(api.TEST_WORDS.length > 90, 'the bank is worth having');
+  for (const [en, he, ic] of api.TEST_WORDS) {
+    assert.ok(taught.has(en), `${en} appears in a phrase the course teaches`);
+    assert.equal(en, en.toLowerCase(), `${en} is stored the way the matcher looks it up`);
+    assert.ok(he && he.trim(), `${en} has its Hebrew`);
+    assert.ok(ic && ic.trim(), `${en} has its picture`);
+  }
+  assert.equal(new Set(api.TEST_WORDS.map(w => w[0])).size, api.TEST_WORDS.length, 'no duplicates');
 });
