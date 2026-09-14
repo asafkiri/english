@@ -37,7 +37,7 @@ function runtime(seed = new Map(), options = {}) {
     querySelectorAll: () => [],
   };
   const window = {
-    SpeechRecognition: null,
+    SpeechRecognition: options.SpeechRecognition || null,
     webkitSpeechRecognition: null,
     matchMedia: options.matchMedia,
     scrollTo() {},
@@ -62,6 +62,7 @@ function runtime(seed = new Map(), options = {}) {
       UNITS, LESSONS, BRANCH_DIALOGUES, CHALLENGE_PLAN, SESSION_VERSION, conversationRounds,
       OPENING_ROUNDS, MIDDLE_ROUNDS, EXTRA_ROUNDS, FINALE_ROUND_OVERRIDES, CONVERSATION_META_ROWS,
       defaults, load, save, validSavedSession, normalize, matchDetails, matchScore, softWordsFor, todayStr,
+      startListening, stopRecognition,
       selectWarmup, buildChallengeSteps, splitPhraseChunks,
       PRACTICE_TOPICS, PRACTICE_SCENES, PRACTICE_STORIES, PRACTICE_CAST,
       PRACTICE_STAGE_DIRECTIONS, STAGE_DIRECTION_PRESETS, STAGE_ACTION_DURATIONS_MS,
@@ -280,6 +281,134 @@ test('speech matching respects order and negation', () => {
   // fuzziness must not cross critical words or short unrelated words
   assert.ok(api.matchScore('No', 'know') < 0.99);
   assert.ok(api.matchScore('She is fifteen', 'he is fifteen') < 0.99);
+});
+
+test('counting accepts spoken words, spaced digits and packed digit runs', () => {
+  const { api } = runtime();
+  const cases = [
+    ['One, two, three, four, five', ['one two three four five', '1, 2, 3, 4, 5', '12345', '12,345', '12 3 45', 'one 2345', 'won to three for five']],
+    ['Six, seven, eight, nine, ten', ['six seven eight nine ten', '6 7 8 9 10', '678910', '6789 10', '67,8910', '6,789,10', 'six 78 nine 10', 'six seven ate nine ten']],
+  ];
+  for (const [target, transcripts] of cases) for (const transcript of transcripts) {
+    const details = api.matchDetails(target, transcript);
+    assert.equal(details.criticalMismatch, false, transcript);
+    assert.ok(details.matched.every(Boolean), `${target}: ${transcript} should hear every number`);
+    assert.equal(details.score, 1, transcript);
+  }
+});
+
+test('counting never fills in missing, reordered, repeated or wrong numbers', () => {
+  const { api } = runtime();
+  for (const transcript of ['6789', '68910', '678810', '687910', '6789910', '678911', '6789100', '6 7 80 9 10', 'six seven eighty nine ten', 'six seven eight nine no ten']) {
+    const details = api.matchDetails('Six, seven, eight, nine, ten', transcript);
+    assert.ok(details.criticalMismatch || details.matched.some(x => !x), `${transcript} must not pass`);
+  }
+  for (const transcript of ['1234', '13245', '123445', '1 2 30 4 5']) {
+    const details = api.matchDetails('One, two, three, four, five', transcript);
+    assert.ok(details.criticalMismatch || details.matched.some(x => !x), `${transcript} must not pass`);
+  }
+});
+
+test('packed counting does not change ages, prices or times', () => {
+  const { api } = runtime();
+  for (const [target, transcript] of [['I am seventeen', 'I am 17'], ['Twenty dollars', '20 dollars'], ["It's five o'clock", "It's 5:00"], ['See you at seven', 'See you at 7']]) {
+    const details = api.matchDetails(target, transcript);
+    assert.equal(details.score, 1, transcript);
+  }
+  for (const [target, transcript] of [['I am seventeen', 'I am 71'], ['Twenty dollars', '2 dollars'], ['See you at eight', 'See you at 80'], ['Six seven dollars', '67 dollars']]) {
+    const details = api.matchDetails(target, transcript);
+    assert.ok(details.criticalMismatch || details.matched.some(x => !x), `${transcript} is a different amount`);
+  }
+});
+
+function recognitionRuntime(t, target = 'Six, seven, eight, nine, ten') {
+  const recordings = [];
+  class Recognition {
+    constructor() { recordings.push(this); }
+    start() {}
+    abort() { this.aborted = true; }
+    stop() { this.onend?.(); }
+  }
+  const env = runtime(new Map(), { SpeechRecognition: Recognition });
+  const { api, context, app } = env;
+  const nodes = new Map(['micBtn', 'micHint', 'heard', 'resultArea'].map(id => [id, {
+    textContent: '', innerHTML: '', hidden: false,
+    classList: { add() {}, remove() {}, toggle() {} }, setAttribute() {},
+  }]));
+  context.document.getElementById = id => id === 'app' ? app : nodes.get(id) || null;
+  const idx = api.LESSONS.findIndex(lesson => lesson.title === 'מספרים וזמן');
+  api.getState().completed = idx;
+  api.getState().onboarded = true;
+  const step = { type: 'speak', p: { en: target, he: 'תרגול', tl: '' }, hid: `${idx}:1`, newPhrase: true, introAudioComplete: true };
+  api.setLesson({ idx, lesson: api.LESSONS[idx], i: 0, steps: [step, { type: 'done' }], curStep: step, elapsedBeforeMs: 0, chat: [] });
+  t.after(() => api.stopLessonTimers(false));
+  const start = () => { api.startListening(target); return recordings.at(-1); };
+  const emit = (rec, segments, resultIndex = 0) => {
+    const results = segments.map(segment => Object.assign(
+      segment.alternatives.map(transcript => ({ transcript, confidence: .9 })), { isFinal: segment.final ?? true }));
+    rec.onresult?.({ results, resultIndex });
+  };
+  return { ...env, step, start, emit, nodes };
+}
+
+test('the microphone passes packed counting on the first attempt and saves it', t => {
+  const { api, step, start, emit } = recognitionRuntime(t);
+  const rec = start();
+  emit(rec, [{ alternatives: ['678910'] }]);
+  assert.equal(step.resultKind, 'pass');
+  assert.equal(step.tries, 1);
+  assert.equal(step.practiceRecorded, true);
+  assert.equal(rec.aborted, true, 'a complete answer closes the microphone');
+  assert.equal(api.getState().session.steps[0].resultKind, 'pass');
+});
+
+test('the microphone joins current result segments and keeps alternative interpretations separate', t => {
+  const { step, start, emit } = recognitionRuntime(t);
+  const rec = start();
+  emit(rec, [{ alternatives: ['six seven'] }, { alternatives: ['eight nine'], final: false }]);
+  assert.equal(step.resultKind, undefined, 'keep listening for ten');
+  assert.equal(step.heardText, 'six seven eight nine');
+  emit(rec, [{ alternatives: ['six seven'] }, { alternatives: ['eighty nine ten', '8 9 10'] }], 1);
+  assert.equal(step.resultKind, 'pass');
+  assert.equal(step.heardText, 'six seven 8 9 10');
+  assert.equal(step.tries, 1);
+});
+
+test('the microphone cannot concatenate alternatives of the same result into an answer', t => {
+  const { step, start, emit } = recognitionRuntime(t);
+  const rec = start();
+  emit(rec, [{ alternatives: ['six seven', 'eight nine ten'] }]);
+  assert.equal(step.resultKind, undefined);
+  rec.stop();
+  assert.ok(step.retryMessage);
+  assert.equal(step.practiceRecorded, undefined);
+});
+
+test('the microphone never adds overwritten interim text or a previous attempt', t => {
+  const { step, start, emit } = recognitionRuntime(t);
+  const rec = start();
+  emit(rec, [{ alternatives: ['six seven'], final: false }]);
+  emit(rec, [{ alternatives: ['eight nine ten'], final: false }]);
+  assert.equal(step.resultKind, undefined, 'the second result replaced the first');
+  rec.stop();
+  assert.ok(step.retryMessage);
+  const second = start();
+  emit(second, [{ alternatives: ['six seven'] }]);
+  second.stop();
+  assert.equal(step.resultKind, undefined, 'separate attempts cannot complete each other');
+  assert.equal(step.tries, 2);
+});
+
+test('the microphone joins ordinary sentences without discarding a negation segment', t => {
+  const { step, start, emit } = recognitionRuntime(t, 'I like music');
+  const rec = start();
+  emit(rec, [{ alternatives: ['no'] }, { alternatives: ['I like music'] }]);
+  assert.equal(step.resultKind, undefined, 'checking the second fragment alone would wrongly pass');
+  rec.stop();
+  assert.ok(step.heardDetails.criticalMismatch);
+  const second = start();
+  emit(second, [{ alternatives: ['I like'] }, { alternatives: ['music'] }]);
+  assert.equal(step.resultKind, 'pass');
 });
 
 test('a cold iPhone lesson speaks the real first sentence inside the start tap', async () => {
