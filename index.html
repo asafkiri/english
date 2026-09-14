@@ -7267,7 +7267,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.74.0';
+const APP_VERSION = '2.74.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8540,6 +8540,36 @@ function normalize(s){
     .replace(/\bwon't\b/g,'will not').replace(/\bthank you\b/g,'thanks')
     .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
 }
+const NUMBER_SPELLINGS = new Map(Array.from({length:100},(_,n)=>[numberWords(n),String(n)]));
+const NUMBER_TOKENS = new Set([...NUMBER_SPELLINGS.keys(),'won','to','too','for','ate']);
+function countingNumbers(target){
+  const parts=String(target).split(',').map(normalize);
+  return parts.length>1&&parts.every(p=>NUMBER_SPELLINGS.has(p))
+    ? parts.map(p=>NUMBER_SPELLINGS.get(p)) : null;
+}
+/* A counting exercise may be transcribed as "678910", "67 89 10", or a
+   mixture of words and digits. Split only numeric runs in an explicit number
+   list, using its number vocabulary. Every digit must be consumed in order;
+   never supply a missing number. Ordinary ages, prices and times still use
+   normalize() unchanged. */
+function expandCountingDigits(heard,numbers){
+  if(!numbers) return heard;
+  const vocabulary=[...new Set(numbers)].sort((a,b)=>b.length-a.length);
+  return String(heard||'').replace(/\b\d+\b/g,run=>{
+    if(run.length<2||run.length>64) return run;
+    const splits=Array(run.length+1).fill(null);
+    splits[run.length]=[];
+    for(let i=run.length-1;i>=0;i--){
+      for(const n of vocabulary){
+        if(run.startsWith(n,i)&&splits[i+n.length]){
+          splits[i]=[n,...splits[i+n.length]];
+          break;
+        }
+      }
+    }
+    return splits[0]?splits[0].join(' '):run;
+  });
+}
 /* Accent-tolerant word matching. The recognition engine is Apple's and can't
    be swapped, but its near-misses can be credited fairly:
    - synonym groups accept equally correct answers (fine ≈ good)
@@ -8620,6 +8650,8 @@ function editDistance(a,b){
 function wordsMatch(a,b){
   if(a===b) return true;
   if(EXACT_ONLY.has(a)||EXACT_ONLY.has(b)) return false;
+  // Eight/eighty and fourteen/forty are different answers, not accent errors.
+  if(NUMBER_SPELLINGS.has(a)&&NUMBER_SPELLINGS.has(b)) return false;
   const ga=EQUIV_GROUP.get(a);
   if(ga!==undefined&&ga===EQUIV_GROUP.get(b)) return true;
   const ca=accentCanon(a),cb=accentCanon(b);
@@ -8635,6 +8667,7 @@ function fuseHeard(t,h){
   for(const tw of t){
     if(out.some(w=>wordsMatch(tw,w))) continue;
     for(let j=0;j<out.length-1;j++){
+      if(NUMBER_SPELLINGS.has(tw)&&NUMBER_TOKENS.has(out[j])&&NUMBER_TOKENS.has(out[j+1])) continue;
       if(wordsMatch(tw,out[j]+out[j+1])){ out.splice(j,2,tw); break; }
     }
   }
@@ -8652,7 +8685,8 @@ function softWordsFor(step){
 }
 function matchDetails(target, heard, soft=[]){
   const t = normalize(target).split(' ').filter(Boolean);
-  let h = normalize(heard).split(' ').filter(Boolean);
+  const counting=countingNumbers(target);
+  let h = normalize(expandCountingDigits(heard,counting)).split(' ').filter(Boolean);
   if(!t.length) return {score:1, words:[], matched:[], criticalMismatch:false};
   h = fuseHeard(t,h);
   const softSet = new Set((Array.isArray(soft)?soft:[])
@@ -8682,11 +8716,35 @@ function matchDetails(target, heard, soft=[]){
   const critical = new Set(['not','no','never','without']);
   const targetCritical = t.filter(w=>critical.has(w));
   const heardCritical = h.filter(w=>critical.has(w));
-  const criticalMismatch = targetCritical.some(w=>!heardCritical.includes(w)) || heardCritical.some(w=>!targetCritical.includes(w));
+  const extraNumbers=counting&&h.filter(w=>NUMBER_TOKENS.has(w)||/^\d+$/.test(w)).length>t.length;
+  const criticalMismatch = !!extraNumbers || targetCritical.some(w=>!heardCritical.includes(w)) || heardCritical.some(w=>!targetCritical.includes(w));
   if(criticalMismatch) score = Math.min(score, .49);
   return {score, words:t, matched, criticalMismatch};
 }
 function matchScore(target, heard){ return matchDetails(target, heard).score; }
+
+/* results is the CURRENT ordered result list: finalized segments followed by
+   replaceable interim segments. Join one alternative per segment, never
+   alternatives of the same segment or text from older events. A small beam
+   keeps the alternative combinations bounded on the phone. */
+function recognitionCandidates(target,results,soft){
+  let candidates=[{transcript:'',details:{score:0}}];
+  for(let ri=0;ri<(results?.length||0);ri++){
+    const result=results[ri], alternatives=[];
+    for(let ai=0;ai<Math.min(result?.length||0,4);ai++){
+      const transcript=result[ai]?.transcript;
+      if(typeof transcript==='string'&&transcript.trim()) alternatives.push(transcript.trim());
+    }
+    if(!alternatives.length) continue;
+    const joined=new Map();
+    for(const prefix of candidates) for(const text of alternatives){
+      const transcript=(prefix.transcript+' '+text).trim();
+      if(!joined.has(transcript)) joined.set(transcript,{transcript,details:matchDetails(target,transcript,soft)});
+    }
+    candidates=[...joined.values()].sort((a,b)=>b.details.score-a.details.score).slice(0,8);
+  }
+  return candidates.filter(c=>c.transcript);
+}
 
 /* ---------------- rendering helpers ---------------- */
 const app = document.getElementById('app');
@@ -12858,17 +12916,9 @@ function startListening(target){
     }
     bumpMicLevel(Math.min(1, .55 + Math.max(0, longest-heardChars)*.04));
     heardChars=Math.max(heardChars, longest);
-    for(let ri=0;ri<e.results.length;ri++){
-      const result=e.results[ri];
-      if(!result) continue;
-      for(let ai=0;ai<result.length;ai++){
-        const alt=result[ai];
-        const transcript=alt&&typeof alt.transcript==='string'?alt.transcript.trim():'';
-        if(!transcript) continue;
-        got=true;
-        const details=matchDetails(target,transcript,soft);
-        if(details.score>=bestDetails.score){ bestDetails=details; best=transcript; }
-      }
+    for(const {transcript,details} of recognitionCandidates(target,e.results,soft)){
+      got=true;
+      if(details.score>=bestDetails.score){ bestDetails=details; best=transcript; }
     }
     if(!got) return;
     const step=L.curStep||{};
