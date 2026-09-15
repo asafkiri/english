@@ -7181,7 +7181,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.76.1';
+const APP_VERSION = '2.76.2';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8027,14 +8027,46 @@ function characterVoice(character){
   const v=character.voice||{};
   return {gender:character.f?'f':'m', accent:v.accent||'us', pitch:Number(v.pitch)||(character.f?1.08:.96), rate:Number(v.rate)||1};
 }
+/* Is the engine really in the middle of something WE started?
+
+   speechSynthesis.speaking and .pending cannot answer that on iOS. A page
+   interrupted mid-sentence — by a reload, by the app being swapped out — comes
+   back with both still true, describing an utterance that died with the page
+   before it, and they never clear on their own. Two callers read that flag and
+   both do real damage when it lies:
+
+     - cancelSpeech() cancels an empty queue, which is the one call that wedges
+       the iOS engine for the rest of the page, and
+     - speak() decides it has to make room, so it cancels and then hands the new
+       utterance to a timer — outside the tap that authorised it, which iOS will
+       not speak.
+
+   Either alone is silence; together they are "I press the speaker and nothing
+   happens, on any screen, until I kill the app and open it again". An update
+   that reloads the app to apply itself is exactly how a page gets interrupted
+   mid-sentence, which is why this can begin right after one.
+
+   So the flag is believed only while an utterance we actually started could
+   still plausibly be running, and a stale one is ignored rather than cancelled
+   — ignoring it costs nothing, and cancelling it costs the rest of the
+   session. */
+let speechBusyUntil = 0;
+function speechEngineBusy(){
+  try{
+    if(!(speechSynthesis.speaking||speechSynthesis.pending)) return false;
+  }catch(_){ return false; }
+  return Date.now() < speechBusyUntil;
+}
+// as generous as the watchdog below: over-estimating costs one skipped cancel,
+// under-estimating brings the stuck flag back
+function speechDurationGuess(text){ return Math.max(6000, String(text||'').length*220); }
 function cancelSpeech(){
   speechToken++;
   stopVoiceAnimation();
-  /* Only cancel something that is actually being said. A cancel on an empty
-     queue changes nothing except on iOS, where it is a way to wedge the engine
-     for the rest of the page — and the runner calls this every time a run
-     starts. */
-  if('speechSynthesis' in window && (speechSynthesis.speaking||speechSynthesis.pending)) speechSynthesis.cancel();
+  /* Only cancel something that is actually being said — and the runner calls
+     this every time a run starts. */
+  if('speechSynthesis' in window && speechEngineBusy()) speechSynthesis.cancel();
+  speechBusyUntil = 0;
 }
 /* The face animates while a voice is actually playing, never merely because
    the scene state is 'speaking' — the flag lives here so a re-render during
@@ -8064,10 +8096,11 @@ function speak(text, cb, voice=null){
   if(directLessonGesture){
     lessonGestureSpeechSubmitted=true;
   }
-  /* Cancel only when there is something to cancel, and let the cancel settle
-     before the next utterance. iOS wedges its synthesis queue when the two land
-     in the same tick, and everything after it goes silent. */
-  const busy=speechSynthesis.speaking||speechSynthesis.pending;
+  /* Cancel only when there is really something to cancel — see
+     speechEngineBusy() — and let the cancel settle before the next utterance.
+     iOS wedges its synthesis queue when the two land in the same tick, and
+     everything after it goes silent. */
+  const busy=speechEngineBusy();
   if(busy&&!directLessonGesture) speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/___/g,''));
   u.lang = 'en-US';
@@ -8080,6 +8113,7 @@ function speak(text, cb, voice=null){
     if(finished) return;
     finished=true;
     if(watchdog) clearTimeout(watchdog);
+    if(token===speechToken) speechBusyUntil=0;   // nothing of ours is out there now
     if(token===speechToken) stopVoiceAnimation();
     if(cb && token===speechToken) cb();
   };
@@ -8096,8 +8130,10 @@ function speak(text, cb, voice=null){
   // some engines never report the end of an utterance; the face must not be
   // left talking to itself, so stop the animation on a generous deadline too
   watchdog=setTimeout(()=>{ if(token===speechToken && !speechSynthesis.speaking) finish(); },
-    Math.max(6000, u.text.length*220));
+    speechDurationGuess(u.text));
   try{ speechSynthesis.resume(); }catch(_){}
+  // from here until it ends, a busy flag is ours and means what it says
+  speechBusyUntil=Date.now()+speechDurationGuess(u.text);
   /* The first lesson sentence must be handed to iOS synchronously inside the
      tap. Never cancel or re-queue that gesture-authorised utterance. */
   if(busy&&!directLessonGesture) setTimeout(()=>{ if(token===speechToken) speechSynthesis.speak(u); },0);
@@ -13166,6 +13202,9 @@ function showUpdateBanner(worker){
 }
 function applyAppUpdate(){
   if(L){ pauseLessonClock(); saveLessonCheckpoint(); }
+  // leave the engine with nothing outstanding: a reload on top of a sentence in
+  // flight is what leaves iOS insisting it is still speaking one
+  cancelSpeech();
   if(!pendingServiceWorker){ location.reload(); return; }
   if(pendingServiceWorker.state==='activated'||pendingServiceWorker.state==='redundant'){
     location.reload(); return;

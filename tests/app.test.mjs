@@ -3993,6 +3993,50 @@ test('each conversation partner asks for a voice of their own', () => {
   api.stopLessonTimers(false);
 });
 
+test('a speaking flag left over from a dead page cannot silence the app', () => {
+  /* Reported from real use on an iPhone, from the home-screen app, starting
+     with an update: no sound anywhere, and pressing the speaker button does
+     nothing either. An update applies itself by reloading the app, and a reload
+     lands mid-sentence: iOS comes back still claiming to be speaking the
+     utterance that died with the previous page, and never stops claiming it.
+
+     speak() believed that claim, so every sentence took the busy path — a
+     cancel on an empty queue, which wedges the iOS engine for the rest of the
+     page, and then a re-submit from a timer, which is outside the tap iOS
+     authorised. Both fatal, and neither shows up as an error. */
+  const spoken = [], cancels = [];
+  let ended = null;
+  const speechSynthesis = {
+    speaking: true, pending: true,          // the phantom from the previous page
+    getVoices: () => [{ name: 'Samantha', lang: 'en-US' }],
+    cancel() { cancels.push(1); },
+    resume() {},
+    speak(u) { spoken.push(u.text); ended = () => { u.onstart?.(); u.onend?.(); }; },
+  };
+  class Utterance { constructor(text) { this.text = text; this.rate = 1; this.pitch = 1; this.volume = 1; } }
+  const { api } = runtime(new Map(), { speechSynthesis, SpeechSynthesisUtterance: Utterance });
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+
+  api.speak('Thank you');
+  assert.deepEqual(spoken, ['Thank you'],
+    'handed over inside the tap, not from a timer iOS will not honour');
+  assert.equal(cancels.length, 0,
+    'and no cancel on a queue with nothing in it, which is what wedges the engine');
+
+  /* The flag still has to be believed while something we really started is in
+     flight — interrupting a sentence the learner is replaying over is the
+     whole point of the busy path. */
+  ended();                                   // the first one finishes cleanly
+  api.speak('Good morning');                 // ours, and still playing
+  assert.deepEqual(spoken, ['Thank you', 'Good morning']);
+  api.speak('Good night');
+  assert.equal(cancels.length, 1, 'a real sentence in progress is still cancelled to make room');
+  assert.deepEqual(spoken, ['Thank you', 'Good morning'], 'and the new one waits a tick for it');
+  api.stopLessonTimers(false);
+});
+
 test('a voice the engine no longer lists is never handed to it', () => {
   /* Reported from real use: the app opens and there is no sound at all, and
      then it works a couple of minutes later. This is that bug. An utterance
