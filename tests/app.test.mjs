@@ -91,7 +91,8 @@ function runtime(seed = new Map(), options = {}) {
       dateNDaysAgo, UNIT_PROMISES, unitPromise,
       h, hx, afterRender, viewTransitionsEnabled, wordSpans, learningWordSpans, speakResultHtml, tokenIndexAt, alignTokens, modernPersonArt, personArt,
       speak, scheduleSpeak, beginLessonAudioGesture, interruptLessonAudioUnlock,
-      pickVoice, characterVoice, VOICE_PREFS, playUiSound, unlockUiAudio, setUiSounds, fitStage, practiceTurnLabel,
+      pickVoice, characterVoice, VOICE_PREFS, playUiSound, unlockUiAudio, setUiSounds, runSoundCheck,
+      fitStage, practiceTurnLabel,
       renderPracticePicker, practiceStoryCards, practiceStoryCardHtml, castPortraitHtml, drawPracticeStory,
       storyThumbHtml, storyThumbArt, STORY_THUMB_ART, STORY_THUMB_PHYSICAL,
       setMicLevel, getMicLevel, startMicMeter, stopMicMeter, bumpMicLevel, setMicLive,
@@ -3991,6 +3992,56 @@ test('each conversation partner asks for a voice of their own', () => {
   assert.equal(api.pickVoice('f').name, 'en-us-x-sfg#female_2-local');
   assert.equal(api.pickVoice('m').name, 'en-us-x-sfg#male_1-local');
   api.stopLessonTimers(false);
+});
+
+test('the sound check tells the three silences apart', async () => {
+  /* A muted phone, a device with no English voice installed, and an engine
+     that refuses the sentence all look identical from the outside: nothing
+     happens. The check exists so nobody has to guess between them again. */
+  const engine = (opts) => {
+    const synth = {
+      speaking: false, pending: false, resume() {}, cancel() {},
+      getVoices: () => opts.voices,
+      speak(u) { opts.behave(u); },
+    };
+    class Utterance { constructor(t) { this.text = t; this.rate = 1; this.pitch = 1; this.volume = 1; } }
+    const r = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
+    const state = r.api.defaults();
+    state.onboarded = true;
+    r.api.setState(state);
+    return r;
+  };
+  const check = (r) => {
+    const box = { innerHTML: '' };
+    r.context.document.getElementById = id => id === 'soundCheckOut' ? box : null;
+    r.api.runSoundCheck(null);
+    return box;
+  };
+
+  // it speaks, and says so: then the sound is leaving the device somewhere else
+  const speaks = engine({ voices: [{ name: 'Samantha', lang: 'en-US' }], behave: u => { u.onstart(); u.onend(); } });
+  let box = check(speaks);
+  assert.match(box.innerHTML, /קולות במכשיר: 1, באנגלית: 1/);
+  assert.match(box.innerHTML, /המנוע דיווח שהוא הקריא/);
+  assert.match(box.innerHTML, /מתג ההשתקה/, 'and names where to look for it');
+
+  /* The two silent engines are only silent — nothing comes back to react to,
+     so the check has to wait them out rather than call it dead on the spot. */
+  const bare = engine({ voices: [], behave: () => {} });
+  const stuck = engine({ voices: [{ name: 'Samantha', lang: 'en-US' }], behave: () => {} });
+  const bareBox = check(bare), stuckBox = check(stuck);
+  assert.match(bareBox.innerHTML, /מחכה לתשובה/, 'it says it is waiting rather than ruling at once');
+  await new Promise(r => setTimeout(r, 4400));
+
+  // no voices at all: the device never installed one
+  assert.match(bareBox.innerHTML, /אין במכשיר אף קול/);
+  assert.match(bareBox.innerHTML, /תוכן מדובר/, 'and says where to add one');
+
+  // voices are there, and the engine swallowed the sentence anyway
+  assert.match(stuckBox.innerHTML, /למרות שיש קולות במכשיר/);
+  assert.match(stuckBox.innerHTML, /הפעלה מחדש/, 'which is a different fix from the one above');
+
+  for (const r of [speaks, bare, stuck]) r.api.stopLessonTimers(false);
 });
 
 test('a speaking flag left over from a dead page cannot silence the app', () => {

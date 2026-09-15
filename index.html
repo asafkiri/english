@@ -206,6 +206,8 @@ body{
 .review-back{display:grid;gap:5px;justify-items:center;margin:12px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
 .review-back small{color:var(--dim);font-size:11.5px}
 .milestone-gain{display:inline-block;margin-inline-start:7px;padding:1px 7px;border-radius:999px;background:rgba(52,211,153,.24);color:#6ee7b7;font-size:12.5px;font-weight:950}
+.sound-check{display:grid;gap:4px;font-size:12.5px;line-height:1.45;color:var(--dim)}
+.sound-check:not(:empty){margin-top:8px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:var(--card2);text-align:right}
 /* ---------- choosing which test to take ---------- */
 .test-pick{display:flex;align-items:center;gap:11px;width:100%;margin-bottom:9px;padding:14px 13px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(160deg,var(--card2),var(--card));color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
 .test-pick:active{transform:scale(.985)}
@@ -7181,7 +7183,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.76.2';
+const APP_VERSION = '2.77.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -9665,6 +9667,79 @@ function renderReview(){
 function replayPhrase(li, pi){ speak(ptext(LESSONS[li].phrases[pi],'en')); }
 
 /* ================= settings ================= */
+/* ---- why there is no sound ----
+   The app cannot hear itself, and neither the learner nor I can tell from
+   silence alone whether the phone is muted, whether the device ever installed
+   an English voice, or whether the engine refused the sentence outright. They
+   are three different problems with three different fixes and they look
+   identical from the outside — which is how an evening goes on guessing.
+
+   So it asks the questions whose answers separate them: a tone through the
+   app's own audio path, what the device says it can speak with, and whether a
+   real utterance reports that it started. Then it says what the answer means,
+   in words rather than in codes. */
+function runSoundCheck(btn){
+  const out=document.getElementById('soundCheckOut');
+  if(!out) return;
+  if(btn) btn.disabled=true;
+  const lines=[];
+  const draw=()=>{ out.innerHTML=lines.map(l=>`<div>${esc(l)}</div>`).join(''); };
+
+  // 1. a sound the app makes itself, down a different pipe than speech
+  if(state.uiSounds===false){
+    lines.push('🔕 הצלילים הקטנים כבויים בהגדרות, אז דילגתי על הצפצוף.');
+  }else{
+    unlockUiAudio();
+    playUiSound('pass');
+    lines.push('🔔 השמעתי צפצוף. שמעת אותו?');
+  }
+  // 2. what the device says it can speak with
+  let all=[];
+  try{ all=speechSynthesis.getVoices()||[]; }catch(_){}
+  const eng=all.filter(v=>/^en/i.test(v.lang||''));
+  lines.push(`🗣️ קולות במכשיר: ${all.length}, באנגלית: ${eng.length}`);
+  draw();
+  if(!('speechSynthesis' in window)){
+    lines.push('❌ הדפדפן הזה לא תומך בהקראה בכלל.');
+    draw(); if(btn) btn.disabled=false; return;
+  }
+
+  // 3. a real sentence, and whether the engine admits to starting it
+  const events=[];
+  let settled=false, timer=null;
+  const verdict=()=>{
+    if(settled) return;
+    settled=true;
+    clearTimeout(timer);
+    if(events.includes('start')){
+      lines.push('✅ המנוע דיווח שהוא הקריא בפועל.');
+      lines.push('אם לא שמעת — הקול יוצא למקום אחר: מתג ההשתקה בצד, עוצמת הקול בזמן ההקראה עצמה, או אוזניות/רכב בבלוטות׳.');
+    }else if(events.length){
+      lines.push('⚠️ המנוע החזיר: '+events.join(', '));
+    }else if(!all.length){
+      lines.push('❌ ההקראה לא התחילה, ואין במכשיר אף קול.');
+      lines.push('הגדרות ← נגישות ← תוכן מדובר ← קולות — צריך להוריד שם קול באנגלית.');
+    }else{
+      lines.push('❌ ההקראה לא התחילה, למרות שיש קולות במכשיר.');
+      lines.push('מנוע ההקראה של המכשיר תקוע. הפעלה מחדש של המכשיר משחררת אותו.');
+    }
+    draw();
+    if(btn) btn.disabled=false;
+  };
+  const u=new SpeechSynthesisUtterance('Hello');
+  u.lang='en-US';
+  if(eng.length) u.voice=eng[0];
+  u.volume=1; u.rate=1; u.pitch=1;
+  u.onstart=()=>{ events.push('start'); };
+  u.onend=()=>{ events.push('end'); verdict(); };
+  u.onerror=e=>{ events.push('error: '+((e&&e.error)||'?')); verdict(); };
+  timer=setTimeout(verdict,4000);
+  // inside the tap, like every other utterance iOS is willing to speak
+  try{ speechSynthesis.resume(); }catch(_){}
+  speechSynthesis.speak(u);
+  lines.push('… שלחתי את המילה Hello, מחכה לתשובה');
+  draw();
+}
 function openSettings(){
   const ov = document.createElement('div');
   ov.className = 'overlay';
@@ -9706,6 +9781,14 @@ function openSettings(){
         <button class="${state.uiSounds!==false?'on':''}" aria-pressed="${state.uiSounds!==false}" onclick="setUiSounds(true,this)">פועל 🔔</button>
         <button class="${state.uiSounds===false?'on':''}" aria-pressed="${state.uiSounds===false}" onclick="setUiSounds(false,this)">כבוי</button>
       </div>
+    </div>
+    <div class="set-row" style="flex-wrap:wrap;gap:8px">
+      <div>
+        <span style="display:block">אין קול?</span>
+        <small style="display:block;color:var(--dim);font-size:12px;margin-top:2px">בדיקה קצרה שאומרת איפה זה נתקע</small>
+      </div>
+      <button class="btn secondary" style="width:auto;padding:10px 14px;font-size:14px" onclick="runSoundCheck(this)">בדיקת קול</button>
+      <div id="soundCheckOut" class="sound-check" style="flex-basis:100%"></div>
     </div>
     <div class="set-row" style="border:none">
       <span style="color:var(--dim);font-size:14px">איפוס כל ההתקדמות</span>
