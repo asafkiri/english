@@ -98,18 +98,16 @@ function runtime(seed = new Map(), options = {}) {
       setStageGaze, stageGazeStep, stopStageGaze, STAGE_GAZE, STAGE_GAZE_FOR_CUE, stageEncourage, setStageCue,
       VISEMES, visemeFor, buildMouthTimeline, STORE_KEY,
       reviewLevel, reviewSeedLevel, reviewRestMs, reviewDueness, reviewSecure, reviewPool, reviewSelect,
-      buildReviewQuestions, startDailyDrill, startUnitCheck, exitReviewRun, getReview:()=>R,
+      buildReviewQuestions, startUnitCheck, exitReviewRun, getReview:()=>R,
       answerReviewChoice, answerReviewSay, revealReviewSay, notePractice,
-      unitChecked, checkRow, normalizeChecks, mergeChecks, drilledToday, todayStr, advanceReview,
-      REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, DRILL_LENGTH, REVIEW_SECURE_LEVEL,
+      unitChecked, checkRow, normalizeChecks, mergeChecks, todayStr, advanceReview,
+      REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, REVIEW_SECURE_LEVEL,
       REVIEW_MAX_LEVEL, REVIEW_MISS_DROP, REVIEW_REST_MS, recordStepResult, revealSpeakHint,
       REVIEW_PAUSE_PASS,
       startSelfTest, TEST_WORDS, TEST_LENGTH, wordGloss, reviewWordChips,
       pickMissingWord, finishReviewPick, playOrderChunks, splitPhraseChunks,
       getPicking:()=>R&&R.picking, getPicked:()=>R&&R.pickedChip,
       REVIEW_PICK_ORDER, REVIEW_PICK_BLANK,
-      SOUND_SETS, SOUND_ROUNDS, renderSoundsHub, startSoundRun, answerSound, exitSoundRun,
-      getSounds:()=>S, advanceSound, playSoundPair, soundRow, mouthArt, MOUTH_SHAPES, soundExplainHtml, soundAccuracy, soundsSummary, normalizeSounds, mergeSounds, canHearSounds,
       wordsMatch, PHRASE_VARIANTS, phraseVariant, renderReview,
       getState:()=>state, setState:v=>{state=v}, getLesson:()=>L, setLesson:v=>{L=v}
     };
@@ -3262,8 +3260,8 @@ test('home puts the active course path first and collapses completed and future 
      below the stats at the foot of a long scroll, past thirty locked lessons. */
   // free practice now opens the picker, where the surprise draw is one tap away
   assert.match(html, /class="home-extra practice"[^>]*onclick="renderPracticePicker\(\)"/);
-  assert.match(html, /class="home-extra drill[^"]*"[^>]*onclick="startDailyDrill\(\)"/,
-    'and the daily drill sits beside it, in the two-column row');
+  assert.match(html, /class="home-extra selftest"[^>]*onclick="startSelfTest\(\)"/,
+    'and the self-test sits beside it, in the two-column row');
   assert.ok(html.indexOf('home-extras') < html.indexOf('המסלול שלך'),
     'they sit above the lesson list rather than inside or below it');
   assert.doesNotMatch(html, /home-path-special|home-side-game/,
@@ -4411,7 +4409,7 @@ test('a free practice conversation keeps a natural arc', () => {
   }
 });
 
-/* ---- the check and the daily drill ----
+/* ---- the check and the self-test ----
    The app had always recorded how well every phrase was going and then read
    that record in one place: the six warm-up cards at the head of a new
    lesson. So it stopped being used on the day the lessons ran out. These lock
@@ -4430,9 +4428,9 @@ function answerReview(api, right) {
   api.answerReviewChoice(i);
   return q;
 }
-/* Run a whole check or drill to its end; `decide(n)` answers question n. A
+/* Run a whole check or self-test to its end; `decide(n)` answers question n. A
    choice question schedules its advance on a real timer, so rather than make
-   every test wait out eight readable pauses, this drives the same advance the
+   every test wait out ten readable pauses, this drives the same advance the
    timer would. One test below waits for the real timer instead. */
 function runReview(api, decide) {
   const shapes = [], asked = [];
@@ -4504,30 +4502,28 @@ test('the questions come from what is closest to being forgotten, not from what 
     'consecutive questions come from different lessons');
 });
 
-test('a drill asks eight, rotates its three shapes, and records every answer', () => {
+test('a check asks ten, rotates its three shapes, and records every answer', () => {
   const seed = new Map();
   const { api } = runtime(seed);
   learnerAt(api, 10);
-  api.startDailyDrill();
-  assert.equal(api.getReview().questions.length, api.DRILL_LENGTH);
+  api.startUnitCheck(0);
+  assert.equal(api.getReview().questions.length, api.CHECK_LENGTH);
 
   const { shapes, asked } = runReview(api, () => true);
-  assert.equal(shapes.length, api.DRILL_LENGTH);
+  assert.equal(shapes.length, api.CHECK_LENGTH);
   assert.deepEqual(shapes.slice(0, 3), ['pick', 'hear', 'say'],
     'recognising, hearing and saying — no shape twice running');
 
-  /* The point of the drill is that it writes to the same record the lessons
-     write to, so a phrase drilled today rests longer tomorrow. */
+  /* The point of the check is that it writes to the same record the lessons
+     write to, so a phrase answered today rests longer tomorrow. */
   const meta = api.getState().reviewMeta;
   for (const q of asked) assert.ok((meta[q.id].successes || 0) >= 1, `${q.id} recorded a success`);
-  assert.ok(api.drilledToday(), 'and the day is marked, so the home card can say so');
-  assert.equal(api.getState().drillCount, 1);
 });
 
-test('a phrase missed in a drill goes back on the hard list for the next warm-up', () => {
+test('a phrase missed in a check goes back on the hard list for the next warm-up', () => {
   const { api } = runtime();
   learnerAt(api, 10);
-  api.startDailyDrill();
+  api.startUnitCheck(0);
   const { asked } = runReview(api, () => false);
 
   const state = api.getState();
@@ -4566,8 +4562,8 @@ test('the check draws only from its own unit, and passing marks that unit for go
   assert.equal(api.checkRow(1).best, api.CHECK_LENGTH, 'and the best score stands');
 });
 
-test('the mark and the drill survive a reload, a merge, and an install that never had them', () => {
-  // an install saved before either feature existed
+test('the mark survives a reload, a merge, and an install that never had it', () => {
+  // an install saved before the check existed
   const old = new Map([['speakEnglishV1', JSON.stringify({
     onboarded: true, completed: 12, streak: 5,
     hard: ['1:2'], reviewMeta: { '1:2': { successes: 1, lapses: 2, lastPracticedAt: 1, hard: true } },
@@ -4578,15 +4574,12 @@ test('the mark and the drill survive a reload, a merge, and an install that neve
   assert.ok(state.hard.includes('1:2'), 'and so is everything already measured');
   assert.equal(Object.keys(state.checks).length, 6, 'a row appears for every unit');
   assert.ok(Object.values(state.checks).every(c => !c.passed), 'none of them claiming a pass');
-  assert.equal(api.drilledToday(), false);
 
-  // nonsense in either field must not take the app down with it
+  // nonsense in the field must not take the app down with it
   const junk = runtime(new Map([['speakEnglishV1', JSON.stringify({
-    onboarded: true, completed: 10, checks: 'not an object', drillDate: 42, drillCount: 'x',
+    onboarded: true, completed: 10, checks: 'not an object',
   })]]));
   assert.equal(Object.keys(junk.api.getState().checks).length, 6);
-  assert.equal(junk.api.getState().drillDate, '');
-  assert.equal(junk.api.getState().drillCount, 0);
 
   /* Two tabs: a pass earned in either is a fact about the learner, so it
      survives the merge from both directions and the best score only climbs. */
@@ -4616,13 +4609,30 @@ test('after the last lesson there is still something to open the app for', () =>
 
   /* This is the case the warm-up could never cover: it only ever ran at the
      head of a NEW lesson, and after the last one every lesson is a replay. */
-  assert.match(html, /onclick="startDailyDrill\(\)"/, 'the drill is still offered');
+  assert.match(html, /onclick="startSelfTest\(\)"/, 'the self-test is still offered');
   assert.equal((html.match(/class="unit-check[ "]/g) || []).length, 6,
     'and every one of the six finished units can still be checked');
 
-  const drill = api.reviewPool(null);
-  assert.equal(drill.length, 150, 'with the whole course to draw on');
-  assert.equal(api.reviewSelect(drill, api.DRILL_LENGTH).length, api.DRILL_LENGTH);
+  const pool = api.reviewPool(null);
+  assert.equal(pool.length, 150, 'with the whole course to draw on');
+  assert.equal(api.reviewSelect(pool, api.TEST_LENGTH).length, api.TEST_LENGTH);
+});
+
+test('what the removed modes left behind is cleared off a stored profile', () => {
+  /* The listening mode, the daily drill and the sounds trainer are gone, and
+     nothing reads what they wrote any more. Leaving it in storage forever is
+     the one thing a removal must not do. */
+  const { api } = runtime(new Map([['speakEnglishV1', JSON.stringify({
+    onboarded: true, completed: 12,
+    listenHeard: 4, listenDate: '2026-01-01', listenCount: 3, listenSubs: true,
+    drillDate: '2026-01-01', drillCount: 9,
+    sounds: { th: { heard: 20, right: 12, at: 5 } },
+  })]]));
+  const state = api.getState();
+  for (const gone of ['listenHeard', 'listenDate', 'listenCount', 'listenSubs',
+    'drillDate', 'drillCount', 'sounds'])
+    assert.ok(!(gone in state), `${gone} has no reader left, so it does not survive the load`);
+  assert.equal(state.completed, 12, 'and the progress beside it is untouched');
 });
 
 test('the secure count means "could say it right now", so it moves', () => {
@@ -4641,7 +4651,7 @@ test('the secure count means "could say it right now", so it moves', () => {
   /* The part strength alone could never express. A phrase answered right five
      times and then left for three months is not one he can say today, and a
      count that claimed otherwise would sit at its maximum forever and tell
-     him nothing. It has to decay on its own — and come back when he drills. */
+     him nothing. It has to decay on its own — and come back when he practises. */
   const stale = fresh({ lastPracticedAt: now - 200 * 864e5 });
   assert.equal(api.reviewSecure(stale, now), false, 'known once, but long overdue');
   assert.equal(api.reviewSecure({ ...stale, lastPracticedAt: now }, now), true,
@@ -4689,7 +4699,7 @@ test('the pause after an answer advances the run it belongs to, and no other', a
   learnerAt(api, 10);
 
   // the ordinary path: answering really does move on by itself
-  api.startDailyDrill();
+  api.startUnitCheck(0);
   const first = api.getReview();
   const q = first.questions[0];
   api.answerReviewChoice(q.options.indexOf(q.correct));
@@ -4697,14 +4707,14 @@ test('the pause after an answer advances the run it belongs to, and no other', a
   await new Promise(r => setTimeout(r, api.REVIEW_PAUSE_PASS + 250));
   assert.equal(api.getReview().i, 1, 'and then the run advances on its own');
 
-  /* Leaving during that pause and immediately starting another drill used to
+  /* Leaving during that pause and immediately starting another run used to
      hand the new run the old run's timer, which stepped it forward a question
      the learner never answered. */
   const next = api.getReview().questions[1];
   api.answerReviewChoice(next.options.indexOf(next.correct));
   api.exitReviewRun();
   await Promise.resolve();                       // let the confirm sheet resolve
-  api.startDailyDrill();
+  api.startUnitCheck(0);
   const second = api.getReview();
   assert.notEqual(second, first, 'a genuinely new run');
   await new Promise(r => setTimeout(r, api.REVIEW_PAUSE_PASS + 250));
@@ -4725,12 +4735,12 @@ test('coming back after a long gap shows the count climbing again', () => {
   }
   advance(40 * 864e5);
 
-  const pool = api.reviewPool(null);
+  const pool = api.reviewPool(0);
   const secure = () => pool.filter(x => api.reviewSecure(api.getState().reviewMeta[x.id])).length;
   const before = secure();
   assert.ok(before < pool.length * 0.2, 'forty days away really has cost him most of it');
 
-  api.startDailyDrill();
+  api.startUnitCheck(0);
   const { asked } = runReview(api, () => true);
   const recalled = asked.filter(q => q.shape === 'say').length;
   assert.equal(secure(), before + recalled, 'only delayed recall restores the memory count');
@@ -4742,7 +4752,7 @@ test('coming back after a long gap shows the count climbing again', () => {
 });
 
 /* ---- the self-test ----
-   Its own button, and deliberately not the drill with the dial turned up: a
+   Its own button, and deliberately not the check with the dial turned up: a
    multiple-choice question puts the answer on the screen, so mixing the two
    keeps showing the learner what he is about to be asked to produce. Here
    nothing is shown until he has tried to say it, and a sentence he could not
@@ -4796,7 +4806,7 @@ test('the self-test ends on what he could not say, not on a score', () => {
   }
   assert.match(html, /class="test-words"/, 'and the words missing from them are named too');
 
-  /* No "in command" tally here: that is the drill's maintenance number, and
+  /* No "in command" tally here: that is the check's maintenance number, and
      under a list of failures it dilutes the list — after a clean run it would
      even contradict it. */
   assert.doesNotMatch(html, /בשליטה/);
@@ -4813,17 +4823,17 @@ test('a clean self-test says so without contradicting itself', () => {
   assert.doesNotMatch(app.innerHTML, /class="test-list"/, 'and there is no empty list of failures');
 });
 
-test('the three buttons appear together, and only once there is anything to test', () => {
+test('the two buttons appear together, and only once there is anything to test', () => {
   const { api, app } = runtime();
 
   learnerAt(api, 0);
   api.renderHome();
-  assert.doesNotMatch(app.innerHTML, /home-extra/, 'nothing to drill or test before the first lesson');
+  assert.doesNotMatch(app.innerHTML, /home-extra/, 'nothing to test or talk about before the first lesson');
 
   learnerAt(api, 1);
   api.renderHome();
-  assert.match(app.innerHTML, /class="home-extras three"/);
-  for (const call of ['startDailyDrill\\(\\)', 'startSelfTest\\(\\)', 'renderPracticePicker\\(\\)'])
+  assert.match(app.innerHTML, /class="home-extras"/);
+  for (const call of ['startSelfTest\\(\\)', 'renderPracticePicker\\(\\)'])
     assert.match(app.innerHTML, new RegExp(`onclick="${call}"`));
   /* One lesson in there are only five phrases, so the card must not promise
      twelve of them. */
@@ -4924,7 +4934,8 @@ test('what he says he knows really does come back far less often', () => {
   for (let round = 0; round < 3; round++)
     for (const id of ids) api.notePractice(id, known.has(id) ? 'pass' : 'fail');
 
-  /* Fourteen days of drilling, the clock walked forward a day at a time. The
+  /* Fourteen days of self-testing, the clock walked forward a day at a time,
+     answering each sentence the way the fixture says he stands with it. The
      complaint this answers is not "it never rests them" but "it makes no
      difference at all", so the bar is a wide margin, not a total absence. */
   const realNow = Date.now;
@@ -4933,15 +4944,18 @@ test('what he says he knows really does come back far less often', () => {
     for (let day = 1; day <= 14; day++) {
       const at = realNow() + day * 864e5;
       Date.now = () => at;
-      api.startDailyDrill();
+      api.startSelfTest();
       for (const q of api.getReview().questions) known.has(q.id) ? askedKnown++ : askedShaky++;
-      runReview(api, () => true);
+      runSelfTest(api, () => {
+        const run = api.getReview();
+        return known.has(run.questions[run.i].id);
+      });
     }
   } finally { Date.now = realNow; }
 
-  assert.equal(askedKnown + askedShaky, 14 * api.DRILL_LENGTH);
+  assert.equal(askedKnown + askedShaky, 14 * api.TEST_LENGTH);
   assert.ok(askedShaky > askedKnown * 5,
-    `the shaky half should dominate the drills by a wide margin (${askedShaky} vs ${askedKnown})`);
+    `the shaky half should dominate the runs by a wide margin (${askedShaky} vs ${askedKnown})`);
 });
 
 test('an install saved before the ladder existed keeps its place on it', () => {
@@ -4991,11 +5005,6 @@ test('the added words mean the same thing everywhere the course uses them', () =
       `${drifting} means different things in different phrases and is deliberately absent`);
 });
 
-/* ---- the sounds Hebrew does not have ----
-   The matcher elsewhere compares text with a one-character edit allowance, so
-   it cannot tell a Hebrew speaker's substitutions from the real thing. These
-   fix what the trainer is for, and the honest limit on what it claims. */
-
 // a speech engine that reports what it was asked to say and always completes
 function speaker() {
   const said = [];
@@ -5013,175 +5022,17 @@ function speaker() {
   };
 }
 
-test('the matcher cannot hear an accent, which is what the trainer is for', () => {
-  const { api } = runtime();
-  /* Not a criticism of wordsMatch — it compares text, and the text is all the
-     recogniser returns. It is the reason a separate, listening-only exercise
-     has to exist rather than a pronunciation score bolted onto the mic. */
-  const slips = [['water', 'vater'], ['very', 'wery'], ['three', 'tree'], ['work', 'vork']];
-  const missed = slips.filter(([target, said]) => api.wordsMatch(target, said));
-  assert.equal(missed.length, slips.length,
-    'every one of these passes as correct, so nothing else in the app will ever flag them');
-
-  // and the four contrasts the trainer covers are the ones Hebrew lacks
-  assert.equal(api.SOUND_SETS.map(s => s.id).join(','), 'th,wv,ii,ae');
-});
-
-test('every minimal pair really is minimal, and every word carries its Hebrew', () => {
-  const { api } = runtime();
-  const seen = new Set();
-  for (const set of api.SOUND_SETS) {
-    assert.ok(set.pairs.length >= 4, `${set.id} has enough pairs to draw on`);
-    /* Each side is explained on its own — one sentence covering both was
-       reported as impossible to follow — and each says what to do and what it
-       should feel like, since "a third sound" is not something you can check. */
-    for (const side of ['a', 'b']) {
-      const sound = set[side];
-      assert.ok(sound?.label?.trim(), `${set.id}.${side} is named`);
-      assert.ok(sound?.how?.trim(), `${set.id}.${side} says what to do with the mouth`);
-      assert.ok(sound?.feel?.trim(), `${set.id}.${side} says how to tell you did it`);
-      assert.ok(api.MOUTH_SHAPES[sound.art], `${set.id}.${side} has a mouth to copy (${sound.art})`);
-      assert.match(api.mouthArt(sound.art), /^<svg[\s\S]*<\/svg>$/, `${sound.art} really draws`);
-    }
-    assert.ok(set.from?.trim(), `${set.id} has a way in from a sound Hebrew already has`);
-    assert.notEqual(set.a.art, set.b.art, `${set.id} draws its two sounds differently`);
-    for (const pair of set.pairs) {
-      assert.equal(pair.length, 2);
-      const [a, b] = pair;
-      assert.notEqual(a[0], b[0], 'the two words differ');
-      assert.ok(a[1]?.trim() && b[1]?.trim(), `${a[0]}/${b[0]} both have Hebrew`);
-      assert.ok(!seen.has(`${a[0]}/${b[0]}`), `${a[0]}/${b[0]} appears once`);
-      seen.add(`${a[0]}/${b[0]}`);
-      /* A pair only trains a contrast if the words are otherwise the same
-         length-ish; "think/sink" works, "think/elephant" would just be two
-         different words and could be told apart without hearing the sound. */
-      assert.ok(Math.abs(a[0].length - b[0].length) <= 2, `${a[0]}/${b[0]} are a near pair`);
-    }
-  }
-});
-
-test('a listening round scores what it can judge and records it per sound', async () => {
-  const { said, synth, Utterance } = speaker();
-  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
-  learnerAt(api, 10);
-  assert.ok(api.canHearSounds(), 'the exercise needs a voice, and has one here');
-
-  api.startSoundRun('th');
-  const run = api.getSounds();
-  assert.equal(run.rounds.length, api.SOUND_ROUNDS);
-  assert.ok(run.rounds.every(r => r.set.id === 'th'), 'one contrast at a time');
-
-  /* The word arrives as sound and only as sound — the two spellings are the
-     answer, so writing it would be the answer too. */
-  await new Promise(r => setTimeout(r, 600));
-  assert.ok(said.length >= 1, 'the word to identify is played, not written');
-  assert.ok(run.rounds[0].pair.some(w => w[0] === said[0]), 'and it is one of the two on offer');
-
-  // answer seven of ten correctly
-  for (let n = 0; api.getSounds() && n < api.SOUND_ROUNDS; n++) {
-    const r = api.getSounds().rounds[api.getSounds().i];
-    api.answerSound(n < 7 ? r.target : 1 - r.target);
-    // the right answer stays up for a beat; drive that on rather than wait it out
-    if (api.getSounds()) api.advanceSound();
-  }
-  const row = api.soundRow('th');
-  assert.equal(row.heard, 10, 'every answer is on the record');
-  assert.equal(row.right, 7);
-  assert.equal(api.soundAccuracy('th'), 70);
-  assert.equal(api.soundRow('wv').heard, 0, 'and it is kept per contrast, not pooled');
-});
-
-test('the trainer refuses rather than pretends when the device has no voice', () => {
-  const { api } = runtime();                       // no speechSynthesis
-  learnerAt(api, 10);
-  assert.equal(api.canHearSounds(), false);
-  api.startSoundRun('th');
-  assert.equal(api.getSounds(), null, 'an exercise that is entirely listening does not start silent');
-});
-
-test('the home card names the weakest sound rather than an average', () => {
-  const { api } = runtime();
-  const state = learnerAt(api, 10);
-  assert.match(api.soundsSummary(), /th/, 'before any attempt it just names them');
-
-  state.sounds = api.normalizeSounds({
-    th: { heard: 20, right: 11 }, wv: { heard: 20, right: 19 },
-    ii: { heard: 0, right: 0 }, ae: { heard: 0, right: 0 },
-  });
-  assert.match(api.soundsSummary(), /th/, 'the one at 55% is the one worth naming');
-  assert.doesNotMatch(api.soundsSummary(), /w מול v/, 'not the one already at 95%');
-
-  // a contrast barely sampled is not called the weakest on two answers
-  state.sounds = api.normalizeSounds({ th: { heard: 2, right: 0 }, wv: { heard: 30, right: 20 } });
-  assert.doesNotMatch(api.soundsSummary(), /th/);
-});
-
-test('the sounds row appears once there is anything behind it', () => {
-  const { api, app } = runtime();
-
-  learnerAt(api, 0);
-  api.renderHome();
-  assert.doesNotMatch(app.innerHTML, /renderSoundsHub/, 'nothing to train before the first lesson');
-
-  learnerAt(api, 3);
-  api.renderHome();
-  assert.match(app.innerHTML, /class="home-extra2s one"/, 'and it stands alone, in the single-column row');
-  assert.match(app.innerHTML, /onclick="renderSoundsHub\(\)"/);
-  /* A second, quieter row: the ear is not the daily habit and should not
-     compete with the drill and the self-test for the same tap. */
-  assert.ok(app.innerHTML.indexOf('home-extras three') < app.innerHTML.indexOf('home-extra2s'));
-});
-
 /* ---- a wrong answer waits ----
    Reported from real use: the explanation after a miss went by too fast to
-   read, so the round became something to guess your way through. With two
-   options that works half the time. A right answer moves on by itself; a
-   wrong one is the only moment worth stopping on, so it stops. */
-
-test('a missed sound holds the screen and plays the two words against each other', async () => {
+   read, so the question became something to guess your way through. A right
+   answer moves on by itself; a wrong one is the only moment worth stopping
+   on, so it stops. */
+test('a missed check question waits, with the answer to hear', async () => {
   const { said, synth, Utterance } = speaker();
   const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
   learnerAt(api, 10);
 
-  api.startSoundRun('th');
-  const round = api.getSounds().rounds[0];
-  await new Promise(r => setTimeout(r, 600));        // the question plays itself
-  said.length = 0;
-
-  api.answerSound(1 - round.target);                 // wrong
-  assert.equal(api.getSounds().i, 0, 'it does not move');
-
-  /* Hearing them one after the other is the lesson; no amount of text about
-     tongues between teeth replaces it. */
-  await new Promise(r => setTimeout(r, 900));
-  assert.equal(said[0], round.pair[round.target][0], 'the word that was actually played comes first');
-  assert.equal(said[1], round.pair[1 - round.target][0], 'then the one that was picked instead');
-
-  // and no timer takes it away from under the learner
-  await new Promise(r => setTimeout(r, 3200));
-  assert.equal(api.getSounds().i, 0, 'still on the same question after three seconds');
-  api.advanceSound();
-  assert.equal(api.getSounds().i, 1, 'it moves when the learner says so, and not before');
-});
-
-test('a correct sound still moves on by itself', async () => {
-  const { synth, Utterance } = speaker();
-  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
-  learnerAt(api, 10);
-  api.startSoundRun('ii');
-  const round = api.getSounds().rounds[0];
-  api.answerSound(round.target);
-  assert.equal(api.getSounds().i, 0, 'a beat to register it');
-  await new Promise(r => setTimeout(r, 1300));
-  assert.equal(api.getSounds().i, 1, 'and then on, without a tap — nothing to dwell on here');
-});
-
-test('a missed drill question waits too, with the answer to hear', async () => {
-  const { said, synth, Utterance } = speaker();
-  const { api } = runtime(new Map(), { speechSynthesis: synth, SpeechSynthesisUtterance: Utterance });
-  learnerAt(api, 10);
-
-  api.startDailyDrill();
+  api.startUnitCheck(0);
   const q = api.getReview().questions[0];
   await new Promise(r => setTimeout(r, 600));
   said.length = 0;
@@ -5193,29 +5044,6 @@ test('a missed drill question waits too, with the answer to hear', async () => {
   assert.equal(api.getReview().i, 0, 'and the screen is still his after two and a half seconds');
   api.advanceReview();
   assert.equal(api.getReview().i, 1);
-});
-
-test('the explanation is drawn, split per sound, and namespaced away from the rest of the app', () => {
-  const { api } = runtime();
-  const set = api.SOUND_SETS.find(s => s.id === 'th');
-  const html = api.soundExplainHtml(set, 'a');
-
-  // both sounds get their own card, and the one that was played is marked
-  assert.equal((html.match(/class="sound-side /g) || []).length, 2, 'one card per sound, never one blob for both');
-  assert.match(html, /sound-side sound-said/);
-  assert.match(html, /sound-side sound-picked/);
-  assert.ok(html.includes(set.a.how) && html.includes(set.b.how), 'each says what to do');
-  assert.ok(html.includes(set.a.feel) && html.includes(set.b.feel), 'and how to tell you did it');
-  assert.ok(html.includes(set.from), 'with a way in from a sound Hebrew already has');
-  assert.equal((html.match(/<svg/g) || []).length, 2, 'and a mouth to copy for each');
-
-  /* Every class here has to be namespaced. A bare `.mouth` is already the
-     character lip-sync element and a bare `.heard` is already the lesson's
-     speech-recognition line — the first draft used both, and inherited
-     `margin-top:12px` and `direction:ltr` from a rule nine hundred lines away. */
-  const classes = new Set([...html.matchAll(/class="([^"]+)"/g)].flatMap(m => m[1].split(/\s+/)).filter(Boolean));
-  for (const cls of classes)
-    assert.match(cls, /^(sound-|mouth-dia$|m-)/, `${cls} is namespaced to this feature`);
 });
 
 /* ---- which word was missing is his answer, not the app's guess ----
@@ -5541,7 +5369,7 @@ test('only recall in a mixed review lengthens the schedule, even when every answ
     level: 1, lastPracticedAt: now() - 10 * 864e5, hard: false,
   };
   const oldAt = now() - 10 * 864e5;
-  api.startDailyDrill();
+  api.startUnitCheck(0);
   const { asked } = runReview(api, () => true);
   for (const q of asked) {
     const meta = api.getState().reviewMeta[q.id];
@@ -5612,7 +5440,7 @@ test('a difficult phrase returns soon even if its older level was high', () => {
   assert.equal(api.getState().reviewMeta['0:0'].level, 5);
 });
 
-test('recognition-only practice does not crowd untouched due phrases out of later drills', () => {
+test('recognition-only practice does not crowd untouched due phrases out of later runs', () => {
   const r = memoryRuntime();
   const { api } = r;
   const state = learnerAt(api, 10);

@@ -172,29 +172,15 @@ body{
 .home-unit .lesson-row.current .info b,.home-unit .lesson-row.paused-here .info b{font-size:18px}
 .home-unit .lesson-row.locked{min-height:49px;padding:7px 12px}
 .home-unit .lesson-row.locked .num{width:32px;height:32px;border-radius:10px}
-/* The two things to DO, side by side above the path: extra practice, and the
-   game. Neither is a step on the course, so neither belongs inside the list of
-   steps — and the game in particular was at the bottom of a long scroll, past
-   thirty locked lessons, which is nowhere. */
+/* The two things to DO, side by side above the path: testing yourself, and a
+   conversation. Neither is a step on the course, so neither belongs inside the
+   list of steps — and both would otherwise be at the bottom of a long scroll,
+   past thirty locked lessons, which is nowhere. */
 .home-extras{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0 6px}
 .home-extras.one{grid-template-columns:1fr}
-/* Three across has to survive a 360px phone, so the cards give up padding and
-   a little type rather than wrapping one lonely card onto its own row. */
-.home-extras.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-.home-extras.three .home-extra{padding:12px 6px}
-.home-extras.three .extra-icon{font-size:23px}
-.home-extras.three .extra-title{font-size:13px}
-.home-extras.three .extra-sub{font-size:10px}
-@media(max-width:340px){
-  .home-extras.three{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .home-extras.three .home-extra:last-child{grid-column:1/-1}
-}
 .home-extra{display:grid;justify-items:center;align-content:start;gap:2px;padding:13px 10px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(160deg,var(--card2),var(--card));color:var(--text);font:inherit;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
 .home-extra:active{transform:scale(.975)}
 .home-extra.practice{border-color:rgba(167,139,250,.5);background:linear-gradient(160deg,rgba(101,86,216,.42),rgba(60,44,140,.24))}
-.home-extra.drill{border-color:rgba(56,189,248,.5);background:linear-gradient(160deg,rgba(14,116,164,.4),rgba(8,60,90,.24))}
-/* Done today reads as finished, not as disabled: another round is still one tap away. */
-.home-extra.drill.done{border-color:rgba(52,211,153,.45);background:linear-gradient(160deg,rgba(16,120,90,.34),rgba(6,60,45,.2))}
 .home-extra.selftest{border-color:rgba(251,191,36,.45);background:linear-gradient(160deg,rgba(146,101,10,.34),rgba(80,54,6,.2))}
 .home-extra .extra-icon{font-size:26px;line-height:1.05}
 .home-extra .extra-title{font-size:14.5px;font-weight:950;text-align:center;line-height:1.15}
@@ -210,7 +196,7 @@ body{
 .unit-check-go{color:var(--dim);font-size:16px;flex-shrink:0}
 .home-unit-emoji{position:relative}
 .unit-seal{position:absolute;bottom:-3px;left:-5px;width:16px;height:16px;border-radius:50%;background:#10b981;color:#04231a;font-size:10px;font-weight:950;display:grid;place-items:center;box-shadow:0 0 0 2px var(--card)}
-/* ---------- the check and drill screens ---------- */
+/* ---------- the check and self-test screens ---------- */
 .review-count{color:var(--dim);font-size:12.5px;margin-bottom:10px}
 .review-prompt{font-size:25px;font-weight:950;line-height:1.25;margin:6px 0 16px}
 .review-honest{color:var(--dim);font-size:12.5px;line-height:1.35;margin:2px 0 10px}
@@ -238,88 +224,6 @@ body{
 .test-word{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid rgba(251,191,36,.4);border-radius:999px;background:rgba(146,101,10,.2);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
 .test-word b{font-weight:900}
 .test-word span{color:var(--dim);font-size:11.5px}
-/* ---------- the sounds trainer ---------- */
-/* One card in the quiet row today; the two-column default is what it takes
-   when something earns a place beside the ear. */
-.home-extra2s{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 6px}
-.home-extra2s.one{grid-template-columns:1fr}
-.home-extra2{display:flex;align-items:center;gap:8px;padding:10px 11px;border:1px solid var(--line);border-radius:15px;background:var(--card2);color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
-.home-extra2:active{transform:scale(.98)}
-.home-extra2.sounds{border-color:rgba(244,114,182,.4);background:linear-gradient(160deg,rgba(131,42,90,.3),rgba(70,20,50,.18))}
-.home-extra2 .e2-icon{font-size:19px;line-height:1;flex-shrink:0}
-.home-extra2 .e2-copy{flex:1;min-width:0;display:grid;gap:1px}
-.home-extra2 .e2-copy b{font-size:13px;font-weight:900}
-.home-extra2 .e2-copy small{color:var(--dim);font-size:10.5px;line-height:1.2}
-.sound-intro{color:var(--dim);font-size:14px;line-height:1.5;margin-bottom:14px}
-.sound-warn{padding:10px 12px;border:1px solid rgba(248,113,113,.4);border-radius:13px;background:rgba(127,29,29,.22);font-size:13px;margin-bottom:12px}
-.sound-grid{display:grid;gap:8px}
-.sound-card{border:1px solid var(--line);border-radius:16px;background:var(--card2);overflow:hidden}
-.sound-card-head{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;border:0;background:none;color:var(--text);font:inherit;text-align:right;cursor:pointer}
-.sound-card-head:active{transform:scale(.985)}
-.sound-learn{width:100%;padding:9px 13px;border:0;border-top:1px dashed var(--line);background:rgba(255,255,255,.03);color:var(--dim);font:inherit;font-size:12.5px;font-weight:800;text-align:right;cursor:pointer}
-.sound-learn-body{padding:2px 11px 12px}
-.sound-card.strong{border-color:rgba(52,211,153,.45)}
-.sound-card.fair{border-color:rgba(251,191,36,.4)}
-.sound-card.weak{border-color:rgba(248,113,113,.4)}
-.sound-icon{font-size:24px;line-height:1;flex-shrink:0}
-.sound-copy{flex:1;min-width:0;display:grid;gap:1px}
-.sound-copy b{font-size:15px;font-weight:900}
-.sound-copy small{color:var(--dim);font-size:11.5px}
-.sound-score{display:grid;justify-items:center;gap:1px;font-size:15px;font-weight:950;flex-shrink:0}
-.sound-score small{color:var(--dim);font-size:10px;font-weight:600}
-.sound-choices{display:grid;gap:9px;margin-top:4px}
-.sound-opt{display:grid;gap:2px;padding:14px 12px;border:1.5px solid var(--line);border-radius:16px;background:var(--card2);color:var(--text);font:inherit;cursor:pointer}
-.sound-opt b{font-size:22px;font-weight:950;letter-spacing:.4px}
-.sound-opt small{color:var(--dim);font-size:12px}
-.sound-opt.right{border-color:rgba(52,211,153,.75);background:rgba(16,185,129,.22)}
-.sound-opt.wrong{border-color:rgba(248,113,113,.7);background:rgba(127,29,29,.25)}
-.sound-opt:disabled{opacity:.85}
-.sound-models{margin:14px 0 4px;text-align:right}
-.sound-models-head{font-size:15px;font-weight:900;text-align:center;margin-bottom:4px}
-.sound-model{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
-.sound-model-head{font-size:14px;font-weight:900;margin-bottom:3px}
-.sound-model p{color:var(--dim);font-size:12px;line-height:1.4;margin:0 0 8px}
-.sound-model-row{display:flex;flex-wrap:wrap;gap:7px}
-.sound-word{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
-.sound-word b{font-weight:900}
-.sound-word span{color:var(--dim);font-size:11px}
-/* ---------- the pause after a miss, which is the lesson ---------- */
-/* ---------- the mouth, drawn ---------- */
-/* namespaced: a bare .mouth is already the character lip-sync element, and a
-   bare .heard is already the lesson's speech-recognition line */
-.mouth-dia{width:auto;height:74px;max-width:100%;display:block;margin:0 auto 6px}
-.m-lip{fill:#c2708a}
-.m-lip.pout{fill:#d0839c}
-.m-hole{fill:#2a1119}
-.m-teeth{fill:#f4f7fb}
-.m-tongue{fill:#e8899f}
-.m-tongue-out{fill:#f2a2b6;stroke:#8d3f56;stroke-width:2.5}
-.m-lipline{fill:none;stroke:#e5a8bb;stroke-width:3.5;stroke-linecap:round}
-.sound-sides{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;align-items:stretch}
-.sound-side{display:flex;flex-direction:column;padding:10px 9px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035);text-align:center}
-/* the two sides are read against each other, so the mouths sit on one
-   baseline and the words underneath start at the same line in both */
-.sound-side-feel{margin-top:auto}
-.sound-side.sound-said{border-color:rgba(52,211,153,.6);background:rgba(16,185,129,.14)}
-.sound-side.sound-picked{border-color:rgba(248,113,113,.5);background:rgba(127,29,29,.18)}
-.sound-side-tag{font-size:10.5px;font-weight:900;color:var(--dim);margin-bottom:4px}
-.sound-side.sound-said .sound-side-tag{color:#6ee7b7}
-.sound-side.sound-picked .sound-side-tag{color:#fca5a5}
-.sound-side-name{font-size:19px;font-weight:950;letter-spacing:.5px;margin-bottom:4px}
-.sound-side-how{font-size:12.5px;line-height:1.45;margin:0 0 5px}
-.sound-side-feel{font-size:11.5px;line-height:1.4;color:var(--dim);margin:8px 0 0}
-.sound-from{padding:10px 12px;border-radius:13px;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.32);font-size:13px;line-height:1.55;text-align:right}
-.sound-from b{display:block;font-size:12px;font-weight:900;color:#7dd3fc;margin-bottom:3px}
-@media(max-width:360px){.sound-sides{grid-template-columns:1fr}}
-.sound-miss{display:grid;gap:10px;margin-top:12px;padding:13px;border:1px solid rgba(251,191,36,.42);border-radius:16px;background:rgba(69,48,6,.36);text-align:center}
-.sound-miss-head{font-size:15px;font-weight:900;line-height:1.35}
-.sound-miss-head b{font-size:17px}
-.sound-miss-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sound-miss-pair .sound-word{justify-content:center;padding:11px 8px;font-size:15px}
-.sound-miss-pair .sound-word.is-heard{border-color:rgba(52,211,153,.6);background:rgba(16,185,129,.16)}
-.sound-miss-pair .sound-word b{font-size:16px}
-.sound-compare{margin:0}
-.sound-miss .btn{margin:0}
 /* ---------- which word would not come out ---------- */
 .variant-note{margin-top:12px;padding:9px 11px;border-top:1px dashed var(--line);display:grid;gap:2px;text-align:center}
 .variant-note b{font-size:15px;font-weight:850}
@@ -7267,7 +7171,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.74.1';
+const APP_VERSION = '2.75.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7406,133 +7310,6 @@ const PRACTICE_CYCLE_KEY = 'speakEnglishPracticeCycleV1';
    game leaves the course untouched — and why its save would otherwise sit in
    the learner's storage forever, since nothing reads it any more. */
 try{ localStorage.removeItem('english.samRun'); }catch(e){}
-/* Up here for the same reason as the rest intervals just below: defaults()
-   seeds a sounds record from this list while the very first state is being
-   read, and a const declared further down is still in its dead zone then. */
-const SOUND_SETS = [
-  /* One explanation per sound, never one sentence covering both: reading "the
-     tongue comes out a bit, it is not s and not t" means holding two mouth
-     positions at once and working out which is which, and it was reported as
-     simply not understandable.
-
-     Each side now says what to DO and what you should FEEL if you did it,
-     because that is checkable and "a third sound" is not. `from` is the way
-     in: start from a sound Hebrew already has, change one thing, and you are
-     there. `art` names the drawing — mouth position is a picture, and no
-     amount of prose about tongues substitutes for one. */
-  { id:'th', icon:'👅', title:'th', sub:'הצליל שאין בעברית',
-    a:{ art:'th', label:'th',
-        how:'הלשון יוצאת קצת החוצה, בין השיניים. נושפים אוויר מעליה.',
-        feel:'תשים אצבע מול הפה — אתה אמור להרגיש אוויר יוצא, ולראות את קצה הלשון.' },
-    b:{ art:'s', label:'s',
-        how:'הלשון נשארת בפנים, מאחורי השיניים. בדיוק כמו ס׳ בעברית.',
-        feel:'הלשון לא נוגעת בשיניים בכלל.' },
-    from:'תגיד «סססס» ארוך. עכשיו, בלי להפסיק לנשוף, תדחוף את קצה הלשון החוצה בין השיניים. הצליל שהשתנה — זה th.' },
-  { id:'wv', icon:'👄', title:'w מול v', sub:'שתי שפתיים או שן ושפה',
-    a:{ art:'w', label:'w',
-        how:'השפתיים מתעגלות קדימה, כמו לפני שריקה או נשיקה. שיניים לא נוגעות בכלום.',
-        feel:'אם השיניים נגעו בשפה — זה כבר לא w.' },
-    b:{ art:'v', label:'v',
-        how:'השן העליונה מונחת על השפה התחתונה. בדיוק כמו ו׳ בעברית.',
-        feel:'תרגיש רטט בשפה התחתונה.' },
-    from:'תגיד «ווו» של וילון — זה v. עכשיו תוריד את השיניים מהשפה ותעגל את השפתיים כמו לשריקה. זה w.' },
-  { id:'ii', icon:'📏', title:'i קצרה מול ארוכה', sub:'ship מול sheep',
-    a:{ art:'ih', label:'i קצרה',
-        how:'קצרה וחטופה, הפה רפוי. כמעט כמו א׳ קטנה.',
-        feel:'נגמר מהר — אין זמן למשוך אותה.' },
-    b:{ art:'ee', label:'i ארוכה',
-        how:'נמשכת, והשפתיים נפרשות לצדדים כמו בחיוך.',
-        feel:'תרגיש את הלחיים נמתחות לצדדים.' },
-    from:'תגיד «אִי» של חיוך ותמשוך אותה — זו הארוכה. עכשיו תגיד אותה קצר וחטוף, בלי חיוך — זו הקצרה.' },
-  { id:'ae', icon:'😮', title:'a מול e', sub:'bad מול bed',
-    a:{ art:'ae', label:'a',
-        how:'הלסת יורדת והפה נפתח רחב, כמו אצל הרופא.',
-        feel:'תשים אצבע על הסנטר — הוא יורד למטה.' },
-    b:{ art:'eh', label:'e',
-        how:'הפה פתוח רק חצי. בדיוק כמו סֶגול בעברית.',
-        feel:'הסנטר כמעט לא זז.' },
-    from:'תגיד «אֶ» של סֶגול — זו e. עכשיו תפיל את הלסת ותפתח את הפה רחב יותר, בלי לשנות כלום אחר. זו a.' },
-];
-/* pair[0] is always the `a` sound and pair[1] the `b` sound, which is what
-   lets a missed round point at the right side of the explanation. */
-const SOUND_PAIRS = {
-  th:[[['think','לחשוב'],['sink','כיור']],[['three','שלוש'],['tree','עץ']],
-      [['thick','עבה'],['sick','חולה']],[['mouth','פה'],['mouse','עכבר']],
-      [['path','שביל'],['pass','לעבור']],[['thanks','תודה'],['tanks','טנקים']]],
-  wv:[[['west','מערב'],['vest','אפודה']],[['wet','רטוב'],['vet','וטרינר']],
-      [['wine','יין'],['vine','גפן']],[['worse','גרוע יותר'],['verse','בית בשיר']]],
-  ii:[[['ship','ספינה'],['sheep','כבשה']],[['sit','לשבת'],['seat','מושב']],
-      [['fill','למלא'],['feel','להרגיש']],[['live','לחיות'],['leave','לעזוב']],
-      [['this','זה'],['these','אלה']],[['it','זה'],['eat','לאכול']]],
-  ae:[[['bad','רע'],['bed','מיטה']],[['man','איש'],['men','אנשים']],
-      [['pan','מחבת'],['pen','עט']],[['sad','עצוב'],['said','אמר']],
-      [['bat','עטלף'],['bet','הימור']],[['sat','ישב'],['set','להניח']]],
-};
-for(const set of SOUND_SETS) set.pairs=SOUND_PAIRS[set.id];
-
-const SOUND_ROUNDS = 10;
-/* A mouth, seen from the front, because that is where the difference actually
-   shows: the tongue poking out for th, the teeth resting on the lip for v,
-   the lips rounded for w, the jaw dropped for a. Drawn rather than described,
-   since a child can copy a picture of a mouth and cannot copy a sentence
-   about one. Deliberately schematic — this is a diagram, not a face. */
-const MOUTH_SHAPES = {
-  th: {w:54,h:32, teeth:'both', tongue:'out'},
-  s:  {w:46,h:14, teeth:'both', tongue:'none'},
-  w:  {w:22,h:22, teeth:'none', tongue:'none', pout:true},
-  v:  {w:50,h:16, teeth:'onlip', tongue:'none'},
-  ih: {w:42,h:20, teeth:'none', tongue:'none'},
-  ee: {w:64,h:13, teeth:'both', tongue:'none'},
-  ae: {w:46,h:38, teeth:'both', tongue:'low'},
-  eh: {w:40,h:24, teeth:'none', tongue:'none'},
-};
-function mouthArt(name){
-  const m=MOUTH_SHAPES[name];
-  if(!m) return '';
-  const cx=50, cy=40, rx=m.w/2, ry=m.h/2;
-  const lipW=m.pout?13:9;
-  const parts=[
-    `<ellipse class="m-lip${m.pout?' pout':''}" cx="${cx}" cy="${cy}" rx="${rx+lipW}" ry="${ry+lipW}"/>`,
-    `<ellipse class="m-hole" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`,
-  ];
-  const tw=m.w*0.74, th=Math.min(7,m.h*0.34);
-  if(m.teeth==='both'||m.teeth==='onlip')
-    parts.push(`<rect class="m-teeth" x="${cx-tw/2}" y="${cy-ry}" width="${tw}" height="${th}" rx="2"/>`);
-  if(m.teeth==='both')
-    parts.push(`<rect class="m-teeth" x="${cx-tw/2}" y="${cy+ry-th}" width="${tw}" height="${th}" rx="2"/>`);
-  // v: the upper teeth come down onto the lower lip, so the lip rides up to them
-  if(m.teeth==='onlip')
-    parts.push(`<path class="m-lipline" d="M${cx-rx-6} ${cy+ry+2} Q ${cx} ${cy+ry-7} ${cx+rx+6} ${cy+ry+2}"/>`);
-  /* Drawn last and wider than the teeth, overlapping both rows, so it reads as
-     the tongue sitting in front of them rather than a third stripe between
-     them. That overlap is the whole point of the picture. */
-  if(m.tongue==='out')
-    parts.push(`<ellipse class="m-tongue-out" cx="${cx}" cy="${cy+1}" rx="${tw*0.58}" ry="8.5"/>`);
-  if(m.tongue==='low')
-    parts.push(`<path class="m-tongue" d="M${cx-tw/2.2} ${cy+ry-3} Q ${cx} ${cy+ry-13} ${cx+tw/2.2} ${cy+ry-3} Z"/>`);
-  return `<svg class="mouth-dia" viewBox="0 0 100 80" aria-hidden="true">${parts.join('')}</svg>`;
-}
-/* One side of a contrast, drawn and explained on its own. `role` marks which
-   of the two was actually played, so a miss points somewhere specific. */
-function soundSideHtml(set, side, role){
-  const sound=set[side], word=null;
-  return `<div class="sound-side ${role}">
-    ${role?`<div class="sound-side-tag">${role==='sound-said'?'זה מה ששמעת':'זה מה שבחרת'}</div>`:''}
-    ${mouthArt(sound.art)}
-    <div class="sound-side-name" dir="ltr">${esc(sound.label)}</div>
-    <p class="sound-side-how">${esc(sound.how)}</p>
-    <p class="sound-side-feel">${esc(sound.feel)}</p>
-  </div>`;
-}
-function soundExplainHtml(set, heardSide){
-  return `
-    <div class="sound-sides">
-      ${soundSideHtml(set,'a',heardSide==='a'?'sound-said':heardSide?'sound-picked':'')}
-      ${soundSideHtml(set,'b',heardSide==='b'?'sound-said':heardSide?'sound-picked':'')}
-    </div>
-    <div class="sound-from"><b>נסה עכשיו</b>${esc(set.from)}</div>`;
-}
-
 /* How long a phrase may rest, and what moves it. Declared up here rather than
    beside the rest of the review code because normalizeReviewMeta() seeds a
    level while the very first state is being loaded, a few lines below — a
@@ -7587,13 +7364,13 @@ function load(){
       if(!hadStoryCycle) out.practiceStorySeen=normalizePracticeStoryIds(out.practiceRecentStories);
       out.missions = normalizeMissions(out.missions);
       out.checks = normalizeChecks(out.checks);
-      out.drillDate = typeof out.drillDate === 'string' ? out.drillDate : '';
-      out.drillCount = Math.max(0, Math.floor(Number(out.drillCount) || 0));
       out.testDate = typeof out.testDate === 'string' ? out.testDate : '';
       out.testCount = Math.max(0, Math.floor(Number(out.testCount) || 0));
-      out.sounds = normalizeSounds(out.sounds);
-      // the listening mode was removed; its record has no reader left
-      for(const gone of ['listenHeard','listenDate','listenCount','listenSubs']) delete out[gone];
+      /* The listening mode, then the daily drill and the sounds trainer, were
+         removed. What they wrote into stored profiles has no reader left, so it
+         goes on load rather than sitting in the learner's storage forever. */
+      for(const gone of ['listenHeard','listenDate','listenCount','listenSubs',
+        'drillDate','drillCount','sounds']) delete out[gone];
       out.hard = Array.isArray(out.hard) ? [...new Set(out.hard.filter(x=>typeof x === 'string'))].slice(-20) : [];
       out.reviewMeta = out.reviewMeta && typeof out.reviewMeta === 'object' && !Array.isArray(out.reviewMeta) ? out.reviewMeta : {};
       out.lastWarmupIds = Array.isArray(out.lastWarmupIds) ? out.lastWarmupIds.filter(x=>typeof x === 'string').slice(-20) : [];
@@ -7633,8 +7410,7 @@ function defaults(){
     profile:defaultProfile(),
     lastDoneDate:'', lessonsToday:0, replays:0, slowSpeech:true, micEnabled:true, micPrimed:false, uiSounds:true,
     hard:[], reviewMeta:{}, lastWarmupIds:[], lastGraceTs:0, session:null,
-    checks:normalizeChecks(null), drillDate:'', drillCount:0, testDate:'', testCount:0,
-    sounds:normalizeSounds(null),
+    checks:normalizeChecks(null), testDate:'', testCount:0,
     practiceCount:0, practiceRecent:[], practiceRecentChars:[], practiceRecentStories:[],
     practiceStorySeen:[], practiceStoryEpoch:0, practiceStoryCatalog:[], practiceStoryDone:[],
     missions:{},
@@ -7847,11 +7623,8 @@ function reconcileStoredProgress(){
     state.practiceRecentUpdatedAt=Math.max(localPracticeTs,storedPracticeTs);
     state.missions=mergeMissions(stored.missions, state.missions);
     state.checks=mergeChecks(stored.checks, state.checks);
-    state.sounds=mergeSounds(stored.sounds, state.sounds);
-    state.drillCount=Math.max(Number(state.drillCount)||0,Math.floor(Number(stored.drillCount)||0));
     state.testCount=Math.max(Number(state.testCount)||0,Math.floor(Number(stored.testCount)||0));
     // the later day wins: work done in any tab counts for that day
-    if(dateValue(stored.drillDate)>dateValue(state.drillDate)) state.drillDate=stored.drillDate;
     if(dateValue(stored.testDate)>dateValue(state.testDate)) state.testDate=stored.testDate;
     state.completed=Math.min(LESSONS.length,Math.floor(Math.max(Number(state.completed)||0,Number(stored.completed)||0)));
     state.replays=Math.max(Number(state.replays)||0,Number(stored.replays)||0);
@@ -8005,8 +7778,8 @@ function notePractice(id, result, usedHint=false, wasWarmup=false, kind='recall'
 }
 
 /* ---------------- what is about to be forgotten ----------------
-   The same scheduler serves drills and the existing lesson warm-up. Its
-   clock is the first practice or the last meaningful review result, not
+   The same scheduler serves the checks, the self-test and the lesson warm-up.
+   Its clock is the first practice or the last meaningful review result, not
    every sight of the answer. Dueness 1 means due now, 3 means three times
    overdue. Keep legacy levels; future gains require spaced recall. */
 /* What a phrase with no record at all is worth. It has to outrank everything
@@ -8047,7 +7820,7 @@ function reviewDueness(meta, now=Date.now()){
    it only ever grows, so after a normal run of lessons every phrase qualifies
    and the number sits at the maximum forever, saying nothing. A phrase is
    secure when it is known well AND is not already past its rest: everything
-   decays out of this count on its own, and a drill puts it back.
+   decays out of this count on its own, and practising it puts it back.
 
    That is deliberately a different thing from the seal a check earns. The
    seal is a fact about something he did and it is permanent; this is a live
@@ -8058,7 +7831,7 @@ function reviewSecure(meta, now=Date.now()){
     && reviewDueness(meta,now)<1;
 }
 
-/* The phrases a check or a drill may draw from. `unit` limits it to one
+/* The phrases a check or the self-test may draw from. `unit` limits it to one
    unit's five lessons; without it the pool is everything learned so far. */
 function reviewPool(unit=null){
   const learned=allLearnedPhrases(Math.max(0,Math.min(state.completed,LESSONS.length)));
@@ -8075,7 +7848,7 @@ function reviewSelect(pool, count, now=Date.now()){
   const ranked=shuffled(pool).sort((a,b)=>{
     const ap=Number(a.meta?.lastPracticedAt)||0, bp=Number(b.meta?.lastPracticedAt)||0;
     const ar=!!ap&&now-ap<REVIEW_REST_MS, br=!!bp&&now-bp<REVIEW_REST_MS;
-    // Recognition stays due, but must not monopolize every subsequent drill
+    // Recognition stays due, but must not monopolize every subsequent run
     // merely because its scheduling clock (correctly) did not move.
     return Number(ar)-Number(br) || (ar&&br?ap-bp:0)
       || reviewDueness(b.meta,now)-reviewDueness(a.meta,now)
@@ -9102,17 +8875,11 @@ function renderHome(){
     listHtml += '</div></div></section>';
   });
   /* Things to do rather than steps on the path, so they sit above it: a child
-     will not scroll past thirty locked lessons to find them. The drill is
+     will not scroll past thirty locked lessons to find them. The self-test is
      first because it is the one with an answer on a day the lesson is already
      done — and after lesson thirty it is the one that is still there at all. */
-  const drilled = drilledToday();
   const extrasHtml = state.completed > 0 ? `
-    <div class="home-extras three">
-      <button type="button" class="home-extra drill${drilled?' done':''}" onclick="startDailyDrill()">
-        <span class="extra-icon">${drilled?'✅':'🧠'}</span>
-        <span class="extra-title">תרגול יומי</span>
-        <span class="extra-sub">${drilled?'עשית היום':`${DRILL_LENGTH} משפטים · דקה וחצי`}</span>
-      </button>
+    <div class="home-extras">
       <button type="button" class="home-extra selftest" onclick="startSelfTest()">
         <span class="extra-icon">🔍</span>
         <span class="extra-title">בחן את עצמך</span>
@@ -9120,16 +8887,6 @@ function renderHome(){
       </button>
       <button type="button" class="home-extra practice" onclick="renderPracticePicker()">
         <span class="extra-icon">🗣️</span><span class="extra-title">שיחה חופשית</span><span class="extra-sub">בחר עם מי לדבר</span>
-      </button>
-    </div>
-    ${/* A second, quieter row. These two are not the daily habit — one is the
-          ear rather than the vocabulary, the other is listening rather than
-          being asked — so they are here rather than competing with the three
-          above for the same tap. */''}
-    <div class="home-extra2s one">
-      <button type="button" class="home-extra2 sounds" onclick="renderSoundsHub()">
-        <span class="e2-icon">👂</span>
-        <span class="e2-copy"><b>הצלילים של אנגלית</b><small>${soundsSummary()}</small></span>
       </button>
     </div>` : '';
 
@@ -9171,21 +8928,21 @@ function renderHome(){
   if(typeof pendingServiceWorker !== 'undefined') tryAutoUpdate();
 }
 
-/* ================= the check and the daily drill =================
-   Two doors onto one engine. The drill is a habit: eight phrases, ninety
-   seconds, no score, and it is the only thing in the app that still has
-   something to do on a day with no lesson left in it — including every day
-   after lesson thirty. The check is a claim: ten phrases from one finished
-   unit, and passing puts a mark on that unit that stays there.
+/* ================= the check and the self-test =================
+   Two doors onto one engine. The check is a claim: ten phrases from one
+   finished unit, and passing puts a mark on that unit that stays there. The
+   self-test is the thing to open the app for on a day with no lesson left in
+   it — including every day after lesson thirty — and it is free recall only,
+   which is why it gets its own section further down.
 
    Both draw from reviewSelect(), so both ask about whatever is closest to
    being forgotten rather than whatever is nearest to hand. That is what makes
    passing the check mean something: it is not ten easy ones.
 
-   Three question shapes, rotated. Two are recognition and are honest about
-   it; the third shows the Hebrew, asks for the English out loud, and then
-   asks the learner whether they had it. Nothing can be eliminated down to on
-   that one, which is the only reason it can tell him something the other two
+   The check rotates three question shapes. Two are recognition and are honest
+   about it; the third shows the Hebrew, asks for the English out loud, and
+   then asks the learner whether they had it. Nothing can be eliminated down to
+   on that one, which is the only reason it can tell him something the other two
    cannot. All three feed notePractice(), the same record the lessons write. */
 /* ---- the words inside the sentences ----
    The course teaches phrases, and that is the right unit for someone learning
@@ -9250,7 +9007,7 @@ function testWordTokens(en){
 }
 
 let R = null;
-const DRILL_LENGTH = 8, CHECK_LENGTH = 10, CHECK_PASS = 8;
+const CHECK_LENGTH = 10, CHECK_PASS = 8;
 const TEST_LENGTH = 12;
 /* pickedChip: NONE until he answers, then a word index, or one of these two.
    NONE has to be tested for exactly — it used to be `< 0`, which swallowed the
@@ -9268,11 +9025,11 @@ function reviewDistractors(item, pool, field){
   return [...near,...far].slice(0,2).map(x=>ptext(x.p,field));
 }
 /* The self-test asks nothing but free recall, and that is the point of it
-   being its own mode rather than the drill with the dial turned up: a
+   being its own mode rather than the check with the dial turned up: a
    multiple-choice question puts the right answer on the screen, so a run that
    mixes the two keeps showing the learner answers he is about to be asked to
    produce. Here nothing is ever shown before he has tried to say it. */
-function buildReviewQuestions(items, pool, mode='drill'){
+function buildReviewQuestions(items, pool, mode='check'){
   return items.map((item,i)=>{
     const shape=mode==='test'?'say':reviewShapeFor(i);
     if(shape==='say') return {shape,item,id:item.id};
@@ -9282,7 +9039,7 @@ function buildReviewQuestions(items, pool, mode='drill'){
     return {shape,item,id:item.id,correct,options};
   });
 }
-const REVIEW_LENGTHS = {drill:DRILL_LENGTH, check:CHECK_LENGTH, test:TEST_LENGTH};
+const REVIEW_LENGTHS = {check:CHECK_LENGTH, test:TEST_LENGTH};
 
 function startReviewRun(mode, unit=null){
   if(L){
@@ -9296,7 +9053,7 @@ function startReviewRun(mode, unit=null){
   unlockUiAudio();
   const pool=reviewPool(unit);
   if(!pool.length){ toast('עוד אין מה לבדוק — תסיים שיעור ראשון 💪'); return; }
-  const count=Math.min(REVIEW_LENGTHS[mode]||DRILL_LENGTH,pool.length);
+  const count=Math.min(REVIEW_LENGTHS[mode]||CHECK_LENGTH,pool.length);
   const items=reviewSelect(pool,count);
   R={ mode, unit, pool, questions:buildReviewQuestions(items,pool,mode), i:0,
       right:0, missed:[], missedWords:[], picking:null, pickedChip:REVIEW_PICK_NONE, orderMisses:0,
@@ -9326,7 +9083,7 @@ function wordGloss(chip){
 }
 /* A wrong answer holds the right one on screen for a moment before moving on.
    That pause owns a timer, and a timer that outlives its run is a bug waiting
-   to happen: leave mid-pause, start another drill inside two seconds, and the
+   to happen: leave mid-pause, start another run inside two seconds, and the
    old one would step the new run forward a question. So the pending advance
    belongs to the run, is cleared when the run ends, and checks on the way in
    that it is still the run it was scheduled for. */
@@ -9359,7 +9116,7 @@ function exitReviewRun(){
 }
 function reviewShell(inner){
   const total=R.questions.length, pct=Math.round(R.i/total*100);
-  const label=R.mode==='check'?`בדיקה · יחידה ${R.unit+1}`:R.mode==='test'?'בחן את עצמך':'תרגול יומי';
+  const label=R.mode==='check'?`בדיקה · יחידה ${R.unit+1}`:'בחן את עצמך';
   hx(`
   <div class="screen">
     <div class="player-top">
@@ -9449,10 +9206,10 @@ function answerReviewChoice(index){
   const out=document.getElementById('reviewResult');
   const en=ptext(q.item.p,'en');
   if(!pass){
-    /* Same rule as the sounds trainer: a right answer moves on by itself, a
-       wrong one waits. A screen that clears itself after two seconds however
-       hard the phrase was is a screen you can guess your way through, and the
-       moment you got it wrong is the only moment worth stopping on. */
+    /* A right answer moves on by itself, a wrong one waits. A screen that
+       clears itself after two seconds however hard the phrase was is a screen
+       you can guess your way through, and the moment you got it wrong is the
+       only moment worth stopping on. */
     if(out) out.innerHTML=`
       <div class="review-miss">
         <div class="review-miss-head">${esc(ptext(q.item.p,'he'))}</div>
@@ -9598,25 +9355,19 @@ function renderReviewDone(){
   const total=R.questions.length;
   R=null;
   if(mode==='test') return renderTestDone({right,total,missed,missedWords,orderMisses});
-  /* The headline number is the one the learner asked for: how much of this
-     scope he can be sure of, counted the same way every time — not this run's
+  /* Everything below is the unit check — the self-test has its own ending.
+     The headline number is the one the learner asked for: how much of this
+     unit he can be sure of, counted the same way every time — not this run's
      score, which is only a sample. */
-  const scope=reviewPool(mode==='check'?unit:null);
+  const scope=reviewPool(unit);
   const secure=scope.filter(x=>reviewSecure((state.reviewMeta||{})[x.id])).length;
-  let head, sub;
-  if(mode==='check'){
-    const passed=right>=Math.min(CHECK_PASS,total);
-    if(passed){ markUnitChecked(unit,right,total); confetti(); }
-    head=passed?'✅':'💪';
-    sub=passed
-      ? `<h2>יחידה ${unit+1} — אתה יודע אותה</h2><p>${right} מתוך ${total}, והשאלות היו דווקא על מה שהיה הכי קרוב להישכח.<br>החותמת נשארת לך במסלול.</p>`
-      : `<h2>${right} מתוך ${total}</h2><p>עוד לא חותמת — אבל עכשיו אתה יודע בדיוק על מה לחזור.<br>אפשר לנסות שוב מתי שתרצה.</p>`;
-  } else {
-    noteDrillDone();
-    head='🧠';
-    sub=`<h2>${right} מתוך ${total}</h2><p>תרגול קצר, בדיוק על מה שהתחיל להישכח.<br>זה מה ששומר על מה שכבר למדת.</p>`;
-  }
-  const scopeLabel=mode==='check'?`ביחידה ${unit+1}`:'מכל מה שלמדת';
+  const passed=right>=Math.min(CHECK_PASS,total);
+  if(passed){ markUnitChecked(unit,right,total); confetti(); }
+  const head=passed?'✅':'💪';
+  const sub=passed
+    ? `<h2>יחידה ${unit+1} — אתה יודע אותה</h2><p>${right} מתוך ${total}, והשאלות היו דווקא על מה שהיה הכי קרוב להישכח.<br>החותמת נשארת לך במסלול.</p>`
+    : `<h2>${right} מתוך ${total}</h2><p>עוד לא חותמת — אבל עכשיו אתה יודע בדיוק על מה לחזור.<br>אפשר לנסות שוב מתי שתרצה.</p>`;
+  const scopeLabel=`ביחידה ${unit+1}`;
   const backHtml=missed.length
     ? `<div class="review-back"><small>חוזרים אליך בחימום ובתרגול הבא</small>${missed.slice(0,4)
         .map(q=>`<b dir="ltr" lang="en">${esc(ptext(q.item.p,'en'))}</b>`).join('')}</div>`
@@ -9678,12 +9429,12 @@ function renderTestDone({right,total,missed,missedWords,orderMisses}){
     ${orderMisses?`<div class="test-order">🧩 ${orderMisses===1
       ? 'במשפט אחד ידעת את כל המילים — רק הסדר לא יצא'
       : `ב־${orderMisses} משפטים ידעת את כל המילים — רק הסדר לא יצא`}</div>`:''}
-    ${/* No "in command" tally here on purpose. That number is the drill's
+    ${/* No "in command" tally here on purpose. That number is the check's
           currency — a live reading of what is being maintained — and this
           screen has one job, which is to show him what would not come out.
           Putting a maintenance score under a list of failures dilutes the
           list, and after a clean run it can even contradict it. */''}
-    ${missed.length?'<p class="review-honest">כולם נכנסו לחימום ולתרגול היומי. לא צריך לעשות עם זה כלום עכשיו.</p>':''}
+    ${missed.length?'<p class="review-honest">כולם נכנסו לחימום ולתרגול הבא. לא צריך לעשות עם זה כלום עכשיו.</p>':''}
     <button class="btn" onclick="renderHome()">חזרה למסך הבית</button>
   </div></div></div>`);
 }
@@ -9693,296 +9444,6 @@ function noteTestDone(){
   state.testCount=Math.max(0,Math.floor(Number(state.testCount)||0))+1;
   touchState('progressUpdatedAt');
   save();
-}
-
-/* ================= the sounds Hebrew does not have =================
-   Everything else in the app checks which words the learner said. Nothing
-   checks how, and the matcher cannot: it compares text with a one-character
-   edit allowance, so "vater" passes as water, "wery" as very, "tree" as three
-   and "sink" as think. A learner can finish the whole course saying all of
-   those and never be told.
-
-   Four contrasts do most of the damage for a Hebrew speaker, because Hebrew
-   has no sound for the first two and does not distinguish the last two at all:
-   θ (think, not sink), w (water, not vater), ɪ against iː (ship, sheep), and
-   æ against e (bad, bed).
-
-   This trains hearing them, not saying them, and that is a deliberate limit
-   rather than a missing half. Browser speech recognition is built to be
-   forgiving of accents — it will quietly return the word you meant — so any
-   pronunciation score built on it would be theatre. Hearing the difference is
-   also the part that has to come first: a contrast you cannot hear is not one
-   you can aim for. So the app scores what it can actually judge, and for
-   producing it gives a model to copy and says plainly that it is not marking. */
-
-function soundSet(id){ return SOUND_SETS.find(s=>s.id===id)||null; }
-function soundAllPairs(){
-  return SOUND_SETS.flatMap(set=>set.pairs.map(pair=>({set,pair})));
-}
-/* Per-contrast, so the learner can see which sound is the weak one rather
-   than one score for "pronunciation". */
-function normalizeSounds(raw){
-  const src=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
-  const out={};
-  for(const set of SOUND_SETS){
-    const row=src[set.id]&&typeof src[set.id]==='object'&&!Array.isArray(src[set.id])?src[set.id]:{};
-    out[set.id]={ heard:Math.max(0,Math.floor(Number(row.heard)||0)),
-      right:Math.max(0,Math.floor(Number(row.right)||0)), at:Math.max(0,Number(row.at)||0) };
-  }
-  return out;
-}
-function mergeSounds(stored, local){
-  const a=normalizeSounds(stored), b=normalizeSounds(local), out={};
-  // both tabs were listening; the totals add up rather than one winning
-  for(const set of SOUND_SETS) out[set.id]={
-    heard:Math.max(a[set.id].heard,b[set.id].heard),
-    right:Math.max(a[set.id].right,b[set.id].right),
-    at:Math.max(a[set.id].at,b[set.id].at) };
-  return out;
-}
-function soundRow(id){
-  if(!state.sounds||typeof state.sounds!=='object') state.sounds=normalizeSounds(null);
-  if(!state.sounds[id]) state.sounds[id]={heard:0,right:0,at:0};
-  return state.sounds[id];
-}
-function soundAccuracy(id){
-  const row=soundRow(id);
-  return row.heard?Math.round(100*row.right/row.heard):null;
-}
-/* The home card says which sound is worst rather than an average, because an
-   average of four contrasts is not something anyone can act on. */
-function soundsSummary(){
-  const tried=SOUND_SETS.filter(set=>soundRow(set.id).heard>=4);
-  if(!tried.length) return 'th · w · ship/sheep · bad/bed';
-  const worst=tried.reduce((a,b)=>soundAccuracy(a.id)<=soundAccuracy(b.id)?a:b);
-  const acc=soundAccuracy(worst.id);
-  return acc>=85 ? 'האוזן תופסת את כולם 👂' : `הכי כדאי לתרגל: ${worst.title} · ${acc}%`;
-}
-function canHearSounds(){
-  try{ return typeof speechSynthesis!=='undefined' && 'speechSynthesis' in window; }catch(e){ return false; }
-}
-
-let S = null;
-function renderSoundsHub(){
-  S=null;
-  const cards=SOUND_SETS.map(set=>{
-    const acc=soundAccuracy(set.id), row=soundRow(set.id);
-    const state_=acc===null?'עוד לא ניסית':`${acc}% נכון · ${row.heard} האזנות`;
-    const grade=acc===null?'':acc>=85?' strong':acc>=60?' fair':' weak';
-    /* The explanation is reachable before the first mistake, not only after
-       one. Being told what a sound is while failing at it is the worst moment
-       to be told. */
-    return `<div class="sound-card${grade}">
-      <button type="button" class="sound-card-head" onclick="startSoundRun('${set.id}')">
-        <span class="sound-icon" aria-hidden="true">${set.icon}</span>
-        <span class="sound-copy"><b>${esc(set.title)}</b><small>${esc(set.sub)}</small></span>
-        <span class="sound-score">${acc===null?'—':acc+'%'}<small>${esc(state_.split(' · ')[1]||'')}</small></span>
-      </button>
-      <button type="button" class="sound-learn" onclick="toggleSoundLearn('${set.id}',this)" aria-expanded="false">איך עושים את שני הצלילים? ⌄</button>
-      <div class="sound-learn-body" id="soundLearn${set.id}" hidden>${soundExplainHtml(set,'')}</div>
-    </div>`;
-  }).join('');
-  hx(`
-  <div class="screen">
-    <div class="player-top">
-      <button class="xbtn" onclick="renderHome()" aria-label="חזרה למסך הבית">←</button>
-      <h2 style="font-size:20px">הצלילים של אנגלית 👂</h2>
-    </div>
-    ${canHearSounds()?'':'<div class="sound-warn">אין קול במכשיר הזה — התרגול הזה כולו האזנה, אז הוא לא יעבוד כאן.</div>'}
-    <p class="sound-intro">בעברית אין את הצלילים האלה, אז האוזן לא רגילה אליהם — ואי אפשר לומר הבדל ששומעים אותו.<br>כאן <b>רק מקשיבים ובוחרים</b>. אחרי זה יש דוגמה לחזור אחריה.</p>
-    <div class="sound-grid">${cards}</div>
-    <button class="btn secondary" style="margin-top:12px" onclick="startSoundRun('all')">הכול מעורבב 🎲</button>
-  </div>`);
-}
-function toggleSoundLearn(id, btn){
-  const body=document.getElementById('soundLearn'+id);
-  if(!body) return;
-  const open=body.hidden;
-  body.hidden=!open;
-  btn.setAttribute('aria-expanded',String(open));
-  btn.textContent=open?'לסגור את ההסבר ⌃':'איך עושים את שני הצלילים? ⌄';
-}
-function startSoundRun(setId){
-  if(!canHearSounds()){ toast('אין קול במכשיר הזה — התרגול הזה כולו האזנה.'); return; }
-  unlockUiAudio();
-  const source=setId==='all'?soundAllPairs():(soundSet(setId)?.pairs||[]).map(pair=>({set:soundSet(setId),pair}));
-  if(!source.length) return;
-  const rounds=[];
-  // draw with replacement once the set is exhausted; four pairs must still
-  // fill ten rounds, and hearing the same contrast again is the exercise
-  let bag=shuffled(source);
-  for(let i=0;i<SOUND_ROUNDS;i++){
-    if(!bag.length) bag=shuffled(source);
-    const {set,pair}=bag.shift();
-    const target=Math.random()<.5?0:1;
-    rounds.push({set,pair,target,shown:Math.random()<.5?[0,1]:[1,0]});
-  }
-  S={ setId, rounds, i:0, right:0, answered:false, missed:[] };
-  renderSoundStep();
-}
-function exitSoundRun(){
-  if(S){ clearTimeout(S.advanceTimer); clearTimeout(S.pairTimer); }
-  S=null;
-  cancelSpeech();
-  renderSoundsHub();
-}
-function renderSoundStep(){
-  if(!S) return;
-  if(S.i>=S.rounds.length) return renderSoundDone();
-  S.answered=false;
-  const r=S.rounds[S.i], pct=Math.round(S.i/S.rounds.length*100);
-  hx(`
-  <div class="screen">
-    <div class="player-top">
-      <button class="xbtn" onclick="exitSoundRun()" aria-label="יציאה">✕</button>
-      <div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-      <div class="timer">${esc(r.set.title)}</div>
-    </div>
-    <div class="step">
-      <div class="step-label">👂 איזו מילה שמעת?</div>
-      <div class="review-count">${S.i+1} מתוך ${S.rounds.length}</div>
-      <div class="recall-card">
-        <button class="play-big" onclick="playSoundWord()" aria-label="להשמיע שוב">🔊</button>
-        <div class="audio-only">אפשר לשמוע שוב כמה פעמים שצריך</div>
-      </div>
-      <div class="sound-choices" id="soundChoices">
-        ${r.shown.map(idx=>`<button type="button" class="sound-opt" onclick="answerSound(${idx})">
-          <b dir="ltr" lang="en">${esc(r.pair[idx][0])}</b><small>${esc(r.pair[idx][1])}</small>
-        </button>`).join('')}
-      </div>
-      <div id="soundResult" role="status" aria-live="polite"></div>
-    </div>
-  </div>`);
-  scheduleSpeak(r.pair[r.target][0], 420);
-}
-function playSoundWord(){
-  if(!S) return;
-  const r=S.rounds[S.i];
-  if(r) speak(r.pair[r.target][0]);
-}
-function answerSound(index){
-  if(!S||S.answered) return;
-  const r=S.rounds[S.i], pass=index===r.target;
-  S.answered=true;
-  if(pass) S.right++; else S.missed.push(r);
-  const row=soundRow(r.set.id);
-  row.heard++; if(pass) row.right++;
-  row.at=Date.now();
-  touchState('progressUpdatedAt');
-  save();
-  playUiSound(pass?'pass':'retry');
-  const box=document.getElementById('soundChoices');
-  if(box) [...box.children].forEach((b,slot)=>{
-    b.disabled=true;
-    const idx=r.shown[slot];
-    if(idx===r.target) b.classList.add('right');
-    else if(idx===index) b.classList.add('wrong');
-  });
-  const out=document.getElementById('soundResult');
-  if(!pass){
-    /* A miss is the entire reason to be here, so it does not run on a clock.
-       Two seconds was not enough to read a tip, let alone hear anything, and a
-       round that moves on by itself whatever you press is a round you can pass
-       by guessing — which with two options works half the time.
-
-       So it stops. The two words are played back to back, because hearing them
-       against each other is the lesson and no amount of text replaces it, and
-       both stay on screen to press again. It continues when the learner says
-       so, not when a timer says so. */
-    const heard=r.pair[r.target], picked=r.pair[1-r.target];
-    if(out) out.innerHTML=`
-      <div class="sound-miss">
-        <div class="sound-miss-head">לא — נאמר <b dir="ltr" lang="en">${esc(heard[0])}</b> (${esc(heard[1])})</div>
-        <div class="sound-miss-pair">
-          <button type="button" class="sound-word is-heard" onclick="speak('${jsEsc(heard[0])}')">🔊 <b dir="ltr" lang="en">${esc(heard[0])}</b><span>${esc(heard[1])}</span></button>
-          <button type="button" class="sound-word" onclick="speak('${jsEsc(picked[0])}')">🔊 <b dir="ltr" lang="en">${esc(picked[0])}</b><span>${esc(picked[1])}</span></button>
-        </div>
-        <button type="button" class="btn secondary sound-compare" onclick="playSoundPair()">🎧 להשמיע את שתיהן ברצף</button>
-        ${soundExplainHtml(r.set, r.target===0?'a':'b')}
-        <button type="button" class="btn" onclick="advanceSound()">הבנתי — ממשיכים ⬅</button>
-      </div>`;
-    playSoundPair();
-    return;
-  }
-  if(out) out.innerHTML=`<div class="result-msg good">${esc(pick(PRAISE))}</div>`;
-  scheduleSoundAdvance(950);
-}
-/* The two words of the round, one after the other with a gap, the one that was
-   actually played first. Chained through speak()'s callback, which always
-   fires, and abandoned if the learner has moved on in the meantime. */
-function playSoundPair(){
-  if(!S) return;
-  const run=S, r=S.rounds[S.i];
-  if(!r) return;
-  /* The question plays itself on a short delay after the screen appears.
-     Answer inside that window and it would still be pending, and fire into
-     the middle of the comparison — the one thing this must not do. */
-  cancelAutoSpeak();
-  clearTimeout(run.pairTimer);
-  speak(r.pair[r.target][0],()=>{
-    if(S!==run||S.rounds[S.i]!==r) return;
-    run.pairTimer=setTimeout(()=>{
-      if(S===run&&S.rounds[S.i]===r) speak(r.pair[1-r.target][0]);
-    },650);
-  });
-}
-/* Same rule as the review runs: the pending advance belongs to its run, is
-   cleared when the run ends, and checks on the way in that it is still the
-   run it was scheduled for. Otherwise leaving mid-pause and starting another
-   round inside two seconds steps the new one forward a question. */
-function scheduleSoundAdvance(ms){
-  if(!S) return;
-  const run=S;
-  clearTimeout(run.advanceTimer);
-  run.advanceTimer=setTimeout(()=>{ if(S===run) advanceSound(); }, ms);
-}
-function advanceSound(){
-  if(!S) return;
-  clearTimeout(S.advanceTimer);
-  clearTimeout(S.pairTimer);
-  S.advanceTimer=null;
-  cancelSpeech();
-  S.i++;
-  renderSoundStep();
-}
-function renderSoundDone(){
-  const {setId,right,rounds,missed}=S;
-  const total=rounds.length;
-  S=null;
-  const share=Math.round(100*right/total);
-  const head=share>=85?'👂':share>=60?'💪':'🎧';
-  /* The model to copy comes last and is deliberately unmarked. Saying so is
-     more useful than a score the phone is in no position to give. */
-  const setsTouched=[...new Set(rounds.map(r=>r.set.id))].map(soundSet);
-  const modelHtml=setsTouched.map(set=>{
-    const sample=set.pairs[0];
-    return `<div class="sound-model">
-      <div class="sound-model-head">${set.icon} ${esc(set.title)}</div>
-      ${soundExplainHtml(set,'')}
-      <div class="sound-model-row">${sample.map(([en,he])=>
-        `<button type="button" class="sound-word" onclick="speak('${jsEsc(en)}')">🔊 <b dir="ltr" lang="en">${esc(en)}</b><span>${esc(he)}</span></button>`).join('')}</div>
-    </div>`;
-  }).join('');
-  hx(`
-  <div class="screen"><div class="step"><div class="finish">
-    <div class="emoji">${head}</div>
-    <h2>${right} מתוך ${total}</h2>
-    <p>${share>=85?'האוזן שלך תופסת את ההבדל. זה בדיוק מה שצריך כדי גם להגיד אותו.'
-      :share>=60?'משתפר. ככל שהאוזן תופסת יותר, הפה עוקב אחריה.'
-      :'זה נורמלי — הצלילים האלה לא קיימים בעברית. כמה סבבים והאוזן מתחילה לתפוס.'}</p>
-    ${missed.length?`<div class="review-back"><small>אלה שהתבלבלו</small>${
-      [...new Set(missed.map(r=>r.pair[r.target][0]))].slice(0,5)
-        .map(w=>`<b dir="ltr" lang="en">${esc(w)}</b>`).join('')}</div>`:''}
-    <div class="sound-models">
-      <div class="sound-models-head">עכשיו נסה להגיד — אין כאן ציון</div>
-      <p class="review-honest">הטלפון לא באמת יודע לשפוט הגייה: זיהוי הדיבור בנוי לסלוח על מבטא ויחזיר לך את המילה שהתכוונת אליה בכל מקרה. אז הנה הדוגמה — תשמע, תגיד אחריה, ותשווה בעצמך.</p>
-      ${modelHtml}
-    </div>
-    <div class="btn-row">
-      <button class="btn" onclick="startSoundRun('${esc(setId)}')">עוד סבב 🔁</button>
-      <button class="btn secondary" onclick="renderSoundsHub()">לצלילים אחרים</button>
-    </div>
-  </div></div></div>`);
 }
 
 /* ---- the mark on the unit ----
@@ -10023,14 +9484,6 @@ function markUnitChecked(u, right, total){
 }
 function unitChecked(u){ return !!checkRow(u).passed; }
 function startUnitCheck(u){ startReviewRun('check',u); }
-function startDailyDrill(){ startReviewRun('drill',null); }
-function drilledToday(){ return state.drillDate===todayStr(); }
-function noteDrillDone(){
-  state.drillDate=todayStr();
-  state.drillCount=Math.max(0,Math.floor(Number(state.drillCount)||0))+1;
-  touchState('progressUpdatedAt');
-  save();
-}
 
 /* ================= review ================= */
 function renderReview(){
