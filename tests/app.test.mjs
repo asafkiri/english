@@ -104,7 +104,8 @@ function runtime(seed = new Map(), options = {}) {
       REVIEW_UNSEEN_DUENESS, CHECK_LENGTH, CHECK_PASS, REVIEW_SECURE_LEVEL,
       REVIEW_MAX_LEVEL, REVIEW_MISS_DROP, REVIEW_REST_MS, recordStepResult, revealSpeakHint,
       REVIEW_PAUSE_PASS,
-      startSelfTest, TEST_WORDS, TEST_LENGTH, wordGloss, reviewWordChips,
+      startSelfTest, startFullTest, renderTestPicker, testEtaLabel, REVIEW_MODES,
+      TEST_WORDS, TEST_LENGTH, wordGloss, reviewWordChips,
       pickMissingWord, finishReviewPick, playOrderChunks, splitPhraseChunks,
       getPicking:()=>R&&R.picking, getPicked:()=>R&&R.pickedChip,
       REVIEW_PICK_ORDER, REVIEW_PICK_BLANK,
@@ -3260,7 +3261,7 @@ test('home puts the active course path first and collapses completed and future 
      below the stats at the foot of a long scroll, past thirty locked lessons. */
   // free practice now opens the picker, where the surprise draw is one tap away
   assert.match(html, /class="home-extra practice"[^>]*onclick="renderPracticePicker\(\)"/);
-  assert.match(html, /class="home-extra selftest"[^>]*onclick="startSelfTest\(\)"/,
+  assert.match(html, /class="home-extra selftest"[^>]*onclick="renderTestPicker\(\)"/,
     'and the self-test sits beside it, in the two-column row');
   assert.ok(html.indexOf('home-extras') < html.indexOf('המסלול שלך'),
     'they sit above the lesson list rather than inside or below it');
@@ -4609,7 +4610,7 @@ test('after the last lesson there is still something to open the app for', () =>
 
   /* This is the case the warm-up could never cover: it only ever ran at the
      head of a NEW lesson, and after the last one every lesson is a replay. */
-  assert.match(html, /onclick="startSelfTest\(\)"/, 'the self-test is still offered');
+  assert.match(html, /onclick="renderTestPicker\(\)"/, 'the self-test is still offered');
   assert.equal((html.match(/class="unit-check[ "]/g) || []).length, 6,
     'and every one of the six finished units can still be checked');
 
@@ -4764,7 +4765,7 @@ test('coming back after a long gap shows the count climbing again', () => {
 function runSelfTest(api, decide, chip = 0) {
   let sentences = 0, picks = 0;
   while (api.getReview() && api.getReview().i < api.getReview().questions.length) {
-    assert.ok(sentences < 60, 'the run has to terminate');
+    assert.ok(sentences < 200, 'the run has to terminate');
     api.revealReviewSay();
     api.answerReviewSay(decide(sentences));
     sentences++;
@@ -4786,7 +4787,130 @@ test('the self-test asks for production only, never recognition', () => {
   assert.equal(new Set(run.questions.map(q => q.id)).size, api.TEST_LENGTH, 'no repeats');
 });
 
+/* ---- the long test ----
+   The same exercise with nothing held back: every sentence the course has ever
+   taught him, in one sitting. It is a second length rather than a second
+   feature, which is why it shares the shape, the which-word follow-up and the
+   ending — and why it feeds the short test rather than competing with it. */
 
+test('the long test asks every sentence he has learned, and asks for production only', () => {
+  const { api } = runtime();
+  learnerAt(api, 12);
+  api.startFullTest();
+  const run = api.getReview();
+  assert.equal(run.questions.length, 60, 'all sixty of them, not a sample');
+  assert.ok(run.questions.every(q => q.shape === 'say' && !q.options),
+    'every one free recall, exactly as in the short test');
+  assert.equal(new Set(run.questions.map(q => q.id)).size, 60, 'each sentence asked once');
+});
+
+test('the long test starts with what is closest to being forgotten', () => {
+  const { api, now } = memoryRuntime();
+  const state = learnerAt(api, 12);
+  state.reviewMeta['5:2'] = { successes: 1, lapses: 4, hints: 2, lastPracticedAt: now() - 30 * 864e5, hard: true };
+  const cold = ['0:0', '0:1', '0:2'];
+  for (const id of cold) state.reviewMeta[id] = { level: 5, lastPracticedAt: now(), hard: false };
+
+  api.startFullTest();
+  const ids = api.getReview().questions.map(q => q.id);
+  assert.equal(ids.length, 60, 'nothing is left out — it is everything he has been taught');
+  /* Sixty sentences is a run a learner may well leave half-finished, so the
+     half he does answer has to be the half that was worth answering. */
+  assert.equal(ids[0], '5:2', 'the sentence in real trouble is the first he meets');
+  assert.ok(ids.slice(-3).every(id => cold.includes(id)),
+    'and the three he plainly knows are what is left at the end, where an abandoned run never reaches');
+});
+
+test('a long run is what sharpens the next short one', () => {
+  const { api, advance } = memoryRuntime();
+  learnerAt(api, 12);
+  const all = api.reviewPool(null).map(x => x.id);
+  const knows = new Set(all.filter((_, i) => i % 2 === 0));
+
+  api.startFullTest();
+  runSelfTest(api, () => {
+    const run = api.getReview();
+    return knows.has(run.questions[run.i].id);
+  });
+
+  /* The next day, twelve sentences. Everything he said he could say went up a
+     rung and is resting; everything he could not is due. This is the whole
+     reason the long run is worth an hour — it is not a separate score, it is
+     what decides what the short test asks tomorrow. */
+  advance(864e5);
+  api.startSelfTest();
+  const asked = api.getReview().questions.map(q => q.id);
+  assert.equal(asked.length, api.TEST_LENGTH);
+  const known = asked.filter(id => knows.has(id)).length;
+  assert.equal(known, 0,
+    `what he proved he could say is off the table (${known} of ${asked.length} came back anyway)`);
+});
+
+test('leaving the long run half-done and starting again picks up where it stopped', () => {
+  /* The picker promises he can stop in the middle, and there is no saved run
+     behind that promise — there does not need to be one. Every answer is
+     already in reviewMeta, so the sentences he got through are resting and the
+     ones he never reached are still the most due. Starting again sorts them
+     back to the front by itself. */
+  const { api } = memoryRuntime();
+  learnerAt(api, 12);
+  api.startFullTest();
+  const answered = new Set();
+  for (let n = 0; n < 30; n++) {                 // thirty of sixty, then he stops
+    const run = api.getReview();
+    answered.add(run.questions[run.i].id);
+    api.revealReviewSay();
+    api.answerReviewSay(true);
+  }
+
+  api.startFullTest();
+  const again = api.getReview().questions.map(q => q.id);
+  assert.equal(again.length, 60, 'it is still the whole course');
+  assert.ok(again.slice(0, 30).every(id => !answered.has(id)),
+    'but the thirty he never reached are the thirty he meets first');
+});
+
+test('the picker offers both sizes, and skips itself while there is nothing to choose', () => {
+  /* Five sentences in, the long test and the short one would ask the same
+     five, so a screen to choose between them is a tap that does nothing. */
+  const early = runtime();
+  learnerAt(early.api, 1);
+  early.api.renderTestPicker();
+  assert.ok(early.api.getReview(), 'it goes straight into the test');
+  assert.equal(early.api.getReview().questions.length, 5);
+
+  const later = runtime();
+  learnerAt(later.api, 12);
+  later.api.renderTestPicker();
+  assert.equal(later.api.getReview(), null, 'now there is a real choice, so it asks');
+  const html = later.app.innerHTML;
+  assert.match(html, /class="test-pick short"[^>]*onclick="startSelfTest\(\)"/);
+  assert.match(html, /class="test-pick full"[^>]*onclick="startFullTest\(\)"/);
+  assert.match(html, new RegExp(`${later.api.TEST_LENGTH} משפטים`), 'the short one says how many');
+  assert.match(html, /כל 60 המשפטים שלמדת/, 'and the long one says how big it is');
+  // half an hour is something to be told before starting, not at question ninety
+  assert.equal(later.api.testEtaLabel(60), 'כ־12 דק׳');
+  assert.ok(html.includes(later.api.testEtaLabel(60)));
+});
+
+test('the long run ends on the same list, and counts as a test taken', () => {
+  const { api, app } = runtime();
+  learnerAt(api, 3);
+  api.startFullTest();
+  runSelfTest(api, n => n > 0);                 // one sentence would not come out
+  const html = app.innerHTML;
+  assert.match(html, /<h2>משפט אחד שעוד לא יצא לך<\/h2>/, 'the miss is what the screen is about');
+  assert.match(html, /class="test-list"/);
+  assert.doesNotMatch(html, /בשליטה/, 'no maintenance tally diluting the list');
+  assert.equal(api.getState().testCount, 1);
+
+  // and a clean long run says what it was clean over
+  const spotless = runtime();
+  learnerAt(spotless.api, 3);
+  spotless.api.startFullTest();
+  runSelfTest(spotless.api, () => true);
+  assert.match(spotless.app.innerHTML, /כל 15 המשפטים שלמדת/);
+});
 
 
 test('the self-test ends on what he could not say, not on a score', () => {
@@ -4833,15 +4957,17 @@ test('the two buttons appear together, and only once there is anything to test',
   learnerAt(api, 1);
   api.renderHome();
   assert.match(app.innerHTML, /class="home-extras"/);
-  for (const call of ['startSelfTest\\(\\)', 'renderPracticePicker\\(\\)'])
+  for (const call of ['renderTestPicker\\(\\)', 'renderPracticePicker\\(\\)'])
     assert.match(app.innerHTML, new RegExp(`onclick="${call}"`));
   /* One lesson in there are only five phrases, so the card must not promise
-     twelve of them. */
+     twelve of them — and there is no long test to choose, since it would ask
+     the same five. */
   assert.match(app.innerHTML, /5 משפטים, בלי רמזים/);
 
   learnerAt(api, 20);
   api.renderHome();
-  assert.match(app.innerHTML, new RegExp(`${api.TEST_LENGTH} משפטים, בלי רמזים`));
+  assert.match(app.innerHTML, /קצר או מלא/, 'past twelve phrases the card promises a choice');
+  assert.doesNotMatch(app.innerHTML, /משפטים, בלי רמזים/, 'and stops naming one length');
 });
 
 test('every catalogued word is one the course actually teaches', () => {

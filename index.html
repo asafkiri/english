@@ -206,6 +206,16 @@ body{
 .review-back{display:grid;gap:5px;justify-items:center;margin:12px 0 4px;padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
 .review-back small{color:var(--dim);font-size:11.5px}
 .milestone-gain{display:inline-block;margin-inline-start:7px;padding:1px 7px;border-radius:999px;background:rgba(52,211,153,.24);color:#6ee7b7;font-size:12.5px;font-weight:950}
+/* ---------- choosing which test to take ---------- */
+.test-pick{display:flex;align-items:center;gap:11px;width:100%;margin-bottom:9px;padding:14px 13px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(160deg,var(--card2),var(--card));color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:transform .16s ease,border-color .16s ease}
+.test-pick:active{transform:scale(.985)}
+.test-pick.short{border-color:rgba(251,191,36,.45);background:linear-gradient(160deg,rgba(146,101,10,.34),rgba(80,54,6,.2))}
+.test-pick.full{border-color:rgba(56,189,248,.5);background:linear-gradient(160deg,rgba(14,116,164,.4),rgba(8,60,90,.24))}
+.test-pick-icon{font-size:25px;line-height:1;flex-shrink:0}
+.test-pick-copy{flex:1;min-width:0;display:grid;gap:3px}
+.test-pick-copy b{font-size:16px;font-weight:950}
+.test-pick-copy small{color:var(--dim);font-size:12px;line-height:1.4}
+.test-pick-go{color:var(--dim);font-size:17px;flex-shrink:0}
 /* ---------- the self-test: the word follow-up, and the list it ends on ---------- */
 .review-from{color:var(--dim);font-size:12.5px;margin-bottom:4px}
 .review-word{display:flex;align-items:center;justify-content:center;gap:9px;font-size:30px;font-weight:950;line-height:1.2;margin:2px 0 18px}
@@ -7171,7 +7181,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.75.0';
+const APP_VERSION = '2.76.0';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -8878,12 +8888,17 @@ function renderHome(){
      will not scroll past thirty locked lessons to find them. The self-test is
      first because it is the one with an answer on a day the lesson is already
      done — and after lesson thirty it is the one that is still there at all. */
+  // counted rather than assumed to be five a lesson, since the picker below
+  // branches on it and the two numbers have to agree
+  const learnedPhraseCount = allLearnedPhrases(Math.max(0,Math.min(state.completed,LESSONS.length))).length;
   const extrasHtml = state.completed > 0 ? `
     <div class="home-extras">
-      <button type="button" class="home-extra selftest" onclick="startSelfTest()">
+      <button type="button" class="home-extra selftest" onclick="renderTestPicker()">
         <span class="extra-icon">🔍</span>
         <span class="extra-title">בחן את עצמך</span>
-        <span class="extra-sub">${Math.min(TEST_LENGTH,state.completed*5)} משפטים, בלי רמזים</span>
+        <span class="extra-sub">${learnedPhraseCount>TEST_LENGTH
+          ? 'קצר או מלא · בלי רמזים'
+          : `${learnedPhraseCount} משפטים, בלי רמזים`}</span>
       </button>
       <button type="button" class="home-extra practice" onclick="renderPracticePicker()">
         <span class="extra-icon">🗣️</span><span class="extra-title">שיחה חופשית</span><span class="extra-sub">בחר עם מי לדבר</span>
@@ -9031,7 +9046,7 @@ function reviewDistractors(item, pool, field){
    produce. Here nothing is ever shown before he has tried to say it. */
 function buildReviewQuestions(items, pool, mode='check'){
   return items.map((item,i)=>{
-    const shape=mode==='test'?'say':reviewShapeFor(i);
+    const shape=reviewRecallOnly(mode)?'say':reviewShapeFor(i);
     if(shape==='say') return {shape,item,id:item.id};
     const field=shape==='pick'?'en':'he';
     const correct=ptext(item.p,field);
@@ -9039,7 +9054,23 @@ function buildReviewQuestions(items, pool, mode='check'){
     return {shape,item,id:item.id,correct,options};
   });
 }
-const REVIEW_LENGTHS = {check:CHECK_LENGTH, test:TEST_LENGTH};
+/* One row per mode: how many sentences it asks, and whether it is free recall
+   — which decides the question shape, the which-word follow-up after a miss,
+   and the screen it ends on.
+
+   `test` and `full` are the same exercise at two sizes, which is the point of
+   them being one mode with two lengths rather than two features: twelve
+   sentences for a day, or every sentence the learner has ever been taught.
+   Both write to reviewMeta through notePractice() exactly as the lessons do,
+   so the long run is what sharpens the short one — every sentence he proves
+   he can say rests longer and stops being among the most due, and the next
+   twelve are drawn from what is actually left. */
+const REVIEW_MODES = {
+  check:{ length:CHECK_LENGTH },
+  test: { length:TEST_LENGTH, recall:true },
+  full: { length:Infinity,    recall:true },
+};
+function reviewRecallOnly(mode){ return !!REVIEW_MODES[mode]?.recall; }
 
 function startReviewRun(mode, unit=null){
   if(L){
@@ -9053,7 +9084,10 @@ function startReviewRun(mode, unit=null){
   unlockUiAudio();
   const pool=reviewPool(unit);
   if(!pool.length){ toast('עוד אין מה לבדוק — תסיים שיעור ראשון 💪'); return; }
-  const count=Math.min(REVIEW_LENGTHS[mode]||CHECK_LENGTH,pool.length);
+  const count=Math.min(REVIEW_MODES[mode]?.length||CHECK_LENGTH,pool.length);
+  /* Weakest first even when the run asks for all of them, because a long run
+     is one a learner may well leave half-finished — and half of it should be
+     the half that was closest to being forgotten. */
   const items=reviewSelect(pool,count);
   R={ mode, unit, pool, questions:buildReviewQuestions(items,pool,mode), i:0,
       right:0, missed:[], missedWords:[], picking:null, pickedChip:REVIEW_PICK_NONE, orderMisses:0,
@@ -9116,7 +9150,7 @@ function exitReviewRun(){
 }
 function reviewShell(inner){
   const total=R.questions.length, pct=Math.round(R.i/total*100);
-  const label=R.mode==='check'?`בדיקה · יחידה ${R.unit+1}`:'בחן את עצמך';
+  const label=R.mode==='check'?`בדיקה · יחידה ${R.unit+1}`:R.mode==='full'?'המבחן הגדול':'בחן את עצמך';
   hx(`
   <div class="screen">
     <div class="player-top">
@@ -9233,9 +9267,9 @@ function answerReviewSay(knew){
   if(!R||R.answered) return;
   const q=R.questions[R.i];
   reviewRecord(q,knew);
-  // only the self-test digs into a miss, and only when there is more than one
+  // only a recall run digs into a miss, and only when there is more than one
   // word it could have been
-  if(!knew&&R.mode==='test'&&reviewWordChips(q).length>1){
+  if(!knew&&reviewRecallOnly(R.mode)&&reviewWordChips(q).length>1){
     R.picking=q; R.pickedChip=REVIEW_PICK_NONE;
     return renderReviewPick();
   }
@@ -9354,7 +9388,7 @@ function renderReviewDone(){
   const {mode,unit,right,missed,missedWords,orderMisses,secureBefore}=R;
   const total=R.questions.length;
   R=null;
-  if(mode==='test') return renderTestDone({right,total,missed,missedWords,orderMisses});
+  if(reviewRecallOnly(mode)) return renderTestDone({mode,right,total,missed,missedWords,orderMisses});
   /* Everything below is the unit check — the self-test has its own ending.
      The headline number is the one the learner asked for: how much of this
      unit he can be sure of, counted the same way every time — not this run's
@@ -9383,13 +9417,18 @@ function renderReviewDone(){
   </div></div></div>`);
 }
 
-/* The self-test ends on the list, not on the score. Seeing exactly which
+/* A recall run ends on the list, not on the score. Seeing exactly which
    sentences would not come out — and which words were missing from them — is
-   the entire reason to sit through twelve questions with no options to pick
-   from, so that list is the screen and the tally is a line under it. Nothing
-   here passes or fails: there is no mark to earn and none to lose. */
-function renderTestDone({right,total,missed,missedWords,orderMisses}){
+   the entire reason to sit through a run with no options to pick from, so that
+   list is the screen and the tally is a line under it. Nothing here passes or
+   fails: there is no mark to earn and none to lose.
+
+   The long run ends here too, and its list is not trimmed. A shorter list
+   would be a kinder screen and a useless one: he has just spent half an hour
+   earning a complete answer to "what can I not say yet", and this is it. */
+function renderTestDone({mode,right,total,missed,missedWords,orderMisses}){
   noteTestDone();
+  const full=mode==='full';
   const clean=!missed.length;
   if(clean) confetti();
   const listHtml=missed.map(q=>`
@@ -9419,8 +9458,8 @@ function renderTestDone({right,total,missed,missedWords,orderMisses}){
   <div class="screen"><div class="step"><div class="finish test-done">
     <div class="emoji">${clean?'🏆':'🔍'}</div>
     ${clean
-      ? `<h2>ידעת את כולם</h2><p>${total} משפטים, בלי אפשרויות ובלי רמזים.<br>זה מה שאתה יודע להגיד.</p>`
-      : `<h2>${missed.length===1?'משפט אחד':missed.length+' משפטים'} שעוד לא יצאו לך</h2>
+      ? `<h2>ידעת את כולם</h2><p>${full?`כל ${total} המשפטים שלמדת`:`${total} משפטים`}, בלי אפשרויות ובלי רמזים.<br>זה מה שאתה יודע להגיד.</p>`
+      : `<h2>${missed.length===1?'משפט אחד שעוד לא יצא לך':`${missed.length} משפטים שעוד לא יצאו לך`}</h2>
          <p>ידעת ${right} מתוך ${total}. אלה שלא — הנה הם, וזה בדיוק מה שגורם לך לזכור אותם בפעם הבאה.</p>`}
     ${listHtml?`<div class="test-list">${listHtml}</div>`:''}
     ${wordsHtml}
@@ -9439,6 +9478,52 @@ function renderTestDone({right,total,missed,missedWords,orderMisses}){
   </div></div></div>`);
 }
 function startSelfTest(){ startReviewRun('test',null); }
+function startFullTest(){ startReviewRun('full',null); }
+/* Said out loud, revealed, judged — about a dozen seconds a sentence when
+   nothing goes wrong. The number matters because the long run is half an hour
+   on a finished course, and that is something to be told before starting, not
+   discovered at question ninety. */
+const TEST_SECONDS_PER_QUESTION = 12;
+function testEtaLabel(count){
+  const mins=Math.max(1,Math.round(count*TEST_SECONDS_PER_QUESTION/60));
+  return mins===1?'כדקה':`כ־${mins} דק׳`;
+}
+/* Two sizes of the same test, so the choice is only how much of what he knows
+   is on the table today. Below thirteen sentences learned there is nothing to
+   choose between — the long run and the short one would ask the same
+   questions — so the tap goes straight in rather than through a screen with
+   one real answer on it. */
+function renderTestPicker(){
+  const learned=reviewPool(null);
+  if(!learned.length){ toast('עוד אין מה לבדוק — תסיים שיעור ראשון 💪'); return; }
+  if(learned.length<=TEST_LENGTH) return startSelfTest();
+  const secure=learned.filter(x=>reviewSecure((state.reviewMeta||{})[x.id])).length;
+  hx(`<div class="screen">
+    <div class="top">
+      <div class="brand">בחן את עצמך<small>${secure} מתוך ${learned.length} משפטים בשליטה עכשיו</small></div>
+      <button class="xbtn" onclick="renderHome()" aria-label="חזרה הביתה">✕</button>
+    </div>
+    <p class="sub">בשניהם אומרים את המשפט בקול ואז מגלים — בלי אפשרויות ובלי רמזים.</p>
+    <div class="picker-title"><span>🔍 איזה מבחן עכשיו?</span><small>לוחצים ומתחילים</small></div>
+    <button type="button" class="test-pick short" onclick="startSelfTest()">
+      <span class="test-pick-icon" aria-hidden="true">🔍</span>
+      <span class="test-pick-copy">
+        <b>מבחן קצר</b>
+        <small>${TEST_LENGTH} משפטים · ${esc(testEtaLabel(TEST_LENGTH))}<br>אלה שהכי קרובים להישכח</small>
+      </span>
+      <span class="test-pick-go" aria-hidden="true">←</span>
+    </button>
+    <button type="button" class="test-pick full" onclick="startFullTest()">
+      <span class="test-pick-icon" aria-hidden="true">🏔️</span>
+      <span class="test-pick-copy">
+        <b>המבחן הגדול</b>
+        <small>כל ${learned.length} המשפטים שלמדת · ${esc(testEtaLabel(learned.length))}<br>אפשר לעצור באמצע — כל תשובה כבר נשמרה</small>
+      </span>
+      <span class="test-pick-go" aria-hidden="true">←</span>
+    </button>
+    <p class="review-honest">המבחן הגדול הוא גם מה שמחדד את הקצר: כל משפט שיצא לך בו ינוח יותר זמן, אז הקצר הבא יישאל על מה שבאמת נשאר.</p>
+  </div>`);
+}
 function noteTestDone(){
   state.testDate=todayStr();
   state.testCount=Math.max(0,Math.floor(Number(state.testCount)||0))+1;
