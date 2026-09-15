@@ -7181,7 +7181,7 @@ const UNIT_MISSIONS = [
   },
 ];
 
-const APP_VERSION = '2.76.0';
+const APP_VERSION = '2.76.1';
 const SESSION_VERSION = 2;
 // One predictable challenge type per lesson. The first two lessons start with
 // the easiest listening task; recall and ordering are introduced gradually.
@@ -7957,6 +7957,31 @@ if('speechSynthesis' in window){
   loadVoices();
   speechSynthesis.onvoiceschanged = loadVoices;
 }
+/* An utterance carrying a voice handle from before the engine last reloaded
+   its list is accepted and then silently never spoken: no onstart, no onend,
+   no error, nothing in the console — the phone is simply mute. That is the
+   shape of "I open the app and there is no sound, and then it works a couple
+   of minutes later": the early sentences went to a dead handle, and the
+   voiceschanged that refreshed the list is what fixed it.
+
+   The list moves under us more often than it looks: a phone that hands back a
+   provisional list on load and the real one a moment later, a background TTS
+   engine restarting, a tab coming back after hours asleep.
+
+   So a handle is checked against the live list before it is used, and a stale
+   one refreshes the cache and is re-picked rather than handed over. Falling
+   back to the engine's default voice costs the character's voice for one
+   sentence; handing over a dead one costs every sentence. */
+function voiceIsListed(v){
+  try{ return speechSynthesis.getVoices().indexOf(v)>-1; }catch(_){ return false; }
+}
+function liveVoice(gender=null, accent='us'){
+  const v=pickVoice(gender,accent);
+  if(!v||voiceIsListed(v)) return v;
+  loadVoices();
+  const fresh=pickVoice(gender,accent);
+  return fresh&&voiceIsListed(fresh)?fresh:null;
+}
 /* ---- who sounds like whom ----
    One voice for seven people made Maya sound exactly like Tom. Each character
    now asks the device for a voice of their gender (and, for Ben from London,
@@ -8046,7 +8071,7 @@ function speak(text, cb, voice=null){
   if(busy&&!directLessonGesture) speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/___/g,''));
   u.lang = 'en-US';
-  const v = pickVoice(voice?.gender||null, voice?.accent||'us'); if(v) u.voice = v;
+  const v = liveVoice(voice?.gender||null, voice?.accent||'us'); if(v) u.voice = v;
   u.rate = (state.slowSpeech ? 0.8 : 1.0)*(voice?.rate||1);
   u.pitch = voice?.pitch||1;
   u.volume = 1;
@@ -9494,6 +9519,9 @@ function testEtaLabel(count){
    questions — so the tap goes straight in rather than through a screen with
    one real answer on it. */
 function renderTestPicker(){
+  // this screen is reached by a tap and the run itself is two taps away, so
+  // take the unlock the tap is offering rather than waiting for the second one
+  unlockUiAudio();
   const learned=reviewPool(null);
   if(!learned.length){ toast('עוד אין מה לבדוק — תסיים שיעור ראשון 💪'); return; }
   if(learned.length<=TEST_LENGTH) return startSelfTest();
@@ -13046,6 +13074,12 @@ function setStageMotionPaused(paused){
 }
 document.addEventListener('visibilitychange',()=>{
   setStageMotionPaused(document.hidden);
+  /* Coming back is exactly when the voice list has most likely moved: a phone
+     that put the tab to sleep for hours may well have restarted its speech
+     engine behind it. Re-read the list before the lesson below speaks, and
+     before any early return — a learner returning to the home screen and
+     tapping a lesson has to be heard too. */
+  if(!document.hidden) loadVoices();
   if(!L) return;
   if(document.hidden){
     pauseLessonClock();
@@ -13091,6 +13125,7 @@ window.addEventListener('pagehide',()=>{
 });
 window.addEventListener('pageshow',()=>{
   setStageMotionPaused(document.hidden);
+  if(!document.hidden) loadVoices();     // as above: a restored page may hold a dead list
   if(!L) return;
   L.stepTransitioning=false;
   if(document.hidden) return;

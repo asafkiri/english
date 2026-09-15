@@ -3993,6 +3993,51 @@ test('each conversation partner asks for a voice of their own', () => {
   api.stopLessonTimers(false);
 });
 
+test('a voice the engine no longer lists is never handed to it', () => {
+  /* Reported from real use: the app opens and there is no sound at all, and
+     then it works a couple of minutes later. This is that bug. An utterance
+     carrying a voice object from before the engine reloaded its list is
+     accepted and then silently never spoken — no onstart, no onend, no error —
+     so the phone stays mute until something refreshes the list, which is
+     exactly what the delayed voiceschanged does. */
+  const calls = [];
+  let live = [{ name: 'Samantha', lang: 'en-US' }, { name: 'Aaron', lang: 'en-US' }];
+  const speechSynthesis = {
+    speaking: false, pending: false, cancel() {}, resume() {},
+    getVoices: () => live,
+    // a handle the engine does not recognise is dropped on the floor, in silence
+    speak(u) {
+      calls.push(u);
+      if (!u.voice || live.includes(u.voice)) { u.onstart?.(); u.onend?.(); }
+    },
+  };
+  class Utterance { constructor(text) { this.text = text; this.rate = 1; this.pitch = 1; this.volume = 1; } }
+  const { api } = runtime(new Map(), { speechSynthesis, SpeechSynthesisUtterance: Utterance });
+  const state = api.defaults();
+  state.onboarded = true;
+  api.setState(state);
+
+  let spoke = 0;
+  api.speak('Hello', () => { spoke++; });
+  assert.equal(calls[0].voice.name, 'Samantha', 'the ordinary case still asks for a real voice');
+  assert.equal(spoke, 1);
+
+  /* The engine rebuilds its list without telling the page — no voiceschanged,
+     and every handle the app is holding is now dead. */
+  live = [{ name: 'Samantha', lang: 'en-US' }, { name: 'Aaron', lang: 'en-US' }];
+  api.speak('Hello again', () => { spoke++; });
+  assert.ok(live.includes(calls[1].voice),
+    'the next sentence carries a handle the engine still lists, not the dead one');
+  assert.equal(spoke, 2, 'so it is actually said, instead of going silently nowhere');
+
+  // and when nothing in the new list can be matched, the default voice speaks
+  live = [];
+  api.speak('Still here', () => { spoke++; });
+  assert.equal(calls[2].voice, undefined, 'no voice rather than a dead one');
+  assert.equal(spoke, 3, 'the engine falls back to its own default and the phone is audible');
+  api.stopLessonTimers(false);
+});
+
 test('a free conversation counts turns instead of minutes', () => {
   const { api, app } = runtime();
   const state = api.defaults();
