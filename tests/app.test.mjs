@@ -70,6 +70,7 @@ function runtime(seed = new Map(), options = {}) {
       renderHome, setNewCount, setTopic, openTopic, startTopicSession, openDue, openConcepts, openTerm,
       openSettings, setSlow, setAutoRead, resetProgress, openSources,
       renderStep, renderQuestion, renderExercise, renderDone, feedbackHtml, questionLabel, phaseLabel,
+      setSentences, toggleExample, sentencesOn, exampleShown,
       getState: () => state, setState: v => { state = v; }, getSession: () => S, setSession: v => { S = v; },
     };
   `;
@@ -332,6 +333,9 @@ test('questions: the confusable terms are the first distractors', () => {
 
 test('questions: the sentence shape blanks the term itself and is skipped where the sentence paraphrases it', () => {
   const { api } = runtime();
+  // "only the words" is the default: no term is asked about its sentence
+  assert.ok(api.TERMS.every(t => !api.kindsFor(t.id).includes('sentence')));
+  api.setSentences(true);
   let withBlank = 0;
   for (const t of api.TERMS) {
     const b = api.blankSentence(t);
@@ -359,6 +363,10 @@ test('questions: reviews rotate through the shapes a term supports', () => {
   const r = api.rec('ee-en-input-power');
   const seen = new Set();
   for (let i = 0; i < 5; i++) { r.right = i; seen.add(api.reviewKind('ee-en-input-power')); }
+  assert.equal(seen.size, 4, 'four shapes while sentences are off');
+  api.setSentences(true);
+  seen.clear();
+  for (let i = 0; i < 5; i++) { r.right = i; seen.add(api.reviewKind('ee-en-input-power')); }
   assert.equal(seen.size, 5);
   assert.equal(api.nextKind('ee-en-input-power', 'distinguish'), 'meaning');
   assert.equal(api.nextKind('ee-en-input-power', 'meaning'), 'reverse');
@@ -367,6 +375,7 @@ test('questions: reviews rotate through the shapes a term supports', () => {
 test('questions: Hebrew reads right to left, English left to right, and the mock spec invents no numbers', () => {
   const { api, app } = runtime();
   assert.ok(html.includes('<html lang="he" dir="rtl">'));
+  api.setSentences(true);
   api.startSession({ newCount: 1 });
   api.next();
   const quick = api.currentStep();
@@ -441,7 +450,12 @@ test('answers: a mistake is explained in Hebrew, brings the term back in another
   assert.ok(markup.includes('לא מדויק'));
   assert.ok(markup.includes('בחרת:') && markup.includes(api.esc(chosen.he)) && markup.includes(api.esc(chosen.exp)));
   assert.ok(markup.includes('התשובה:') && markup.includes(api.esc(right.exp)));
-  assert.ok(markup.includes('דוגמה:') && markup.includes(api.esc(right.ex)) && markup.includes(api.esc(right.exHe)));
+  assert.ok(!markup.includes('דוגמה:'), 'no sentence to learn while sentences are off');
+  api.setSentences(true);
+  api.renderQuestion(q, false);
+  const withSentence = app.innerHTML;
+  assert.ok(withSentence.includes('דוגמה:') && withSentence.includes(api.esc(right.ex)) && withSentence.includes(api.esc(right.exHe)));
+  api.setSentences(false);
   assert.ok(markup.includes('הבנתי את האנגלית, לא את המושג בחשמל'));
   assert.ok(markup.includes('המונח יחזור לתרגול נוסף'));
   assert.ok(markup.includes('class="opt wrong"') || markup.includes(' wrong"'));
@@ -599,7 +613,7 @@ test('persistence: the saved state is validated on load', () => {
     terms: { 'phrase-old-7': { seen: 1, box: 3 }, 'ee-en-voltage': { seen: 1, box: 99, due: 'soon', right: -3, concept: 2 }, 'ee-en-model': { seen: 0 } },
     exercises: { nope: { passed: true }, 'ee-read-per-unit': { passed: true, tries: 'x' } },
     sessions: 'none',
-    settings: { newCount: 50, topic: 'bogus', slow: 'yes', autoRead: 0 },
+    settings: { newCount: 50, topic: 'bogus', slow: 'yes', autoRead: 0, sentences: 'yes' },
   };
   const { api } = runtime(new Map([['electricalEnglishV1', JSON.stringify(junk)]]));
   const s = api.getState();
@@ -615,6 +629,8 @@ test('persistence: the saved state is validated on load', () => {
   assert.equal(s.settings.topic, 'auto');
   assert.equal(s.settings.slow, true);
   assert.equal(s.settings.autoRead, false);
+  assert.equal(s.settings.sentences, true);
+  assert.equal(runtime().api.getState().settings.sentences, false, 'sentences are off until switched on');
   assert.ok(Number.isFinite(s.createdAt) && s.createdAt > 0);
   const broken = runtime(new Map([['electricalEnglishV1', '{not json']]));
   assert.equal(broken.api.seenIds().length, 0);
@@ -657,20 +673,32 @@ test('speech: without an engine there is no speaker button anywhere', () => {
   assert.equal(api.speak('Voltage'), false);
 });
 
-test('speech: with an engine the new card reads the term and then its sentence, and buttons appear', async () => {
+test('speech: with an engine the new card reads the term, reads its sentence only when sentences are on, and buttons appear', async () => {
   const fake = fakeSpeech();
   const { api, app } = runtime(new Map(), fake);
   assert.equal(api.speechAvailable(), true);
   api.startSession({ newCount: 1 });
   assert.ok(app.innerHTML.includes(`speakTerm('ee-en-manufacturer')`));
-  assert.ok(app.innerHTML.includes(`speakExample('ee-en-manufacturer')`));
+  assert.ok(!app.innerHTML.includes(`speakExample('ee-en-manufacturer')`), 'the hidden sentence has no speaker yet');
   assert.equal(fake.calls.length, 1);
   assert.equal(fake.calls[0].text, 'Manufacturer');
   assert.equal(fake.calls[0].lang, 'en-US');
   assert.equal(fake.calls[0].voice, fake.speechSynthesis.getVoices()[0]);
   await new Promise(r => setTimeout(r, 650));
-  assert.equal(fake.calls.length, 2);
-  assert.equal(fake.calls[1].text, 'Find the manufacturer on the nameplate.');
+  assert.equal(fake.calls.length, 1, 'the sentence is not read while sentences are off');
+  api.toggleExample('ee-en-manufacturer');
+  assert.ok(app.innerHTML.includes(`speakExample('ee-en-manufacturer')`), 'revealing the sentence brings its speaker');
+  assert.ok(app.innerHTML.includes('Find the manufacturer on the nameplate.'));
+  assert.equal(fake.calls.length, 1, 'revealing it does not read it unasked');
+  // with sentences on, the card reads the term and then the sentence
+  const loud = fakeSpeech();
+  const on = runtime(new Map(), loud);
+  on.api.setSentences(true);
+  on.api.startSession({ newCount: 1 });
+  assert.equal(loud.calls[0].text, 'Manufacturer');
+  await new Promise(r => setTimeout(r, 650));
+  assert.equal(loud.calls.length, 2);
+  assert.equal(loud.calls[1].text, 'Find the manufacturer on the nameplate.');
   api.next();
   assert.ok(app.innerHTML.includes('class="play"'), 'the quick check can replay the term');
   api.goHome();
@@ -792,7 +820,7 @@ test('screens: the review list, the term page and the session summary', () => {
   assert.ok(app.innerHTML.includes('data-view="term"'));
   assert.ok(app.innerHTML.includes('class="state due">לחזרה<'));
   assert.ok(app.innerHTML.includes('מתח'));
-  assert.ok(app.innerHTML.includes('Read the voltage value and its unit.'));
+  assert.ok(app.innerHTML.includes('משפט לדוגמה') && !app.innerHTML.includes('Read the voltage value and its unit.'), 'the sentence waits behind a tap');
   api.goHome();
   assert.ok(app.innerHTML.includes('חזרה על 5 מונחים, ואז 5 מונחים חדשים'));
 });
@@ -806,7 +834,17 @@ test('screens: the term card shows unit, aliases, confusable terms and its refer
   assert.ok(card.includes('Electrical input power'));
   assert.ok(card.includes('לא לבלבל עם') && card.includes('Output power') && card.includes('הספק יציאה'));
   assert.ok(card.includes('Power input — יש לבדוק'));
-  assert.ok(card.includes('Find the electrical input power.') && card.includes('מצא את הספק הכניסה החשמלי.'));
+  assert.ok(!card.includes('Find the electrical input power.'), 'the sentence waits behind a tap');
+  assert.ok(card.includes('משפט לדוגמה') && card.includes(`toggleExample('ee-en-input-power')`));
+  api.toggleExample('ee-en-input-power');
+  const opened = api.termCardHtml(api.term('ee-en-input-power'));
+  assert.ok(opened.includes('Find the electrical input power.') && opened.includes('מצא את הספק הכניסה החשמלי.'));
+  assert.ok(opened.includes('להסתיר את המשפט'));
+  api.toggleExample('ee-en-input-power');
+  api.setSentences(true);
+  const always = api.termCardHtml(api.term('ee-en-input-power'));
+  assert.ok(always.includes('Find the electrical input power.') && !always.includes('toggleExample'));
+  api.setSentences(false);
   assert.ok(card.includes('KSB — Efficiency class'));
   assert.ok(card.includes('target="_blank" rel="noopener"'));
   const plain = api.termCardHtml(api.term('ee-en-current'));
