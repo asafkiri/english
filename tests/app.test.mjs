@@ -62,12 +62,14 @@ function runtime(seed = new Map(), options = {}) {
       EXERCISE_REQUIRES, NEAR_SYNONYMS, KINDS, STATE_LABELS, DAY,
       defaults, load, save, normalizeState, wipeLegacy, term, category, exercise, termsInCategory,
       rec, isSeen, introduce, recordAnswer, flagConcept, termState, seenIds, dueIds, masteredIds, conceptIds,
-      topicProgress, unseenIds, nextNewIds, effectiveTopic, nextDue, dueLabel,
+      topicProgress, unseenIds, nextNewIds, nextDue, dueLabel,
       blankSentence, termVariants, optionClash, buildOptions, kindsFor, makeQuestion, reviewKind, nextKind,
       buildSession, startSession, currentStep, next, requeue, answer, conceptAndNext, answerExercise, exitSession, goHome,
       speechAvailable, loadVoices, pickVoice, liveVoice, speak, speakTerm, speakExample, readCard, cancelSpeech, runSoundCheck,
       esc, h, toast, resolveDialog, askConfirm, specValue, unitToken, termCardHtml,
-      renderHome, setNewCount, setTopic, openTopic, startTopicSession, openDue, openConcepts, openTerm,
+      renderHome, setNewCount, openTopic, openDue, openConcepts, openTerm,
+      openWords, filterWords, openAudio, renderAudio, audioPlay, audioPause, audioNext, audioPrev, audioStop, audioIds, AUDIO_GAPS,
+      hebrewVoiceAvailable, voicesFor, getAudio: () => A,
       openSettings, setSlow, setAutoRead, resetProgress, openSources,
       renderStep, renderQuestion, renderExercise, renderDone, feedbackHtml, questionLabel, phaseLabel,
       setSentences, toggleExample, sentencesOn, exampleShown,
@@ -263,6 +265,7 @@ test('plan: fewer new terms can be chosen, never more than five', () => {
   const { api, app } = runtime();
   api.setNewCount(3);
   assert.equal(api.buildSession().newIds.length, 3);
+  api.openSettings();
   assert.ok(app.innerHTML.includes('<output>3</output>'));
   api.setNewCount(9);
   assert.equal(api.getState().settings.newCount, 5);
@@ -272,33 +275,32 @@ test('plan: fewer new terms can be chosen, never more than five', () => {
   // nothing to review and nothing new: no session starts
   assert.equal(api.startSession(), false);
   assert.equal(api.getSession(), null);
+  api.goHome();
   assert.ok(app.innerHTML.includes('disabled'), 'the start button is disabled');
+  assert.ok(app.innerHTML.includes('נבחרו אפס מונחים חדשים'));
   api.setNewCount(1);
   assert.equal(api.buildSession().newIds.length, 1);
 });
 
-test('plan: a topic can be chosen for the new terms, and falls back when it is exhausted', () => {
+test('plan: one fixed order, the important words first, and nothing to choose on the home screen', () => {
   const { api, app } = runtime();
-  api.setTopic('lighting');
-  same(english(api, api.nextNewIds()), ['Luminaire', 'Lamp', 'Luminous flux', 'Luminous intensity', 'Illuminance']);
-  assert.ok(app.innerHTML.includes('value="lighting" selected'));
-  assert.ok(app.innerHTML.includes('תאורה ופוטומטריה'));
-  api.setTopic('no-such-topic');
-  assert.equal(api.getState().settings.topic, 'auto');
-  api.setTopic('lighting');
-  for (const t of api.termsInCategory('lighting')) api.introduce(t.id);
-  assert.equal(api.effectiveTopic(), 'auto');
-  assert.equal(api.term(api.nextNewIds(5, api.effectiveTopic())[0]).en, 'Manufacturer');
-});
-
-test('plan: a session from a topic screen takes that topic\'s unlearned terms', () => {
-  const { api } = runtime();
-  api.openTopic('cad');
-  api.startTopicSession('cad');
-  const s = api.getSession();
-  assert.ok(s);
-  same(english(api, s.newIds), ['Drawing', 'Layer', 'Line', 'Polyline', 'Circle']);
-  assert.equal(api.getState().settings.topic, 'cad');
+  assert.ok(!app.innerHTML.includes('<select'), 'no topic to pick');
+  assert.ok(!app.innerHTML.includes('class="stepper"'), 'no count to fiddle with on the home screen');
+  assert.ok(app.innerHTML.includes('הבאים בתור: קריאת מפרטים ולוחיות נתונים'));
+  // whatever was learned, the next new terms are the next unlearned ones in the fixed order
+  for (const id of api.RECOMMENDED_ORDER.slice(0, 41)) api.introduce(id);
+  same(api.nextNewIds(5), api.RECOMMENDED_ORDER.slice(41, 46));
+  api.introduce(api.RECOMMENDED_ORDER[43]);
+  same(api.nextNewIds(5), [41, 42, 44, 45, 46].map(i => api.RECOMMENDED_ORDER[i]));
+  assert.equal(api.term(api.RECOMMENDED_ORDER[41]).cat, 'power');
+  api.renderHome();
+  assert.ok(app.innerHTML.includes('הבאים בתור: יסודות חשמל, הספקים ויחידות'));
+  // the topic screen reports progress and says the rest will come in turn
+  api.openTopic('power');
+  assert.ok(app.innerHTML.includes('יגיעו בתורם'));
+  assert.ok(!app.innerHTML.includes('startTopicSession'));
+  api.openTopic('spec');
+  assert.ok(app.innerHTML.includes('כל המונחים בנושא זה כבר הוצגו'));
 });
 
 /* ===================== questions ===================== */
@@ -626,7 +628,7 @@ test('persistence: the saved state is validated on load', () => {
   assert.equal(s.exercises['ee-read-per-unit'].tries, 0);
   same(s.sessions, []);
   assert.equal(s.settings.newCount, 5);
-  assert.equal(s.settings.topic, 'auto');
+  assert.equal(s.settings.topic, undefined, 'no topic is kept any more');
   assert.equal(s.settings.slow, true);
   assert.equal(s.settings.autoRead, false);
   assert.equal(s.settings.sentences, true);
@@ -794,7 +796,7 @@ test('screens: topics show progress without listing the terms that were not taug
   assert.ok(app.innerHTML.includes('data-view="topic"'));
   for (const en of ['Manufacturer', 'Model', 'Datasheet', 'Input power', 'Voltage']) assert.ok(app.innerHTML.includes(`>${en}<`));
   for (const en of ['Nameplate', 'Rated current', 'Operating conditions']) assert.ok(!app.innerHTML.includes(`>${en}<`), `${en} is not shown before it is taught`);
-  assert.ok(app.innerHTML.includes('עוד 20 מונחים בנושא זה טרם נלמדו'));
+  assert.ok(app.innerHTML.includes('עוד 20 מונחים בנושא זה יגיעו בתורם'));
   assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
   api.openTopic('power');
   assert.ok(app.innerHTML.includes('עדיין לא נלמדו מונחים בנושא זה'));
@@ -885,6 +887,121 @@ test('screens: leaving a session asks first and keeps what was answered', async 
   assert.ok(app.innerHTML.includes('data-view="home"'));
   assert.equal(api.seenIds().length, 1);
   assert.equal(api.rec('ee-en-manufacturer').right, 1);
+});
+
+/* ===================== the learned words: search and listening ===================== */
+
+test('words: the learned words can be searched in English or Hebrew, and unlearned ones stay out', () => {
+  const { api, app } = runtime();
+  api.openWords();
+  assert.ok(app.innerHTML.includes('data-view="words"'));
+  assert.ok(app.innerHTML.includes('עדיין לא נלמדו מילים'));
+  assert.ok(!app.innerHTML.includes('class="search"'), 'no search box before there is anything to search');
+  api.startSession(); playSession(api);
+  api.openWords();
+  assert.ok(app.innerHTML.includes('class="search"'));
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
+  const order = [...app.innerHTML.matchAll(/openTerm\('([^']+)'\)/g)].map(m => m[1]);
+  same(english(api, order), ['Datasheet', 'Input power', 'Manufacturer', 'Model', 'Voltage']);
+  api.filterWords('volt');
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 1);
+  assert.ok(app.innerHTML.includes('>Voltage<'));
+  api.filterWords('מתח');
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 1);
+  assert.ok(app.innerHTML.includes('>Voltage<'));
+  api.filterWords('Data sheet');
+  assert.ok(app.innerHTML.includes('>Datasheet<'), 'an alias finds its term');
+  api.filterWords('Nameplate');
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 0, 'a real term that was not learned is not offered');
+  assert.ok(app.innerHTML.includes('מילים שעדיין לא נלמדו לא מופיעות'));
+  api.filterWords('');
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
+  api.openTerm('ee-en-voltage');
+  assert.ok(app.innerHTML.includes('onclick="openWords()"'), 'the term page goes back to the search');
+  api.goHome();
+  assert.ok(app.innerHTML.includes('5 מילים להאזנה'));
+  assert.ok(app.innerHTML.includes('חיפוש וחזרה'));
+});
+
+test('audio: the listening lesson reads each learned word in English, Hebrew and English again, then moves on by itself', async () => {
+  const fake = fakeSpeech([{ name: 'Samantha', lang: 'en-US' }, { name: 'Carmit', lang: 'he-IL' }]);
+  const { api, app } = runtime(new Map(), fake);
+  api.openAudio();
+  assert.ok(app.innerHTML.includes('עדיין אין מילים להאזנה'));
+  assert.equal(api.audioPlay(), false);
+  api.goHome();
+  api.setAutoRead(false);
+  api.startSession({ newCount: 2 }); playSession(api);
+  api.goHome();
+  Object.assign(api.AUDIO_GAPS, { afterTerm: 5, afterMeaning: 5, afterRepeat: 5 });
+  api.openAudio();
+  assert.ok(app.innerHTML.includes('data-view="audio"'));
+  assert.ok(app.innerHTML.includes('מילה 1 מתוך 2'));
+  assert.ok(app.innerHTML.includes('audioPlay()'));
+  same(english(api, api.audioIds()), ['Manufacturer', 'Model']);
+  // browsing without sound
+  api.audioNext();
+  assert.ok(app.innerHTML.includes('מילה 2 מתוך 2') && app.innerHTML.includes('>Model<'));
+  api.audioNext();
+  assert.ok(app.innerHTML.includes('מילה 1 מתוך 2'), 'the list wraps around');
+  api.audioPrev();
+  assert.ok(app.innerHTML.includes('מילה 2 מתוך 2'));
+  api.audioPrev();
+  // playing: English, Hebrew in the Hebrew voice, English again, then the next word on its own
+  const before = fake.calls.length;
+  assert.equal(api.audioPlay(), true);
+  assert.ok(app.innerHTML.includes('audioPause()'), 'the button turns into pause');
+  await new Promise(r => setTimeout(r, 150));
+  api.audioPause();
+  const said = fake.calls.slice(before);
+  const heard = said.map(u => `${u.lang}:${u.text}`);
+  assert.ok(heard.length >= 6, `played through more than one word: ${heard.join(' | ')}`);
+  same(heard.slice(0, 6), ['en-US:Manufacturer', 'he-IL:יצרן', 'en-US:Manufacturer', 'en-US:Model', 'he-IL:דגם', 'en-US:Model']);
+  assert.equal(said[1].voice.name, 'Carmit');
+  assert.equal(said[0].voice.name, 'Samantha');
+  assert.ok(app.innerHTML.includes('audioPlay()'), 'paused: the button offers play again');
+  const stopped = fake.calls.length;
+  await new Promise(r => setTimeout(r, 60));
+  assert.equal(fake.calls.length, stopped, 'nothing more is said after pause');
+  assert.equal(api.getState().terms['ee-en-manufacturer'].right, 2, 'listening changes no record');
+  // leaving the screen stops the lesson
+  api.audioPlay();
+  api.goHome();
+  assert.equal(api.getAudio(), null);
+  const left = fake.calls.length;
+  await new Promise(r => setTimeout(r, 60));
+  assert.equal(fake.calls.length, left);
+});
+
+test('audio: without a Hebrew voice only the English is spoken and the screen says so', async () => {
+  const fake = fakeSpeech([{ name: 'Samantha', lang: 'en-US' }]);
+  const { api, app } = runtime(new Map(), fake);
+  api.setAutoRead(false);
+  api.startSession({ newCount: 1 }); playSession(api);
+  api.goHome();
+  Object.assign(api.AUDIO_GAPS, { afterTerm: 5, afterMeaning: 5, afterRepeat: 5 });
+  api.openAudio();
+  assert.equal(api.hebrewVoiceAvailable(), false);
+  assert.ok(app.innerHTML.includes('אין קול עברי'));
+  const before = fake.calls.length;
+  api.audioPlay();
+  await new Promise(r => setTimeout(r, 60));
+  api.audioPause();
+  const heard = fake.calls.slice(before).map(u => `${u.lang}:${u.text}`);
+  assert.ok(heard.length >= 2);
+  assert.ok(heard.every(x => x.startsWith('en-US:Manufacturer')), heard.join(' | '));
+  // with no voice list at all the device may still have Hebrew: it is tried
+  const mute = fakeSpeech([]);
+  const unknown = runtime(new Map(), mute);
+  assert.equal(unknown.api.hebrewVoiceAvailable(), true);
+  // and with no speech engine the screen is a word browser, with no play button
+  const silent = runtime();
+  silent.api.startSession({ newCount: 1 }); playSession(silent.api);
+  silent.api.goHome();
+  silent.api.openAudio();
+  assert.ok(!silent.app.innerHTML.includes('audioPlay()'));
+  assert.ok(silent.app.innerHTML.includes('audioNext()'));
+  assert.ok(silent.app.innerHTML.includes('לא מציע הקראה'));
 });
 
 /* ===================== the shell ===================== */

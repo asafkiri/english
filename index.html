@@ -244,6 +244,22 @@ button.spec-row:disabled{cursor:default}
 .update-banner .txt b{display:block;font-size:16px}
 .update-banner .btn{width:auto;padding:11px 15px;font-size:15px;margin:0}
 
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 6px}
+.quick .row-link{flex-direction:column;align-items:flex-start;gap:6px;margin:0;padding:14px;min-height:96px}
+.quick .row-link .ico{font-size:26px}
+.search{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:14px;color:var(--text);padding:13px 14px;font-size:17px;font-family:inherit;outline:none;margin-bottom:12px;appearance:none}
+.search:focus{border-color:var(--green)}
+.audio{text-align:center}
+.audio .phase{text-align:right}
+.audio-en{font-size:34px;font-weight:800;line-height:1.2;margin-top:6px;text-align:center}
+.audio-he{font-size:24px;font-weight:800;margin-top:6px}
+.audio-exp{color:var(--soft);font-size:15.5px;line-height:1.6;margin-top:10px}
+.audio-controls{display:flex;align-items:center;justify-content:center;gap:18px;margin:20px 0 12px;direction:ltr}
+.audio-play{width:84px;height:84px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#06281c;font-size:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.audio-play:active{transform:scale(.96)}
+.icon-btn.big{min-width:56px;min-height:56px;font-size:22px}
+.hint.center{text-align:center;margin-top:6px}
+
 @media (max-width:360px){
   body{font-size:16px}
   .term-card .term-en{font-size:28px}
@@ -550,7 +566,7 @@ function clamp(n, lo, hi){ return Math.min(hi, Math.max(lo, n)); }
 function defaults(){
   return {
     v: 1, createdAt: Date.now(), terms: {}, exercises: {}, sessions: [],
-    settings: { newCount: MAX_NEW_PER_SESSION, topic: 'auto', slow: false, autoRead: true, sentences: false },
+    settings: { newCount: MAX_NEW_PER_SESSION, slow: false, autoRead: true, sentences: false },
     totals: { asked: 0, right: 0 },
   };
 }
@@ -587,7 +603,6 @@ function normalizeState(raw){
   }
   const st = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
   s.settings.newCount = clamp(Math.round(num(st.newCount, MAX_NEW_PER_SESSION)), 0, MAX_NEW_PER_SESSION);
-  s.settings.topic = CATEGORY_BY_ID.has(st.topic) ? st.topic : 'auto';
   s.settings.slow = !!st.slow;
   s.settings.autoRead = st.autoRead === undefined ? true : !!st.autoRead;
   s.settings.sentences = !!st.sentences;
@@ -684,17 +699,11 @@ function topicProgress(cat, now = Date.now()){
   }
   return p;
 }
-function unseenIds(topic = 'auto'){
-  const order = CATEGORY_BY_ID.has(topic) ? termsInCategory(topic).map(t => t.id) : RECOMMENDED_ORDER;
-  return order.filter(id => !isSeen(id));
-}
-function nextNewIds(count = state.settings.newCount, topic = state.settings.topic){
-  return unseenIds(topic).slice(0, clamp(Math.round(num(count)), 0, MAX_NEW_PER_SESSION));
-}
-/* a chosen topic that has nothing left falls back to the recommended order */
-function effectiveTopic(){
-  const t = state.settings.topic;
-  return CATEGORY_BY_ID.has(t) && unseenIds(t).length ? t : 'auto';
+/* one fixed order for everyone: the important words first, as RECOMMENDED_ORDER
+   lays them out, and nothing to choose */
+function unseenIds(){ return RECOMMENDED_ORDER.filter(id => !isSeen(id)); }
+function nextNewIds(count = state.settings.newCount){
+  return unseenIds().slice(0, clamp(Math.round(num(count)), 0, MAX_NEW_PER_SESSION));
 }
 /* The example sentence is an aid, not a thing to learn. By default ("only the
    words") a card shows the term, its meaning and the explanation; the sentence
@@ -820,9 +829,9 @@ function nextKind(id, after){
 
 /* ---------------- a session ---------------- */
 let S = null;
-function buildSession({ newCount = state.settings.newCount, topic = state.settings.topic, now = Date.now() } = {}){
+function buildSession({ newCount = state.settings.newCount, now = Date.now() } = {}){
   const reviewIds = dueIds(now).slice(0, REVIEW_CAP);
-  const newIds = nextNewIds(newCount, topic);
+  const newIds = nextNewIds(newCount);
   const steps = [];
   /* what was learned before comes first; on the very first session there is nothing here */
   reviewIds.forEach(id => steps.push(makeQuestion(id, reviewKind(id), true)));
@@ -852,6 +861,7 @@ function buildSession({ newCount = state.settings.newCount, topic = state.settin
 function startSession(opts = {}){
   const s = buildSession(opts);
   if(s.steps.length <= 1){ toast('אין כרגע מה ללמוד או לחזור עליו'); return false; }
+  audioStop();
   S = s;
   renderStep();
   return true;
@@ -917,7 +927,7 @@ function exitSession(){
     ok: 'יציאה', cancel: 'להמשיך', danger: true,
   }).then(ok => { if(ok) goHome(); });
 }
-function goHome(){ S = null; renderHome(); }
+function goHome(){ S = null; audioStop(); renderHome(); }
 
 /* ---------------- speech ----------------
    The browser's own English voice, nothing paid. Buttons that would read
@@ -938,25 +948,41 @@ if(speechAvailable()){
   loadVoices();
   try{ window.speechSynthesis.onvoiceschanged = loadVoices; }catch(_){}
 }
-const VOICE_PREFS = ['Google US English', 'Samantha', 'Microsoft Zira', 'Microsoft Aria', 'Microsoft Jenny', 'Google UK English Female', 'Daniel', 'Karen'];
-function pickVoice(){
+const VOICE_PREFS = {
+  en: ['Google US English', 'Samantha', 'Microsoft Zira', 'Microsoft Aria', 'Microsoft Jenny', 'Google UK English Female', 'Daniel', 'Karen'],
+  he: ['Carmit', 'Google עברית', 'Microsoft Asaf', 'Microsoft Hila'],
+};
+const VOICE_LANG = { en: /^en([-_]|$)/i, he: /^(he|iw)([-_]|$)/i };
+function voicesFor(lang){
+  if(!voices.length) loadVoices();
+  return voices.filter(v => VOICE_LANG[lang].test(v.lang || ''));
+}
+function pickVoice(lang = 'en'){
   if(!voices.length) loadVoices();
   if(!voices.length) return null;
-  const english = voices.filter(v => /^en([-_]|$)/i.test(v.lang || ''));
-  const pool = english.length ? english : voices;
-  for(const p of VOICE_PREFS){ const v = pool.find(v => String(v.name || '').indexOf(p) > -1); if(v) return v; }
-  return pool.find(v => /^en[-_]US/i.test(v.lang || '')) || pool[0] || null;
+  const matching = voicesFor(lang);
+  /* English falls back to whatever the device has; Hebrew read by an English
+     voice is noise, so without a Hebrew voice the engine's own choice is used */
+  const pool = matching.length ? matching : (lang === 'en' ? voices : []);
+  for(const p of VOICE_PREFS[lang]){ const v = pool.find(v => String(v.name || '').indexOf(p) > -1); if(v) return v; }
+  if(lang === 'en') return pool.find(v => /^en[-_]US/i.test(v.lang || '')) || pool[0] || null;
+  return pool[0] || null;
+}
+/* the device lists a Hebrew voice, or has not told us its voices yet */
+function hebrewVoiceAvailable(){
+  if(!voices.length) loadVoices();
+  return !voices.length || voicesFor('he').length > 0;
 }
 /* a voice handle from before the engine reloaded its list is accepted and
    then silently never spoken; check against the live list before using one */
 function voiceIsListed(v){
   try{ return window.speechSynthesis.getVoices().indexOf(v) > -1; }catch(_){ return false; }
 }
-function liveVoice(){
-  const v = pickVoice();
+function liveVoice(lang = 'en'){
+  const v = pickVoice(lang);
   if(!v || voiceIsListed(v)) return v;
   loadVoices();
-  const fresh = pickVoice();
+  const fresh = pickVoice(lang);
   return fresh && voiceIsListed(fresh) ? fresh : null;
 }
 /* iOS keeps "speaking" set for an utterance that died with a previous page;
@@ -977,14 +1003,15 @@ function cancelSpeech(){
   if(speechAvailable() && speechEngineBusy()){ try{ window.speechSynthesis.cancel(); }catch(_){} }
   speechBusyUntil = 0;
 }
-function speak(text, cb){
+function speak(text, cb, opts = {}){
   if(!speechAvailable()){ if(cb) cb(); return false; }
   const token = ++speechToken;
   const busy = speechEngineBusy();
   if(busy){ try{ window.speechSynthesis.cancel(); }catch(_){} }
+  const lang = opts.lang === 'he' ? 'he' : 'en';
   const u = new SpeechSynthesisUtterance(String(text));
-  u.lang = 'en-US';
-  const v = liveVoice();
+  u.lang = lang === 'he' ? 'he-IL' : 'en-US';
+  const v = liveVoice(lang);
   if(v) u.voice = v;
   u.rate = state?.settings?.slow ? 0.8 : 1;
   u.pitch = 1;
@@ -1159,37 +1186,31 @@ function termCardHtml(t){
 
 /* ---------------- home ---------------- */
 function renderHome(){
+  currentView = 'home';
   const now = Date.now();
   const due = dueIds(now);
   const seen = seenIds();
   const mastered = masteredIds(now);
   const concepts = conceptIds();
-  const topic = effectiveTopic();
   const newCount = state.settings.newCount;
-  const planned = nextNewIds(newCount, topic);
-  const remaining = unseenIds('auto').length;
+  const planned = nextNewIds(newCount);
+  const remaining = unseenIds().length;
   const nextTopic = planned.length ? category(term(planned[0]).cat) : null;
   const canStart = due.length + planned.length > 0;
-  const topicOptions = [`<option value="auto"${topic === 'auto' ? ' selected' : ''}>לפי הסדר המומלץ</option>`]
-    .concat(CATEGORIES.map(c => {
-      const left = unseenIds(c.id).length;
-      if(!left) return '';
-      return `<option value="${c.id}"${topic === c.id ? ' selected' : ''}>${esc(c.name)} (${left} שטרם נלמדו)</option>`;
-    })).join('');
   let heading;
   if(due.length && planned.length) heading = `${reviewLabel(due.length)}, ואז ${newTermsLabel(planned.length)}`;
   else if(due.length) heading = reviewLabel(due.length);
   else if(planned.length) heading = newTermsLabel(planned.length);
-  else heading = remaining ? 'בחר כמה מונחים חדשים ללמוד' : 'כל המונחים במאגר כבר הוצגו';
+  else heading = remaining ? 'אין כרגע מה ללמוד' : 'כל המונחים במאגר כבר הוצגו';
   const upcoming = nextDue(now);
   const welcome = seen.length ? '' : `
     <section class="card welcome">
       <h2>מתחילים מאפס</h2>
-      <p>כאן לומדים רק את האנגלית של לימודי החשמל: ${TERMS.length} מונחים ב־${CATEGORIES.length} נושאים, כדי לקרוא מפרטי יצרן, לוחיות נתונים, טבלאות והוראות.</p>
+      <p>כאן לומדים רק את האנגלית של לימודי החשמל: ${TERMS.length} מונחים ב־${CATEGORIES.length} נושאים, בסדר קבוע אחד — המילים החשובות לקריאת מפרטים קודם.</p>
       <ul>
         <li>בכל מפגש: קודם חזרה על מה שכבר נלמד, ואז עד ${MAX_NEW_PER_SESSION} מונחים חדשים.</li>
-        <li>לכל מונח: תרגום מקצועי והסבר קצר, ומשפט לדוגמה רק אם תרצה — ואחר כך תרגול עם תשובה נכונה אחת.</li>
-        <li>במפגש הראשון עדיין אין חזרות. ההתקדמות נשמרת במכשיר הזה.</li>
+        <li>לכל מונח: תרגום מקצועי והסבר קצר — ואחר כך תרגול עם תשובה נכונה אחת.</li>
+        <li>מה שנלמד אפשר לחפש, ולהאזין לו כשיעור שמע.</li>
       </ul>
     </section>`;
   h(`
@@ -1202,30 +1223,23 @@ function renderHome(){
     <section class="card next">
       <div class="tag">⚡ המפגש הבא</div>
       <h2>${heading}</h2>
-      <div class="plan">
-        <div class="plan-row"><span>ממתינים לחזרה עכשיו</span><b>${due.length}</b></div>
-        <div class="plan-row"><span>מונחים חדשים במפגש</span>
-          <div class="stepper" aria-label="מספר מונחים חדשים">
-            <button type="button" onclick="setNewCount(${newCount - 1})" ${newCount <= 0 ? 'disabled' : ''} aria-label="פחות">−</button>
-            <output>${newCount}</output>
-            <button type="button" onclick="setNewCount(${newCount + 1})" ${newCount >= MAX_NEW_PER_SESSION ? 'disabled' : ''} aria-label="יותר">+</button>
-          </div>
-        </div>
-        ${remaining ? `<label class="plan-row col"><span>מאיזה נושא</span><select class="select" onchange="setTopic(this.value)">${topicOptions}</select></label>` : ''}
-      </div>
-      ${nextTopic ? `<p class="hint">המונחים החדשים יילקחו מהנושא: ${esc(nextTopic.name)}.</p>` : ''}
+      ${nextTopic ? `<p class="hint">המונחים החדשים הבאים בתור: ${esc(nextTopic.name)}.</p>` : ''}
       ${!remaining ? `<p class="hint">כל ${TERMS.length} המונחים הוצגו. תוספות יוצעו רק בעקבות חומר לימוד חדש.</p>` : ''}
-      ${!canStart && newCount === 0 && remaining ? `<p class="hint amber">אין חזרות ממתינות — הוסף מונחים חדשים כדי להתחיל.${upcoming ? ` החזרה הקרובה: ${dueLabel(upcoming, now)}.` : ''}</p>` : ''}
+      ${!canStart && remaining && newCount === 0 ? `<p class="hint amber">בהגדרות נבחרו אפס מונחים חדשים, ואין חזרות ממתינות.${upcoming ? ` החזרה הקרובה: ${dueLabel(upcoming, now)}.` : ''}</p>` : ''}
       ${!canStart && !remaining ? `<p class="hint amber">אין חזרות ממתינות.${upcoming ? ` החזרה הקרובה: ${dueLabel(upcoming, now)}.` : ''}</p>` : ''}
-      ${due.length > REVIEW_CAP ? `<p class="hint amber">במפגש הזה ייכנסו ${REVIEW_CAP} חזרות; השאר ימתינו למפגש הבא. אפשר לבחור פחות מונחים חדשים.</p>` : ''}
+      ${due.length > REVIEW_CAP ? `<p class="hint amber">במפגש הזה ייכנסו ${REVIEW_CAP} חזרות; השאר ימתינו למפגש הבא.</p>` : ''}
       <button type="button" class="btn" onclick="startSession()" ${canStart ? '' : 'disabled'}>להתחיל מפגש</button>
     </section>
+    <div class="quick">
+      <button type="button" class="row-link" onclick="openAudio()"><span class="ico">🎧</span><span class="body">שיעור שמע<small>${seen.length ? `${seen.length} מילים להאזנה` : 'ייפתח אחרי המפגש הראשון'}</small></span></button>
+      <button type="button" class="row-link" onclick="openWords()"><span class="ico">🔎</span><span class="body">המילים שלמדתי<small>${seen.length ? 'חיפוש וחזרה' : 'עדיין ריק'}</small></span></button>
+    </div>
     <div class="stats">
       <div class="stat"><b dir="ltr">${seen.length}<small> / ${TERMS.length}</small></b><span>מונחים נלמדו</span></div>
       <div class="stat"><b>${due.length}</b><span>לחזרה</span></div>
       <div class="stat"><b>${mastered.length}</b><span>שליטה מבוססת</span></div>
     </div>
-    <div class="section-title"><span>התקדמות לפי נושאים</span><small>${CATEGORIES.length} נושאים</small></div>
+    <div class="section-title"><span>התקדמות לפי נושאים</span><small>לפי סדר הלימוד</small></div>
     ${CATEGORIES.map((c, i) => {
       const p = topicProgress(c.id, now);
       const cls = p.seen === p.total ? ' complete' : p.seen ? ' started' : '';
@@ -1249,11 +1263,6 @@ function setNewCount(n){
   save();
   if(S) return;
   if(currentView === 'settings') openSettings(); else renderHome();
-}
-function setTopic(value){
-  state.settings.topic = CATEGORY_BY_ID.has(value) ? value : 'auto';
-  save();
-  if(!S) renderHome();
 }
 let currentView = 'home';
 
@@ -1279,17 +1288,9 @@ function openTopic(cat){
   backTarget = `openTopic('${cat}')`;
   h(`${subTop(c.name, 'goHome()', `נלמדו ${p.seen} מתוך ${p.total}${p.due ? ` · ${p.due} לחזרה` : ''}${p.mastered ? ` · ${p.mastered} בשליטה` : ''}`)}
   <div class="screen" data-view="topic">
-    ${unseen ? `<button type="button" class="btn" onclick="startTopicSession('${cat}')">מפגש עם מונחים חדשים מהנושא הזה</button>
-      <p class="hint" style="margin:10px 2px 16px">עוד ${countTerms(unseen)} בנושא זה טרם נלמדו; הם יוצגו רק במפגש, אחד אחרי השני.</p>` : `<p class="hint" style="margin:4px 2px 16px">כל המונחים בנושא זה כבר הוצגו.</p>`}
+    <p class="hint" style="margin:4px 2px 16px">${unseen ? `עוד ${countTerms(unseen)} בנושא זה יגיעו בתורם, לפי הסדר הקבוע של המפגשים.` : 'כל המונחים בנושא זה כבר הוצגו.'}</p>
     ${learned.length ? learned.map(t => termRowHtml(t.id, `openTerm('${t.id}')`, now)).join('') : `<div class="card"><p class="hint">עדיין לא נלמדו מונחים בנושא זה.</p></div>`}
   </div>`);
-}
-function startTopicSession(cat){
-  if(!CATEGORY_BY_ID.has(cat)) return;
-  state.settings.topic = cat;
-  save();
-  const count = state.settings.newCount || 1;
-  startSession({ topic: cat, newCount: count });
 }
 function openDue(){
   currentView = 'due';
@@ -1338,6 +1339,141 @@ function openTerm(id){
     ${termCardHtml(t)}
     ${facts}
   </div>`);
+}
+
+/* ---------------- the words already learned: search ---------------- */
+let wordsQuery = '';
+function wordMatches(t, q){
+  const k = textKey(q);
+  if(!k) return true;
+  return [t.en, t.he, ...(t.aliases || [])].some(s => textKey(s).includes(k));
+}
+function learnedWords(){ return seenIds().map(term).sort((a, b) => a.en.localeCompare(b.en)); }
+function wordsListHtml(){
+  const all = learnedWords();
+  if(!all.length) return `<div class="card"><p class="hint">עדיין לא נלמדו מילים. אחרי המפגש הראשון הן יופיעו כאן, ותוכל לחפש אותן באנגלית או בעברית.</p></div>`;
+  const hits = all.filter(t => wordMatches(t, wordsQuery));
+  if(!hits.length) return `<div class="card"><p class="hint">אין מילה שנלמדה שמתאימה ל״${esc(wordsQuery)}״. מילים שעדיין לא נלמדו לא מופיעות כאן.</p></div>`;
+  const now = Date.now();
+  return hits.map(t => termRowHtml(t.id, `openTerm('${t.id}')`, now)).join('');
+}
+function openWords(){
+  currentView = 'words';
+  backTarget = 'openWords()';
+  const n = seenIds().length;
+  h(`${subTop('המילים שלמדתי', 'goHome()', n ? `${n} מילים · לחיצה על מילה פותחת את הכרטיס שלה` : 'עדיין אין')}
+  <div class="screen" data-view="words">
+    ${n ? `<input class="search" type="search" inputmode="search" placeholder="חיפוש באנגלית או בעברית" value="${esc(wordsQuery)}" oninput="filterWords(this.value)" autocomplete="off" aria-label="חיפוש מילה שנלמדה">` : ''}
+    <div id="wordsList">${wordsListHtml()}</div>
+  </div>`);
+}
+/* typing filters the list in place, so the keyboard stays open */
+function filterWords(q){
+  wordsQuery = String(q || '');
+  const el = document.getElementById('wordsList');
+  if(el) el.innerHTML = wordsListHtml();
+  else if(currentView === 'words') openWords();
+}
+
+/* ---------------- the listening lesson ----------------
+   Every word already learned, read out one after another: English, then
+   Hebrew when the device has a Hebrew voice, then English again. Nothing to
+   answer and nothing recorded; a way to keep the words in the ear on a day
+   with no energy for more. */
+const AUDIO_GAPS = { afterTerm: 700, afterMeaning: 500, afterRepeat: 1600 };
+let A = null;
+/* what waits for review first, then the words that do not sit yet, then the rest */
+function audioIds(now = Date.now()){
+  return seenIds().sort((a, b) => {
+    const ra = rec(a), rb = rec(b);
+    return ((ra.due <= now ? 0 : 1) - (rb.due <= now ? 0 : 1)) || (ra.box - rb.box) || (ra.at - rb.at) || a.localeCompare(b);
+  });
+}
+function openAudio(){
+  currentView = 'audio';
+  if(!A) A = { ids: audioIds(), i: 0, phase: 0, playing: false, timer: 0 };
+  renderAudio();
+}
+function renderAudio(){
+  const ids = A ? A.ids : [];
+  if(!ids.length){
+    h(`${subTop('שיעור שמע')}
+    <div class="screen" data-view="audio">
+      <div class="card"><p class="hint">עדיין אין מילים להאזנה. אחרי המפגש הראשון המילים שלמדת יופיעו כאן, ותוכל לשמוע אותן ברצף בלי לענות על כלום.</p></div>
+    </div>`);
+    return;
+  }
+  const t = term(ids[A.i]);
+  const sp = speechAvailable();
+  const noHebrew = sp && !hebrewVoiceAvailable();
+  h(`${subTop('שיעור שמע', 'goHome()', `${ids.length} מילים שלמדת`)}
+  <div class="screen" data-view="audio">
+    <div class="card audio">
+      <div class="phase"><span>מילה ${A.i + 1} מתוך ${ids.length}</span><span class="topic-name">${esc(category(t.cat)?.name || '')}</span></div>
+      <div class="audio-en en" dir="ltr" lang="en">${esc(t.en)}</div>
+      <div class="audio-he">${esc(t.he)}</div>
+      <p class="audio-exp">${esc(t.exp)}</p>
+      <div class="audio-controls">
+        <button type="button" class="icon-btn big" onclick="audioPrev()" aria-label="המילה הקודמת">⏮</button>
+        ${sp ? `<button type="button" class="audio-play" onclick="${A.playing ? 'audioPause()' : 'audioPlay()'}" aria-label="${A.playing ? 'השהיה' : 'הפעלה'}">${A.playing ? '⏸' : '▶'}</button>` : ''}
+        <button type="button" class="icon-btn big" onclick="audioNext()" aria-label="המילה הבאה">⏭</button>
+      </div>
+      ${sp
+        ? `<p class="hint center">${A.playing ? 'מנגן ברצף: אנגלית, עברית, ושוב אנגלית. בסוף הרשימה מתחילים מההתחלה.' : 'שים אוזניות ולחץ על הפעלה: כל מילה נאמרת באנגלית, בעברית, ושוב באנגלית, וממשיכים למילה הבאה לבד.'}</p>${noHebrew ? '<p class="hint center">במכשיר הזה אין קול עברי, ולכן נשמעת רק האנגלית; התרגום מוצג על המסך.</p>' : ''}`
+        : '<p class="hint center">הדפדפן הזה לא מציע הקראה. אפשר לדפדף בין המילים כאן, בלי שמע.</p>'}
+    </div>
+    <p class="hint" style="margin:0 2px">הסדר: קודם מה שממתין לחזרה, אחר כך המילים שעדיין לא יושבות, ואז השאר.</p>
+  </div>`);
+}
+function audioPlay(){
+  if(!A || !A.ids.length || !speechAvailable()) return false;
+  A.playing = true;
+  A.phase = 0;
+  renderAudio();
+  audioSpeakPhase();
+  return true;
+}
+function audioPause(){
+  if(!A) return;
+  A.playing = false;
+  clearTimeout(A.timer);
+  cancelSpeech();
+  renderAudio();
+}
+function audioStop(){
+  if(A){ clearTimeout(A.timer); if(A.playing) cancelSpeech(); }
+  A = null;
+}
+function audioJump(delta){
+  if(!A || !A.ids.length) return;
+  clearTimeout(A.timer);
+  if(A.playing) cancelSpeech();
+  A.i = (A.i + delta + A.ids.length) % A.ids.length;
+  A.phase = 0;
+  renderAudio();
+  if(A.playing) audioSpeakPhase();
+}
+function audioNext(){ audioJump(1); }
+function audioPrev(){ audioJump(-1); }
+function audioSpeakPhase(){
+  const me = A;
+  if(!me || !me.playing) return;
+  const t = term(me.ids[me.i]);
+  if(!t){ me.playing = false; return; }
+  const after = (gap, fn) => { me.timer = later(() => { if(A === me && me.playing) fn(); }, gap); };
+  if(me.phase === 0){
+    speak(t.en, () => after(AUDIO_GAPS.afterTerm, () => { me.phase = 1; audioSpeakPhase(); }));
+  }else if(me.phase === 1){
+    if(hebrewVoiceAvailable()) speak(t.he, () => after(AUDIO_GAPS.afterMeaning, () => { me.phase = 2; audioSpeakPhase(); }), { lang: 'he' });
+    else { me.phase = 2; audioSpeakPhase(); }
+  }else{
+    speak(t.en, () => after(AUDIO_GAPS.afterRepeat, () => {
+      me.i = (me.i + 1) % me.ids.length;
+      me.phase = 0;
+      renderAudio();
+      audioSpeakPhase();
+    }));
+  }
 }
 
 /* ---------------- settings & sources ---------------- */
