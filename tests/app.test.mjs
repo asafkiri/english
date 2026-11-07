@@ -58,16 +58,17 @@ function runtime(seed = new Map(), options = {}) {
   const expose = `
     ;globalThis.__test = {
       CONTENT, TERMS, CATEGORIES, EXERCISES, SOURCES, STORE_KEY, LEGACY_KEYS, INTERVALS_DAYS, MASTERED_BOX,
-      REVIEW_CAP, MAX_NEW_PER_SESSION, MAX_REQUEUES, REQUEUE_GAP, INITIAL_LESSON_IDS, RECOMMENDED_ORDER,
+      REVIEW_CAP, LESSON_SIZE, MAX_NEW_PER_DAY, SMALL_REVIEW, MAX_REQUEUES, REQUEUE_GAP, INITIAL_LESSON_IDS, RECOMMENDED_ORDER,
       EXERCISE_REQUIRES, NEAR_SYNONYMS, KINDS, STATE_LABELS, DAY,
       defaults, load, save, normalizeState, wipeLegacy, term, category, exercise, termsInCategory,
       rec, isSeen, introduce, recordAnswer, flagConcept, termState, seenIds, dueIds, masteredIds, conceptIds,
-      topicProgress, unseenIds, nextNewIds, nextDue, dueLabel,
+      topicProgress, unseenIds, nextDue, dueLabel, dayKey, introducedToday, lessonCount, lessonIds, lessonOf,
+      currentLessonIndex, todaysNewIds, reviewPool, openLessons, startLessonRepeat,
       blankSentence, termVariants, optionClash, buildOptions, kindsFor, makeQuestion, reviewKind, nextKind,
       buildSession, startSession, currentStep, next, requeue, answer, conceptAndNext, answerExercise, exitSession, goHome,
       speechAvailable, loadVoices, pickVoice, liveVoice, speak, speakTerm, speakExample, readCard, cancelSpeech, runSoundCheck,
       esc, h, toast, resolveDialog, askConfirm, specValue, unitToken, termCardHtml,
-      renderHome, setNewCount, openTopic, openDue, openConcepts, openTerm,
+      renderHome, setNewPerDay, openTopic, openDue, openConcepts, openTerm,
       openWords, filterWords, openAudio, renderAudio, audioPlay, audioPause, audioNext, audioPrev, audioStop, audioIds, AUDIO_GAPS,
       hebrewVoiceAvailable, voicesFor, getAudio: () => A,
       openSettings, setSlow, setAutoRead, resetProgress, openSources,
@@ -206,15 +207,18 @@ test('start: the previous app\'s data is deleted and never loaded', () => {
   assert.ok(!seed.has('speakEnglishV1'));
 });
 
-test('start: the first session is the brief\'s first five terms, with no reviews', () => {
+test('start: the first lesson is the first four words of the brief\'s order, each met four times, with no reviews', () => {
   const { api } = runtime();
   const s = api.buildSession();
   assert.equal(s.reviewIds.length, 0);
+  assert.equal(s.lesson, 0);
   assert.ok(s.steps.every(st => !st.review));
-  same(english(api, s.newIds), ['Manufacturer', 'Model', 'Datasheet', 'Input power', 'Voltage']);
-  // each card is followed by one quick check of that same term
+  same(english(api, s.newIds), ['Manufacturer', 'Model', 'Datasheet', 'Input power']);
+  same(s.newIds, api.lessonIds(0));
+  assert.equal(api.lessonCount(), 44);
+  // each card is followed by one quick check of that same word
   const cards = s.steps.filter(st => st.type === 'card');
-  assert.equal(cards.length, 5);
+  assert.equal(cards.length, 4);
   for (const card of cards) {
     const after = s.steps[s.steps.indexOf(card) + 1];
     assert.equal(after.type, 'q');
@@ -222,33 +226,68 @@ test('start: the first session is the brief\'s first five terms, with no reviews
     assert.equal(after.kind, 'meaning');
     assert.ok(after.quick);
   }
-  // then every new term once more in another shape, and nothing else is asked
+  // every new word is met four times: the quick check, two other shapes, and a recap at the end
   const asked = s.steps.filter(st => st.type === 'q');
-  assert.equal(asked.length, 10);
-  assert.ok(asked.every(q => s.newIds.includes(q.id)));
+  assert.equal(asked.length, 16);
+  for (const id of s.newIds) {
+    const mine = asked.filter(q => q.id === id);
+    assert.equal(mine.length, 4);
+    assert.equal(mine.filter(q => q.quick).length, 1);
+    assert.equal(mine.filter(q => q.recap).length, 1);
+    const practice = mine.filter(q => !q.quick && !q.recap);
+    assert.equal(practice.length, 2);
+    assert.ok(practice.every(q => q.kind !== 'meaning'));
+    assert.notEqual(practice[0].kind, practice[1].kind, 'the two practice questions take different shapes');
+  }
+  const recaps = s.steps.filter(st => st.recap);
+  same(recaps.map(q => q.id), s.newIds, 'the recap goes over the words in order');
+  assert.ok(s.steps.indexOf(recaps[0]) > s.steps.indexOf(cards[3]), 'the recap comes after every card');
   assert.equal(s.steps.filter(st => st.type === 'ex').length, 0, 'no comprehension exercise before its terms');
   assert.equal(s.steps.at(-1).type, 'done');
 });
 
-test('start: sessions two and three follow the brief, with yesterday\'s terms reviewed first', () => {
+test('start: one lesson a day, and every lesson opens with a review of what was learned so far', () => {
   const rt = memoryRuntime();
-  const { api } = rt;
+  const { api, app } = rt;
   assert.ok(api.startSession());
   playSession(api);
-  assert.equal(api.seenIds().length, 5);
-  rt.advance(api.DAY + 60_000);
+  assert.ok(app.innerHTML.includes('סיימת את השיעור'));
+  assert.ok(app.innerHTML.includes('שיעור 1 מתוך 44'));
+  assert.ok(app.innerHTML.includes('השיעור הבא ייפתח מחר'));
+  assert.equal(api.seenIds().length, 4);
+  // the same day: no new words, so a session is a review of the four, twice each
   let s = api.buildSession();
-  same(english(api, s.reviewIds).sort(), ['Datasheet', 'Input power', 'Manufacturer', 'Model', 'Voltage']);
-  same(english(api, s.newIds), ['Current', 'Frequency', 'Single-phase', 'Three-phase', 'Energy consumption']);
-  const lastReview = Math.max(...s.steps.map((st, i) => st.review ? i : -1));
-  const firstCard = s.steps.findIndex(st => st.type === 'card');
-  assert.ok(lastReview < firstCard, 'reviews come before new terms');
+  assert.equal(s.newIds.length, 0);
+  same(english(api, s.reviewIds).sort(), ['Datasheet', 'Input power', 'Manufacturer', 'Model']);
+  assert.equal(s.steps.filter(st => st.type === 'q').length, 8);
+  assert.ok(s.steps.filter(st => st.type === 'q').every(q => q.review));
+  api.goHome();
+  assert.ok(app.innerHTML.includes('השיעור של היום הושלם'));
+  assert.ok(app.innerHTML.includes('לחזור על מה שלמדתי'));
   assert.ok(api.startSession());
   playSession(api);
+  assert.ok(app.innerHTML.includes('סיימת את החזרה'));
+  // tomorrow: lesson two, after a review of yesterday's four
   rt.advance(api.DAY + 60_000);
   s = api.buildSession();
-  same(english(api, s.newIds), ['Rated input power', 'Maximum', 'Power factor', 'Efficiency', 'Connected load']);
-  assert.equal(s.reviewIds.length, 5, 'only the terms due today are reviewed');
+  assert.equal(s.lesson, 1);
+  same(english(api, s.newIds), ['Voltage', 'Current', 'Frequency', 'Single-phase']);
+  same(english(api, s.reviewIds).sort(), ['Datasheet', 'Input power', 'Manufacturer', 'Model']);
+  const lastReview = Math.max(...s.steps.map((st, i) => st.review ? i : -1));
+  const firstCard = s.steps.findIndex(st => st.type === 'card');
+  assert.ok(lastReview < firstCard, 'the review comes before the new words');
+  api.goHome();
+  assert.ok(app.innerHTML.includes('שיעור 2: 4 מילים חדשות'));
+  assert.ok(app.innerHTML.includes('לפני כן חזרה על 4 מילים שכבר למדת'));
+  assert.ok(api.startSession());
+  playSession(api);
+  // the day after: lesson three, and the review covers all eight words learned so far
+  rt.advance(api.DAY + 60_000);
+  s = api.buildSession();
+  assert.equal(s.lesson, 2);
+  same(english(api, s.newIds), ['Three-phase', 'Energy consumption', 'Rated input power', 'Maximum']);
+  assert.equal(s.reviewIds.length, 8);
+  assert.ok(s.reviewIds.slice(0, 4).every(id => api.rec(id).due <= rt.now()), 'the due words come first');
 });
 
 test('start: the recommended order is the three opening sessions, then the basics, level by level', () => {
@@ -261,44 +300,54 @@ test('start: the recommended order is the three opening sessions, then the basic
   assert.equal(rest.at(-1).cat, 'sources');
 });
 
-test('plan: fewer new terms can be chosen, never more than five', () => {
-  const { api, app } = runtime();
-  api.setNewCount(3);
-  assert.equal(api.buildSession().newIds.length, 3);
+test('plan: fewer new words a day can be chosen, never more than four', () => {
+  const rt = memoryRuntime();
+  const { api, app } = rt;
+  api.setNewPerDay(2);
+  assert.equal(api.buildSession().newIds.length, 2);
   api.openSettings();
-  assert.ok(app.innerHTML.includes('<output>3</output>'));
-  api.setNewCount(9);
-  assert.equal(api.getState().settings.newCount, 5);
-  api.setNewCount(-2);
-  assert.equal(api.getState().settings.newCount, 0);
+  assert.ok(app.innerHTML.includes('<output>2</output>'));
+  api.setNewPerDay(9);
+  assert.equal(api.getState().settings.newPerDay, 4);
+  api.setNewPerDay(-2);
+  assert.equal(api.getState().settings.newPerDay, 0);
   assert.equal(api.buildSession().newIds.length, 0);
   // nothing to review and nothing new: no session starts
   assert.equal(api.startSession(), false);
   assert.equal(api.getSession(), null);
   api.goHome();
   assert.ok(app.innerHTML.includes('disabled'), 'the start button is disabled');
-  assert.ok(app.innerHTML.includes('נבחרו אפס מונחים חדשים'));
-  api.setNewCount(1);
-  assert.equal(api.buildSession().newIds.length, 1);
+  assert.ok(app.innerHTML.includes('נבחרו אפס מילים חדשות ביום'));
+  // two a day: the lesson of four takes two days
+  api.setNewPerDay(2);
+  api.startSession(); playSession(api);
+  same(english(api, api.seenIds()), ['Manufacturer', 'Model']);
+  assert.equal(api.buildSession().newIds.length, 0, 'the day\'s two are done');
+  rt.advance(api.DAY);
+  same(english(api, api.buildSession().newIds), ['Datasheet', 'Input power']);
+  assert.equal(api.buildSession().lesson, 0, 'still lesson one');
 });
 
 test('plan: one fixed order, the important words first, and nothing to choose on the home screen', () => {
-  const { api, app } = runtime();
+  const rt = memoryRuntime();
+  const { api, app } = rt;
   assert.ok(!app.innerHTML.includes('<select'), 'no topic to pick');
   assert.ok(!app.innerHTML.includes('class="stepper"'), 'no count to fiddle with on the home screen');
-  assert.ok(app.innerHTML.includes('הבאים בתור: קריאת מפרטים ולוחיות נתונים'));
-  // whatever was learned, the next new terms are the next unlearned ones in the fixed order
-  for (const id of api.RECOMMENDED_ORDER.slice(0, 41)) api.introduce(id);
-  same(api.nextNewIds(5), api.RECOMMENDED_ORDER.slice(41, 46));
-  api.introduce(api.RECOMMENDED_ORDER[43]);
-  same(api.nextNewIds(5), [41, 42, 44, 45, 46].map(i => api.RECOMMENDED_ORDER[i]));
+  assert.ok(app.innerHTML.includes('המילים החדשות מתוך: קריאת מפרטים ולוחיות נתונים'));
+  // whatever was learned, the next words are the next unlearned ones of the current lesson
+  const yesterday = rt.now() - api.DAY;
+  for (const id of api.RECOMMENDED_ORDER.slice(0, 41)) api.introduce(id, yesterday);
+  assert.equal(api.currentLessonIndex(), 10);
+  same(api.todaysNewIds(), api.RECOMMENDED_ORDER.slice(41, 44), 'the rest of lesson eleven, and no more');
+  api.introduce(api.RECOMMENDED_ORDER[43], yesterday);
+  same(api.todaysNewIds(), api.RECOMMENDED_ORDER.slice(41, 43));
   assert.equal(api.term(api.RECOMMENDED_ORDER[41]).cat, 'power');
   api.renderHome();
-  assert.ok(app.innerHTML.includes('הבאים בתור: יסודות חשמל, הספקים ויחידות'));
+  assert.ok(app.innerHTML.includes('המילים החדשות מתוך: יסודות חשמל, הספקים ויחידות'));
+  assert.ok(app.innerHTML.includes('שיעור 11 מתוך 44'));
   // the topic screen reports progress and says the rest will come in turn
   api.openTopic('power');
   assert.ok(app.innerHTML.includes('יגיעו בתורם'));
-  assert.ok(!app.innerHTML.includes('startTopicSession'));
   api.openTopic('spec');
   assert.ok(app.innerHTML.includes('כל המונחים בנושא זה כבר הוצגו'));
 });
@@ -543,38 +592,49 @@ test('schedule: the four states, and mastery only after several spaced successes
   assert.equal(api.dueLabel(rt.now() - 1), 'עכשיו');
 });
 
-test('schedule: only due terms are reviewed, the longest-waiting first, at most twelve a session', () => {
+test('schedule: a review takes the due words first, most overdue at the front, then the longest unpractised, twelve at a time', () => {
   const rt = memoryRuntime();
   const { api } = rt;
   const ids = api.TERMS.slice(0, 20).map(t => t.id);
+  const yesterday = rt.now() - api.DAY;
   ids.forEach((id, i) => {
-    api.introduce(id);
+    api.introduce(id, yesterday);
     api.rec(id).box = 1;
     api.rec(id).due = rt.now() - (i < 16 ? (i + 1) * api.DAY : -(i + 1) * api.DAY);
+    api.rec(id).lastAt = yesterday - i * 60_000;
   });
   const s = api.buildSession({ newCount: 0 });
   assert.equal(api.dueIds().length, 16);
   assert.equal(s.reviewIds.length, api.REVIEW_CAP);
-  same(s.reviewIds, ids.slice(4, 16).reverse());
+  same(s.reviewIds, ids.slice(4, 16).reverse(), 'the twelve most overdue, the most overdue first');
   assert.ok(s.steps.filter(st => st.type === 'q').every(st => st.review));
-  for (const id of ids.slice(16)) assert.ok(!s.reviewIds.includes(id), 'a term due in the future is not reviewed');
-  rt.advance(0);
   api.startSession({ newCount: 0 });
   playSession(api);
   assert.equal(api.getState().sessions.length, 1);
   assert.equal(api.getState().sessions[0].reviewed, api.REVIEW_CAP);
-  assert.equal(api.dueIds().length, 4, 'the rest wait for the next session');
+  assert.equal(api.dueIds().length, 4, 'the rest wait for the next review');
+  // the next review: the four still due, then the words practised longest ago
+  const next = api.buildSession({ newCount: 0 });
+  same(next.reviewIds.slice(0, 4), ids.slice(0, 4).reverse());
+  const rest = next.reviewIds.slice(4);
+  assert.equal(rest.length, 8);
+  for (let i = 1; i < rest.length; i++) assert.ok(api.rec(rest[i - 1]).lastAt <= api.rec(rest[i]).lastAt, 'longest unpractised first');
+  assert.ok(rest.every(id => api.rec(id).due > rt.now()));
 });
 
-test('schedule: a term shown but not yet practised comes back next time', () => {
+test('schedule: a word shown but not yet practised counts for today and comes back first tomorrow', () => {
   const rt = memoryRuntime();
   const { api } = rt;
   api.startSession({ newCount: 2 });
   api.next(); // the first card was seen, its check never answered
   api.goHome();
   assert.equal(api.seenIds().length, 1);
-  const s = api.buildSession({ newCount: 1 });
+  let s = api.buildSession({ newCount: 1 });
   assert.equal(s.reviewIds.length, 1);
+  assert.equal(s.newIds.length, 0, 'the word already shown is today\'s one');
+  rt.advance(api.DAY);
+  s = api.buildSession({ newCount: 1 });
+  same(english(api, s.reviewIds), ['Manufacturer']);
   assert.equal(api.term(s.newIds[0]).en, 'Model');
 });
 
@@ -586,15 +646,15 @@ test('persistence: progress survives closing and reopening the app', () => {
   first.api.startSession();
   playSession(first.api, { answerWith: (st, n) => (n % 4 === 0 ? 'wrong' : 'right') });
   const saved = JSON.parse(seed.get(first.api.STORE_KEY));
-  assert.equal(Object.keys(saved.terms).length, 5);
+  assert.equal(Object.keys(saved.terms).length, 4);
   const second = memoryRuntime(seed, first.now());
   same(second.api.getState().terms, first.api.getState().terms);
   same(second.api.getState().sessions, first.api.getState().sessions);
   assert.equal(second.api.getState().sessions.length, 1);
-  assert.equal(second.api.seenIds().length, 5);
+  assert.equal(second.api.seenIds().length, 4);
   assert.ok(!second.app.innerHTML.includes('מתחילים מאפס'));
-  assert.ok(second.app.innerHTML.includes('<b dir="ltr">5<small> / 173</small></b>'));
-  assert.ok(second.app.innerHTML.includes('נלמדו 5 מתוך 25'));
+  assert.ok(second.app.innerHTML.includes('<b dir="ltr">4<small> / 173</small></b>'));
+  assert.ok(second.app.innerHTML.includes('נלמדו 4 מתוך 25'));
 });
 
 test('persistence: a storage failure never breaks the session', () => {
@@ -605,7 +665,8 @@ test('persistence: a storage failure never breaks the session', () => {
   api.answer(q.correct);
   assert.ok(app.innerHTML.includes('נכון'));
   assert.equal(api.rec(q.id).right, 1);
-  api.next(); api.answer(api.currentStep().correct); api.next();
+  api.next();
+  playSession(api);
   assert.equal(api.currentStep().type, 'done');
 });
 
@@ -627,7 +688,8 @@ test('persistence: the saved state is validated on load', () => {
   same(Object.keys(s.exercises), ['ee-read-per-unit']);
   assert.equal(s.exercises['ee-read-per-unit'].tries, 0);
   same(s.sessions, []);
-  assert.equal(s.settings.newCount, 5);
+  assert.equal(s.settings.newPerDay, 4, 'the old per-session count is clamped to the daily four');
+  assert.equal(runtime(new Map([['electricalEnglishV1', JSON.stringify({ settings: { newPerDay: 2 } })]])).api.getState().settings.newPerDay, 2);
   assert.equal(s.settings.topic, undefined, 'no topic is kept any more');
   assert.equal(s.settings.slow, true);
   assert.equal(s.settings.autoRead, false);
@@ -750,9 +812,12 @@ test('exercises: every authored exercise names real terms it waits for, and one 
 test('exercises: offered only once their terms were met, kept until passed, and marked real or mock', () => {
   const rt = memoryRuntime();
   const { api, app } = rt;
-  api.startSession(); playSession(api);
+  api.startSession(); playSession(api);                 // lesson one
   rt.advance(api.DAY + 1);
-  let s = api.buildSession();
+  assert.equal(api.buildSession().steps.filter(st => st.type === 'ex').length, 0, 'current and energy consumption are not met yet');
+  api.startSession(); playSession(api);                 // lesson two: voltage, current, frequency, single-phase
+  rt.advance(api.DAY + 1);
+  let s = api.buildSession();                           // lesson three brings energy consumption
   same(s.steps.filter(st => st.type === 'ex').map(st => st.id), ['ee-read-tefcold-input']);
   api.startSession();
   // answer the exercise wrongly this time
@@ -790,14 +855,14 @@ test('screens: topics show progress without listing the terms that were not taug
   const { api, app } = runtime();
   api.startSession(); playSession(api);
   api.goHome();
-  assert.ok(app.innerHTML.includes('נלמדו 5 מתוך 25'));
+  assert.ok(app.innerHTML.includes('נלמדו 4 מתוך 25'));
   assert.ok(app.innerHTML.includes('נלמדו 0 מתוך 23'));
   api.openTopic('spec');
   assert.ok(app.innerHTML.includes('data-view="topic"'));
-  for (const en of ['Manufacturer', 'Model', 'Datasheet', 'Input power', 'Voltage']) assert.ok(app.innerHTML.includes(`>${en}<`));
-  for (const en of ['Nameplate', 'Rated current', 'Operating conditions']) assert.ok(!app.innerHTML.includes(`>${en}<`), `${en} is not shown before it is taught`);
-  assert.ok(app.innerHTML.includes('עוד 20 מונחים בנושא זה יגיעו בתורם'));
-  assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
+  for (const en of ['Manufacturer', 'Model', 'Datasheet', 'Input power']) assert.ok(app.innerHTML.includes(`>${en}<`));
+  for (const en of ['Voltage', 'Nameplate', 'Rated current', 'Operating conditions']) assert.ok(!app.innerHTML.includes(`>${en}<`), `${en} is not shown before it is taught`);
+  assert.ok(app.innerHTML.includes('עוד 21 מונחים בנושא זה יגיעו בתורם'));
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 4);
   api.openTopic('power');
   assert.ok(app.innerHTML.includes('עדיין לא נלמדו מונחים בנושא זה'));
   assert.equal(count(app.innerHTML, 'class="term-row"'), 0);
@@ -807,24 +872,25 @@ test('screens: the review list, the term page and the session summary', () => {
   const rt = memoryRuntime();
   const { api, app } = rt;
   api.startSession(); playSession(api);
-  assert.ok(app.innerHTML.includes('סיימת את המפגש'));
-  assert.ok(app.innerHTML.includes('5 מונחים חדשים'));
+  assert.ok(app.innerHTML.includes('סיימת את השיעור'));
+  assert.ok(app.innerHTML.includes('4 מונחים חדשים'));
   assert.ok(app.innerHTML.includes('החזרה הבאה: מחר'));
   api.goHome();
   api.openDue();
   assert.ok(app.innerHTML.includes('אין כרגע מילים לחזרה'));
   rt.advance(api.DAY + 1);
   api.openDue();
-  assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 4);
   assert.ok(app.innerHTML.includes('חזרה בלבד'));
-  assert.equal(count(app.innerHTML, 'class="state due"'), 5);
-  api.openTerm('ee-en-voltage');
+  assert.equal(count(app.innerHTML, 'class="state due"'), 4);
+  api.openTerm('ee-en-model');
   assert.ok(app.innerHTML.includes('data-view="term"'));
   assert.ok(app.innerHTML.includes('class="state due">לחזרה<'));
-  assert.ok(app.innerHTML.includes('מתח'));
-  assert.ok(app.innerHTML.includes('משפט לדוגמה') && !app.innerHTML.includes('Read the voltage value and its unit.'), 'the sentence waits behind a tap');
+  assert.ok(app.innerHTML.includes('דגם'));
+  assert.ok(app.innerHTML.includes('משפט לדוגמה') && !app.innerHTML.includes('Check the model before copying the data.'), 'the sentence waits behind a tap');
   api.goHome();
-  assert.ok(app.innerHTML.includes('חזרה על 5 מונחים, ואז 5 מונחים חדשים'));
+  assert.ok(app.innerHTML.includes('שיעור 2: 4 מילים חדשות'));
+  assert.ok(app.innerHTML.includes('לפני כן חזרה על 4 מילים שכבר למדת'));
 });
 
 test('screens: the term card shows unit, aliases, confusable terms and its references', () => {
@@ -858,10 +924,11 @@ test('screens: settings and sources', () => {
   const { api, app } = runtime();
   api.openSettings();
   assert.ok(app.innerHTML.includes('data-view="settings"'));
-  assert.ok(app.innerHTML.includes('<output>5</output>'));
+  assert.ok(app.innerHTML.includes('<output>4</output>'));
+  assert.ok(app.innerHTML.includes('מילים חדשות ביום'));
   assert.ok(app.innerHTML.includes('אנגלית טכנית להנדסאי חשמל'));
   assert.ok(app.innerHTML.includes('2026-11-07'));
-  api.setNewCount(2);
+  api.setNewPerDay(2);
   assert.ok(app.innerHTML.includes('data-view="settings"'), 'the settings screen stays open');
   assert.ok(app.innerHTML.includes('<output>2</output>'));
   api.openSources();
@@ -900,27 +967,64 @@ test('words: the learned words can be searched in English or Hebrew, and unlearn
   api.startSession(); playSession(api);
   api.openWords();
   assert.ok(app.innerHTML.includes('class="search"'));
-  assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 4);
   const order = [...app.innerHTML.matchAll(/openTerm\('([^']+)'\)/g)].map(m => m[1]);
-  same(english(api, order), ['Datasheet', 'Input power', 'Manufacturer', 'Model', 'Voltage']);
-  api.filterWords('volt');
+  same(english(api, order), ['Datasheet', 'Input power', 'Manufacturer', 'Model']);
+  api.filterWords('input');
   assert.equal(count(app.innerHTML, 'class="term-row"'), 1);
-  assert.ok(app.innerHTML.includes('>Voltage<'));
-  api.filterWords('מתח');
+  assert.ok(app.innerHTML.includes('>Input power<'));
+  api.filterWords('דגם');
   assert.equal(count(app.innerHTML, 'class="term-row"'), 1);
-  assert.ok(app.innerHTML.includes('>Voltage<'));
+  assert.ok(app.innerHTML.includes('>Model<'));
   api.filterWords('Data sheet');
   assert.ok(app.innerHTML.includes('>Datasheet<'), 'an alias finds its term');
-  api.filterWords('Nameplate');
+  api.filterWords('Voltage');
   assert.equal(count(app.innerHTML, 'class="term-row"'), 0, 'a real term that was not learned is not offered');
   assert.ok(app.innerHTML.includes('מילים שעדיין לא נלמדו לא מופיעות'));
   api.filterWords('');
-  assert.equal(count(app.innerHTML, 'class="term-row"'), 5);
-  api.openTerm('ee-en-voltage');
+  assert.equal(count(app.innerHTML, 'class="term-row"'), 4);
+  api.openTerm('ee-en-model');
   assert.ok(app.innerHTML.includes('onclick="openWords()"'), 'the term page goes back to the search');
   api.goHome();
-  assert.ok(app.innerHTML.includes('5 מילים להאזנה'));
+  assert.ok(app.innerHTML.includes('4 מילים להאזנה'));
   assert.ok(app.innerHTML.includes('חיפוש וחזרה'));
+});
+
+test('lessons: the list shows what was opened so far, and a lesson can be repeated without touching the schedule', () => {
+  const { api, app } = runtime();
+  api.openLessons();
+  assert.ok(app.innerHTML.includes('data-view="lessons"'));
+  assert.ok(app.innerHTML.includes('עדיין לא נפתח שיעור'));
+  assert.equal(api.startLessonRepeat(0), false);
+  api.goHome();
+  api.startSession(); playSession(api);
+  api.goHome();
+  assert.ok(app.innerHTML.includes('onclick="openLessons()"'));
+  api.openLessons();
+  assert.equal(count(app.innerHTML, 'class="lesson"'), 1);
+  assert.ok(app.innerHTML.includes('שיעור 1') && app.innerHTML.includes('Manufacturer · Model · Datasheet · Input power'));
+  assert.ok(app.innerHTML.includes('>היום<'));
+  assert.ok(app.innerHTML.includes('עוד 43 שיעורים ייפתחו בתורם'));
+  assert.ok(!app.innerHTML.includes('Voltage'), 'tomorrow\'s words are not shown');
+  const before = JSON.parse(JSON.stringify(api.getState().terms));
+  assert.ok(api.startLessonRepeat(0));
+  const s = api.getSession();
+  assert.ok(s.repeat);
+  assert.equal(s.lesson, 0);
+  const cards = s.steps.filter(st => st.type === 'card');
+  assert.equal(cards.length, 4);
+  assert.ok(cards.every(c => c.repeat));
+  assert.equal(s.steps.filter(st => st.type === 'q').length, 12, 'three questions about each word');
+  assert.ok(s.steps.filter(st => st.type === 'q').every(q => q.review));
+  assert.ok(app.innerHTML.includes('חזרה על שיעור 1 · מילה 1 מתוך 4'));
+  playSession(api);
+  assert.ok(app.innerHTML.includes('סיימת את החזרה על השיעור'));
+  assert.equal(api.getSession().learned.length, 0);
+  for (const id of api.lessonIds(0)) {
+    assert.equal(api.rec(id).box, before[id].box, 'a repeat the same day does not push the schedule');
+    assert.equal(api.rec(id).due, before[id].due);
+  }
+  assert.equal(api.getState().sessions.at(-1).repeat, true);
 });
 
 test('audio: the listening lesson reads each learned word in English, Hebrew and English again, then moves on by itself', async () => {
@@ -963,7 +1067,7 @@ test('audio: the listening lesson reads each learned word in English, Hebrew and
   const stopped = fake.calls.length;
   await new Promise(r => setTimeout(r, 60));
   assert.equal(fake.calls.length, stopped, 'nothing more is said after pause');
-  assert.equal(api.getState().terms['ee-en-manufacturer'].right, 2, 'listening changes no record');
+  assert.equal(api.getState().terms['ee-en-manufacturer'].right, 4, 'listening changes no record: still the four answers of the lesson');
   // leaving the screen stops the lesson
   api.audioPlay();
   api.goHome();

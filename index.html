@@ -260,6 +260,12 @@ button.spec-row:disabled{cursor:default}
 .icon-btn.big{min-width:56px;min-height:56px;font-size:22px}
 .hint.center{text-align:center;margin-top:6px}
 
+.lesson{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:8px;color:var(--text);font:inherit;cursor:pointer;text-align:right}
+.lesson .num{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;background:var(--card2);color:var(--dim)}
+.lesson .body{flex:1;min-width:0}
+.lesson .name{display:block;font-weight:800;font-size:15.5px}
+.lesson .words{display:block;color:var(--soft);font-size:13.5px;line-height:1.4;margin-top:2px;text-align:left}
+
 @media (max-width:360px){
   body{font-size:16px}
   .term-card .term-en{font-size:28px}
@@ -514,9 +520,14 @@ const INTERVALS_DAYS = Array.isArray(CONTENT.intervals) && CONTENT.intervals.len
 /* "one correct answer is not enough": a term counts as mastered after the
    introductory success and three more spaced successes (1, 3 and 7 days) */
 const MASTERED_BOX = 4;
-const MAX_NEW_PER_SESSION = Number(CONTENT.newPerSession) || 5;
-/* a long backlog is spread over several sessions instead of one endless one */
+/* one lesson a day, four words long; a lesson begun today can be finished today */
+const LESSON_SIZE = 4;
+const MAX_NEW_PER_DAY = LESSON_SIZE;
+/* every lesson opens with a review of what was learned so far: what is due,
+   then what was practised longest ago, up to this many words a time */
 const REVIEW_CAP = 12;
+/* a review on its own, over few words, asks twice about each instead of once */
+const SMALL_REVIEW = 6;
 /* a missed term comes back after this many steps, in another shape */
 const REQUEUE_GAP = 2;
 const MAX_REQUEUES = 2;
@@ -566,7 +577,7 @@ function clamp(n, lo, hi){ return Math.min(hi, Math.max(lo, n)); }
 function defaults(){
   return {
     v: 1, createdAt: Date.now(), terms: {}, exercises: {}, sessions: [],
-    settings: { newCount: MAX_NEW_PER_SESSION, slow: false, autoRead: true, sentences: false },
+    settings: { newPerDay: MAX_NEW_PER_DAY, slow: false, autoRead: true, sentences: false },
     totals: { asked: 0, right: 0 },
   };
 }
@@ -599,10 +610,11 @@ function normalizeState(raw){
       at: num(x.at), endedAt: num(x.endedAt), reviewed: num(x.reviewed), reviewRight: num(x.reviewRight),
       newAsked: num(x.newAsked), newRight: num(x.newRight),
       learned: Array.isArray(x.learned) ? x.learned.filter(id => TERM_BY_ID.has(id)) : [],
+      lesson: num(x.lesson, -1), repeat: !!x.repeat,
     }));
   }
   const st = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
-  s.settings.newCount = clamp(Math.round(num(st.newCount, MAX_NEW_PER_SESSION)), 0, MAX_NEW_PER_SESSION);
+  s.settings.newPerDay = clamp(Math.round(num(st.newPerDay === undefined ? st.newCount : st.newPerDay, MAX_NEW_PER_DAY)), 0, MAX_NEW_PER_DAY);
   s.settings.slow = !!st.slow;
   s.settings.autoRead = st.autoRead === undefined ? true : !!st.autoRead;
   s.settings.sentences = !!st.sentences;
@@ -700,10 +712,46 @@ function topicProgress(cat, now = Date.now()){
   return p;
 }
 /* one fixed order for everyone: the important words first, as RECOMMENDED_ORDER
-   lays them out, and nothing to choose */
+   lays them out, cut into lessons of four; nothing to choose */
 function unseenIds(){ return RECOMMENDED_ORDER.filter(id => !isSeen(id)); }
-function nextNewIds(count = state.settings.newCount){
-  return unseenIds().slice(0, clamp(Math.round(num(count)), 0, MAX_NEW_PER_SESSION));
+function dayKey(ts){
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function introducedToday(now = Date.now()){
+  const today = dayKey(now);
+  return seenIds().filter(id => dayKey(rec(id).at) === today);
+}
+function lessonCount(){ return Math.ceil(RECOMMENDED_ORDER.length / LESSON_SIZE); }
+function lessonIds(k){ return RECOMMENDED_ORDER.slice(k * LESSON_SIZE, (k + 1) * LESSON_SIZE); }
+function lessonOf(id){ const i = RECOMMENDED_ORDER.indexOf(id); return i < 0 ? -1 : Math.floor(i / LESSON_SIZE); }
+/* the first lesson that still has a word not shown */
+function currentLessonIndex(){
+  for(let k = 0; k < lessonCount(); k++){ if(lessonIds(k).some(id => !isSeen(id))) return k; }
+  return -1;
+}
+/* The new words a session may introduce right now. One lesson a day: a new
+   lesson opens only on a day with no new words yet, a lesson begun today can
+   be finished today, and never more than the daily number in all. */
+function todaysNewIds(now = Date.now(), limit = state.settings.newPerDay){
+  const k = currentLessonIndex();
+  if(k < 0) return [];
+  const lesson = lessonIds(k);
+  const today = introducedToday(now);
+  if(today.length && !today.some(id => lesson.includes(id))) return [];
+  const room = Math.max(0, Math.min(num(limit, MAX_NEW_PER_DAY), MAX_NEW_PER_DAY) - today.length);
+  return lesson.filter(id => !isSeen(id)).slice(0, room);
+}
+/* what a lesson opens with: everything learned so far, the due words first
+   (most overdue at the front), then the ones practised longest ago */
+function reviewPool(now = Date.now()){
+  return seenIds().sort((a, b) => {
+    const ra = rec(a), rb = rec(b);
+    const da = ra.due <= now, db = rb.due <= now;
+    if(da !== db) return da ? -1 : 1;
+    if(da) return (ra.due - rb.due) || a.localeCompare(b);
+    return (ra.lastAt - rb.lastAt) || (ra.box - rb.box) || a.localeCompare(b);
+  });
 }
 /* The example sentence is an aid, not a thing to learn. By default ("only the
    words") a card shows the term, its meaning and the explanation; the sentence
@@ -829,38 +877,72 @@ function nextKind(id, after){
 
 /* ---------------- a session ---------------- */
 let S = null;
-function buildSession({ newCount = state.settings.newCount, now = Date.now() } = {}){
-  const reviewIds = dueIds(now).slice(0, REVIEW_CAP);
-  const newIds = nextNewIds(newCount);
-  const steps = [];
-  /* what was learned before comes first; on the very first session there is nothing here */
-  reviewIds.forEach(id => steps.push(makeQuestion(id, reviewKind(id), true)));
-  /* each new term: its card, then one quick check while it is fresh */
-  newIds.forEach((id, k) => {
-    steps.push({ type: 'card', id, n: k + 1, of: newIds.length });
-    const q = makeQuestion(id, 'meaning', false); q.quick = true; steps.push(q);
-  });
-  /* then every new term once more, in another shape, in a mixed order */
-  steps.push(...shuffle(newIds.map((id, k) => {
+function practiceRound(ids, perWord, review = false){
+  const qs = [];
+  ids.forEach((id, k) => {
     const kinds = kindsFor(id).filter(x => x !== 'meaning');
-    return makeQuestion(id, kinds[k % kinds.length], false);
-  })));
-  /* comprehension exercises whose terms will all have been met by now */
-  const known = new Set([...seenIds(), ...newIds]);
-  for(const ex of EXERCISES){
-    const needs = EXERCISE_REQUIRES[ex.id];
-    if(!needs || state.exercises[ex.id]?.passed) continue;
-    if(needs.every(id => known.has(id))) steps.push({ type: 'ex', id: ex.id });
+    for(let j = 0; j < perWord; j++) qs.push(makeQuestion(id, kinds[(k + j) % kinds.length], review));
+  });
+  return shuffle(qs);
+}
+/* one last question about each word, in order, before the session ends */
+function recapRound(ids, review = false){
+  return ids.map((id, k) => { const q = makeQuestion(id, k % 2 ? 'reverse' : 'meaning', review); q.recap = true; return q; });
+}
+/* A session is either today's lesson (the review, then the new words, each
+   met four times: card and quick check, two more shapes, a recap), a review
+   on its own when today's words are done, or a repeat of a lesson already
+   learned (its cards again, then three questions about each word). */
+function buildSession({ newCount = null, now = Date.now(), repeat = null, lesson = -1 } = {}){
+  const steps = [];
+  let reviewIds = [], newIds = [];
+  if(repeat){
+    const ids = repeat.filter(isSeen);
+    ids.forEach((id, k) => steps.push({ type: 'card', id, n: k + 1, of: ids.length, repeat: true }));
+    steps.push(...practiceRound(ids, 2, true));
+    steps.push(...recapRound(ids, true));
+    reviewIds = ids;
+  }else{
+    reviewIds = reviewPool(now).slice(0, REVIEW_CAP);
+    newIds = todaysNewIds(now, newCount === null ? state.settings.newPerDay : newCount);
+    lesson = newIds.length ? currentLessonIndex() : -1;
+    /* what was learned before comes first; on the very first lesson there is nothing here */
+    reviewIds.forEach(id => steps.push(makeQuestion(id, reviewKind(id), true)));
+    if(!newIds.length && reviewIds.length && reviewIds.length <= SMALL_REVIEW){
+      steps.push(...shuffle(reviewIds.map(id => makeQuestion(id, nextKind(id, reviewKind(id)), true))));
+    }
+    /* each new word: its card, then one quick check while it is fresh */
+    newIds.forEach((id, k) => {
+      steps.push({ type: 'card', id, n: k + 1, of: newIds.length });
+      const q = makeQuestion(id, 'meaning', false); q.quick = true; steps.push(q);
+    });
+    /* then every new word twice more, in other shapes and a mixed order, and a recap */
+    steps.push(...practiceRound(newIds, 2));
+    steps.push(...recapRound(newIds));
+    /* comprehension exercises whose terms will all have been met by now */
+    const known = new Set([...seenIds(), ...newIds]);
+    for(const ex of EXERCISES){
+      const needs = EXERCISE_REQUIRES[ex.id];
+      if(!needs || state.exercises[ex.id]?.passed) continue;
+      if(needs.every(id => known.has(id))) steps.push({ type: 'ex', id: ex.id });
+    }
   }
   steps.push({ type: 'done' });
   return {
-    startedAt: now, steps, i: 0, reviewIds, newIds, learned: [], requeues: {}, answered: null, recorded: false,
+    startedAt: now, steps, i: 0, reviewIds, newIds, lesson, repeat: !!repeat, learned: [], requeues: {}, answered: null, recorded: false,
     stats: { reviewAsked: 0, reviewRight: 0, newAsked: 0, newRight: 0, exAsked: 0, exRight: 0 },
   };
+}
+function startLessonRepeat(k){
+  k = Number(k);
+  const ids = lessonIds(k).filter(isSeen);
+  if(!ids.length){ toast('השיעור הזה עוד לא נלמד'); return false; }
+  return startSession({ repeat: ids, lesson: k });
 }
 function startSession(opts = {}){
   const s = buildSession(opts);
   if(s.steps.length <= 1){ toast('אין כרגע מה ללמוד או לחזור עליו'); return false; }
+  openExamples.clear();
   audioStop();
   S = s;
   renderStep();
@@ -922,8 +1004,8 @@ function answerExercise(i){
 function exitSession(){
   if(!S) { goHome(); return; }
   askConfirm({
-    title: 'לצאת מהמפגש?',
-    text: 'מה שכבר ענית נשמר. מונחים שהוצגו ועדיין לא תורגלו יחכו לחזרה במפגש הבא.',
+    title: 'לצאת מהשיעור?',
+    text: 'מה שכבר ענית נשמר. מילים שהוצגו ועדיין לא תורגלו יחכו לחזרה בשיעור הבא.',
     ok: 'יציאה', cancel: 'להמשיך', danger: true,
   }).then(ok => { if(ok) goHome(); });
 }
@@ -1192,25 +1274,43 @@ function renderHome(){
   const seen = seenIds();
   const mastered = masteredIds(now);
   const concepts = conceptIds();
-  const newCount = state.settings.newCount;
-  const planned = nextNewIds(newCount);
-  const remaining = unseenIds().length;
-  const nextTopic = planned.length ? category(term(planned[0]).cat) : null;
-  const canStart = due.length + planned.length > 0;
-  let heading;
-  if(due.length && planned.length) heading = `${reviewLabel(due.length)}, ואז ${newTermsLabel(planned.length)}`;
-  else if(due.length) heading = reviewLabel(due.length);
-  else if(planned.length) heading = newTermsLabel(planned.length);
-  else heading = remaining ? 'אין כרגע מה ללמוד' : 'כל המונחים במאגר כבר הוצגו';
+  const pool = reviewPool(now);
+  const reviewCount = Math.min(REVIEW_CAP, pool.length);
+  const newIds = todaysNewIds(now);
+  const today = introducedToday(now);
+  const lesson = currentLessonIndex();
+  const nextTopic = newIds.length ? category(term(newIds[0]).cat) : null;
   const upcoming = nextDue(now);
+  const lessonDone = !newIds.length && today.length > 0;
+  let heading, lines = [], button = '';
+  if(newIds.length){
+    heading = `שיעור ${lesson + 1}: ${newIds.length === 1 ? 'מילה חדשה אחת' : `${newIds.length} מילים חדשות`}`;
+    lines.push(reviewCount ? `לפני כן חזרה על ${reviewCount === 1 ? 'המילה שלמדת' : `${reviewCount} מילים שכבר למדת`}.` : 'זה השיעור הראשון, עדיין אין על מה לחזור.');
+    if(nextTopic) lines.push(`המילים החדשות מתוך: ${esc(nextTopic.name)}.`);
+    button = `<button type="button" class="btn" onclick="startSession()">להתחיל את השיעור</button>`;
+  }else if(lessonDone){
+    heading = 'השיעור של היום הושלם';
+    lines.push(`למדת היום ${today.length === 1 ? 'מילה חדשה אחת' : `${today.length} מילים חדשות`}. השיעור הבא ייפתח מחר.`);
+    lines.push(due.length ? `${countTerms(due.length)} ממתינים לחזרה עכשיו.` : 'בינתיים אפשר לחזור על מה שלמדת, או להאזין.');
+    button = `<button type="button" class="btn" onclick="startSession()">לחזור על מה שלמדתי</button>`;
+  }else if(lesson < 0){
+    heading = 'כל המילים במאגר נלמדו';
+    lines.push('תוספות יוצעו רק בעקבות חומר לימוד חדש. אפשר להמשיך לחזור.');
+    button = pool.length ? `<button type="button" class="btn" onclick="startSession()">לחזור על מה שלמדתי</button>` : '';
+  }else{
+    heading = 'אין שיעור חדש היום';
+    lines.push(`בהגדרות נבחרו אפס מילים חדשות ביום.${pool.length ? ' אפשר לחזור על מה שלמדת.' : ''}`);
+    button = pool.length ? `<button type="button" class="btn" onclick="startSession()">לחזור על מה שלמדתי</button>` : `<button type="button" class="btn" disabled>להתחיל את השיעור</button>`;
+  }
+  if(!newIds.length && !pool.length && lesson >= 0 && !lessonDone) lines.push(upcoming ? `החזרה הקרובה: ${dueLabel(upcoming, now)}.` : '');
   const welcome = seen.length ? '' : `
     <section class="card welcome">
       <h2>מתחילים מאפס</h2>
-      <p>כאן לומדים רק את האנגלית של לימודי החשמל: ${TERMS.length} מונחים ב־${CATEGORIES.length} נושאים, בסדר קבוע אחד — המילים החשובות לקריאת מפרטים קודם.</p>
+      <p>כאן לומדים רק את האנגלית של לימודי החשמל: ${TERMS.length} מילים ב־${lessonCount()} שיעורים קצרים, בסדר קבוע אחד — המילים החשובות לקריאת מפרטים קודם.</p>
       <ul>
-        <li>בכל מפגש: קודם חזרה על מה שכבר נלמד, ואז עד ${MAX_NEW_PER_SESSION} מונחים חדשים.</li>
-        <li>לכל מונח: תרגום מקצועי והסבר קצר — ואחר כך תרגול עם תשובה נכונה אחת.</li>
-        <li>מה שנלמד אפשר לחפש, ולהאזין לו כשיעור שמע.</li>
+        <li>שיעור אחד ביום, עד ${LESSON_SIZE} מילים חדשות. כל שיעור נפתח בחזרה על מה שכבר נלמד.</li>
+        <li>כל מילה חדשה חוזרת ארבע פעמים בתוך השיעור, בצורות שונות, ושוב בשיעורים הבאים.</li>
+        <li>כשהשיעור של היום הושלם אפשר לחזור על שיעורים קודמים, לחפש מילה, או להאזין.</li>
       </ul>
     </section>`;
   h(`
@@ -1221,21 +1321,19 @@ function renderHome(){
   <div class="screen" data-view="home">
     ${welcome}
     <section class="card next">
-      <div class="tag">⚡ המפגש הבא</div>
+      <div class="tag">⚡ ${lesson >= 0 ? `שיעור ${lesson + 1} מתוך ${lessonCount()}` : 'כל השיעורים הושלמו'}</div>
       <h2>${heading}</h2>
-      ${nextTopic ? `<p class="hint">המונחים החדשים הבאים בתור: ${esc(nextTopic.name)}.</p>` : ''}
-      ${!remaining ? `<p class="hint">כל ${TERMS.length} המונחים הוצגו. תוספות יוצעו רק בעקבות חומר לימוד חדש.</p>` : ''}
-      ${!canStart && remaining && newCount === 0 ? `<p class="hint amber">בהגדרות נבחרו אפס מונחים חדשים, ואין חזרות ממתינות.${upcoming ? ` החזרה הקרובה: ${dueLabel(upcoming, now)}.` : ''}</p>` : ''}
-      ${!canStart && !remaining ? `<p class="hint amber">אין חזרות ממתינות.${upcoming ? ` החזרה הקרובה: ${dueLabel(upcoming, now)}.` : ''}</p>` : ''}
-      ${due.length > REVIEW_CAP ? `<p class="hint amber">במפגש הזה ייכנסו ${REVIEW_CAP} חזרות; השאר ימתינו למפגש הבא.</p>` : ''}
-      <button type="button" class="btn" onclick="startSession()" ${canStart ? '' : 'disabled'}>להתחיל מפגש</button>
+      ${lines.filter(Boolean).map(l => `<p class="hint">${l}</p>`).join('')}
+      ${due.length > REVIEW_CAP ? `<p class="hint amber">בחזרה אחת נכנסות עד ${REVIEW_CAP} מילים; השאר ימתינו לחזרה הבאה.</p>` : ''}
+      ${button}
     </section>
+    <button type="button" class="row-link" onclick="openLessons()"><span class="ico">📚</span><span class="body">השיעורים<small>${seen.length ? 'לחזור על שיעור שכבר עברת' : 'הרשימה תתמלא שיעור אחרי שיעור'}</small></span><span class="count">${lesson < 0 ? lessonCount() : lesson + (lessonIds(lesson).some(isSeen) ? 1 : 0)}</span></button>
     <div class="quick">
-      <button type="button" class="row-link" onclick="openAudio()"><span class="ico">🎧</span><span class="body">שיעור שמע<small>${seen.length ? `${seen.length} מילים להאזנה` : 'ייפתח אחרי המפגש הראשון'}</small></span></button>
+      <button type="button" class="row-link" onclick="openAudio()"><span class="ico">🎧</span><span class="body">שיעור שמע<small>${seen.length ? `${seen.length} מילים להאזנה` : 'ייפתח אחרי השיעור הראשון'}</small></span></button>
       <button type="button" class="row-link" onclick="openWords()"><span class="ico">🔎</span><span class="body">המילים שלמדתי<small>${seen.length ? 'חיפוש וחזרה' : 'עדיין ריק'}</small></span></button>
     </div>
     <div class="stats">
-      <div class="stat"><b dir="ltr">${seen.length}<small> / ${TERMS.length}</small></b><span>מונחים נלמדו</span></div>
+      <div class="stat"><b dir="ltr">${seen.length}<small> / ${TERMS.length}</small></b><span>מילים נלמדו</span></div>
       <div class="stat"><b>${due.length}</b><span>לחזרה</span></div>
       <div class="stat"><b>${mastered.length}</b><span>שליטה מבוססת</span></div>
     </div>
@@ -1254,12 +1352,12 @@ function renderHome(){
       </button>`;
     }).join('')}
     <div class="section-title"><span>רשימות</span></div>
-    <button type="button" class="row-link" onclick="openDue()"><span class="ico">🔁</span><span class="body">מילים שדורשות חזרה<small>${due.length ? 'כדאי לחזור עליהן לפני מונחים חדשים' : upcoming ? `החזרה הקרובה: ${dueLabel(upcoming, now)}` : 'אין עדיין מה לחזור עליו'}</small></span><span class="count${due.length ? ' warn' : ''}">${due.length}</span></button>
+    <button type="button" class="row-link" onclick="openDue()"><span class="ico">🔁</span><span class="body">מילים שדורשות חזרה<small>${due.length ? 'הן נכנסות ראשונות לחזרה הבאה' : upcoming ? `החזרה הקרובה: ${dueLabel(upcoming, now)}` : 'אין עדיין מה לחזור עליו'}</small></span><span class="count${due.length ? ' warn' : ''}">${due.length}</span></button>
     <button type="button" class="row-link" onclick="openConcepts()"><span class="ico">❓</span><span class="body">מושגים שסומנו לבירור<small>הבנת את האנגלית, אבל המושג בחשמל דורש הסבר</small></span><span class="count${concepts.length ? ' pink' : ''}">${concepts.length}</span></button>
   </div>`);
 }
-function setNewCount(n){
-  state.settings.newCount = clamp(Math.round(num(n)), 0, MAX_NEW_PER_SESSION);
+function setNewPerDay(n){
+  state.settings.newPerDay = clamp(Math.round(num(n)), 0, MAX_NEW_PER_DAY);
   save();
   if(S) return;
   if(currentView === 'settings') openSettings(); else renderHome();
@@ -1338,6 +1436,35 @@ function openTerm(id){
   <div class="screen" data-view="term">
     ${termCardHtml(t)}
     ${facts}
+  </div>`);
+}
+
+/* ---------------- the lessons already learned ---------------- */
+function openLessons(){
+  currentView = 'lessons';
+  const now = Date.now();
+  const today = new Set(introducedToday(now));
+  const cur = currentLessonIndex();
+  const rows = [];
+  let hidden = 0;
+  for(let k = 0; k < lessonCount(); k++){
+    const ids = lessonIds(k);
+    const seen = ids.filter(isSeen);
+    if(!seen.length){ hidden++; continue; }
+    const isToday = seen.some(id => today.has(id));
+    const done = seen.length === ids.length;
+    const chip = isToday ? '<span class="state due">היום</span>' : done ? '<span class="state mastered">הושלם</span>' : '<span class="state learning">בתהליך</span>';
+    rows.push(`<button type="button" class="lesson" onclick="startLessonRepeat(${k})">
+      <span class="num">${k + 1}</span>
+      <span class="body"><span class="name">שיעור ${k + 1}</span><span class="words en" dir="ltr" lang="en">${seen.map(id => esc(term(id).en)).join(' · ')}</span></span>
+      ${chip}
+    </button>`);
+  }
+  h(`${subTop('השיעורים', 'goHome()', `${lessonCount()} שיעורים · ${rows.length} נפתחו`)}
+  <div class="screen" data-view="lessons">
+    <p class="hint" style="margin:4px 2px 14px">לחיצה על שיעור חוזרת עליו מההתחלה: הכרטיסים של המילים ואז תרגול. זה לא משנה את לוח החזרות.</p>
+    ${rows.length ? rows.join('') : `<div class="card"><p class="hint">עדיין לא נפתח שיעור. השיעור הראשון מחכה במסך הבית.</p></div>`}
+    ${hidden ? `<p class="hint" style="margin:12px 2px">${cur >= 0 && !rows.some(r => r.includes(`startLessonRepeat(${cur})`)) ? `שיעור ${cur + 1} הוא הבא בתור. ` : ''}עוד ${hidden} שיעורים ייפתחו בתורם, שיעור אחד ביום.</p>` : ''}
   </div>`);
 }
 
@@ -1480,17 +1607,17 @@ function audioSpeakPhase(){
 function openSettings(){
   currentView = 'settings';
   const sp = speechAvailable();
-  const n = state.settings.newCount;
+  const n = state.settings.newPerDay;
   const createdAt = new Date(state.createdAt);
   const since = isNaN(createdAt.getTime()) ? '' : createdAt.toLocaleDateString('he-IL');
   h(`${subTop('הגדרות')}
   <div class="screen" data-view="settings">
     <div class="card">
-      <div class="set-row"><span>מונחים חדשים במפגש<small>עד ${MAX_NEW_PER_SESSION}; אפשר פחות, או אפס כדי לחזור בלבד</small></span>
-        <div class="stepper" aria-label="מספר מונחים חדשים">
-          <button type="button" onclick="setNewCount(${n - 1})" ${n <= 0 ? 'disabled' : ''} aria-label="פחות">−</button>
+      <div class="set-row"><span>מילים חדשות ביום<small>עד ${MAX_NEW_PER_DAY}, שיעור אחד ביום; אפשר פחות, או אפס כדי לחזור בלבד</small></span>
+        <div class="stepper" aria-label="מספר מילים חדשות ביום">
+          <button type="button" onclick="setNewPerDay(${n - 1})" ${n <= 0 ? 'disabled' : ''} aria-label="פחות">−</button>
           <output>${n}</output>
-          <button type="button" onclick="setNewCount(${n + 1})" ${n >= MAX_NEW_PER_SESSION ? 'disabled' : ''} aria-label="יותר">+</button>
+          <button type="button" onclick="setNewPerDay(${n + 1})" ${n >= MAX_NEW_PER_DAY ? 'disabled' : ''} aria-label="יותר">+</button>
         </div>
       </div>
       <div class="set-row"><span>משפטי דוגמה<small>״רק המילים״: המשפט מחכה ללחיצה בכרטיס, לא מוקרא ולא נשאל עליו</small></span>
@@ -1562,7 +1689,7 @@ function playerTop(){
   const total = Math.max(1, S.steps.length - 1);
   const pct = Math.round(100 * Math.min(S.i, total) / total);
   return `<div class="player-top">
-    <button type="button" class="icon-btn" onclick="exitSession()" aria-label="יציאה מהמפגש">✕</button>
+    <button type="button" class="icon-btn" onclick="exitSession()" aria-label="יציאה מהשיעור">✕</button>
     <div class="progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
     <span class="step-label">${Math.min(S.i + 1, total)} / ${total}</span>
   </div>`;
@@ -1580,11 +1707,13 @@ function renderCard(st, { read = true } = {}){
   const t = term(st.id);
   /* seen the moment it is shown: closing the app now still brings it back for review */
   introduce(st.id);
-  if(!S.learned.includes(st.id)) S.learned.push(st.id);
+  if(!st.repeat && !S.learned.includes(st.id)) S.learned.push(st.id);
+  const label = st.repeat ? `חזרה על שיעור ${S.lesson + 1} · מילה ${st.n} מתוך ${st.of}` : `שיעור ${S.lesson + 1} · מילה חדשה ${st.n} מתוך ${st.of}`;
   h(`${playerTop()}
   <div class="screen" data-view="card">
-    <div class="phase"><span>מונח חדש ${st.n} מתוך ${st.of}</span><span class="topic-name">${esc(category(t.cat)?.name || '')}</span></div>
+    <div class="phase"><span>${label}</span><span class="topic-name">${esc(category(t.cat)?.name || '')}</span></div>
     ${termCardHtml(t)}
+    ${st.repeat ? '' : '<p class="hint" style="margin:0 2px 10px">קרא את המילה בקול, ואז לחץ ״הבא״. היא תחזור בשיעור הזה עוד שלוש פעמים.</p>'}
     <button type="button" class="btn" onclick="next()">הבא</button>
   </div>`, read);
   if(read) readCard(st.id);
@@ -1613,7 +1742,7 @@ function questionCue(st, t){
 }
 function phaseLabel(st){
   if(st.type === 'ex') return 'תרגיל הבנה';
-  const base = st.review ? 'חזרה' : st.quick ? 'בדיקה מהירה' : 'תרגול';
+  const base = st.review ? (S.repeat ? 'חזרה על השיעור' : 'חזרה') : st.quick ? 'בדיקה מהירה' : st.recap ? 'סיכום השיעור' : 'תרגול';
   return st.requeued ? `${base} · פעם נוספת` : base;
 }
 function renderQuestion(st, transition = true){
@@ -1704,23 +1833,29 @@ function renderDone(){
     S.recorded = true;
     state.sessions.push({
       at: S.startedAt, endedAt: now, reviewed: S.stats.reviewAsked, reviewRight: S.stats.reviewRight,
-      newAsked: S.stats.newAsked, newRight: S.stats.newRight, learned: S.learned.slice(),
+      newAsked: S.stats.newAsked, newRight: S.stats.newRight, learned: S.learned.slice(), lesson: S.lesson, repeat: S.repeat,
     });
     if(state.sessions.length > 60) state.sessions.splice(0, state.sessions.length - 60);
     save();
   }
   const due = dueIds(now).length;
   const upcoming = nextDue(now);
-  const missed = Object.keys(S.requeues).filter(id => S.learned.includes(id) || S.reviewIds.includes(id));
+  const missed = Object.keys(S.requeues).length;
+  const moreToday = todaysNewIds(now).length;
+  let title, lessonLine = '';
+  if(S.repeat){ title = 'סיימת את החזרה על השיעור'; lessonLine = S.lesson >= 0 ? `חזרת על שיעור ${S.lesson + 1}.` : ''; }
+  else if(S.learned.length){ title = 'סיימת את השיעור'; lessonLine = `שיעור ${S.lesson + 1} מתוך ${lessonCount()}.${moreToday ? '' : ' השיעור הבא ייפתח מחר; עד אז אפשר לחזור, לחפש או להאזין.'}`; }
+  else{ title = 'סיימת את החזרה'; }
   h(`
   <div class="screen" data-view="done">
     <div class="card finish">
       <div class="big">⚡</div>
-      <h2>סיימת את המפגש</h2>
+      <h2>${title}</h2>
+      ${lessonLine ? `<p>${lessonLine}</p>` : ''}
       ${S.stats.reviewAsked ? `<p>חזרות: ${S.stats.reviewRight} מתוך ${S.stats.reviewAsked} נכונות</p>` : ''}
       ${S.learned.length ? `<p>${newTermsLabel(S.learned.length)}:</p><div class="list">${S.learned.map(id => `<span class="en" dir="ltr" lang="en">${esc(term(id).en)}</span>`).join('')}</div>` : ''}
       ${S.stats.exAsked ? `<p>תרגילי הבנה: ${S.stats.exRight} מתוך ${S.stats.exAsked}</p>` : ''}
-      ${missed.length ? `<p>חזרו לתרגול אחרי טעות: ${missed.length}</p>` : ''}
+      ${missed ? `<p>חזרו לתרגול אחרי טעות: ${missed}</p>` : ''}
       <p>${due ? `${countTerms(due)} עדיין ממתינים לחזרה.` : upcoming ? `החזרה הבאה: ${dueLabel(upcoming, now)}.` : ''}</p>
       <button type="button" class="btn" onclick="goHome()">למסך הבית</button>
     </div>
