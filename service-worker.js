@@ -1,5 +1,8 @@
-const CACHE_PREFIX = 'speak-english-';
-const CACHE_NAME = 'speak-english-v124';
+const CACHE_PREFIX = 'electrical-english-';
+const CACHE_NAME = 'electrical-english-v1';
+/* the conversational app that lived at this address before kept its files
+   under this prefix; its caches are removed along with any stale one of ours */
+const LEGACY_CACHE_PREFIXES = ['speak-english-'];
 const APP_FILES = [
   './',
   './index.html',
@@ -20,7 +23,10 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     Promise.all([
       caches.keys().then(keys => Promise.all(
-        keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map(key => caches.delete(key))
+        keys.filter(key =>
+          LEGACY_CACHE_PREFIXES.some(prefix => key.startsWith(prefix)) ||
+          (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+        ).map(key => caches.delete(key))
       )),
       self.clients.claim()
     ])
